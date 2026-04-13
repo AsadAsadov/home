@@ -45,7 +45,6 @@ def humanize_time(last_seen_dt):
     now = datetime.now(timezone.utc)
     diff = now - last_seen_dt
     seconds = int(diff.total_seconds())
-
     if seconds < 5:
         return "indi"
     if seconds < 60:
@@ -68,7 +67,6 @@ def get_db():
 def init_db():
     with closing(get_db()) as conn:
         cur = conn.cursor()
-
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS agents (
@@ -108,22 +106,18 @@ def init_db():
             cur.execute("SELECT display_name FROM agents LIMIT 1")
         except sqlite3.OperationalError:
             cur.execute("ALTER TABLE agents ADD COLUMN display_name TEXT")
-            print("display_name sütunu əlavə edildi")
 
         try:
             cur.execute("SELECT hidden FROM agents LIMIT 1")
         except sqlite3.OperationalError:
             cur.execute("ALTER TABLE agents ADD COLUMN hidden INTEGER DEFAULT 0")
-            print("hidden sütunu əlavə edildi")
 
         try:
             cur.execute("SELECT group_id FROM agents LIMIT 1")
         except sqlite3.OperationalError:
             cur.execute("ALTER TABLE agents ADD COLUMN group_id INTEGER DEFAULT NULL")
-            print("group_id sütunu əlavə edildi")
 
         conn.commit()
-        print("Baza hazırdır")
 
 def login_required(func):
     @wraps(func)
@@ -142,8 +136,10 @@ def cleanup_storage():
         for row in old_rows:
             path = UPLOAD_FOLDER / row["filename"]
             try:
-                if path.exists(): path.unlink()
-            except OSError: pass
+                if path.exists():
+                    path.unlink()
+            except OSError:
+                pass
         cur.execute("DELETE FROM screenshots WHERE created_at <?", (cutoff_iso,))
         conn.commit()
 
@@ -226,7 +222,7 @@ def login():
         <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
         <title>BestHome Monitor</title>
         <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#050910;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:-apple-system,sans-serif;color:#fff;padding:16px}
-    .card{background:#0f172a;padding:20px;border-radius:16px;width:100%;max-width:320px;border:1px solid #1e293b}h2{font-size:18px;margin-bottom:16px;text-align:center}
+  .card{background:#0f172a;padding:20px;border-radius:16px;width:100%;max-width:320px;border:1px solid #1e293b}h2{font-size:18px;margin-bottom:16px;text-align:center}
         label{font-size:13px;color:#94a3b8;margin-bottom:6px;display:block}input{width:100%;padding:10px 12px;border-radius:8px;margin-bottom:12px;border:1px solid #1f2937;background:#020617;color:#fff;font-size:14px}
         input:focus{outline:none;border-color:#22c55e}button{width:100%;padding:11px;border-radius:8px;background:#22c55e;border:none;cursor:pointer;font-weight:600;font-size:15px;color:#000}
         button:active{background:#16a34a}.error{background:#7f1d1d;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;text-align:center}</style></head>
@@ -260,9 +256,16 @@ def upload():
                 last_seen=excluded.last_seen, active_window=excluded.active_window, active_process=excluded.active_process,
                 cpu_usage=excluded.cpu_usage, ram_usage=excluded.ram_usage, os_name=excluded.os_name, os_version=excluded.os_version
             """,
-            (pc_name, pc_name, now.isoformat(), request.form.get("active_window", ""), request.form.get("active_process", ""),
-             float(request.form.get("cpu_usage", 0) or 0), float(request.form.get("ram_usage", 0) or 0),
-             request.form.get("os_name", ""), request.form.get("os_version", "")),
+            (
+                pc_name,
+                now.isoformat(),
+                request.form.get("active_window", ""),
+                request.form.get("active_process", ""),
+                float(request.form.get("cpu_usage", 0) or 0),
+                float(request.form.get("ram_usage", 0) or 0),
+                request.form.get("os_name", ""),
+                request.form.get("os_version", "")
+            ),
         )
         conn.commit()
     return "OK", 200
@@ -287,8 +290,10 @@ def upload_video():
 
     @response.call_on_close
     def cleanup():
-        try: video_path.unlink()
-        except: pass
+        try:
+            video_path.unlink()
+        except:
+            pass
     return response
 
 @app.route("/agent/<name>/record", methods=["POST"])
@@ -327,7 +332,8 @@ def rename_agent(name):
 @login_required
 def set_group(name):
     group_id = request.form.get("group_id")
-    if group_id == "0": group_id = None
+    if group_id == "0":
+        group_id = None
     with closing(get_db()) as conn:
         conn.execute("UPDATE agents SET group_id =? WHERE name =?", (group_id, name))
         conn.commit()
@@ -343,7 +349,8 @@ def create_group():
             try:
                 conn.execute("INSERT INTO groups (name, color) VALUES (?,?)", (name, color))
                 conn.commit()
-            except sqlite3.IntegrityError: pass
+            except sqlite3.IntegrityError:
+                pass
     return redirect(url_for("dashboard"))
 
 @app.route("/group/<int:group_id>/delete", methods=["POST"])
@@ -375,10 +382,14 @@ def agent_detail(name):
 
     last_seen = parse_utc(row["last_seen"])
     agent = {
-        "name": row["name"], "display_name": row["display_name"] or row["name"],
-        "active_window": row["active_window"] or "—", "active_process": row["active_process"] or "—",
-        "last_seen_human": humanize_time(last_seen), "last_seen_ts": last_seen.timestamp(),
-        "cpu_usage": row["cpu_usage"] or 0, "ram_usage": row["ram_usage"] or 0,
+        "name": row["name"],
+        "display_name": row["display_name"] or row["name"],
+        "active_window": row["active_window"] or "—",
+        "active_process": row["active_process"] or "—",
+        "last_seen_human": humanize_time(last_seen),
+        "last_seen_ts": last_seen.timestamp(),
+        "cpu_usage": row["cpu_usage"] or 0,
+        "ram_usage": row["ram_usage"] or 0,
         "os_display": " ".join(p for p in [row["os_name"] or "", row["os_version"] or ""] if p) or "Naməlum",
     }
 
@@ -387,25 +398,23 @@ def agent_detail(name):
         <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
         <title>{{ a.display_name }}</title>
         <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px}
-    .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto}
-    .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6}img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer}
+  .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto}
+  .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6}img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer}
         a{color:#38bdf8;text-decoration:none;font-size:14px}.fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999}
-    .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain}.close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer}
-    .rec-btn{background:#ef4444;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;margin-top:10px}
-    .rec-btn:disabled{background:#64748b}</style>
+  .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain}.close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer}
+  .rec-btn{background:#ef4444;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;margin-top:10px}
+  .rec-btn:disabled{background:#64748b}</style>
         <script>
             let agentName = "{{ a.name }}";
             function openFullscreen(src){document.getElementById('fsimg').src=src;document.getElementById('fullscreen').style.display='flex'}
             function closeFullscreen(){document.getElementById('fullscreen').style.display='none'}
             document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFullscreen()});
-
             function startRecord(){
                 document.getElementById('recbtn').disabled=true;
                 document.getElementById('recbtn').textContent='Qeydiyyat başladı...';
                 fetch('/agent/'+agentName+'/record',{method:'POST'}).then(()=>alert('2 dəqiqəlik qeydiyyat başladı. Bitəndə avtomatik yüklənəcək.'));
                 setTimeout(()=>{document.getElementById('recbtn').disabled=false;document.getElementById('recbtn').textContent='● 2 Dəq Qeydiyyat'},5000);
             }
-
             function refreshData(){
                 fetch('/api/agents').then(r=>r.json()).then(data=>{
                     const agent=[...data.online,...data.offline,...data.hidden].find(x=>x.name===agentName);
@@ -443,28 +452,28 @@ def dashboard():
         <title>Dashboard</title>
         <style>*{box-sizing:border-box;margin:0;padding:0}body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif}
         header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100}
-    .stats{background:#0f172a;margin:10px 12px;padding:10px;border-radius:10px;border:1px solid #1e293b;font-size:12px;display:flex;gap:16px;flex-wrap:wrap}
-    .stat-item span{color:#38bdf8;font-weight:600}.search{padding:0 12px 10px}.search input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #1e293b;background:#0f172a;color:#fff;font-size:14px}
-    .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .section.arrow{transition:transform 0.2s}.section.collapsed.arrow{transform:rotate(-90deg)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px}
-    .grid.hidden{display:none}.card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative}
-    .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px}
-    .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:120px}
-    .menu-box button,.menu-box a{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;display:block;text-decoration:none}
-    .menu-box button:active,.menu-box a:active{background:#334155}.meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5}
-    .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px}.pc-name:hover{text-decoration:underline}
-    .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer}
-    .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999}
-    .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain}.close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer}
-    .status{margin-top:3px;font-size:11px}.loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200}
-    .bar{height:4px;background:#1e293b;border-radius:2px;margin-top:3px;overflow:hidden}.bar-fill{height:100%;transition:width 0.3s}
-    .group-tag{font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px}
-    .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:999}
-    .modal-content{background:#0f172a;padding:20px;border-radius:12px;border:1px solid #1e293b;max-width:300px;width:90%}
-    .modal input,.modal select{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1e293b;background:#020617;color:#fff;margin-bottom:10px}
-    .modal button{width:100%;padding:9px;border-radius:6px;border:none;cursor:pointer;font-weight:600;margin-top:5px}
-    .btn-primary{background:#22c55e;color:#000}.btn-danger{background:#ef4444;color:#fff}
+  .stats{background:#0f172a;margin:10px 12px;padding:10px;border-radius:10px;border:1px solid #1e293b;font-size:12px;display:flex;gap:16px;flex-wrap:wrap}
+  .stat-item span{color:#38bdf8;font-weight:600}.search{padding:0 12px 10px}.search input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #1e293b;background:#0f172a;color:#fff;font-size:14px}
+  .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .section.arrow{transition:transform 0.2s}.section.collapsed.arrow{transform:rotate(-90deg)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px}
+  .grid.hidden{display:none}.card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative}
+  .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px}
+  .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:120px}
+  .menu-box button,.menu-box a{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;display:block;text-decoration:none}
+  .menu-box button:active,.menu-box a:active{background:#334155}.meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5}
+  .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px}.pc-name:hover{text-decoration:underline}
+  .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer}
+  .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999}
+  .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain}.close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer}
+  .status{margin-top:3px;font-size:11px}.loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200}
+  .bar{height:4px;background:#1e293b;border-radius:2px;margin-top:3px;overflow:hidden}.bar-fill{height:100%;transition:width 0.3s}
+  .group-tag{font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px}
+  .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;z-index:999}
+  .modal-content{background:#0f172a;padding:20px;border-radius:12px;border:1px solid #1e293b;max-width:300px;width:90%}
+  .modal input,.modal select{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #1e293b;background:#020617;color:#fff;margin-bottom:10px}
+  .modal button{width:100%;padding:9px;border-radius:6px;border:none;cursor:pointer;font-weight:600;margin-top:5px}
+  .btn-primary{background:#22c55e;color:#000}.btn-danger{background:#ef4444;color:#fff}.empty{grid-column:1/-1;text-align:center;padding:20px;color:#64748b;font-size:13px}
         </style>
         <script>
             let allData = {};
@@ -478,9 +487,7 @@ def dashboard():
             function startRecord(name){fetch('/agent/'+name+'/record',{method:'POST'}).then(()=>alert('2 dəqiqəlik qeydiyyat başladı. Bitəndə avtomatik yüklənəcək.'))}
             document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFullscreen()});
             document.addEventListener('click',()=>{document.querySelectorAll('.menu-box').forEach(el=>el.style.display='none')});
-
             function getBarColor(val){if(val>90)return'#ef4444';if(val>70)return'#f59e0b';return'#22c55e'}
-
             function renderCards(agents,isOnline,isHidden=false){
                 if(agents.length===0)return'<div class="empty">Agent yoxdur.</div>';
                 return agents.map(a=>`
@@ -510,7 +517,6 @@ def dashboard():
                     </div>
                 `).join('');
             }
-
             function updateDashboard(data){
                 allData=data;
                 document.getElementById('stat-total').textContent=data.stats.total;
@@ -525,7 +531,6 @@ def dashboard():
                 document.getElementById('hidden-grid').innerHTML=renderCards(data.hidden,false,true);
                 filterSearch();
             }
-
             function filterSearch(){
                 const term=document.getElementById('search').value.toLowerCase();
                 document.querySelectorAll('.card').forEach(card=>{
@@ -533,7 +538,6 @@ def dashboard():
                     card.style.display=name.includes(term)?'block':'none';
                 });
             }
-
             function refreshData(){
                 document.getElementById('loading').style.display='block';
                 fetch('/api/agents').then(r=>r.json()).then(data=>{
@@ -541,7 +545,6 @@ def dashboard():
                     setTimeout(()=>document.getElementById('loading').style.display='none',200);
                 }).catch(()=>document.getElementById('loading').style.display='none');
             }
-
             setInterval(refreshData, 1000);
             document.addEventListener('DOMContentLoaded',()=>{
                 allData={groups:{{ groups|tojson }}};
@@ -557,32 +560,25 @@ def dashboard():
             <div class="stat-item">Orta RAM: <span id="stat-ram">{{ stats.avg_ram }}</span>%</div>
         </div>
         <div class="search"><input id="search" type="text" placeholder="🔍 PC axtar..." oninput="filterSearch()"></div>
-
         <div class="section" id="online-grid-section" onclick="toggleSection('online-grid')">
             <span>Onlayn (<span id="online-count">{{ online_agents|length }}</span>)</span><span class="arrow">▼</span>
         </div>
         <div class="grid" id="online-grid"></div>
-
         <div class="section collapsed" id="offline-grid-section" onclick="toggleSection('offline-grid')">
             <span>Oflayn (<span id="offline-count">{{ offline_agents|length }}</span>)</span><span class="arrow">▼</span>
         </div>
         <div class="grid hidden" id="offline-grid"></div>
-
         <div class="section collapsed" id="hidden-grid-section" onclick="toggleSection('hidden-grid')">
             <span>Gizlədilən (<span id="hidden-count">{{ hidden_agents|length }}</span>)</span><span class="arrow">▼</span>
         </div>
         <div class="grid hidden" id="hidden-grid"></div>
-
         <div style="padding:0 12px 12px"><button onclick="showModal('group-modal')" style="width:100%;padding:10px;border-radius:8px;background:#1e293b;border:1px solid #334155;color:#fff;cursor:pointer;font-size:13px;">+ Yeni Qrup Yarat</button></div>
-
         <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()"><span class="close" onclick="closeFullscreen()">&times;</span><img id="fsimg" src=""></div>
-
         <div id="edit-modal" class="modal" onclick="hideModal('edit-modal')"><div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-bottom:12px;font-size:16px">PC Adını Dəyiş</h3>
             <form id="edit-name-form" method="POST"><input id="edit-name-input" name="display_name" type="text" required><button class="btn-primary">Yadda saxla</button></form>
             <button class="btn-danger" onclick="hideModal('edit-modal')">Ləğv et</button>
         </div></div>
-
         <div id="group-modal" class="modal" onclick="hideModal('group-modal')"><div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-bottom:12px;font-size:16px">Yeni Qrup</h3>
             <form method="POST" action="/group/create">
