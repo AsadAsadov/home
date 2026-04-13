@@ -518,7 +518,6 @@ def dashboard():
         offline_agents=offline_agents,
     )
 
-
-if __name__ == "__main__":
-    init_db()
+init_db()
+if __name__ == "__main__":  
     app.run(host="0.0.0.0", port=5050, debug=False)
