@@ -30,7 +30,6 @@ UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 app = Flask(__name__)
 app.secret_key = "besthome_monitor_secret_123"
 LAST_CLEANUP = 0.0
-RECORD_REQUESTS = {}
 
 def utcnow_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -70,16 +69,15 @@ def init_db():
             CREATE TABLE IF NOT EXISTS agents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
-                display_name TEXT,
                 last_seen TEXT NOT NULL,
                 active_window TEXT,
                 active_process TEXT,
+                process_list TEXT,
                 cpu_usage REAL DEFAULT 0,
                 ram_usage REAL DEFAULT 0,
                 os_name TEXT DEFAULT '',
                 os_version TEXT DEFAULT '',
-                hidden INTEGER DEFAULT 0,
-                group_id INTEGER DEFAULT NULL
+                hidden INTEGER DEFAULT 0
             )
             """
         )
@@ -95,13 +93,29 @@ def init_db():
         )
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS groups (
+            CREATE TABLE IF NOT EXISTS employees (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                color TEXT DEFAULT '#38bdf8'
+                agent_name TEXT UNIQUE,
+                full_name TEXT,
+                department TEXT,
+                role TEXT,
+                note TEXT
             )
             """
         )
+
+        columns = {row[1] for row in cur.execute("PRAGMA table_info(agents)").fetchall()}
+        migrations = {
+            "cpu_usage": "ALTER TABLE agents ADD COLUMN cpu_usage REAL DEFAULT 0",
+            "ram_usage": "ALTER TABLE agents ADD COLUMN ram_usage REAL DEFAULT 0",
+            "os_name": "ALTER TABLE agents ADD COLUMN os_name TEXT DEFAULT ''",
+            "os_version": "ALTER TABLE agents ADD COLUMN os_version TEXT DEFAULT ''",
+            "hidden": "ALTER TABLE agents ADD COLUMN hidden INTEGER DEFAULT 0",
+        }
+        for column, sql in migrations.items():
+            if column not in columns:
+                cur.execute(sql)
+
         conn.commit()
 
 def login_required(func):
@@ -199,12 +213,6 @@ def fetch_agents_data():
 
     return online_agents, offline_agents, hidden_agents
 
-@app.route("/reset_db_161235")
-def reset_db():
-    DB_PATH.unlink(missing_ok=True)
-    init_db()
-    return "Baza sifirlandi"
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
@@ -228,14 +236,14 @@ def login():
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background:#050910; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#fff; padding:16px; }
-             .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
+            .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
                 h2 { font-size:18px; margin-bottom:16px; text-align:center; }
                 label { font-size:13px; color:#94a3b8; margin-bottom:6px; display:block; }
                 input { width:100%; padding:10px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; font-size:14px; }
                 input:focus { outline:none; border-color:#22c55e; }
                 button { width:100%; padding:11px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; font-size:15px; color:#000; }
                 button:active { background:#16a34a; }
-             .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
+            .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
             </style>
         </head>
         <body>
@@ -263,82 +271,76 @@ def logout():
 
 @app.route("/upload", methods=["POST"])
 def upload():
+    maybe_cleanup()
+
+    pc_name = (request.form.get("pc_name") or "").strip()
+    screenshot = request.files.get("screenshot")
+    if not pc_name or screenshot is None:
+        return "Invalid", 400
+
+    now = datetime.now(timezone.utc)
+    ts = now.strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{pc_name}_{ts}.jpg"
+
+    file_path = UPLOAD_FOLDER / filename
+    screenshot.save(file_path)
+
+    screenshot.stream.seek(0)
+    screenshot.save(UPLOAD_FOLDER / f"{pc_name}_last.jpg")
+
+    active_window = request.form.get("active_window", "")
+    active_process = request.form.get("active_process", "")
+    process_list = request.form.get("process_list", "")
+
     try:
-        maybe_cleanup()
+        cpu_usage = float(request.form.get("cpu_usage", "0") or 0)
+    except ValueError:
+        cpu_usage = 0.0
+    try:
+        ram_usage = float(request.form.get("ram_usage", "0") or 0)
+    except ValueError:
+        ram_usage = 0.0
 
-        pc_name = (request.form.get("pc_name") or "").strip()
-        screenshot = request.files.get("screenshot")
-        if not pc_name or screenshot is None:
-            return "Invalid", 400
+    os_name = request.form.get("os_name", "")
+    os_version = request.form.get("os_version", "")
 
-        now = datetime.now(timezone.utc)
-        ts = now.strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"{pc_name}_{ts}.jpg"
+    with closing(get_db()) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO agents (
+                name, last_seen, active_window, active_process, process_list,
+                cpu_usage, ram_usage, os_name, os_version
+            ) VALUES (?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(name) DO UPDATE SET
+                last_seen=excluded.last_seen,
+                active_window=excluded.active_window,
+                active_process=excluded.active_process,
+                process_list=excluded.process_list,
+                cpu_usage=excluded.cpu_usage,
+                ram_usage=excluded.ram_usage,
+                os_name=excluded.os_name,
+                os_version=excluded.os_version
+            """,
+            (
+                pc_name,
+                now.isoformat(),
+                active_window,
+                active_process,
+                process_list,
+                cpu_usage,
+                ram_usage,
+                os_name,
+                os_version,
+            ),
+        )
+        cur.execute(
+            "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?,?,?)",
+            (pc_name, filename, now.isoformat()),
+        )
+        conn.commit()
 
-        file_path = UPLOAD_FOLDER / filename
-        screenshot.save(file_path)
-
-        screenshot.stream.seek(0)
-        screenshot.save(UPLOAD_FOLDER / f"{pc_name}_last.jpg")
-
-        active_window = request.form.get("active_window", "")
-        active_process = request.form.get("active_process", "")
-
-        try:
-            cpu_usage = float(request.form.get("cpu_usage", "0") or 0)
-        except ValueError:
-            cpu_usage = 0.0
-        try:
-            ram_usage = float(request.form.get("ram_usage", "0") or 0)
-        except ValueError:
-            ram_usage = 0.0
-
-        os_name = request.form.get("os_name", "")
-        os_version = request.form.get("os_version", "")
-
-        with closing(get_db()) as conn:
-            cur = conn.cursor()
-            cur.execute(
-                """
-                INSERT INTO agents (name, display_name, last_seen, active_window, active_process, cpu_usage, ram_usage, os_name, os_version)
-                VALUES (?,?,?,?,?,?,?,?,?)
-                ON CONFLICT(name) DO UPDATE SET
-                    display_name=excluded.display_name, last_seen=excluded.last_seen, active_window=excluded.active_window, active_process=excluded.active_process,
-                    cpu_usage=excluded.cpu_usage, ram_usage=excluded.ram_usage, os_name=excluded.os_name, os_version=excluded.os_version
-                """,
-                (
-                    pc_name,
-                    pc_name,
-                    now.isoformat(),
-                    active_window,
-                    active_process,
-                    float(cpu_usage),
-                    float(ram_usage),
-                    os_name,
-                    os_version,
-                ),
-            )
-            cur.execute(
-                "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?,?,?)",
-                (pc_name, filename, now.isoformat()),
-            )
-            conn.commit()
-
-        return "OK", 200
-    except Exception as e:
-        return f"SERVER XETASI: {str(e)}", 500
-
-@app.route("/agent/<name>/record", methods=["POST"])
-def request_record(name):
-    RECORD_REQUESTS[name] = time.time()
     return "OK", 200
-
-@app.route("/api/command/<pc_name>")
-def api_command(pc_name):
-    last_request_ts = RECORD_REQUESTS.get(pc_name, 0)
-    if time.time() - last_request_ts <= 5:
-        return jsonify({"command": "record", "duration": 120})
-    return jsonify({"command": "none"})
 
 @app.route("/agent/<name>/hide", methods=["POST"])
 @login_required
@@ -438,15 +440,16 @@ def agent_detail(name):
             <style>
                 * { box-sizing:border-box; margin:0; padding:0; }
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px;}
-             .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
-             .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
+            .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
+            .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
                 img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer;}
                 a{color:#38bdf8;text-decoration:none;font-size:14px;}
-             .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-             .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-             .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+            .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+            .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+            .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
             </style>
             <script>
+                const AGENT_NAME = "{{ a.name }}";
                 function openFullscreen(src){
                     document.getElementById('fsimg').src = src;
                     document.getElementById('fullscreen').style.display = 'flex';
@@ -458,15 +461,25 @@ def agent_detail(name):
                     if(e.key === 'Escape') closeFullscreen();
                 });
 
-                // Auto refresh hər 2 saniyə
-                setInterval(function(){
+                // DEYISIKLIK 1: location.reload() SILDIM, YERINE BUNU YAZDIM
+                function updateAgent(){
                     fetch('/api/agents').then(r=>r.json()).then(data=>{
-                        const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name==="{{ a.name }}");
+                        const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name===AGENT_NAME);
                         if(agent){
-                            location.reload();
+                            document.getElementById('agent-img').src = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
+                            document.getElementById('fsimg').src = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
+                            document.getElementById('meta-box').innerHTML = `
+                                Last seen: ${agent.last_seen_human}<br>
+                                CPU: ${agent.cpu_usage.toFixed(1)}% | RAM: ${agent.ram_usage.toFixed(1)}%<br>
+                                OS: ${agent.os_display}<br>
+                                Window: ${agent.active_window}<br>
+                                Process: ${agent.active_process}<br>
+                                Status: ${agent.hidden? 'Gizli' : 'Görünür'}
+                            `;
                         }
                     });
-                }, 2000);
+                }
+                setInterval(updateAgent, 2000);
             </script>
         </head>
         <body>
@@ -474,8 +487,8 @@ def agent_detail(name):
             <div class="card">
                 <h3>{{ a.display_name }}</h3>
                 <small style="color:#94a3b8;">PC: {{ a.name }}</small>
-                <img onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
-                <div class="meta">
+                <img id="agent-img" onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
+                <div class="meta" id="meta-box">
                     Last seen: {{ a.last_seen_human }}<br>
                     CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
                     OS: {{ a.os_display }}<br>
@@ -512,23 +525,23 @@ def dashboard():
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;}
                 header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100;}
                 header div{font-weight:600;font-size:15px;}
-             .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
-             .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
-             .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
-             .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
-             .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
-             .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
-             .menu-box button:active{background:#334155;}
-             .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
-             .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
-             .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
-             .pc-name:hover{text-decoration:underline;}
-             .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
-             .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-             .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-             .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
-             .status{margin-top:3px;font-size:11px;}
-             .loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200;}
+            .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
+            .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
+            .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
+            .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
+            .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
+            .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
+            .menu-box button:active{background:#334155;}
+            .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
+            .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
+            .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
+            .pc-name:hover{text-decoration:underline;}
+            .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
+            .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+            .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+            .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+            .status{margin-top:3px;font-size:11px;}
+            .loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200;}
             </style>
             <script>
                 function toggleMenu(name){
@@ -554,70 +567,39 @@ def dashboard():
                     document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
                 });
 
-                // AUTO REFRESH - əsas məsələ budur
-                function updateDashboard(data){
-                    document.getElementById('online-count').textContent = data.online.length;
-                    document.getElementById('offline-count').textContent = data.offline.length;
-                    document.getElementById('hidden-count').textContent = data.hidden.length;
-
-                    renderSection('online-grid', data.online, true);
-                    renderSection('offline-grid', data.offline, false);
-                    renderSection('hidden-grid', data.hidden, false, true);
-                }
-
-                function renderSection(gridId, agents, isOnline, isHidden=false){
-                    const grid = document.getElementById(gridId);
-                    if(agents.length === 0){
-                        grid.innerHTML = '<div class="empty">Agent yoxdur.</div>';
-                        return;
-                    }
-
-                    grid.innerHTML = agents.map(a => `
-                        <div class="card">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                                <div>
-                                    <a href="/agent/${a.name}" class="pc-name">${a.display_name}</a><br>
-                                    <small style="color:#64748b;font-size:11px;">${a.name}</small>
-                                </div>
-                                <div>
-                                    <button class="menu-btn" onclick="toggleMenu('${isHidden?'h':''}${a.name}')">⋮</button>
-                                    <div id="menu_${isHidden?'h':''}${a.name}" class="menu-box">
-                                        ${isHidden
-                                           ? `<form method="POST" action="/agent/${a.name}/unhide"><button>👁 Göstər</button></form>`
-                                            : `<form method="POST" action="/agent/${a.name}/hide"><button>👁 Gizlət</button></form>`
-                                        }
-                                        <form method="POST" action="/agent/${a.name}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                            <button style="color:#f87171">🗑 Sil</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="status" style="color:${isHidden?'#64748b':isOnline?'#4ade80':'#f87171'};">● ${isHidden?'GİZLİ':isOnline?'ONLINE':'OFFLINE'}</div>
-                            <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/${a.name}_last.jpg?t=${a.last_seen_ts}" style="opacity:${isHidden?0.3:isOnline?1:0.5};">
-                            <div class="meta">
-                                ${a.last_seen_human} | CPU ${a.cpu_usage.toFixed(0)}% | RAM ${a.ram_usage.toFixed(0)}%<br>
-                                ${a.active_window.substring(0,30)}
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
+                // DEYISIKLIK 2: refreshData artiq sadece img ve meta yenileyir, kartlari yeniden yaratmir
                 function refreshData(){
                     const loader = document.getElementById('loading');
                     loader.style.display = 'block';
                     fetch('/api/agents')
-                       .then(r => r.json())
-                       .then(data => {
-                            updateDashboard(data);
+                      .then(r => r.json())
+                      .then(data => {
+                            updateCards(data.online, 'online');
+                            updateCards(data.offline, 'offline');
+                            updateCards(data.hidden, 'hidden');
+                            document.getElementById('online-count').textContent = data.online.length;
+                            document.getElementById('offline-count').textContent = data.offline.length;
+                            document.getElementById('hidden-count').textContent = data.hidden.length;
                             setTimeout(()=>loader.style.display='none', 300);
                         })
-                       .catch(()=>loader.style.display='none');
+                      .catch(()=>loader.style.display='none');
                 }
 
-                // Hər 2 saniyədən bir yenilə
-                setInterval(refreshData, 2000);
+                function updateCards(agents, type){
+                    agents.forEach(a => {
+                        const img = document.getElementById('img-' + type + '-' + a.name);
+                        const meta = document.getElementById('meta-' + type + '-' + a.name);
+                        const status = document.getElementById('status-' + type + '-' + a.name);
+                        if(img) img.src = '/screens/' + a.name + '_last.jpg?t=' + a.last_seen_ts;
+                        if(meta) meta.innerHTML = a.last_seen_human + ' | CPU ' + a.cpu_usage.toFixed(0) + '% | RAM ' + a.ram_usage.toFixed(0) + '%<br>' + a.active_window.substring(0,30);
+                        if(status) {
+                            status.style.color = type==='hidden'?'#64748b':a.online?'#4ade80':'#f87171';
+                            status.textContent = '● ' + (type==='hidden'?'GİZLİ':a.online?'ONLINE':'OFFLINE');
+                        }
+                    });
+                }
 
-                // İlk yükləmədə də çağır
+                setInterval(refreshData, 2000);
                 document.addEventListener('DOMContentLoaded', refreshData);
             </script>
         </head>
@@ -631,7 +613,7 @@ def dashboard():
             <div class="section">Online (<span id="online-count">{{ online_agents|length }}</span>)</div>
             <div class="grid" id="online-grid">
                 {% for a in online_agents %}
-                <div class="card">
+                <div class="card" id="card-online-{{ a.name }}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
                             <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
@@ -646,10 +628,9 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    </div>
-                    <div class="status" style="color:#4ade80;">● ONLINE</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
-                    <div class="meta">
+                    <div class="status" id="status-online-{{ a.name }}" style="color:#4ade80;">● ONLINE</div>
+                    <img id="img-online-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
+                    <div class="meta" id="meta-online-{{ a.name }}">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
                         {{ a.active_window[:30] }}
                     </div>
@@ -660,7 +641,7 @@ def dashboard():
             <div class="section">Offline (<span id="offline-count">{{ offline_agents|length }}</span>)</div>
             <div class="grid" id="offline-grid">
                 {% for a in offline_agents %}
-                <div class="card">
+                <div class="card" id="card-offline-{{ a.name }}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
                             <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
@@ -675,9 +656,9 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    <div class="status" style="color:#f87171;">● OFFLINE</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.5;">
-                    <div class="meta">
+                    <div class="status" id="status-offline-{{ a.name }}" style="color:#f87171;">● OFFLINE</div>
+                    <img id="img-offline-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.5;">
+                    <div class="meta" id="meta-offline-{{ a.name }}">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
                         {{ a.active_window[:30] }}
                     </div>
@@ -688,7 +669,7 @@ def dashboard():
             <div class="section">Gizlədilən (<span id="hidden-count">{{ hidden_agents|length }}</span>)</div>
             <div class="grid" id="hidden-grid">
                 {% for a in hidden_agents %}
-                <div class="card">
+                <div class="card" id="card-hidden-{{ a.name }}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
                             <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
@@ -703,12 +684,11 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    <div class="status" style="color:#64748b;">● GİZLİ</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.3;">
-                    <div class="meta">
+                    <div class="status" id="status-hidden-{{ a.name }}" style="color:#64748b;">● GİZLİ</div>
+                    <img id="img-hidden-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.3;">
+                    <div class="meta" id="meta-hidden-{{ a.name }}">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%
                     </div>
-                </div>
                 {% endfor %}
             </div>
 
@@ -726,4 +706,4 @@ def dashboard():
 
 init_db()
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=False)
+    app.run(host="0.0.0", port=5050, debug=False)
