@@ -69,15 +69,16 @@ def init_db():
             CREATE TABLE IF NOT EXISTS agents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
+                display_name TEXT,
                 last_seen TEXT NOT NULL,
                 active_window TEXT,
                 active_process TEXT,
-                process_list TEXT,
                 cpu_usage REAL DEFAULT 0,
                 ram_usage REAL DEFAULT 0,
                 os_name TEXT DEFAULT '',
                 os_version TEXT DEFAULT '',
-                hidden INTEGER DEFAULT 0
+                hidden INTEGER DEFAULT 0,
+                group_id INTEGER DEFAULT NULL
             )
             """
         )
@@ -93,29 +94,13 @@ def init_db():
         )
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS employees (
+            CREATE TABLE IF NOT EXISTS groups (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                agent_name TEXT UNIQUE,
-                full_name TEXT,
-                department TEXT,
-                role TEXT,
-                note TEXT
+                name TEXT UNIQUE NOT NULL,
+                color TEXT DEFAULT '#38bdf8'
             )
             """
         )
-
-        columns = {row[1] for row in cur.execute("PRAGMA table_info(agents)").fetchall()}
-        migrations = {
-            "cpu_usage": "ALTER TABLE agents ADD COLUMN cpu_usage REAL DEFAULT 0",
-            "ram_usage": "ALTER TABLE agents ADD COLUMN ram_usage REAL DEFAULT 0",
-            "os_name": "ALTER TABLE agents ADD COLUMN os_name TEXT DEFAULT ''",
-            "os_version": "ALTER TABLE agents ADD COLUMN os_version TEXT DEFAULT ''",
-            "hidden": "ALTER TABLE agents ADD COLUMN hidden INTEGER DEFAULT 0",
-        }
-        for column, sql in migrations.items():
-            if column not in columns:
-                cur.execute(sql)
-
         conn.commit()
 
 def login_required(func):
