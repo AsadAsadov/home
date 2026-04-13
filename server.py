@@ -31,14 +31,11 @@ app = Flask(__name__)
 app.secret_key = "besthome_monitor_secret_123"
 LAST_CLEANUP = 0.0
 
-
 def utcnow_iso():
     return datetime.now(timezone.utc).isoformat()
 
-
 def parse_utc(ts):
     return datetime.fromisoformat(ts)
-
 
 def humanize_time(last_seen_dt):
     now = datetime.now(timezone.utc)
@@ -48,15 +45,14 @@ def humanize_time(last_seen_dt):
     if seconds < 10:
         return "just now"
     if seconds < 60:
-        return f"{seconds} sec ago"
+        return f"{seconds}s ago"
     if seconds < 3600:
         minutes = seconds // 60
-        return f"{minutes} min ago"
+        return f"{minutes}m ago"
     if seconds < 86400:
         hours = seconds // 3600
-        return f"{hours} hours ago"
-    return last_seen_dt.strftime("%Y-%m-%d %H:%M")
-
+        return f"{hours}h ago"
+    return last_seen_dt.strftime("%m-%d %H:%M")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -64,7 +60,6 @@ def get_db():
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn
-
 
 def init_db():
     with closing(get_db()) as conn:
@@ -123,7 +118,6 @@ def init_db():
 
         conn.commit()
 
-
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -133,7 +127,6 @@ def login_required(func):
 
     return wrapper
 
-
 def cleanup_storage():
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=KEEP_SCREEN_SECONDS)
     cutoff_iso = cutoff.isoformat()
@@ -141,7 +134,7 @@ def cleanup_storage():
     with closing(get_db()) as conn:
         cur = conn.cursor()
         old_rows = cur.execute(
-            "SELECT filename FROM screenshots WHERE created_at < ?", (cutoff_iso,)
+            "SELECT filename FROM screenshots WHERE created_at <?", (cutoff_iso,)
         ).fetchall()
 
         for row in old_rows:
@@ -152,7 +145,7 @@ def cleanup_storage():
             except OSError:
                 pass
 
-        cur.execute("DELETE FROM screenshots WHERE created_at < ?", (cutoff_iso,))
+        cur.execute("DELETE FROM screenshots WHERE created_at <?", (cutoff_iso,))
         conn.commit()
 
     for path in UPLOAD_FOLDER.glob("*.jpg"):
@@ -164,13 +157,11 @@ def cleanup_storage():
         except OSError:
             continue
 
-
 def maybe_cleanup():
     global LAST_CLEANUP
     if time.time() - LAST_CLEANUP >= CLEANUP_INTERVAL_SECONDS:
         cleanup_storage()
         LAST_CLEANUP = time.time()
-
 
 def fetch_agents():
     with closing(get_db()) as conn:
@@ -180,7 +171,6 @@ def fetch_agents():
             SELECT a.*, e.full_name, e.department, e.role
             FROM agents a
             LEFT JOIN employees e ON e.agent_name = a.name
-            WHERE a.hidden = 0
             ORDER BY a.name ASC
             """
         ).fetchall()
@@ -190,6 +180,7 @@ def fetch_agents():
 
     online_agents = []
     offline_agents = []
+    hidden_agents = []
 
     for row in rows:
         last_seen = parse_utc(row["last_seen"])
@@ -209,15 +200,17 @@ def fetch_agents():
             )
             or "Unknown",
             "online": last_seen >= online_cutoff,
+            "hidden": row["hidden"],
         }
 
-        if agent["online"]:
+        if row["hidden"] == 1:
+            hidden_agents.append(agent)
+        elif agent["online"]:
             online_agents.append(agent)
         else:
             offline_agents.append(agent)
 
-    return online_agents, offline_agents
-
+    return online_agents, offline_agents, hidden_agents
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -237,24 +230,30 @@ def login():
         <html>
         <head>
             <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>BestHome Monitor - Login</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+            <title>BestHome Monitor</title>
             <style>
-                body { background:#050910; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:sans-serif; color:#fff; }
-                .card { background:#0f172a; padding:24px; border-radius:12px; width:90%; max-width:360px; }
-                input { width:100%; padding:12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; }
-                button { width:100%; padding:12px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; }
-                .error { background:#300; padding:10px; border-radius:8px; margin-bottom:12px; }
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { background:#050910; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#fff; padding:16px; }
+              .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
+                h2 { font-size:18px; margin-bottom:16px; text-align:center; }
+                label { font-size:13px; color:#94a3b8; margin-bottom:6px; display:block; }
+                input { width:100%; padding:10px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; font-size:14px; }
+                input:focus { outline:none; border-color:#22c55e; }
+                button { width:100%; padding:11px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; font-size:15px; color:#000; }
+                button:active { background:#16a34a; }
+              .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
             </style>
         </head>
         <body>
             <div class="card">
+                <h2>BestHome Monitor</h2>
                 {% if error %}<div class="error">{{ error }}</div>{% endif %}
                 <form method="POST">
                     <label>Email</label>
-                    <input name="email" type="email" required>
+                    <input name="email" type="email" placeholder="admin@besthome.com" required>
                     <label>Şifrə</label>
-                    <input name="password" type="password" required>
+                    <input name="password" type="password" placeholder="••••••••" required>
                     <button>Giriş</button>
                 </form>
             </div>
@@ -264,12 +263,10 @@ def login():
         error=error,
     )
 
-
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
-
 
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -313,7 +310,7 @@ def upload():
             INSERT INTO agents (
                 name, last_seen, active_window, active_process, process_list,
                 cpu_usage, ram_usage, os_name, os_version
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?,?,?,?,?,?,?,?,?)
             ON CONFLICT(name) DO UPDATE SET
                 last_seen=excluded.last_seen,
                 active_window=excluded.active_window,
@@ -337,31 +334,37 @@ def upload():
             ),
         )
         cur.execute(
-            "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?, ?, ?)",
+            "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?,?,?)",
             (pc_name, filename, now.isoformat()),
         )
         conn.commit()
 
     return "OK", 200
 
-
 @app.route("/agent/<name>/hide", methods=["POST"])
 @login_required
 def hide_agent(name):
     with closing(get_db()) as conn:
-        conn.execute("UPDATE agents SET hidden = 1 WHERE name = ?", (name,))
+        conn.execute("UPDATE agents SET hidden = 1 WHERE name =?", (name,))
         conn.commit()
     return redirect(url_for("dashboard"))
 
+@app.route("/agent/<name>/unhide", methods=["POST"])
+@login_required
+def unhide_agent(name):
+    with closing(get_db()) as conn:
+        conn.execute("UPDATE agents SET hidden = 0 WHERE name =?", (name,))
+        conn.commit()
+    return redirect(url_for("dashboard"))
 
 @app.route("/agent/<name>/delete", methods=["POST"])
 @login_required
 def delete_agent(name):
     with closing(get_db()) as conn:
         cur = conn.cursor()
-        cur.execute("DELETE FROM agents WHERE name = ?", (name,))
-        cur.execute("DELETE FROM employees WHERE agent_name = ?", (name,))
-        cur.execute("DELETE FROM screenshots WHERE agent_name = ?", (name,))
+        cur.execute("DELETE FROM agents WHERE name =?", (name,))
+        cur.execute("DELETE FROM employees WHERE agent_name =?", (name,))
+        cur.execute("DELETE FROM screenshots WHERE agent_name =?", (name,))
         conn.commit()
 
     for path in UPLOAD_FOLDER.glob(f"{name}*.jpg"):
@@ -372,12 +375,10 @@ def delete_agent(name):
 
     return redirect(url_for("dashboard"))
 
-
 @app.route("/screens/<path:filename>")
 @login_required
 def screens(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
-
 
 @app.route("/api/agent/<agent>/last")
 @login_required
@@ -387,7 +388,7 @@ def api_last(agent):
             """
             SELECT filename, created_at
             FROM screenshots
-            WHERE agent_name = ?
+            WHERE agent_name =?
             ORDER BY created_at DESC
             LIMIT 1
             """,
@@ -398,12 +399,104 @@ def api_last(agent):
         return jsonify({"ok": False})
     return jsonify({"ok": True, "filename": row["filename"], "created_at": row["created_at"]})
 
+@app.route("/agent/<name>")
+@login_required
+def agent_detail(name):
+    with closing(get_db()) as conn:
+        cur = conn.cursor()
+        row = cur.execute(
+            """
+            SELECT a.*, e.full_name, e.department, e.role
+            FROM agents a
+            LEFT JOIN employees e ON e.agent_name = a.name
+            WHERE a.name =?
+            """,
+            (name,),
+        ).fetchone()
+
+    if row is None:
+        return redirect(url_for("dashboard"))
+
+    last_seen = parse_utc(row["last_seen"])
+    agent = {
+        "name": row["name"],
+        "display_name": row["full_name"] or row["name"],
+        "department": row["department"] or "",
+        "role": row["role"] or "",
+        "active_window": row["active_window"] or "—",
+        "active_process": row["active_process"] or "—",
+        "last_seen": last_seen,
+        "last_seen_human": humanize_time(last_seen),
+        "cpu_usage": row["cpu_usage"] if row["cpu_usage"] is not None else 0,
+        "ram_usage": row["ram_usage"] if row["ram_usage"] is not None else 0,
+        "os_display": " ".join(
+            part for part in [row["os_name"] or "", row["os_version"] or ""] if part
+        )
+        or "Unknown",
+        "hidden": row["hidden"],
+    }
+
+    return render_template_string(
+        """
+        <!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>{{ a.display_name }}</title>
+            <style>
+                * { box-sizing:border-box; margin:0; padding:0; }
+                body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px;}
+              .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
+              .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
+                img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer;}
+                a{color:#38bdf8;text-decoration:none;font-size:14px;}
+              .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+              .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+              .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+            </style>
+            <script>
+                function openFullscreen(src){
+                    document.getElementById('fsimg').src = src;
+                    document.getElementById('fullscreen').style.display = 'flex';
+                }
+                function closeFullscreen(){
+                    document.getElementById('fullscreen').style.display = 'none';
+                }
+                document.addEventListener('keydown', function(e){
+                    if(e.key === 'Escape') closeFullscreen();
+                });
+            </script>
+        </head>
+        <body>
+            <a href="/">← Geri</a>
+            <div class="card">
+                <h3>{{ a.display_name }}</h3>
+                <small style="color:#94a3b8;">PC: {{ a.name }}</small>
+                <img onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}">
+                <div class="meta">
+                    Last seen: {{ a.last_seen_human }}<br>
+                    CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
+                    OS: {{ a.os_display }}<br>
+                    Window: {{ a.active_window }}<br>
+                    Process: {{ a.active_process }}<br>
+                    Status: {% if a.hidden %}Gizli{% else %}Görünür{% endif %}
+                </div>
+            <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()">
+                <span class="close" onclick="closeFullscreen()">&times;</span>
+                <img id="fsimg" src="">
+            </div>
+        </body>
+        </html>
+        """,
+        a=agent,
+    )
 
 @app.route("/")
 @login_required
 def dashboard():
     maybe_cleanup()
-    online_agents, offline_agents = fetch_agents()
+    online_agents, offline_agents, hidden_agents = fetch_agents()
 
     return render_template_string(
         """
@@ -414,59 +507,85 @@ def dashboard():
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <title>Dashboard</title>
             <style>
-                body{background:#020617;color:#e5e7eb;font-family:sans-serif;margin:0;padding:0;}
-                header{padding:12px 16px;border-bottom:1px solid #111827;display:flex;justify-content:space-between;}
-                .section{padding:12px 16px 0;font-size:18px;font-weight:700;}
-                .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:16px;}
-                .card{border:1px solid #111827;border-radius:12px;padding:12px;background:#020617;position:relative;}
-                .menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:22px;}
-                .menu-box{position:absolute;right:12px;top:38px;background:#0f172a;border:1px solid #1f2937;border-radius:8px;display:none;z-index:10;}
-                .menu-box button{background:none;border:none;color:#fff;padding:8px 14px;width:100%;text-align:left;cursor:pointer;}
-                .meta{margin-top:8px;font-size:13px;color:#cbd5e1;line-height:1.5;}
-                .empty{padding:0 16px 16px;color:#94a3b8;}
+                * { box-sizing:border-box; margin:0; padding:0; }
+                body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;}
+                header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100;}
+                header div{font-weight:600;font-size:15px;}
+              .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
+              .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
+              .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
+              .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
+              .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
+              .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
+              .menu-box button:active{background:#334155;}
+              .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
+              .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
+              .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
+              .pc-name:hover{text-decoration:underline;}
+              .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
+              .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+              .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+              .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+              .status{margin-top:3px;font-size:11px;}
+              .badge{font-size:10px;padding:2px 6px;border-radius:4px;display:inline-block;}
             </style>
             <script>
                 function toggleMenu(name){
+                    document.querySelectorAll('.menu-box').forEach(el => {
+                        if(el.id!== 'menu_'+name) el.style.display='none';
+                    });
                     const el=document.getElementById('menu_'+name);
                     el.style.display=el.style.display==='block'?'none':'block';
+                    event.stopPropagation();
                 }
+                function openFullscreen(src){
+                    document.getElementById('fsimg').src = src;
+                    document.getElementById('fullscreen').style.display = 'flex';
+                    event.stopPropagation();
+                }
+                function closeFullscreen(){
+                    document.getElementById('fullscreen').style.display = 'none';
+                }
+                document.addEventListener('keydown', function(e){
+                    if(e.key === 'Escape') closeFullscreen();
+                });
+                document.addEventListener('click', function(){
+                    document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
+                });
             </script>
         </head>
         <body>
             <header>
                 <div>BestHome Monitor</div>
-                <a href="/logout" style="color:#9ca3af;text-decoration:none;">Çıxış</a>
+                <a href="/logout" style="color:#94a3b8;text-decoration:none;font-size:13px;">Çıxış</a>
             </header>
 
-            <div class="section">Online Agents ({{ online_agents|length }})</div>
+            <div class="section">Online ({{ online_agents|length }})</div>
             {% if online_agents %}
             <div class="grid">
                 {% for a in online_agents %}
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
-                            <b>{{ a.display_name }}</b><br>
-                            <small>PC: {{ a.name }}</small>
+                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
+                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
                         </div>
                         <div>
                             <button class="menu-btn" onclick="toggleMenu('{{ a.name }}')">⋮</button>
                             <div id="menu_{{ a.name }}" class="menu-box">
                                 <form method="POST" action="/agent/{{ a.name }}/hide"><button>👁 Gizlət</button></form>
                                 <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                    <button style="color:#f55">🗑 Sil</button>
+                                    <button style="color:#f87171">🗑 Sil</button>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <div style="color:#4ade80; margin-top:4px;">● ONLINE</div>
-                    <img src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="width:100%;border-radius:8px;margin-top:8px;max-height:170px;object-fit:cover;">
+                    <div class="status" style="color:#4ade80;">● ONLINE</div>
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}">
                     <div class="meta">
-                        Last seen: {{ a.last_seen_human }}<br>
-                        CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
-                        OS: {{ a.os_display }}<br>
-                        Window: {{ a.active_window }}<br>
-                        Process: {{ a.active_process }}
+                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
+                        {{ a.active_window[:30] }}
                     </div>
                 </div>
                 {% endfor %}
@@ -475,49 +594,84 @@ def dashboard():
             <div class="empty">No online agents.</div>
             {% endif %}
 
-            <div class="section">Offline Agents ({{ offline_agents|length }})</div>
+            <div class="section">Offline ({{ offline_agents|length }})</div>
             {% if offline_agents %}
             <div class="grid">
                 {% for a in offline_agents %}
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                         <div>
-                            <b>{{ a.display_name }}</b><br>
-                            <small>PC: {{ a.name }}</small>
+                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
+                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
                         </div>
                         <div>
                             <button class="menu-btn" onclick="toggleMenu('{{ a.name }}')">⋮</button>
                             <div id="menu_{{ a.name }}" class="menu-box">
                                 <form method="POST" action="/agent/{{ a.name }}/hide"><button>👁 Gizlət</button></form>
                                 <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                    <button style="color:#f55">🗑 Sil</button>
+                                    <button style="color:#f87171">🗑 Sil</button>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <div style="color:#f87171; margin-top:4px;">● OFFLINE</div>
-                    <img src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="width:100%;border-radius:8px;margin-top:8px;max-height:170px;object-fit:cover;opacity:0.55;object-fit:cover;">
+                    <div class="status" style="color:#f87171;">● OFFLINE</div>
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="opacity:0.5;">
                     <div class="meta">
-                        Last seen: {{ a.last_seen_human }}<br>
-                        CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
-                        OS: {{ a.os_display }}<br>
-                        Window: {{ a.active_window }}<br>
-                        Process: {{ a.active_process }}
+                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
+                        {{ a.active_window[:30] }}
                     </div>
-                </div>
                 {% endfor %}
             </div>
             {% else %}
             <div class="empty">No offline agents.</div>
             {% endif %}
+
+            <div class="section">Gizlədilən ({{ hidden_agents|length }})</div>
+            {% if hidden_agents %}
+            <div class="grid">
+                {% for a in hidden_agents %}
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div>
+                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
+                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
+                        </div>
+                        <div>
+                            <button class="menu-btn" onclick="toggleMenu('h{{ a.name }}')">⋮</button>
+                            <div id="menu_h{{ a.name }}" class="menu-box">
+                                <form method="POST" action="/agent/{{ a.name }}/unhide"><button>👁 Göstər</button></form>
+                                <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
+                                    <button style="color:#f87171">🗑 Sil</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="status" style="color:#64748b;">● GİZLİ</div>
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="opacity:0.3;">
+                    <div class="meta">
+                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">Gizlədilən agent yoxdur.</div>
+            {% endif %}
+
+            <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()">
+                <span class="close" onclick="closeFullscreen()">&times;</span>
+                <img id="fsimg" src="">
+            </div>
         </body>
         </html>
         """,
         online_agents=online_agents,
         offline_agents=offline_agents,
+        hidden_agents=hidden_agents,
     )
 
 init_db()
-if __name__ == "__main__":  
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5050, debug=False)
