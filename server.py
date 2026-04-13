@@ -30,6 +30,7 @@ UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 app = Flask(__name__)
 app.secret_key = "besthome_monitor_secret_123"
 LAST_CLEANUP = 0.0
+RECORD_REQUESTS = {}
 
 def utcnow_iso():
     return datetime.now(timezone.utc).isoformat()
@@ -200,12 +201,9 @@ def fetch_agents_data():
 
 @app.route("/reset_db_161235")
 def reset_db():
-    try:
-        DB_PATH.unlink(missing_ok=True)
-    except:
-        pass
+    DB_PATH.unlink(missing_ok=True)
     init_db()
-    return "Baza sıfırlandı. <a href='/'>Ana səhifəyə qayıt</a>"
+    return "Baza sifirlandi"
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -265,68 +263,82 @@ def logout():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    maybe_cleanup()
-
-    pc_name = (request.form.get("pc_name") or "").strip()
-    screenshot = request.files.get("screenshot")
-    if not pc_name or screenshot is None:
-        return "Invalid", 400
-
-    now = datetime.now(timezone.utc)
-    ts = now.strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"{pc_name}_{ts}.jpg"
-
-    file_path = UPLOAD_FOLDER / filename
-    screenshot.save(file_path)
-
-    screenshot.stream.seek(0)
-    screenshot.save(UPLOAD_FOLDER / f"{pc_name}_last.jpg")
-
-    active_window = request.form.get("active_window", "")
-    active_process = request.form.get("active_process", "")
-    process_list = request.form.get("process_list", "")
-
     try:
-        cpu_usage = float(request.form.get("cpu_usage", "0") or 0)
-    except ValueError:
-        cpu_usage = 0.0
-    try:
-        ram_usage = float(request.form.get("ram_usage", "0") or 0)
-    except ValueError:
-        ram_usage = 0.0
+        maybe_cleanup()
 
-    os_name = request.form.get("os_name", "")
-    os_version = request.form.get("os_version", "")
+        pc_name = (request.form.get("pc_name") or "").strip()
+        screenshot = request.files.get("screenshot")
+        if not pc_name or screenshot is None:
+            return "Invalid", 400
 
-    with closing(get_db()) as conn:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO agents (name, display_name, last_seen, active_window, active_process, cpu_usage, ram_usage, os_name, os_version)
-            VALUES (?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(name) DO UPDATE SET
-                last_seen=excluded.last_seen, active_window=excluded.active_window, active_process=excluded.active_process,
-                cpu_usage=excluded.cpu_usage, ram_usage=excluded.ram_usage, os_name=excluded.os_name, os_version=excluded.os_version
-            """,
-            (
-                pc_name,
-                pc_name,  # <-- BUNU ƏLAVƏ ETDİM. display_name = pc_name
-                now.isoformat(),
-                request.form.get("active_window", ""),
-                request.form.get("active_process", ""),
-                float(request.form.get("cpu_usage", 0) or 0),
-                float(request.form.get("ram_usage", 0) or 0),
-                request.form.get("os_name", ""),
-                request.form.get("os_version", "")
-            ),
-        )
-        cur.execute(
-            "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?,?,?)",
-            (pc_name, filename, now.isoformat()),
-        )
-        conn.commit()
+        now = datetime.now(timezone.utc)
+        ts = now.strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{pc_name}_{ts}.jpg"
 
+        file_path = UPLOAD_FOLDER / filename
+        screenshot.save(file_path)
+
+        screenshot.stream.seek(0)
+        screenshot.save(UPLOAD_FOLDER / f"{pc_name}_last.jpg")
+
+        active_window = request.form.get("active_window", "")
+        active_process = request.form.get("active_process", "")
+
+        try:
+            cpu_usage = float(request.form.get("cpu_usage", "0") or 0)
+        except ValueError:
+            cpu_usage = 0.0
+        try:
+            ram_usage = float(request.form.get("ram_usage", "0") or 0)
+        except ValueError:
+            ram_usage = 0.0
+
+        os_name = request.form.get("os_name", "")
+        os_version = request.form.get("os_version", "")
+
+        with closing(get_db()) as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO agents (name, display_name, last_seen, active_window, active_process, cpu_usage, ram_usage, os_name, os_version)
+                VALUES (?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(name) DO UPDATE SET
+                    display_name=excluded.display_name, last_seen=excluded.last_seen, active_window=excluded.active_window, active_process=excluded.active_process,
+                    cpu_usage=excluded.cpu_usage, ram_usage=excluded.ram_usage, os_name=excluded.os_name, os_version=excluded.os_version
+                """,
+                (
+                    pc_name,
+                    pc_name,
+                    now.isoformat(),
+                    active_window,
+                    active_process,
+                    float(cpu_usage),
+                    float(ram_usage),
+                    os_name,
+                    os_version,
+                ),
+            )
+            cur.execute(
+                "INSERT INTO screenshots (agent_name, filename, created_at) VALUES (?,?,?)",
+                (pc_name, filename, now.isoformat()),
+            )
+            conn.commit()
+
+        return "OK", 200
+    except Exception as e:
+        return f"SERVER XETASI: {str(e)}", 500
+
+@app.route("/agent/<name>/record", methods=["POST"])
+def request_record(name):
+    RECORD_REQUESTS[name] = time.time()
     return "OK", 200
+
+@app.route("/api/command/<pc_name>")
+def api_command(pc_name):
+    last_request_ts = RECORD_REQUESTS.get(pc_name, 0)
+    if time.time() - last_request_ts <= 5:
+        return jsonify({"command": "record", "duration": 120})
+    return jsonify({"command": "none"})
 
 @app.route("/agent/<name>/hide", methods=["POST"])
 @login_required

