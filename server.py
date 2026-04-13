@@ -163,7 +163,7 @@ def maybe_cleanup():
         cleanup_storage()
         LAST_CLEANUP = time.time()
 
-def fetch_agents():
+def fetch_agents_data():
     with closing(get_db()) as conn:
         cur = conn.cursor()
         rows = cur.execute(
@@ -193,6 +193,7 @@ def fetch_agents():
             "active_process": row["active_process"] or "—",
             "last_seen": last_seen,
             "last_seen_human": humanize_time(last_seen),
+            "last_seen_ts": last_seen.timestamp(),
             "cpu_usage": row["cpu_usage"] if row["cpu_usage"] is not None else 0,
             "ram_usage": row["ram_usage"] if row["ram_usage"] is not None else 0,
             "os_display": " ".join(
@@ -235,14 +236,14 @@ def login():
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background:#050910; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#fff; padding:16px; }
-              .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
+             .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
                 h2 { font-size:18px; margin-bottom:16px; text-align:center; }
                 label { font-size:13px; color:#94a3b8; margin-bottom:6px; display:block; }
                 input { width:100%; padding:10px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; font-size:14px; }
                 input:focus { outline:none; border-color:#22c55e; }
                 button { width:100%; padding:11px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; font-size:15px; color:#000; }
                 button:active { background:#16a34a; }
-              .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
+             .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
             </style>
         </head>
         <body>
@@ -380,24 +381,15 @@ def delete_agent(name):
 def screens(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-@app.route("/api/agent/<agent>/last")
+@app.route("/api/agents")
 @login_required
-def api_last(agent):
-    with closing(get_db()) as conn:
-        row = conn.execute(
-            """
-            SELECT filename, created_at
-            FROM screenshots
-            WHERE agent_name =?
-            ORDER BY created_at DESC
-            LIMIT 1
-            """,
-            (agent,),
-        ).fetchone()
-
-    if row is None:
-        return jsonify({"ok": False})
-    return jsonify({"ok": True, "filename": row["filename"], "created_at": row["created_at"]})
+def api_agents():
+    online_agents, offline_agents, hidden_agents = fetch_agents_data()
+    return jsonify({
+        "online": online_agents,
+        "offline": offline_agents,
+        "hidden": hidden_agents
+    })
 
 @app.route("/agent/<name>")
 @login_required
@@ -427,6 +419,7 @@ def agent_detail(name):
         "active_process": row["active_process"] or "—",
         "last_seen": last_seen,
         "last_seen_human": humanize_time(last_seen),
+        "last_seen_ts": last_seen.timestamp(),
         "cpu_usage": row["cpu_usage"] if row["cpu_usage"] is not None else 0,
         "ram_usage": row["ram_usage"] if row["ram_usage"] is not None else 0,
         "os_display": " ".join(
@@ -447,13 +440,13 @@ def agent_detail(name):
             <style>
                 * { box-sizing:border-box; margin:0; padding:0; }
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px;}
-              .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
-              .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
+             .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
+             .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
                 img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer;}
                 a{color:#38bdf8;text-decoration:none;font-size:14px;}
-              .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-              .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-              .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+             .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+             .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+             .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
             </style>
             <script>
                 function openFullscreen(src){
@@ -466,6 +459,16 @@ def agent_detail(name):
                 document.addEventListener('keydown', function(e){
                     if(e.key === 'Escape') closeFullscreen();
                 });
+
+                // Auto refresh hər 2 saniyə
+                setInterval(function(){
+                    fetch('/api/agents').then(r=>r.json()).then(data=>{
+                        const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name==="{{ a.name }}");
+                        if(agent){
+                            location.reload();
+                        }
+                    });
+                }, 2000);
             </script>
         </head>
         <body>
@@ -473,7 +476,7 @@ def agent_detail(name):
             <div class="card">
                 <h3>{{ a.display_name }}</h3>
                 <small style="color:#94a3b8;">PC: {{ a.name }}</small>
-                <img onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}">
+                <img onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                 <div class="meta">
                     Last seen: {{ a.last_seen_human }}<br>
                     CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
@@ -496,7 +499,7 @@ def agent_detail(name):
 @login_required
 def dashboard():
     maybe_cleanup()
-    online_agents, offline_agents, hidden_agents = fetch_agents()
+    online_agents, offline_agents, hidden_agents = fetch_agents_data()
 
     return render_template_string(
         """
@@ -511,23 +514,23 @@ def dashboard():
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;}
                 header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100;}
                 header div{font-weight:600;font-size:15px;}
-              .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
-              .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
-              .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
-              .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
-              .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
-              .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
-              .menu-box button:active{background:#334155;}
-              .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
-              .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
-              .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
-              .pc-name:hover{text-decoration:underline;}
-              .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
-              .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-              .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-              .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
-              .status{margin-top:3px;font-size:11px;}
-              .badge{font-size:10px;padding:2px 6px;border-radius:4px;display:inline-block;}
+             .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
+             .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
+             .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
+             .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
+             .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
+             .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
+             .menu-box button:active{background:#334155;}
+             .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
+             .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
+             .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
+             .pc-name:hover{text-decoration:underline;}
+             .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
+             .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+             .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+             .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+             .status{margin-top:3px;font-size:11px;}
+             .loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200;}
             </style>
             <script>
                 function toggleMenu(name){
@@ -552,17 +555,83 @@ def dashboard():
                 document.addEventListener('click', function(){
                     document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
                 });
+
+                // AUTO REFRESH - əsas məsələ budur
+                function updateDashboard(data){
+                    document.getElementById('online-count').textContent = data.online.length;
+                    document.getElementById('offline-count').textContent = data.offline.length;
+                    document.getElementById('hidden-count').textContent = data.hidden.length;
+
+                    renderSection('online-grid', data.online, true);
+                    renderSection('offline-grid', data.offline, false);
+                    renderSection('hidden-grid', data.hidden, false, true);
+                }
+
+                function renderSection(gridId, agents, isOnline, isHidden=false){
+                    const grid = document.getElementById(gridId);
+                    if(agents.length === 0){
+                        grid.innerHTML = '<div class="empty">Agent yoxdur.</div>';
+                        return;
+                    }
+
+                    grid.innerHTML = agents.map(a => `
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div>
+                                    <a href="/agent/${a.name}" class="pc-name">${a.display_name}</a><br>
+                                    <small style="color:#64748b;font-size:11px;">${a.name}</small>
+                                </div>
+                                <div>
+                                    <button class="menu-btn" onclick="toggleMenu('${isHidden?'h':''}${a.name}')">⋮</button>
+                                    <div id="menu_${isHidden?'h':''}${a.name}" class="menu-box">
+                                        ${isHidden
+                                           ? `<form method="POST" action="/agent/${a.name}/unhide"><button>👁 Göstər</button></form>`
+                                            : `<form method="POST" action="/agent/${a.name}/hide"><button>👁 Gizlət</button></form>`
+                                        }
+                                        <form method="POST" action="/agent/${a.name}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
+                                            <button style="color:#f87171">🗑 Sil</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="status" style="color:${isHidden?'#64748b':isOnline?'#4ade80':'#f87171'};">● ${isHidden?'GİZLİ':isOnline?'ONLINE':'OFFLINE'}</div>
+                            <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/${a.name}_last.jpg?t=${a.last_seen_ts}" style="opacity:${isHidden?0.3:isOnline?1:0.5};">
+                            <div class="meta">
+                                ${a.last_seen_human} | CPU ${a.cpu_usage.toFixed(0)}% | RAM ${a.ram_usage.toFixed(0)}%<br>
+                                ${a.active_window.substring(0,30)}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                function refreshData(){
+                    const loader = document.getElementById('loading');
+                    loader.style.display = 'block';
+                    fetch('/api/agents')
+                       .then(r => r.json())
+                       .then(data => {
+                            updateDashboard(data);
+                            setTimeout(()=>loader.style.display='none', 300);
+                        })
+                       .catch(()=>loader.style.display='none');
+                }
+
+                // Hər 2 saniyədən bir yenilə
+                setInterval(refreshData, 2000);
+
+                // İlk yükləmədə də çağır
+                document.addEventListener('DOMContentLoaded', refreshData);
             </script>
         </head>
         <body>
+            <div id="loading" class="loading">Yenilənir...</div>
             <header>
                 <div>BestHome Monitor</div>
                 <a href="/logout" style="color:#94a3b8;text-decoration:none;font-size:13px;">Çıxış</a>
             </header>
 
-            <div class="section">Online ({{ online_agents|length }})</div>
-            {% if online_agents %}
-            <div class="grid">
+            <div class="section">Online (<span id="online-count">{{ online_agents|length }}</span>)</div>
+            <div class="grid" id="online-grid">
                 {% for a in online_agents %}
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -580,9 +649,8 @@ def dashboard():
                             </div>
                         </div>
                     </div>
-
                     <div class="status" style="color:#4ade80;">● ONLINE</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}">
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                     <div class="meta">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
                         {{ a.active_window[:30] }}
@@ -590,13 +658,9 @@ def dashboard():
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="empty">No online agents.</div>
-            {% endif %}
 
-            <div class="section">Offline ({{ offline_agents|length }})</div>
-            {% if offline_agents %}
-            <div class="grid">
+            <div class="section">Offline (<span id="offline-count">{{ offline_agents|length }}</span>)</div>
+            <div class="grid" id="offline-grid">
                 {% for a in offline_agents %}
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -613,23 +677,18 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    </div>
-
                     <div class="status" style="color:#f87171;">● OFFLINE</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="opacity:0.5;">
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.5;">
                     <div class="meta">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
                         {{ a.active_window[:30] }}
                     </div>
+                </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="empty">No offline agents.</div>
-            {% endif %}
 
-            <div class="section">Gizlədilən ({{ hidden_agents|length }})</div>
-            {% if hidden_agents %}
-            <div class="grid">
+            <div class="section">Gizlədilən (<span id="hidden-count">{{ hidden_agents|length }}</span>)</div>
+            <div class="grid" id="hidden-grid">
                 {% for a in hidden_agents %}
                 <div class="card">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -646,19 +705,14 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    </div>
-
                     <div class="status" style="color:#64748b;">● GİZLİ</div>
-                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen.timestamp() }}" style="opacity:0.3;">
+                    <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.3;">
                     <div class="meta">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="empty">Gizlədilən agent yoxdur.</div>
-            {% endif %}
 
             <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()">
                 <span class="close" onclick="closeFullscreen()">&times;</span>
