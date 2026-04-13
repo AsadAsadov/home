@@ -42,17 +42,17 @@ def humanize_time(last_seen_dt):
     diff = now - last_seen_dt
     seconds = int(diff.total_seconds())
 
-    if seconds < 10:
-        return "just now"
+    if seconds < 5:
+        return "indi"
     if seconds < 60:
-        return f"{seconds}s ago"
+        return f"{seconds} saniyə əvvəl"
     if seconds < 3600:
         minutes = seconds // 60
-        return f"{minutes}m ago"
+        return f"{minutes} dəqiqə əvvəl"
     if seconds < 86400:
         hours = seconds // 3600
-        return f"{hours}h ago"
-    return last_seen_dt.strftime("%m-%d %H:%M")
+        return f"{hours} saat əvvəl"
+    return last_seen_dt.strftime("%d.%m %H:%M")
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -199,7 +199,7 @@ def fetch_agents_data():
             "os_display": " ".join(
                 part for part in [row["os_name"] or "", row["os_version"] or ""] if part
             )
-            or "Unknown",
+            or "Naməlum",
             "online": last_seen >= online_cutoff,
             "hidden": row["hidden"],
         }
@@ -425,7 +425,7 @@ def agent_detail(name):
         "os_display": " ".join(
             part for part in [row["os_name"] or "", row["os_version"] or ""] if part
         )
-        or "Unknown",
+        or "Naməlum",
         "hidden": row["hidden"],
     }
 
@@ -449,6 +449,8 @@ def agent_detail(name):
              .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
             </style>
             <script>
+                let agentName = "{{ a.name }}";
+
                 function openFullscreen(src){
                     document.getElementById('fsimg').src = src;
                     document.getElementById('fullscreen').style.display = 'flex';
@@ -460,15 +462,25 @@ def agent_detail(name):
                     if(e.key === 'Escape') closeFullscreen();
                 });
 
-                // Auto refresh hər 2 saniyə
-                setInterval(function(){
-                    fetch('/api/agents').then(r=>r.json()).then(data=>{
-                        const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name==="{{ a.name }}");
-                        if(agent){
-                            location.reload();
-                        }
-                    });
-                }, 2000);
+                // Yalnız məlumatları yenilə, səhifəni yox
+                function refreshData(){
+                    fetch('/api/agents')
+                      .then(r => r.json())
+                      .then(data => {
+                            const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name===agentName);
+                            if(agent){
+                                document.getElementById('img').src = `/screens/${agent.name}_last.jpg?t=${agent.last_seen_ts}`;
+                                document.getElementById('lastseen').textContent = agent.last_seen_human;
+                                document.getElementById('cpu').textContent = agent.cpu_usage.toFixed(1);
+                                document.getElementById('ram').textContent = agent.ram_usage.toFixed(1);
+                                document.getElementById('window').textContent = agent.active_window;
+                                document.getElementById('process').textContent = agent.active_process;
+                            }
+                        });
+                }
+
+                // Hər 1 saniyədən bir yenilə
+                setInterval(refreshData, 1000);
             </script>
         </head>
         <body>
@@ -476,13 +488,13 @@ def agent_detail(name):
             <div class="card">
                 <h3>{{ a.display_name }}</h3>
                 <small style="color:#94a3b8;">PC: {{ a.name }}</small>
-                <img onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
+                <img id="img" onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                 <div class="meta">
-                    Last seen: {{ a.last_seen_human }}<br>
-                    CPU: {{ '%.1f'|format(a.cpu_usage) }}% | RAM: {{ '%.1f'|format(a.ram_usage) }}%<br>
-                    OS: {{ a.os_display }}<br>
-                    Window: {{ a.active_window }}<br>
-                    Process: {{ a.active_process }}<br>
+                    Son aktivlik: <span id="lastseen">{{ a.last_seen_human }}</span><br>
+                    Prosessor: <span id="cpu">{{ '%.1f'|format(a.cpu_usage) }}</span>% | Yaddaş: <span id="ram">{{ '%.1f'|format(a.ram_usage) }}</span>%<br>
+                    ƏS: {{ a.os_display }}<br>
+                    Pəncərə: <span id="window">{{ a.active_window }}</span><br>
+                    Proses: <span id="process">{{ a.active_process }}</span><br>
                     Status: {% if a.hidden %}Gizli{% else %}Görünür{% endif %}
                 </div>
             <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()">
@@ -556,7 +568,7 @@ def dashboard():
                     document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
                 });
 
-                // AUTO REFRESH - əsas məsələ budur
+                // YALNIZ MƏLUMATLARI YENİLƏ - SƏHİFƏ RELOAD OLMUR
                 function updateDashboard(data){
                     document.getElementById('online-count').textContent = data.online.length;
                     document.getElementById('offline-count').textContent = data.offline.length;
@@ -585,7 +597,7 @@ def dashboard():
                                     <button class="menu-btn" onclick="toggleMenu('${isHidden?'h':''}${a.name}')">⋮</button>
                                     <div id="menu_${isHidden?'h':''}${a.name}" class="menu-box">
                                         ${isHidden
-                                           ? `<form method="POST" action="/agent/${a.name}/unhide"><button>👁 Göstər</button></form>`
+                                          ? `<form method="POST" action="/agent/${a.name}/unhide"><button>👁 Göstər</button></form>`
                                             : `<form method="POST" action="/agent/${a.name}/hide"><button>👁 Gizlət</button></form>`
                                         }
                                         <form method="POST" action="/agent/${a.name}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
@@ -594,7 +606,7 @@ def dashboard():
                                     </div>
                                 </div>
                             </div>
-                            <div class="status" style="color:${isHidden?'#64748b':isOnline?'#4ade80':'#f87171'};">● ${isHidden?'GİZLİ':isOnline?'ONLINE':'OFFLINE'}</div>
+                            <div class="status" style="color:${isHidden?'#64748b':isOnline?'#4ade80':'#f87171'};">● ${isHidden?'GİZLİ':isOnline?'ONLAYN':'OFLAYN'}</div>
                             <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/${a.name}_last.jpg?t=${a.last_seen_ts}" style="opacity:${isHidden?0.3:isOnline?1:0.5};">
                             <div class="meta">
                                 ${a.last_seen_human} | CPU ${a.cpu_usage.toFixed(0)}% | RAM ${a.ram_usage.toFixed(0)}%<br>
@@ -608,18 +620,16 @@ def dashboard():
                     const loader = document.getElementById('loading');
                     loader.style.display = 'block';
                     fetch('/api/agents')
-                       .then(r => r.json())
-                       .then(data => {
+                      .then(r => r.json())
+                      .then(data => {
                             updateDashboard(data);
-                            setTimeout(()=>loader.style.display='none', 300);
+                            setTimeout(()=>loader.style.display='none', 200);
                         })
-                       .catch(()=>loader.style.display='none');
+                      .catch(()=>loader.style.display='none');
                 }
 
-                // Hər 2 saniyədən bir yenilə
-                setInterval(refreshData, 2000);
-
-                // İlk yükləmədə də çağır
+                // Hər 1 SANİYƏDƏN BİR - GECİKMƏ YOXDUR
+                setInterval(refreshData, 1000);
                 document.addEventListener('DOMContentLoaded', refreshData);
             </script>
         </head>
@@ -630,7 +640,7 @@ def dashboard():
                 <a href="/logout" style="color:#94a3b8;text-decoration:none;font-size:13px;">Çıxış</a>
             </header>
 
-            <div class="section">Online (<span id="online-count">{{ online_agents|length }}</span>)</div>
+            <div class="section">Onlayn (<span id="online-count">{{ online_agents|length }}</span>)</div>
             <div class="grid" id="online-grid">
                 {% for a in online_agents %}
                 <div class="card">
@@ -649,7 +659,7 @@ def dashboard():
                             </div>
                         </div>
                     </div>
-                    <div class="status" style="color:#4ade80;">● ONLINE</div>
+                    <div class="status" style="color:#4ade80;">● ONLAYN</div>
                     <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                     <div class="meta">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
@@ -659,7 +669,7 @@ def dashboard():
                 {% endfor %}
             </div>
 
-            <div class="section">Offline (<span id="offline-count">{{ offline_agents|length }}</span>)</div>
+            <div class="section">Oflayn (<span id="offline-count">{{ offline_agents|length }}</span>)</div>
             <div class="grid" id="offline-grid">
                 {% for a in offline_agents %}
                 <div class="card">
@@ -677,7 +687,7 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
-                    <div class="status" style="color:#f87171;">● OFFLINE</div>
+                    <div class="status" style="color:#f87171;">● OFLAYN</div>
                     <img onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.5;">
                     <div class="meta">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
