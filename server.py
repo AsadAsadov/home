@@ -103,6 +103,16 @@ def init_db():
             )
             """
         )
+        ### DƏYİŞDİM 1: VIDEO COMMAND UCUN CEDVEL
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS commands (
+                pc_name TEXT PRIMARY KEY,
+                command TEXT,
+                duration INTEGER
+            )
+            """
+        )
 
         columns = {row[1] for row in cur.execute("PRAGMA table_info(agents)").fetchall()}
         migrations = {
@@ -236,14 +246,14 @@ def login():
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; }
                 body { background:#050910; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#fff; padding:16px; }
-            .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
+           .card { background:#0f172a; padding:20px; border-radius:16px; width:100%; max-width:320px; border:1px solid #1e293b; }
                 h2 { font-size:18px; margin-bottom:16px; text-align:center; }
                 label { font-size:13px; color:#94a3b8; margin-bottom:6px; display:block; }
                 input { width:100%; padding:10px 12px; border-radius:8px; margin-bottom:12px; border:1px solid #1f2937; background:#020617; color:#fff; font-size:14px; }
                 input:focus { outline:none; border-color:#22c55e; }
                 button { width:100%; padding:11px; border-radius:8px; background:#22c55e; border:none; cursor:pointer; font-weight:600; font-size:15px; color:#000; }
                 button:active { background:#16a34a; }
-            .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
+           .error { background:#7f1d1d; padding:10px; border-radius:8px; margin-bottom:12px; font-size:13px; text-align:center; }
             </style>
         </head>
         <body>
@@ -340,6 +350,54 @@ def upload():
         )
         conn.commit()
 
+    return "OK", 200
+
+### DƏYİŞDİM 2: VIDEO UCUN ROUTE-LAR
+@app.route("/upload_video", methods=["POST"])
+def upload_video():
+    try:
+        pc_name = (request.form.get("pc_name") or "").strip()
+        video = request.files.get("video")
+        if not pc_name or video is None:
+            return "Invalid", 400
+        filename = f"{pc_name}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.mp4"
+        video.save(UPLOAD_FOLDER / filename)
+        return "OK", 200
+    except Exception as e:
+        return f"VIDEO XETASI: {e}", 500
+
+@app.route("/api/command/<pc_name>")
+def get_command(pc_name):
+    with closing(get_db()) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT command, duration FROM commands WHERE pc_name =?", (pc_name,))
+        row = cur.fetchone()
+        if row:
+            cur.execute("DELETE FROM commands WHERE pc_name =?", (pc_name,))
+            conn.commit()
+            return jsonify({"command": row["command"], "duration": row["duration"]})
+    return jsonify({"command": None})
+
+@app.route("/api/record/<pc_name>/<int:duration>")
+@login_required
+def set_record(pc_name, duration):
+    with closing(get_db()) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO commands (pc_name, command, duration) VALUES (?,?,?) ON CONFLICT(pc_name) DO UPDATE SET command=excluded.command, duration=excluded.duration",
+            (pc_name, "record", duration)
+        )
+        conn.commit()
+    return "OK", 200
+
+@app.route("/api/rename/<name>", methods=["POST"])
+@login_required
+def rename_agent(name):
+    new_name = request.json.get("full_name", "").strip()
+    with closing(get_db()) as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT OR REPLACE INTO employees (agent_name, full_name) VALUES (?,?)", (name, new_name))
+        conn.commit()
     return "OK", 200
 
 @app.route("/agent/<name>/hide", methods=["POST"])
@@ -440,13 +498,15 @@ def agent_detail(name):
             <style>
                 * { box-sizing:border-box; margin:0; padding:0; }
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;padding:12px;}
-            .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
-            .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
+          .card{border:1px solid #1e293b;border-radius:12px;padding:14px;background:#0f172a;max-width:700px;margin:0 auto;}
+          .meta{margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.6;}
                 img{width:100%;border-radius:8px;margin-top:10px;cursor:pointer;}
                 a{color:#38bdf8;text-decoration:none;font-size:14px;}
-            .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-            .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-            .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+          .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+          .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+          .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+          .btn{background:#22c55e;color:#000;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:8px;}
+          .input{background:#020617;border:1px solid #1e293b;color:#fff;padding:6px 8px;border-radius:6px;font-size:13px;}
             </style>
             <script>
                 const AGENT_NAME = "{{ a.name }}";
@@ -461,13 +521,14 @@ def agent_detail(name):
                     if(e.key === 'Escape') closeFullscreen();
                 });
 
-                // DEYISIKLIK 1: location.reload() SILDIM, YERINE BUNU YAZDIM
+                ### DƏYİŞDİM 3: FULLSCREEN DE YENILENIR + AD REDAKTE + VIDEO
                 function updateAgent(){
                     fetch('/api/agents').then(r=>r.json()).then(data=>{
                         const agent = [...data.online,...data.offline,...data.hidden].find(x=>x.name===AGENT_NAME);
                         if(agent){
-                            document.getElementById('agent-img').src = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
-                            document.getElementById('fsimg').src = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
+                            const newSrc = '/screens/' + AGENT_NAME + '_last.jpg?t=' + agent.last_seen_ts;
+                            document.getElementById('agent-img').src = newSrc;
+                            document.getElementById('fsimg').src = newSrc;
                             document.getElementById('meta-box').innerHTML = `
                                 Last seen: ${agent.last_seen_human}<br>
                                 CPU: ${agent.cpu_usage.toFixed(1)}% | RAM: ${agent.ram_usage.toFixed(1)}%<br>
@@ -479,7 +540,18 @@ def agent_detail(name):
                         }
                     });
                 }
-                setInterval(updateAgent, 2000);
+                function recordVideo(){
+                    fetch('/api/record/' + AGENT_NAME + '/120').then(()=>alert('Qeydiyyat emri gonderildi'));
+                }
+                function renameAgent(){
+                    const newName = document.getElementById('name-input').value;
+                    fetch('/api/rename/' + AGENT_NAME, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({full_name: newName})
+                    }).then(()=>location.reload());
+                }
+                setInterval(updateAgent, 1000);
             </script>
         </head>
         <body>
@@ -487,6 +559,11 @@ def agent_detail(name):
             <div class="card">
                 <h3>{{ a.display_name }}</h3>
                 <small style="color:#94a3b8;">PC: {{ a.name }}</small>
+                <div style="margin:10px 0;">
+                    <input id="name-input" class="input" value="{{ a.display_name }}" placeholder="Adı dəyiş">
+                    <button class="btn" onclick="renameAgent()">Adı Yenilə</button>
+                    <button class="btn" onclick="recordVideo()">2 Dəq Video Çək</button>
+                </div>
                 <img id="agent-img" onclick="openFullscreen(this.src)" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                 <div class="meta" id="meta-box">
                     Last seen: {{ a.last_seen_human }}<br>
@@ -525,23 +602,22 @@ def dashboard():
                 body{background:#020617;color:#e5e7eb;font-family:-apple-system,sans-serif;}
                 header{padding:10px 12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#020617;z-index:100;}
                 header div{font-weight:600;font-size:15px;}
-            .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
-            .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
-            .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
-            .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
-            .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
-            .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
-            .menu-box button:active{background:#334155;}
-            .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;}
-            .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
-            .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
-            .pc-name:hover{text-decoration:underline;}
-            .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;}
-            .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
-            .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
-            .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
-            .status{margin-top:3px;font-size:11px;}
-            .loading{position:fixed;top:50px;right:12px;background:#22c55e;color:#000;padding:4px 10px;border-radius:6px;font-size:11px;display:none;z-index:200;}
+          .section{padding:10px 12px 4px;font-size:15px;font-weight:600;color:#e5e7eb;}
+          .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:0 12px 12px;}
+          .card{border:1px solid #1e293b;border-radius:10px;padding:10px;background:#0f172a;position:relative;}
+          .menu-btn{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;}
+          .menu-box{position:absolute;right:8px;top:32px;background:#1e293b;border:1px solid #334155;border-radius:8px;display:none;z-index:10;min-width:100px;}
+          .menu-box button{background:none;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left;cursor:pointer;font-size:13px;}
+          .menu-box button:active{background:#334155;}
+          .meta{margin-top:6px;font-size:11px;color:#94a3b8;line-height:1.5;position:relative;z-index:2;}
+          .empty{padding:0 12px 12px;color:#64748b;font-size:13px;}
+          .pc-name{color:#38bdf8;cursor:pointer;text-decoration:none;font-weight:600;font-size:14px;}
+          .pc-name:hover{text-decoration:underline;}
+          .screen-img{width:100%;border-radius:6px;margin-top:6px;max-height:140px;object-fit:cover;cursor:pointer;position:relative;z-index:1;}
+          .fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:none;justify-content:center;align-items:center;z-index:999;}
+          .fullscreen img{max-width:95%;max-height:95%;width:auto;height:auto;object-fit:contain;}
+          .close{position:absolute;top:15px;right:20px;font-size:36px;color:#fff;cursor:pointer;}
+          .status{margin-top:3px;font-size:11px;}
             </style>
             <script>
                 function toggleMenu(name){
@@ -552,12 +628,15 @@ def dashboard():
                     el.style.display=el.style.display==='block'?'none':'block';
                     event.stopPropagation();
                 }
+                let isFullscreenOpen = false;
                 function openFullscreen(src){
+                    isFullscreenOpen = true;
                     document.getElementById('fsimg').src = src;
                     document.getElementById('fullscreen').style.display = 'flex';
                     event.stopPropagation();
                 }
                 function closeFullscreen(){
+                    isFullscreenOpen = false;
                     document.getElementById('fullscreen').style.display = 'none';
                 }
                 document.addEventListener('keydown', function(e){
@@ -567,22 +646,18 @@ def dashboard():
                     document.querySelectorAll('.menu-box').forEach(el => el.style.display='none');
                 });
 
-                // DEYISIKLIK 2: refreshData artiq sadece img ve meta yenileyir, kartlari yeniden yaratmir
+                ### DƏYİŞDİM 4: YENILENIR YAZISINI SILDIM + FULLSCREEN YENILENIR + 1 SANIYE
                 function refreshData(){
-                    const loader = document.getElementById('loading');
-                    loader.style.display = 'block';
                     fetch('/api/agents')
-                      .then(r => r.json())
-                      .then(data => {
+                    .then(r => r.json())
+                    .then(data => {
                             updateCards(data.online, 'online');
                             updateCards(data.offline, 'offline');
                             updateCards(data.hidden, 'hidden');
                             document.getElementById('online-count').textContent = data.online.length;
                             document.getElementById('offline-count').textContent = data.offline.length;
                             document.getElementById('hidden-count').textContent = data.hidden.length;
-                            setTimeout(()=>loader.style.display='none', 300);
-                        })
-                      .catch(()=>loader.style.display='none');
+                        });
                 }
 
                 function updateCards(agents, type){
@@ -590,7 +665,9 @@ def dashboard():
                         const img = document.getElementById('img-' + type + '-' + a.name);
                         const meta = document.getElementById('meta-' + type + '-' + a.name);
                         const status = document.getElementById('status-' + type + '-' + a.name);
-                        if(img) img.src = '/screens/' + a.name + '_last.jpg?t=' + a.last_seen_ts;
+                        const newSrc = '/screens/' + a.name + '_last.jpg?t=' + a.last_seen_ts;
+                        if(img) img.src = newSrc;
+                        if(isFullscreenOpen && document.getElementById('fsimg').src.includes(a.name)) document.getElementById('fsimg').src = newSrc;
                         if(meta) meta.innerHTML = a.last_seen_human + ' | CPU ' + a.cpu_usage.toFixed(0) + '% | RAM ' + a.ram_usage.toFixed(0) + '%<br>' + a.active_window.substring(0,30);
                         if(status) {
                             status.style.color = type==='hidden'?'#64748b':a.online?'#4ade80':'#f87171';
@@ -599,12 +676,11 @@ def dashboard():
                     });
                 }
 
-                setInterval(refreshData, 2000);
+                setInterval(refreshData, 1000);
                 document.addEventListener('DOMContentLoaded', refreshData);
             </script>
         </head>
         <body>
-            <div id="loading" class="loading">Yenilənir...</div>
             <header>
                 <div>BestHome Monitor</div>
                 <a href="/logout" style="color:#94a3b8;text-decoration:none;font-size:13px;">Çıxış</a>
@@ -628,6 +704,7 @@ def dashboard():
                                 </form>
                             </div>
                         </div>
+                    </div>
                     <div class="status" id="status-online-{{ a.name }}" style="color:#4ade80;">● ONLINE</div>
                     <img id="img-online-{{ a.name }}" onclick="openFullscreen(this.src)" class="screen-img" src="/screens/{{ a.name }}_last.jpg?t={{ a.last_seen_ts }}">
                     <div class="meta" id="meta-online-{{ a.name }}">
@@ -689,6 +766,7 @@ def dashboard():
                     <div class="meta" id="meta-hidden-{{ a.name }}">
                         {{ a.last_seen_human }} | CPU {{ '%.0f'|format(a.cpu_usage) }}% | RAM {{ '%.0f'|format(a.ram_usage) }}%
                     </div>
+                </div>
                 {% endfor %}
             </div>
 
@@ -706,4 +784,4 @@ def dashboard():
 
 init_db()
 if __name__ == "__main__":
-    app.run(host="0.0.0", port=5050, debug=False)
+    app.run(host="0.0.0.0", port=5050, debug=False)
