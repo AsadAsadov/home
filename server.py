@@ -21,7 +21,6 @@ def get_db():
 def init_db():
     conn = get_db()
     cur = conn.cursor()
-    # 'alias' sütunu əlavə edildi ki, kompüterin adını dəyişə biləsən
     cur.execute("""
         CREATE TABLE IF NOT EXISTS agents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,42 +153,42 @@ HTML_TEMPLATE = """
     <title>PC Monitor</title>
     <style>
         body { margin: 0; background: #020617; color: #f1f5f9; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 180px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; transition: 0.3s; }
-        .sidebar-header { padding: 20px 15px; font-size: 16px; font-weight: bold; color: #22c55e; border-bottom: 1px solid #1e293b; }
-        .sidebar-menu { flex: 1; padding: 15px; overflow-y: auto; font-size: 13px; }
+        .sidebar { width: 140px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 15px 10px; font-size: 14px; font-weight: bold; color: #22c55e; border-bottom: 1px solid #1e293b; text-align: center; }
+        .sidebar-menu { flex: 1; padding: 10px; overflow-y: auto; font-size: 11px; }
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        header { padding: 12px 25px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; padding: 25px; }
-        .card { background: #0f172a; border-radius: 10px; border: 1px solid #1e293b; overflow: hidden; }
+        header { padding: 10px 20px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; overflow: hidden; }
         .img-box { width: 100%; aspect-ratio: 16/9; background: #000; cursor: zoom-in; }
         .screen-img { width: 100%; height: 100%; object-fit: contain; }
         .card-info { padding: 12px; }
         .pc-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .btn { padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; border: 1px solid #334155; background: #1e293b; color: white; }
+        .btn { padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; border: 1px solid #334155; background: #1e293b; color: white; }
         .input-group { display: flex; gap: 5px; margin-top: 8px; }
         input { flex: 1; background: #020617; border: 1px solid #334155; color: white; padding: 6px; border-radius: 4px; font-size: 11px; outline: none; }
         
         #modal { display: none; position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; }
-        #modal-img { max-width: 95%; max-height: 80%; object-fit: contain; border: 1px solid #22c55e; }
-        #close-btn { position: absolute; top: 15px; right: 25px; font-size: 35px; color: white; cursor: pointer; }
+        #modal-img { max-width: 98%; max-height: 85%; object-fit: contain; border: 1px solid #22c55e; }
+        #close-btn { position: absolute; top: 10px; right: 20px; font-size: 40px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="sidebar-header">PC Monitor</div>
         <div class="sidebar-menu">
-            <div style="color:#64748b; font-size:10px; margin-bottom:10px; letter-spacing:1px;">GİZLİ SİYAHI</div>
+            <div style="color:#64748b; font-size:9px; margin-bottom:10px;">GİZLİ SİYAHI</div>
             {% for h in hidden %}
-                <div style="margin-bottom:8px; font-size:12px; display:flex; justify-content:space-between;">
-                    <span title="{{ h.name }}">{{ h.display }}</span>
-                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none;">+</a>
+                <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80px;">{{ h.display }}</span>
+                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none; font-weight:bold;">+</a>
                 </div>
             {% endfor %}
         </div>
     </div>
 
     <div class="main-content">
-        <header><div style="font-size:14px;">Canlı İzləmə</div><a href="/logout" style="color:#ef4444; text-decoration:none; font-size:12px;">Çıxış</a></header>
+        <header><div style="font-size:13px; color:#22c55e;">● Canlı İzləmə</div><a href="/logout" style="color:#ef4444; text-decoration:none; font-size:12px;">Çıxış</a></header>
         <div class="grid">
             {% for a in agents %}
             <div class="card">
@@ -199,13 +198,13 @@ HTML_TEMPLATE = """
                 <div class="card-info">
                     <div class="pc-title-row">
                         <form action="/rename/{{ a.name }}" method="POST" style="display:flex; gap:5px; flex:1;">
-                            <input name="alias" value="{{ a.display }}" style="font-weight:bold; border:none; background:transparent; padding:0;" title="Adı dəyişmək üçün bura yazın və Enter sıxın">
+                            <input name="alias" value="{{ a.display }}" style="font-weight:bold; border:none; background:transparent; padding:0; color:#22c55e; font-size:14px;" title="Dəyişmək üçün yazın və Enter sıxın">
                         </form>
-                        <span style="font-size:10px; color:#475569;">{{ a.name }}</span>
+                        <span style="font-size:9px; color:#475569;">{{ a.name }}</span>
                     </div>
                     
                     <form action="/send_command/{{ a.name }}" method="POST" class="input-group">
-                        <input name="val" placeholder="Mesaj..." required>
+                        <input name="val" placeholder="Mesaj göndər..." required>
                         <input type="hidden" name="type" value="msg">
                         <button class="btn">Göndər</button>
                     </form>
@@ -227,11 +226,11 @@ HTML_TEMPLATE = """
     <div id="modal">
         <span id="close-btn" onclick="closeModal()">&times;</span>
         <img id="modal-img">
-        <div style="margin-top:20px; width:400px;">
+        <div style="margin-top:15px; width:450px;">
             <form id="modal-form" method="POST" class="input-group">
-                <input name="val" id="modal-input" placeholder="Böyüdülmüş halda mesaj...">
+                <input name="val" id="modal-input" placeholder="Təcili mesaj..." style="padding:10px;">
                 <input type="hidden" name="type" value="msg">
-                <button class="btn">Göndər</button>
+                <button class="btn" style="padding:10px 20px;">GÖNDƏR</button>
             </form>
         </div>
     </div>
@@ -251,3 +250,8 @@ HTML_TEMPLATE = """
     </script>
 </body>
 </html>
+"""
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5050))
+    app.run(host="0.0.0.0", port=port)
