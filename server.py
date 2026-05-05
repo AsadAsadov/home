@@ -151,63 +151,70 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>PC Monitor Smart</title>
+    <title>PC Monitor Dashboard</title>
     <style>
-        :root { --sidebar-w: 220px; }
+        :root { --sidebar-w: 220px; --accent: #22c55e; }
         body { margin: 0; background: #020617; color: #f1f5f9; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar - Masaüstü üçün normal, Mobil üçün gizli */
         .sidebar { width: var(--sidebar-w); background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; flex-shrink: 0; transition: 0.3s; }
-        .sidebar-header { padding: 20px; font-size: 18px; font-weight: bold; color: #22c55e; border-bottom: 1px solid #1e293b; }
+        .sidebar-header { padding: 20px; font-size: 18px; font-weight: bold; color: var(--accent); border-bottom: 1px solid #1e293b; }
         .sidebar-menu { flex: 1; padding: 15px; overflow-y: auto; }
         
-        /* Əsas Məzmun */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; width: 100%; }
-        header { padding: 15px 20px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #020617; }
+        header { padding: 15px 25px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
         
-        /* Grid Sistemi - Telefonda tam eni tutsun */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 15px; padding: 15px; }
+        /* GRID - Kompüterdə yan-yana 3 dənə, telefonda 1 dənə */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); /* Default olaraq 3 dənə */
+            gap: 20px; 
+            padding: 25px; 
+        }
         
-        /* Mobil tənzimləmələr */
+        @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #1e293b; display: none; } /* Telefonda lazım olmayanda gizlət */
+            .sidebar { display: none; width: 100%; height: auto; }
             .sidebar.active { display: flex; }
-            .grid { grid-template-columns: 1fr; padding: 10px; gap: 20px; }
-            .card { margin-bottom: 10px; }
+            .grid { grid-template-columns: 1fr; padding: 15px; gap: 25px; }
+            #menuBtn { display: block !important; }
         }
 
-        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .img-box { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
+        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; display: flex; flex-direction: column; }
+        .img-box { width: 100%; aspect-ratio: 16/9; background: #000; cursor: zoom-in; }
         .screen-img { width: 100%; height: 100%; object-fit: contain; }
         
-        .card-info { padding: 15px; }
-        .pc-title-row { margin-bottom: 12px; }
-        .pc-name-input { font-weight: bold; width: 100%; border: none; background: transparent; color: white; font-size: 18px; padding: 5px 0; outline: none; border-bottom: 1px solid transparent; }
-        .pc-name-input:focus { border-bottom-color: #22c55e; }
+        .card-info { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+        .pc-name-input { font-weight: bold; width: 100%; border: none; background: transparent; color: white; font-size: 18px; margin-bottom: 12px; outline: none; }
         
-        .input-group { display: flex; gap: 8px; margin-top: 10px; }
-        input[type="text"] { flex: 1; background: #020617; border: 1px solid #334155; color: white; padding: 10px; border-radius: 6px; font-size: 14px; }
-        
-        .btn { padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 14px; border: 1px solid #334155; background: #1e293b; color: white; font-weight: 600; }
-        .btn-green { background: #22c55e; color: #020617; border: none; }
-        .btn-danger { color: #ef4444; border-color: #ef4444; }
+        /* Mesaj bölməsi */
+        .msg-box { display: flex; gap: 8px; margin-bottom: 12px; }
+        .msg-input { flex: 1; background: #020617; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; font-size: 14px; outline: none; }
+        .msg-input:focus { border-color: var(--accent); }
+
+        /* Düymələr bloku - Səliqəli düzülüş */
+        .actions-row { display: flex; gap: 8px; }
+        .btn { flex: 1; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid #334155; background: #1e293b; color: white; font-weight: 600; text-align: center; text-decoration: none; transition: 0.2s; }
+        .btn:hover { background: #334155; }
+        .btn-green { background: var(--accent); color: #020617; border: none; }
+        .btn-green:hover { background: #1eb050; }
+        .btn-danger { color: #ef4444; border-color: #450a0a; }
+        .btn-danger:hover { background: #450a0a; }
 
         /* Modal */
-        #modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: #000; align-items: center; justify-content: center; flex-direction: column; }
-        #modal-img { width: 100%; height: auto; max-height: 80vh; object-fit: contain; }
+        #modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: #000; align-items: center; justify-content: center; }
+        #modal-img { width: 100%; height: auto; max-height: 90vh; object-fit: contain; }
     </style>
 </head>
 <body>
-    <!-- Sol panel artıq telefonda mane olmayacaq -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">PC MONITOR</div>
         <div class="sidebar-menu">
-            <div style="color:#64748b; font-size:12px; margin-bottom:15px; font-weight:bold;">GİZLİ CİHAZLAR</div>
+            <div style="color:#64748b; font-size:12px; margin-bottom:15px; font-weight:bold; letter-spacing:1px;">GİZLİ CİHAZLAR</div>
             {% for h in hidden %}
-                <div style="margin-bottom:12px; display:flex; justify-content:space-between; background:#1e293b; padding:10px; border-radius:8px;">
+                <div style="margin-bottom:10px; display:flex; justify-content:space-between; background:#1e293b; padding:10px; border-radius:8px; font-size:13px;">
                     <span>{{ h.display }}</span>
-                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none; font-weight:bold;">+</a>
+                    <a href="/toggle_hide/{{ h.name }}" style="color:var(--accent); text-decoration:none; font-weight:bold;">AÇ</a>
                 </div>
             {% endfor %}
         </div>
@@ -215,11 +222,14 @@ HTML_TEMPLATE = """
 
     <div class="main-content">
         <header>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <button class="btn" onclick="toggleSidebar()" style="padding: 5px 10px; display: none;" id="menuBtn">☰</button>
-                <span style="color:#22c55e; font-weight:bold;">● CANLI</span>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button class="btn" id="menuBtn" onclick="toggleSidebar()" style="display:none; padding:5px 12px;">☰</button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="width:10px; height:10px; background:var(--accent); border-radius:50%;"></span>
+                    <span style="font-weight:bold; letter-spacing:0.5px;">CANLI PANEL</span>
+                </div>
             </div>
-            <a href="/logout" style="color:#64748b; text-decoration:none; font-size:14px;">Çıxış</a>
+            <a href="/logout" style="color:#64748b; text-decoration:none; font-size:14px; font-weight:500;">Sistemdən Çıx</a>
         </header>
         
         <div class="grid">
@@ -229,23 +239,24 @@ HTML_TEMPLATE = """
                     <img src="/screens/{{ a.name }}_last.jpg" class="screen-img" id="img-{{ a.name }}">
                 </div>
                 <div class="card-info">
-                    <div class="pc-title-row">
-                        <form action="/rename/{{ a.name }}" method="POST">
-                            <input name="alias" value="{{ a.display }}" class="pc-name-input" placeholder="Ad təyin et...">
-                        </form>
-                    </div>
-                    
-                    <form action="/send_command/{{ a.name }}" method="POST" class="input-group">
-                        <input name="val" placeholder="Mesaj yaz..." required>
-                        <input type="hidden" name="type" value="msg">
-                        <button class="btn btn-green">Göndər</button>
+                    <form action="/rename/{{ a.name }}" method="POST">
+                        <input name="alias" value="{{ a.display }}" class="pc-name-input" title="Adı dəyişmək üçün yazın və Enter vurun">
                     </form>
                     
-                    <div style="display:flex; gap:10px; margin-top:15px;">
-                        <a href="/toggle_hide/{{ a.name }}" style="flex:1;"><button class="btn" style="width:100%;">Gizlət</button></a>
-                        <form action="/send_command/{{ a.name }}" method="POST" style="flex:1;">
-                            <input type="hidden" name="type" value="cmd"><input type="hidden" name="val" value="shutdown">
-                            <button class="btn btn-danger" style="width:100%;" onclick="return confirm('Söndürülsün?')">Söndür</button>
+                    <form action="/send_command/{{ a.name }}" method="POST">
+                        <div class="msg-box">
+                            <input name="val" class="msg-input" placeholder="Mesaj..." required>
+                            <input type="hidden" name="type" value="msg">
+                            <button class="btn btn-green" style="flex:0; padding-left:20px; padding-right:20px;">Göndər</button>
+                        </div>
+                    </form>
+                    
+                    <div class="actions-row">
+                        <a href="/toggle_hide/{{ a.name }}" class="btn">Gizlət</a>
+                        <form action="/send_command/{{ a.name }}" method="POST" style="flex:1; display:flex;">
+                            <input type="hidden" name="type" value="cmd">
+                            <input type="hidden" name="val" value="shutdown">
+                            <button class="btn btn-danger" style="width:100%;" onclick="return confirm('Bu kompüteri söndürmək istəyirsən?')">Söndür</button>
                         </form>
                     </div>
                 </div>
@@ -255,7 +266,7 @@ HTML_TEMPLATE = """
     </div>
 
     <div id="modal">
-        <div style="position:absolute; top:20px; right:20px; color:white; font-size:30px; cursor:pointer;" onclick="closeModal()">✕</div>
+        <div style="position:absolute; top:20px; right:30px; color:white; font-size:40px; cursor:pointer;" onclick="closeModal()">×</div>
         <img id="modal-img">
     </div>
 
@@ -265,11 +276,6 @@ HTML_TEMPLATE = """
             sb.style.display = (sb.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        // Telefonda menyu düyməsini göstər
-        if (window.innerWidth < 768) {
-            document.getElementById('menuBtn').style.display = 'block';
-        }
-
         let currentPc = null;
         function openModal(name) { 
             currentPc = name; 
@@ -277,6 +283,7 @@ HTML_TEMPLATE = """
             updateModalImg(); 
         }
         function closeModal() { document.getElementById('modal').style.display = 'none'; currentPc = null; }
+        
         function updateModalImg() { 
             if(currentPc) document.getElementById('modal-img').src = '/screens/' + currentPc + '_last.jpg?t=' + new Date().getTime(); 
         }
