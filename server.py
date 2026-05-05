@@ -158,27 +158,11 @@ HTML_TEMPLATE = """
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
         header { padding: 15px 30px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding: 30px; }
-        
-        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; position: relative; transition: 0.3s; }
-        .card:hover { border-color: #22c55e; }
-        
+        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; position: relative; }
         .img-box { position: relative; width: 100%; height: 180px; background: #000; }
         .screen-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .offline-tag { 
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(239, 68, 68, 0.7); color: white; font-weight: 900; font-size: 28px;
-            justify-content: center; align-items: center; z-index: 10; letter-spacing: 2px;
-        }
-        .is-offline .offline-tag { display: flex; }
-        
         .card-info { padding: 15px; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .online-dot { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
-        .offline-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
-        
         .btn { padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; border: 1px solid #334155; background: #020617; color: white; }
-        .btn:hover { border-color: #22c55e; color: #22c55e; }
         .input-group { display: flex; gap: 8px; margin-top: 15px; }
         input { flex: 1; background: #020617; border: 1px solid #334155; color: white; padding: 8px; border-radius: 6px; outline: none; font-size: 12px; }
     </style>
@@ -196,61 +180,38 @@ HTML_TEMPLATE = """
             {% endfor %}
         </div>
     </div>
-
     <div class="main-content">
-        <header>
-            <div style="font-weight:500;">Canlı İzləmə Paneli</div>
-            <a href="/logout" style="color:#64748b; text-decoration:none; font-size:13px;">Sistemdən Çıx</a>
-        </header>
-
+        <header><div style="font-weight:500;">Canlı İzləmə Paneli</div><a href="/logout" style="color:#64748b; text-decoration:none; font-size:13px;">Sistemdən Çıx</a></header>
         <div class="grid">
             {% for a in agents %}
-            <div class="card {{ '' if a.online else 'is-offline' }}">
-                <div class="img-box">
-                    <div class="offline-tag">OFFLINE</div>
-                    <img src="/screens/{{ a.name }}_last.jpg" class="screen-img">
-                </div>
+            <div class="card">
+                <div class="img-box"><img src="/screens/{{ a.name }}_last.jpg" class="screen-img"></div>
                 <div class="card-info">
-                    <div style="font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                        <span class="status-dot {{ 'online-dot' if a.online else 'offline-dot' }}"></span>
-                        {{ a.name }}
-                        <span style="margin-left:auto; font-size:11px; color:#64748b;">{{ a.last_time }}</span>
-                    </div>
-                    <div style="font-size:11px; color:#94a3b8; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        {{ a.window or 'Masaüstü' }}
-                    </div>
-                    
+                    <div style="font-weight:bold;">{{ a.name }}</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-bottom:10px;">{{ a.window or 'Masaüstü' }}</div>
                     <form action="/send_command/{{ a.name }}" method="POST" class="input-group">
-                        <input name="val" placeholder="Təcili mesaj...">
+                        <input name="val" placeholder="Mesaj...">
                         <input type="hidden" name="type" value="msg">
                         <button class="btn">Göndər</button>
                     </form>
                     <div style="display:flex; gap:8px; margin-top:10px;">
                         <a href="/toggle_hide/{{ a.name }}" style="flex:1;"><button class="btn" style="width:100%;">Gizlət</button></a>
-                        <form action="/send_command/{{ a.name }}" method="POST" style="flex:1;">
-                            <input type="hidden" name="type" value="cmd">
-                            <input type="hidden" name="val" value="shutdown">
-                            <button class="btn" style="width:100%; color:#ef4444; border-color:#ef4444;">Söndür</button>
-                        </form>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
-
     <script>
+        // SƏHİFƏ YENİLƏNMƏDƏN (Refresh olmadan) şəkli təzələmək üçün:
         setInterval(function(){
             let images = document.getElementsByClassName('screen-img');
             let t = new Date().getTime();
             for(let img of images) {
-                // Şəklin sonuna timestamp artırırıq ki, brauzer keşdən deyil, serverdən təzəsini çəksin
-                img.src = img.src.split('?')[0] + '?t=' + t;
+                let srcBase = img.src.split('?')[0];
+                img.src = srcBase + '?t=' + t;
             }
-        }, 1000); // 1 saniyədən bir şəkilləri təzələ
-
-        // Hər 5 saniyədən bir statusları (on/off) yoxlamaq üçün səhifəni tam yenilə
-        setTimeout(function(){ location.reload(); }, 5000);
+        }, 1000); 
     </script>
 </body>
 </html>
