@@ -150,45 +150,66 @@ HTML_TEMPLATE = """
 <html>
 <head>
     <meta charset="utf-8">
-    <title>PC Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PC Monitor Dashboard</title>
     <style>
         body { margin: 0; background: #020617; color: #f1f5f9; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 140px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 15px 10px; font-size: 14px; font-weight: bold; color: #22c55e; border-bottom: 1px solid #1e293b; text-align: center; }
-        .sidebar-menu { flex: 1; padding: 10px; overflow-y: auto; font-size: 11px; }
+        
+        /* Sol Panel - Yazıların daşmaması üçün ideal en (200px) */
+        .sidebar { width: 200px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 20px 15px; font-size: 15px; font-weight: bold; color: #22c55e; border-bottom: 1px solid #1e293b; }
+        .sidebar-menu { flex: 1; padding: 15px; overflow-y: auto; }
+        .sidebar-title { color: #64748b; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+        
+        /* Əsas Məzmun Sahəsi */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        header { padding: 10px 20px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 20px; padding: 20px; }
+        header { padding: 12px 20px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Ekran Kartları - Ölçünü bir az kiçiltdim (min 350px) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; padding: 20px; }
+        
         .card { background: #0f172a; border-radius: 8px; border: 1px solid #1e293b; overflow: hidden; }
-        .img-box { width: 100%; aspect-ratio: 16/9; background: #000; cursor: zoom-in; }
-        .screen-img { width: 100%; height: 100%; object-fit: contain; }
+        .img-box { width: 100%; aspect-ratio: 16/9; background: #000; cursor: zoom-in; position: relative; }
+        .screen-img { width: 100%; height: 100%; object-fit: contain; } /* Tam ekran görünməsi üçün contain */
+        
         .card-info { padding: 12px; }
         .pc-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .btn { padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; border: 1px solid #334155; background: #1e293b; color: white; }
-        .input-group { display: flex; gap: 5px; margin-top: 8px; }
-        input { flex: 1; background: #020617; border: 1px solid #334155; color: white; padding: 6px; border-radius: 4px; font-size: 11px; outline: none; }
         
-        #modal { display: none; position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; }
-        #modal-img { max-width: 98%; max-height: 85%; object-fit: contain; border: 1px solid #22c55e; }
-        #close-btn { position: absolute; top: 10px; right: 20px; font-size: 40px; color: white; cursor: pointer; }
+        /* Inputlar və düymələr */
+        input { background: #020617; border: 1px solid #1e293b; color: white; padding: 7px; border-radius: 4px; font-size: 12px; outline: none; }
+        input:focus { border-color: #22c55e; }
+        
+        .btn { padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; border: 1px solid #334155; background: #1e293b; color: white; }
+        .btn:hover { background: #22c55e; color: #020617; }
+        .btn-danger { color: #ef4444; }
+        .btn-danger:hover { background: #ef4444; color: white; }
+
+        /* Modal (Böyüdülmüş Şəkil) */
+        #modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); align-items: center; justify-content: center; flex-direction: column; }
+        #modal-img { max-width: 95%; max-height: 85%; object-fit: contain; }
+        #close-btn { position: absolute; top: 10px; right: 20px; font-size: 35px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-header">PC Monitor</div>
+        <div class="sidebar-header">PC MONITOR</div>
         <div class="sidebar-menu">
-            <div style="color:#64748b; font-size:9px; margin-bottom:10px;">GİZLİ SİYAHI</div>
+            <div class="sidebar-title">Gizli Cihazlar</div>
             {% for h in hidden %}
-                <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80px;">{{ h.display }}</span>
-                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none; font-weight:bold;">+</a>
+                <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ h.display }}</span>
+                    <a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none; font-weight:bold; margin-left:5px;">+</a>
                 </div>
             {% endfor %}
         </div>
     </div>
 
     <div class="main-content">
-        <header><div style="font-size:13px; color:#22c55e;">● Canlı İzləmə</div><a href="/logout" style="color:#ef4444; text-decoration:none; font-size:12px;">Çıxış</a></header>
+        <header>
+            <div style="font-size:13px; color:#22c55e;">● CANLI PANEL</div>
+            <a href="/logout" style="color:#64748b; text-decoration:none; font-size:12px;">Çıxış</a>
+        </header>
+        
         <div class="grid">
             {% for a in agents %}
             <div class="card">
@@ -197,14 +218,13 @@ HTML_TEMPLATE = """
                 </div>
                 <div class="card-info">
                     <div class="pc-title-row">
-                        <form action="/rename/{{ a.name }}" method="POST" style="display:flex; gap:5px; flex:1;">
-                            <input name="alias" value="{{ a.display }}" style="font-weight:bold; border:none; background:transparent; padding:0; color:#22c55e; font-size:14px;" title="Dəyişmək üçün yazın və Enter sıxın">
+                        <form action="/rename/{{ a.name }}" method="POST" style="display:flex; flex:1;">
+                            <input name="alias" value="{{ a.display }}" style="font-weight:bold; width:100%; border:none; background:transparent; padding:2px; font-size:14px;" title="Adı dəyişmək üçün bura yazın və Enter vurun">
                         </form>
-                        <span style="font-size:9px; color:#475569;">{{ a.name }}</span>
                     </div>
                     
-                    <form action="/send_command/{{ a.name }}" method="POST" class="input-group">
-                        <input name="val" placeholder="Mesaj göndər..." required>
+                    <form action="/send_command/{{ a.name }}" method="POST" style="display:flex; gap:5px;">
+                        <input name="val" placeholder="Mesaj..." required style="flex:1;">
                         <input type="hidden" name="type" value="msg">
                         <button class="btn">Göndər</button>
                     </form>
@@ -214,7 +234,7 @@ HTML_TEMPLATE = """
                         <form action="/send_command/{{ a.name }}" method="POST" style="flex:1;">
                             <input type="hidden" name="type" value="cmd">
                             <input type="hidden" name="val" value="shutdown">
-                            <button class="btn" style="width:100%; color:#ef4444;" onclick="return confirm('Söndürülsün?')">Söndür</button>
+                            <button class="btn btn-danger" style="width:100%;" onclick="return confirm('Söndürülsün?')">Söndür</button>
                         </form>
                     </div>
                 </div>
@@ -226,20 +246,29 @@ HTML_TEMPLATE = """
     <div id="modal">
         <span id="close-btn" onclick="closeModal()">&times;</span>
         <img id="modal-img">
-        <div style="margin-top:15px; width:450px;">
-            <form id="modal-form" method="POST" class="input-group">
-                <input name="val" id="modal-input" placeholder="Təcili mesaj..." style="padding:10px;">
+        <div style="margin-top:20px; width:400px; display:flex; gap:10px;">
+            <form id="modal-form" method="POST" style="display:flex; flex:1; gap:10px;">
+                <input name="val" id="modal-input" placeholder="Təcili mesaj..." style="flex:1;">
                 <input type="hidden" name="type" value="msg">
-                <button class="btn" style="padding:10px 20px;">GÖNDƏR</button>
+                <button class="btn">Göndər</button>
             </form>
         </div>
     </div>
 
     <script>
         let currentPc = null;
-        function openModal(name) { currentPc = name; document.getElementById('modal').style.display = 'flex'; updateModalImg(); }
+        function openModal(name) { 
+            currentPc = name; 
+            document.getElementById('modal').style.display = 'flex'; 
+            document.getElementById('modal-form').action = '/send_command/' + name;
+            updateModalImg(); 
+        }
         function closeModal() { document.getElementById('modal').style.display = 'none'; currentPc = null; }
-        function updateModalImg() { if(currentPc) { document.getElementById('modal-img').src = '/screens/' + currentPc + '_last.jpg?t=' + new Date().getTime(); } }
+        function updateModalImg() { 
+            if(currentPc) { 
+                document.getElementById('modal-img').src = '/screens/' + currentPc + '_last.jpg?t=' + new Date().getTime(); 
+            } 
+        }
 
         setInterval(function(){
             let t = new Date().getTime();
