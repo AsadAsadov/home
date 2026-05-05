@@ -29,7 +29,6 @@ def get_db():
 def init_db():
     conn = get_db()
     cur = conn.cursor()
-    # Agent cədvəli (Hidden sütunu əlavə edildi)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS agents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,21 +161,14 @@ HTML_TEMPLATE = """
     <title>BestHome Live Monitor</title>
     <style>
         body { margin: 0; background: #020617; color: #e5e7eb; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar Styles */
         .sidebar { width: 260px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
         .sidebar-header { padding: 20px; border-bottom: 1px solid #1e293b; font-weight: bold; color: #22c55e; display: flex; align-items: center; gap: 10px; }
         .sidebar-menu { flex: 1; overflow-y: auto; padding: 10px; }
         .sidebar-item { padding: 12px; margin: 5px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-item:hover { background: #1e293b; }
-        .hidden-badge { background: #334155; padding: 2px 8px; border-radius: 5px; font-size: 11px; }
-
-        /* Main Content */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
         header { padding: 15px 25px; background: #020617; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 25px; }
-        
-        /* Card Styles */
         .card { background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; transition: 0.3s; position: relative; }
         .card:hover { transform: translateY(-5px); border-color: #22c55e; }
         .screen-img { width: 100%; height: 180px; object-fit: cover; background: #000; cursor: pointer; }
@@ -186,13 +178,8 @@ HTML_TEMPLATE = """
         .online { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
         .offline { background: #ef4444; }
         .meta { font-size: 12px; color: #9ca3af; margin: 3px 0; }
-        
         .btn-hide { background: transparent; border: 1px solid #334155; color: #9ca3af; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; margin-top: 10px; }
-        .btn-hide:hover { border-color: #ef4444; color: #ef4444; }
-        
         .unhide-btn { color: #22c55e; text-decoration: none; font-size: 12px; }
-
-        /* Fullscreen Overlay */
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; justify-content:center; align-items:center; }
         #overlay img { max-width: 95%; max-height: 95%; border: 2px solid #22c55e; border-radius: 10px; }
     </style>
@@ -235,7 +222,6 @@ HTML_TEMPLATE = """
                     </div>
                     <div class="meta"><b>Proqram:</b> {{ a.process or 'N/A' }}</div>
                     <div class="meta" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><b>Pəncərə:</b> {{ a.window or 'N/A' }}</div>
-                    
                     <a href="/toggle_hide/{{ a.name }}"><button class="btn-hide">Gizlət</button></a>
                 </div>
             </div>
@@ -248,17 +234,32 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
+        let currentFullImgSrc = "";
+
         function fullScreen(src) {
+            // Timestamp hissəsini silib təmiz linki yadda saxlayırıq
+            currentFullImgSrc = src.split('?')[0]; 
             document.getElementById('fullImg').src = src;
             document.getElementById('overlay').style.display = 'flex';
         }
 
-        // Real-zamanlı yeniləmə (hər 1 saniyədən bir şəkilləri yeniləyir)
+        // Real-zamanlı yeniləmə
         setInterval(function(){
+            let timestamp = new Date().getTime();
+            
+            // 1. Kiçik kartlardakı şəkilləri yenilə
             let images = document.getElementsByClassName('screen-img');
             for(let img of images) {
-                let currentSrc = img.src.split('?')[0];
-                img.src = currentSrc + '?t=' + new Date().getTime();
+                let baseSrc = img.src.split('?')[0];
+                img.src = baseSrc + '?t=' + timestamp;
+            }
+
+            // 2. Böyük ekran açıqdırsa, onu da yenilə
+            let overlay = document.getElementById('overlay');
+            let fullImg = document.getElementById('fullImg');
+            
+            if (overlay.style.display === 'flex' && currentFullImgSrc !== "") {
+                fullImg.src = currentFullImgSrc + '?t=' + timestamp;
             }
         }, 1000);
     </script>
