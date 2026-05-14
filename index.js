@@ -9,6 +9,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
+// Sənin istifadə etdiyin host
 const RAPID_HOST = 'tiktok-scraper7.p.rapidapi.com';
 
 app.get('/', async (req, res) => {
@@ -21,26 +22,30 @@ app.get('/', async (req, res) => {
     }
 });
 
-// KƏŞF ET DÜYMƏSİ ÜÇÜN REAL-TIME TRENDLƏR
+// KƏŞF ET: 404 XƏTASINI ARADAN QALDIRAN YENİ MƏNTİQ
 app.get('/fetch-global-trends', async (req, res) => {
     try {
-        console.log("🌍 Qlobal trendlər çəkilir...");
+        console.log("🌍 Trendlər çəkilir...");
+        
+        // DİQQƏT: Buradakı URL sənin abunəliyinə uyğun olan 'feed/trend' endpointidir
         const response = await axios.get(`https://${RAPID_HOST}/feed/trend`, {
-            params: { region: 'TR', count: '10' }, 
-            headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
+            params: { region: 'US', count: '10' }, 
+            headers: { 
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY, 
+                'x-rapidapi-host': RAPID_HOST 
+            }
         });
 
         const trendingVideos = response.data.data.videos || [];
 
         for (let v of trendingVideos) {
+            // Trend Analizi (Niyə trenddir?)
             const views = v.play_count || 1;
             const engagement = ((v.digg_count + v.share_count) / views) * 100;
             
-            // TREND SƏBƏBİ LOGİKASI
             let reason = "Stabil Artım";
-            if (engagement > 15) reason = "Yüksək Reaksiya: İnsanlar bu musiqini çox bəyənir.";
-            if (v.share_count > 10000) reason = "Viral Paylaşım: Son saatlarda minlərlə adam paylaşıb.";
-            if (v.comment_count > 5000) reason = "Müzakirə Mövzusu: Video altında böyük aktivlik var.";
+            if (engagement > 10) reason = "Yüksək Reaksiya: İnsanlar bu musiqini çox bəyənir.";
+            if (v.share_count > 5000) reason = "Viral Paylaşım: Son 24 saatda kütləvi şəkildə paylaşılıb.";
 
             await supabase.from('global_trends').upsert({
                 trend_type: 'music',
@@ -51,10 +56,11 @@ app.get('/fetch-global-trends', async (req, res) => {
                 thumbnail: v.music_info.cover_medium || v.music_info.cover_large
             }, { onConflict: 'trend_id' });
         }
+        
         res.redirect('/');
     } catch (error) {
-        console.error("Xəta:", error.message);
-        res.status(500).send("Trend xətası: " + error.message);
+        console.error("Xəta baş verdi:", error.message);
+        res.status(500).send("Trend xətası: " + error.message + ". Zəhmət olmasa API Key-in düzgünlüyünü yoxlayın.");
     }
 });
 
