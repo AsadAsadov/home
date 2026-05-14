@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TikTok Analiz</title>
+    <style>
+        body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        input { padding: 10px; border-radius: 5px; border: none; width: 250px; }
+        button { padding: 10px 20px; background: #00f; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>TikTok Data Recycler</h2>
+    <div style="margin-bottom: 30px;">
+        <input type="text" id="user" placeholder="İstifadəçi adı...">
+        <button onclick="location.href='/analyze/'+document.getElementById('user').value">Analiz Et</button>
+    </div>
+    <div id="list">
+        <% videos.forEach(v => { %>
+            <div class="card">
+                <span><%= v.caption.substring(0, 50) %>...</span>
+                <strong><%= (v.view_count / 1000).toFixed(1) %>K baxış</strong>
+            </div>
+        <% }) %>
+    </div>
+</body>
+</html>
