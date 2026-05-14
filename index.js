@@ -32,7 +32,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// 1. PROFİL ANALİZİ
+// 1. PROFİL ANALİZİ (Linklər əlavə olundu)
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     try {
@@ -63,7 +63,9 @@ app.get('/analyze/:username', async (req, res) => {
                 view_count: v.play_count || 0,
                 like_count: v.digg_count || 0,
                 share_count: v.share_count || 0,
+                comment_count: v.comment_count || 0,
                 music_name: v.music_info?.title || "Səs məlumatı yoxdur",
+                video_url: `https://www.tiktok.com/@${username}/video/${v.video_id}`,
                 created_at: new Date(v.create_time * 1000).toISOString()
             }));
             await supabase.from('videos').upsert(videoData, { onConflict: 'tiktok_id' });
@@ -74,7 +76,7 @@ app.get('/analyze/:username', async (req, res) => {
     }
 });
 
-// 2. TRENDLƏRİ ÇƏK (Musiqi Adı Problemi Həll Olunub)
+// 2. TRENDLƏRİ ÇƏK (Musiqi və Müəllif analizi dəqiqləşdi)
 app.get('/fetch-global-trends', async (req, res) => {
     try {
         const response = await axios.get(`https://${RAPID_HOST}/user/posts`, {
@@ -87,10 +89,10 @@ app.get('/fetch-global-trends', async (req, res) => {
         for (let v of trendingVideos) {
             const engagement = (((v.digg_count + v.share_count) / (v.play_count || 1)) * 100).toFixed(2);
             
-            // Əgər musiqi adı "original sound" dursa, videonun başlığını istifadə edirik
+            // "Original sound" yerinə müəllifi göstəririk
             let displayTitle = v.music_info.title;
             if (displayTitle.toLowerCase().includes("original sound")) {
-                displayTitle = v.title ? v.title.substring(0, 30) + "..." : displayTitle;
+                displayTitle = `${v.music_info.author} (Original)`;
             }
 
             await supabase.from('global_trends').upsert({
@@ -98,8 +100,9 @@ app.get('/fetch-global-trends', async (req, res) => {
                 trend_name: displayTitle,
                 trend_id: v.music_info.id,
                 growth_rate: engagement,
-                trend_reason: v.digg_count > 100000 ? "Viral Reaksiya" : "Sürətli Artım",
-                thumbnail: v.music_info.cover_medium || v.origin_cover
+                trend_reason: v.digg_count > 100000 ? "Viral Partlayış" : "Stabil Artım",
+                thumbnail: v.music_info.cover_medium || v.origin_cover,
+                author_name: v.music_info.author
             }, { onConflict: 'trend_id' });
         }
         res.redirect('/');
@@ -108,17 +111,29 @@ app.get('/fetch-global-trends', async (req, res) => {
     }
 });
 
-// 3. MUSİQİYƏ KLİKLƏYƏNDƏ SON 5 VİDEO
+// 3. MUSİQİYƏ KLİKLƏYƏNDƏ DETALLI ANALİZ
 app.get('/music-trends/:musicId', async (req, res) => {
     try {
         const { musicId } = req.params;
         const response = await axios.get(`https://${RAPID_HOST}/music/posts`, {
-            params: { music_id: musicId, count: '5' },
+            params: { music_id: musicId, count: '6' },
             headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
-        res.json(response.data.data.videos || []);
+        
+        // Videoları bütün detalları ilə göndəririk
+        const detailedVideos = response.data.data.videos.map(v => ({
+            title: v.title || "Başlıqsız",
+            play_count: v.play_count,
+            digg_count: v.digg_count,
+            comment_count: v.comment_count,
+            share_count: v.share_count,
+            time: new Date(v.create_time * 1000).toLocaleString('az-AZ'),
+            link: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`
+        }));
+        
+        res.json(detailedVideos);
     } catch (error) {
-        res.status(500).json({ error: "Məlumat alınmadı" });
+        res.status(500).json([]);
     }
 });
 
