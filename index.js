@@ -5,116 +5,90 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-// Supabase bağlantısı
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-// Ana Səhifə
+// Ana səhifə - Videoları göstər
 app.get('/', async (req, res) => {
     try {
-        const { data: videos, error } = await supabase
+        const { data: videos } = await supabase
             .from('videos')
-            .select(`
-                *,
-                accounts (username)
-            `)
+            .select('*, accounts(username)')
             .order('view_count', { ascending: false })
             .limit(20);
-
-        if (error) throw error;
         res.render('dashboard', { videos: videos || [] });
     } catch (err) {
-        console.error("Dashboard xətası:", err.message);
         res.render('dashboard', { videos: [] });
     }
 });
 
-// Analiz Marşrutu
+// Analiz hissəsi - Yeni TikTok Scraper API ilə
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     const rapidKey = process.env.RAPIDAPI_KEY;
-    
+    const rapidHost = 'tiktok-scraper7.p.rapidapi.com'; // Yeni tapdığın host
+
     try {
-        console.log(`🔍 ${username} üçün axtarış başladı...`);
-        
-        // 1. İstifadəçi məlumatlarını çəkmək
-        const userRes = await axios.get('https://tiktok-api23.p.rapidapi.com/api/user/info', {
-            params: { user: username }, // Əgər işləməsə buranı uniqueId: username ilə əvəz edərik
+        console.log(`${username} üçün məlumatlar çəkilir...`);
+
+        // 1. İstifadəçi məlumatlarını və secUid tapmaq
+        const userRes = await axios.get('https://tiktok-scraper7.p.rapidapi.com/user/info', {
+            params: { unique_id: username },
             headers: { 
                 'x-rapidapi-key': rapidKey, 
-                'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' 
+                'x-rapidapi-host': rapidHost 
             }
         });
 
-        // API-dən gələn datanı debug etmək üçün
-        const responseData = userRes.data;
-        
-        // Məlumatın olub-olmadığını yoxlayan daha dözümlü yoxlanış
-        if (!responseData || (!responseData.userInfo && !responseData.user)) {
-            console.log("⚠️ API-dən boş cavab gəldi:", responseData);
-            return res.status(404).send(`"${username}" tapılmadı. API cavabı boşdur. Zəhmət olmasa bir az sonra yoxla.`);
+        if (!userRes.data || userRes.data.code !== 0) {
+            return res.status(404).send("İstifadəçi tapılmadı və ya API xətası.");
         }
 
-        const userObj = responseData.userInfo ? responseData.userInfo.user : responseData.user;
-        const secUid = userObj.secUid;
+        const userInfo = userRes.data.data.user;
+        const stats = userRes.data.data.stats;
         
-        console.log(`✅ İstifadəçi tapıldı: ${userObj.nickname} (secUid: ${secUid})`);
-
         // 2. Videoları çəkmək
-        const postRes = await axios.get('https://tiktok-api23.p.rapidapi.com/api/user/posts', {
-            params: { secUid: secUid, count: '10', cursor: '0' },
+        const postRes = await axios.get('https://tiktok-scraper7.p.rapidapi.com/user/posts', {
+            params: { unique_id: username, count: '10', cursor: '0' },
             headers: { 
                 'x-rapidapi-key': rapidKey, 
-                'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' 
+                'x-rapidapi-host': 'rapidHost' 
             }
         });
 
-        const posts = postRes.data.aweme_list || postRes.data.posts || [];
-        console.log(`🎬 ${posts.length} ədəd video tapıldı.`);
+        const posts = postRes.data.data.videos || [];
 
-        // 3. Supabase-ə yazmaq
-        // Əvvəlcə hesabı əlavə edirik
-        const { data: account, error: accError } = await supabase
+        // 3. Supabase-ə qeyd etmək
+        const { data: account } = await supabase
             .from('accounts')
-            .upsert({ username: username, fullname: userObj.nickname }, { onConflict: 'username' })
+            .upsert({ 
+                username: username, 
+                fullname: userInfo.nickname 
+            }, { onConflict: 'username' })
             .select()
             .single();
-
-        if (accError) throw accError;
 
         if (posts.length > 0) {
             const videoData = posts.map(v => ({
                 account_id: account.id,
-                tiktok_id: v.aweme_id || v.video_id,
-                caption: v.desc || "",
-                view_count: v.statistics ? (v.statistics.play_count || 0) : 0,
-                created_at: new Date((v.create_time || Date.now() / 1000) * 1000).toISOString()
+                tiktok_id: v.video_id,
+                caption: v.title || "",
+                view_count: v.play_count || 0,
+                created_at: new Date(v.create_time * 1000).toISOString()
             }));
 
-            const { error: vidError } = await supabase
-                .from('videos')
-                .upsert(videoData, { onConflict: 'tiktok_id' });
-            
-            if (vidError) throw vidError;
+            await supabase.from('videos').upsert(videoData, { onConflict: 'tiktok_id' });
         }
 
         res.redirect('/');
-
     } catch (error) {
-        console.error("❌ Xəta baş verdi:");
-        if (error.response) {
-            console.error("Data:", error.response.data);
-            console.error("Status:", error.response.status);
-            res.status(error.response.status).send(`API Xətası: ${JSON.stringify(error.response.data)}`);
-        } else {
-            console.error("Mesaj:", error.message);
-            res.status(500).send("Sistem Xətası: " + error.message);
-        }
+        console.error("Xəta:", error.message);
+        res.status(500).send("Analiz zamanı xəta baş verdi: " + error.message);
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server http://localhost:${PORT} portunda aktivdir.`));
+app.listen(PORT, () => console.log(`Server ${PORT} portunda çalışır.`));
