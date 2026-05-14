@@ -2,24 +2,53 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TikTok Music Strategist Pro</title>
     <style>
-        :root { --bg: #080808; --card: #121212; --accent: #ff0050; --secondary: #00f2ea; --text: #e0e0e0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; font-size: 12px; }
-        .container { max-width: 1200px; margin: auto; }
-        .header { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #222; display: flex; gap: 10px; margin-bottom: 25px; }
-        input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px 15px; border-radius: 8px; flex: 1; outline: none; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        :root { --bg: #080808; --card: #121212; --accent: #ff0050; --secondary: #00f2ea; --text: #e0e0e0; --muted: #8a8a8a; --border: #222; --font: 11px; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 12px; font-size: var(--font); line-height: 1.35; }
+        .container { max-width: 1280px; margin: auto; }
+        .header { background: var(--card); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 12px; }
+        input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 8px 10px; border-radius: 8px; flex: 1; min-width: 140px; outline: none; font-size: 12px; }
+        .btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 11px; white-space: nowrap; }
         .btn-analyze { background: var(--accent); color: white; }
-        .btn-trend { background: var(--secondary); color: black; }
-        .main-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
-        .v-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .stat-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.05); }
-        .t-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; }
-        .t-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
-        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99; }
-        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
-        .modal-item { background:#222; padding:12px; border-radius:10px; margin-bottom:12px; border-left: 3px solid var(--accent); }
+        .btn-trend { background: var(--secondary); color: #000; }
+        .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 11px; }
+        .toolbar label { color: var(--muted); margin-right: 4px; }
+        .region-select { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 11px; }
+        .flash { padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px; border: 1px solid var(--border); }
+        .flash-warn { border-color: #664400; background: #1a1208; color: #ffb84d; }
+        .flash-ok { border-color: #0a3d2e; background: #0a1814; color: #5cf0c5; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+        .panel h3 { margin: 0 0 8px 0; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        @media (max-width: 600px) { .card-grid { grid-template-columns: 1fr; } }
+        .v-card { background: #161616; border: 1px solid var(--border); padding: 8px; border-radius: 8px; position: relative; font-size: 11px; }
+        .v-card .row-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+        .v-card a.title { color: #fff; text-decoration: none; font-weight: 600; font-size: 11px; word-break: break-word; }
+        .tag-hot { display: inline-block; margin-top: 4px; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; background: linear-gradient(90deg, #ff6b00, var(--accent)); color: #fff; box-shadow: 0 0 10px rgba(255,0,80,0.35); }
+        .stat-row { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 10px; }
+        .stat-badge { padding: 2px 6px; border-radius: 4px; font-weight: 600; background: rgba(255,255,255,0.06); color: var(--muted); }
+        .stat-badge.er { color: var(--secondary); }
+        .wa-link { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: #1e2a21; border: 1px solid #2a3d32; flex-shrink: 0; }
+        .wa-link:hover { background: #25d36622; border-color: #25d366; }
+        .wa-link svg { width: 14px; height: 14px; fill: #25d366; }
+        .t-card { background: #161616; border: 1px solid var(--border); padding: 8px; border-radius: 8px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 11px; }
+        .t-card.disabled { opacity: 0.55; cursor: not-allowed; }
+        .t-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+        .t-body { flex: 1; min-width: 0; }
+        .t-title-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-weight: 700; font-size: 11px; }
+        .region-pill { font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 4px; background: #252525; border: 1px solid #333; color: var(--muted); }
+        .viral-bar { height: 3px; background: #222; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+        .viral-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--secondary), var(--accent)); transition: width 0.2s ease; }
+        .t-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.88); z-index:99; }
+        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:92%; max-width:480px; background:#141414; border:1px solid var(--secondary); border-radius:12px; padding:14px; z-index:100; max-height: 82vh; overflow-y: auto; font-size: 11px; }
+        .modal-item { background:#1c1c1c; padding:8px; border-radius:8px; margin-bottom:8px; border-left: 3px solid var(--accent); display: flex; gap: 8px; align-items: flex-start; }
+        .modal-item .mi-body { flex: 1; min-width: 0; }
     </style>
 </head>
 <body>
@@ -27,74 +56,140 @@
 <div class="container">
     <div class="header">
         <input type="text" id="userInp" placeholder="TikTok istifadəçi adı...">
-        <button class="btn btn-analyze" onclick="location.href='/analyze/'+document.getElementById('userInp').value">PROFİLİ ANALİZ ET</button>
-        <button class="btn btn-trend" onclick="location.href='/fetch-global-trends'">KƏŞFİYYATI (DISCOVER) ÇƏK</button>
+        <button type="button" class="btn btn-analyze" onclick="location.href='/analyze/'+encodeURIComponent(document.getElementById('userInp').value.trim())">PROFİLİ ANALİZ ET</button>
+        <button type="button" class="btn btn-trend" onclick="location.href='/fetch-global-trends'">KƏŞFİYYATI (DISCOVER) ÇƏK</button>
     </div>
 
-    <div class="main-grid">
-        <section>
-            <h3>🔍 Son Analizlər</h3>
-            <% videos.forEach(v => { %>
+    <% if (typeof flashImported !== 'undefined' && flashImported !== '') { %>
+        <div class="flash flash-ok">Son sinxron: <%= flashImported %> sətir upsert (7 günlük feed filtri + çoxregion).</div>
+    <% } %>
+    <% if (typeof flashWarn !== 'undefined' && flashWarn !== '') { %>
+        <div class="flash flash-warn">Region xəbərdarlığı: <%= flashWarn %></div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="flash flash-warn"><%= error %></div>
+    <% } %>
+
+    <div class="toolbar">
+        <span><label for="regionSel">Region seçimi</label></span>
+        <select id="regionSel" class="region-select" onchange="location.href='/?region='+encodeURIComponent(this.value)">
+            <% (regionOptions || ['Global','US','TR','GB','DE','AZ']).forEach(function(r) { %>
+                <option value="<%= r %>" <%= selectedRegion === r ? 'selected' : '' %>><%= r === 'Global' ? 'Global (hamısı)' : r %></option>
+            <% }); %>
+        </select>
+    </div>
+
+    <div class="dashboard-grid">
+        <section class="panel">
+            <h3>🔍 Son analizlər</h3>
+            <div class="card-grid">
+            <% videos.forEach(function(v) { %>
                 <div class="v-card">
-                    <a href="<%= v.video_url %>" target="_blank" style="color:white; text-decoration:none; font-weight:600;"><%= v.caption %> ↗</a>
-                    <div style="margin-top:10px; display:flex; gap:10px;">
+                    <div class="row-top">
+                        <a class="title" href="<%= v.video_url %>" target="_blank" rel="noopener"><%= v.caption %> ↗</a>
+                        <% if (v.video_url) { %>
+                        <a class="wa-link" href="https://wa.me/?text=<%= encodeURIComponent('Buna bax: ' + v.video_url) %>" target="_blank" rel="noopener" title="WhatsApp" aria-label="WhatsApp ilə paylaş">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                        <% } %>
+                    </div>
+                    <% if (v.high_potential) { %><span class="tag-hot">🔥 YÜKSƏK POTENSİAL</span><% } %>
+                    <div class="stat-row">
                         <span class="stat-badge" style="color:var(--accent)">👁 <%= v.view_count %></span>
                         <span class="stat-badge" style="color:var(--secondary)">❤️ <%= v.like_count %></span>
+                        <span class="stat-badge">↗ <%= v.share_count != null ? v.share_count : 0 %></span>
+                        <span class="stat-badge">💬 <%= v.comment_count != null ? v.comment_count : 0 %></span>
+                        <span class="stat-badge er">ER <%= v.er_display + '%' %></span>
                         <span class="stat-badge">🎵 <%= v.music_name %></span>
                     </div>
                 </div>
-            <% }) %>
+            <% }); %>
+            </div>
         </section>
 
-        <section>
-            <h3>🔥 Kəşfiyyat Trendləri</h3>
-            <% trends.forEach(t => { %>
-                <div class="t-card" onclick="showMusic('<%= t.trend_id %>', '<%= t.trend_name %>')">
-                    <img src="<%= t.thumbnail %>" class="t-img" onerror="this.src='https://www.tiktok.com/favicon.ico'">
-                    <div style="flex:1">
-                        <div style="font-weight: bold;"><%= t.trend_name %></div>
-                        <div style="font-size:10px; color:#666">Potensial: <%= t.growth_rate %>%</div>
+        <section class="panel">
+            <h3>🔥 Kəşfiyyat trendləri</h3>
+            <div class="card-grid">
+            <% const flags = { US: '🇺🇸', TR: '🇹🇷', GB: '🇬🇧', DE: '🇩🇪', AZ: '🇦🇿' }; %>
+            <% trends.forEach(function(t) { %>
+                <div class="t-card <%= t.music_id ? '' : 'disabled' %>" data-music-id="<%= t.music_id || '' %>" data-title="<%= encodeURIComponent(t.trend_name || '') %>">
+                    <img src="<%= t.thumbnail %>" class="t-img" alt="" onerror="this.src='https://www.tiktok.com/favicon.ico'">
+                    <div class="t-body">
+                        <div class="t-title-row">
+                            <span><%= t.trend_name %></span>
+                            <span class="region-pill" title="Region"><%= flags[t.region] || '🌐' %> <%= t.region || '—' %></span>
+                            <% if (t.video_url) { %>
+                            <a class="wa-link" style="cursor:pointer" href="https://wa.me/?text=<%= encodeURIComponent('Buna bax: ' + t.video_url) %>" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="WhatsApp" aria-label="WhatsApp">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            </a>
+                            <% } %>
+                        </div>
+                        <% if (t.high_potential) { %><span class="tag-hot">🔥 YÜKSƏK POTENSİAL</span><% } %>
+                        <div class="viral-bar" title="Viral gücü (artım sürəti)"><div class="viral-fill" style="width:<%= Math.round(t.velocity_bar_pct || 0) + '%' %>"></div></div>
+                        <div class="t-meta">ER <%= t.er_display + '%' %> · <%= t.trend_reason || '' %></div>
                     </div>
-                    <div style="color:var(--accent); font-size:10px;"><%= t.trend_reason %></div>
                 </div>
-            <% }) %>
+            <% }); %>
+            </div>
         </section>
     </div>
 </div>
 
 <div class="modal-overlay" onclick="closeM()"></div>
 <div id="musicModal">
-    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
-        <b id="mTitle" style="color:var(--secondary);">Analiz</b>
-        <button onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer;">BAĞLA</button>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:10px;">
+        <b id="mTitle" style="color:var(--secondary); font-size:12px;">Analiz</b>
+        <button type="button" onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:11px;">BAĞLA</button>
     </div>
     <div id="mList"></div>
 </div>
 
 <script>
-    async function showMusic(id, name) {
+    function waVideoUrl(link) {
+        return 'https://wa.me/?text=' + encodeURIComponent('Buna bax: ' + link);
+    }
+    function waIconBtn(href) {
+        return '<a class="wa-link" href="' + href + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="WhatsApp" aria-label="WhatsApp">'
+            + '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#25d366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>';
+    }
+    async function showMusic(musicId, name) {
         document.querySelector('.modal-overlay').style.display = 'block';
         document.getElementById('musicModal').style.display = 'block';
-        document.getElementById('mTitle').innerText = name;
+        document.getElementById('mTitle').innerText = name || 'Analiz';
         const list = document.getElementById('mList');
         list.innerHTML = "<p style='text-align:center;'>Kəşfiyyat datası emal olunur...</p>";
-
         try {
-            const res = await fetch('/music-trends/' + id);
+            const res = await fetch('/music-trends/' + encodeURIComponent(musicId));
             const data = await res.json();
-            list.innerHTML = data.map(v => `
-                <div class="modal-item">
-                    <div style="font-size:11px; margin-bottom:5px;">${v.title}</div>
-                    <div style="color:var(--accent); font-weight:bold; font-size:10px;">👁 ${v.play_count}</div>
-                    <a href="${v.link}" target="_blank" style="color:var(--secondary); font-size:10px; text-decoration:none;">VİDEOYA GET ↗</a>
-                </div>
-            `).join('');
-        } catch (e) { list.innerHTML = "Məlumat tapılmadı."; }
+            list.innerHTML = data.map(function (v) {
+                const hot = v.high_potential ? '<span class="tag-hot">🔥 YÜKSƏK POTENSİAL</span>' : '';
+                const er = v.engagement_rate != null ? v.engagement_rate : '0';
+                const wa = waIconBtn(waVideoUrl(v.link));
+                return '<div class="modal-item"><div class="mi-body"><div style="font-size:11px;margin-bottom:4px;">'
+                    + (v.title || '') + '</div>' + hot
+                    + '<div style="color:var(--accent);font-weight:bold;font-size:10px;margin-top:4px;">👁 '
+                    + v.play_count + ' · ER ' + er + '%</div><a href="' + v.link
+                    + '" target="_blank" rel="noopener" style="color:var(--secondary);font-size:10px;text-decoration:none;">VİDEOYA GET ↗</a></div>'
+                    + wa + '</div>';
+            }).join('');
+        } catch (e) {
+            list.innerHTML = 'Məlumat tapılmadı.';
+        }
     }
     function closeM() {
         document.querySelector('.modal-overlay').style.display = 'none';
         document.getElementById('musicModal').style.display = 'none';
     }
+    document.querySelectorAll('.t-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+            const mid = card.getAttribute('data-music-id');
+            const title = decodeURIComponent(card.getAttribute('data-title') || '');
+            if (!mid) {
+                return;
+            }
+            showMusic(mid, title);
+        });
+    });
 </script>
 
 </body>
