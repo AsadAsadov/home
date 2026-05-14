@@ -7,77 +7,55 @@
         :root { --bg: #080808; --card: #121212; --accent: #ff0050; --secondary: #00f2ea; --text: #e0e0e0; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; font-size: 12px; }
         .container { max-width: 1200px; margin: auto; }
-        
         .header { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #222; display: flex; gap: 10px; margin-bottom: 25px; }
         input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px 15px; border-radius: 8px; flex: 1; outline: none; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .btn-analyze { background: var(--accent); color: white; }
         .btn-trend { background: var(--secondary); color: black; }
-
         .main-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
-        .v-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; position: relative; }
-        .v-title { font-weight: 600; margin-bottom: 10px; color: #fff; display: block; text-decoration: none; }
-        .v-title:hover { color: var(--secondary); }
-
-        .stat-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .v-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
         .stat-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.05); }
-
-        .t-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
-        .t-card:hover { border-color: var(--secondary); transform: translateX(5px); }
+        .t-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; }
         .t-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
-
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99; }
-        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:95%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
+        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
         .modal-item { background:#222; padding:12px; border-radius:10px; margin-bottom:12px; border-left: 3px solid var(--accent); }
-        .hot-label { background: var(--accent); color: white; padding: 2px 5px; border-radius: 3px; font-size: 9px; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-<% 
-    function format(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num;
-    }
-%>
-
 <div class="container">
     <div class="header">
         <input type="text" id="userInp" placeholder="TikTok istifadəçi adı...">
-        <button class="btn btn-analyze" onclick="location.href='/analyze/'+document.getElementById('userInp').value">ANALİZ ET</button>
-        <button class="btn btn-trend" onclick="location.href='/fetch-global-trends'">TRENDLƏRİ ÇƏK</button>
+        <button class="btn btn-analyze" onclick="location.href='/analyze/'+document.getElementById('userInp').value">PROFİLİ ANALİZ ET</button>
+        <button class="btn btn-trend" onclick="location.href='/fetch-global-trends'">KƏŞFİYYATI (DISCOVER) ÇƏK</button>
     </div>
 
     <div class="main-grid">
         <section>
-            <h3>🔍 Son Paylaşımlar</h3>
+            <h3>🔍 Son Analizlər</h3>
             <% videos.forEach(v => { %>
                 <div class="v-card">
-                    <a href="<%= v.video_url %>" target="_blank" class="v-title"><%= v.caption %> ↗</a>
-                    <div class="stat-group">
-                        <span class="stat-badge" style="color:var(--accent)">👁 <%= format(v.view_count) %></span>
-                        <span class="stat-badge" style="color:var(--secondary)">❤️ <%= format(v.like_count) %></span>
-                        <span class="stat-badge">💬 <%= format(v.comment_count || 0) %></span>
-                        <span class="stat-badge">🔄 <%= format(v.share_count) %></span>
-                    </div>
-                    <div style="margin-top:10px; font-size:10px; color:#555;">
-                        🎵 <%= v.music_name %> | 👤 @<%= v.accounts?.username %>
+                    <a href="<%= v.video_url %>" target="_blank" style="color:white; text-decoration:none; font-weight:600;"><%= v.caption %> ↗</a>
+                    <div style="margin-top:10px; display:flex; gap:10px;">
+                        <span class="stat-badge" style="color:var(--accent)">👁 <%= v.view_count %></span>
+                        <span class="stat-badge" style="color:var(--secondary)">❤️ <%= v.like_count %></span>
+                        <span class="stat-badge">🎵 <%= v.music_name %></span>
                     </div>
                 </div>
             <% }) %>
         </section>
 
         <section>
-            <h3>🔥 Trend Musiqilər</h3>
+            <h3>🔥 Kəşfiyyat Trendləri</h3>
             <% trends.forEach(t => { %>
                 <div class="t-card" onclick="showMusic('<%= t.trend_id %>', '<%= t.trend_name %>')">
                     <img src="<%= t.thumbnail %>" class="t-img" onerror="this.src='https://www.tiktok.com/favicon.ico'">
                     <div style="flex:1">
                         <div style="font-weight: bold;"><%= t.trend_name %></div>
-                        <div style="font-size:10px; color:#666">📈 Viral Gücü: <%= t.growth_rate %>%</div>
+                        <div style="font-size:10px; color:#666">Potensial: <%= t.growth_rate %>%</div>
                     </div>
-                    <div style="color:var(--accent); font-weight:bold; font-size: 10px;"><%= t.trend_reason %></div>
+                    <div style="color:var(--accent); font-size:10px;"><%= t.trend_reason %></div>
                 </div>
             <% }) %>
         </section>
@@ -86,9 +64,9 @@
 
 <div class="modal-overlay" onclick="closeM()"></div>
 <div id="musicModal">
-    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:20px;">
-        <b id="mTitle" style="color:var(--secondary); font-size:14px;">Viral Videolar (Top 8)</b>
-        <button onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">BAĞLA</button>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
+        <b id="mTitle" style="color:var(--secondary);">Analiz</b>
+        <button onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer;">BAĞLA</button>
     </div>
     <div id="mList"></div>
 </div>
@@ -99,35 +77,19 @@
         document.getElementById('musicModal').style.display = 'block';
         document.getElementById('mTitle').innerText = name;
         const list = document.getElementById('mList');
-        list.innerHTML = "<p style='text-align:center; color:#444;'>Sürətli analiz aparılır...</p>";
+        list.innerHTML = "<p style='text-align:center;'>Kəşfiyyat datası emal olunur...</p>";
 
         try {
             const res = await fetch('/music-trends/' + id);
             const data = await res.json();
-            
-            if(data.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:#555;'>Bu musiqi ilə son 48 saatda 50K+ baxış alan video tapılmadı.</p>";
-                return;
-            }
-
             list.innerHTML = data.map(v => `
-                <div class="modal-item" style="${v.is_hot ? 'border-left: 3px solid #00f2ea;' : ''}">
-                    <div style="font-size:11px; margin-bottom:8px; line-height:1.4;">
-                        ${v.is_hot ? '<span class="hot-label">🔥 VİRAL SÜRƏT</span>' : ''} ${v.title}
-                    </div>
-                    <div style="display:flex; gap:10px; margin-bottom:8px;">
-                        <span style="color:var(--accent); font-weight:bold;">👁 ${v.play_count > 1000 ? (v.play_count/1000).toFixed(1)+'K' : v.play_count}</span>
-                        <span style="color:var(--secondary)">❤️ ${v.digg_count > 1000 ? (v.digg_count/1000).toFixed(1)+'K' : v.digg_count}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <small style="color:#666;">${v.time}</small>
-                        <a href="${v.link}" target="_blank" style="color:var(--secondary); text-decoration:none; font-weight:bold; font-size:10px;">VİDEO ↗</a>
-                    </div>
+                <div class="modal-item">
+                    <div style="font-size:11px; margin-bottom:5px;">${v.title}</div>
+                    <div style="color:var(--accent); font-weight:bold; font-size:10px;">👁 ${v.play_count}</div>
+                    <a href="${v.link}" target="_blank" style="color:var(--secondary); font-size:10px; text-decoration:none;">VİDEOYA GET ↗</a>
                 </div>
             `).join('');
-        } catch (e) {
-            list.innerHTML = "Xəta baş verdi.";
-        }
+        } catch (e) { list.innerHTML = "Məlumat tapılmadı."; }
     }
     function closeM() {
         document.querySelector('.modal-overlay').style.display = 'none';
