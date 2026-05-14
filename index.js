@@ -27,31 +27,56 @@ app.get('/', async (req, res) => {
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     const rapidKey = process.env.RAPIDAPI_KEY;
+    
     try {
+        console.log(`${username} üçün analiz başlayır...`);
+        
+        // 1. İstifadəçi məlumatlarını tapmaq
         const userRes = await axios.get('https://tiktok-api23.p.rapidapi.com/api/user/info', {
             params: { user: username },
-            headers: { 'x-rapidapi-key': rapidKey, 'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' }
+            headers: { 
+                'x-rapidapi-key': rapidKey, 
+                'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' 
+            }
         });
+
+        if (!userRes.data.userInfo) {
+            return res.status(404).send("İstifadəçi tapılmadı! Adın düzgünlüyünə əmin ol.");
+        }
+
         const secUid = userRes.data.userInfo.user.secUid;
+        console.log("secUid tapıldı:", secUid);
+
+        // 2. Köhnə videoları çəkmək
         const postRes = await axios.get('https://tiktok-api23.p.rapidapi.com/api/user/oldest-posts', {
-            params: { secUid: secUid, count: '15' },
-            headers: { 'x-rapidapi-key': rapidKey, 'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' }
+            params: { secUid: secUid, count: '10', cursor: '0' },
+            headers: { 
+                'x-rapidapi-key': rapidKey, 
+                'x-rapidapi-host': 'tiktok-api23.p.rapidapi.com' 
+            }
         });
-        const posts = postRes.data.posts;
+
+        const posts = postRes.data.posts || [];
+        
+        // Bazaya yazma hissəsi eyni qalır...
         const { data: account } = await supabase.from('accounts').upsert({ username: username }).select().single();
-        const videoData = posts.map(v => ({
-            account_id: account.id,
-            tiktok_id: v.aweme_id,
-            caption: v.desc,
-            view_count: v.statistics.play_count,
-            created_at: new Date(v.create_time * 1000).toISOString()
-        }));
-        await supabase.from('videos').upsert(videoData, { onConflict: 'tiktok_id' });
+        
+        if (posts.length > 0) {
+            const videoData = posts.map(v => ({
+                account_id: account.id,
+                tiktok_id: v.aweme_id,
+                caption: v.desc || "",
+                view_count: v.statistics ? v.statistics.play_count : 0,
+                created_at: new Date(v.create_time * 1000).toISOString()
+            }));
+            await supabase.from('videos').upsert(videoData, { onConflict: 'tiktok_id' });
+        }
+
         res.redirect('/');
     } catch (error) {
-        res.status(500).send(error.message);
+        console.error("Xəta detalları:", error.response ? error.response.data : error.message);
+        res.status(500).send("API xətası: " + (error.response ? error.response.status : error.message));
     }
 });
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Port: ${PORT}`));
