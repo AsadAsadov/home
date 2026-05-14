@@ -2,64 +2,80 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <title>TikTok Trend Detector</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Data Recycler Pro</title>
     <style>
-        body { background: #0a0a0a; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; font-size: 11px; margin: 0; padding: 15px; }
-        .header { display: flex; gap: 10px; margin-bottom: 20px; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; }
-        input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; width: 200px; font-size: 11px; }
-        .btn { background: #ff0050; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-discover { background: #00f2ea; color: #000; }
+        :root { --bg: #0a0a0a; --card: #161616; --text: #ececec; --accent: #ff0050; --secondary: #00f2ea; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; font-size: 12px; }
+        .container { max-width: 1100px; margin: auto; }
         
-        .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-        .section-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
-        
-        .card { background: #141414; border: 1px solid #222; padding: 10px; border-radius: 6px; margin-bottom: 8px; transition: 0.3s; }
-        .card:hover { border-color: #444; background: #1a1a1a; }
-        
-        .trend-item { display: flex; gap: 10px; align-items: center; }
-        .trend-img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }
-        .reason { color: #00f2ea; font-weight: bold; margin-top: 4px; font-size: 10px; }
-        .growth { color: #ff0050; font-size: 12px; font-weight: bold; }
-        .stats-row { color: #666; margin-top: 5px; }
+        /* Naviqasiya */
+        .header { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #333; display: flex; gap: 10px; margin-bottom: 20px; }
+        input { background: #222; border: 1px solid #444; color: white; padding: 8px 12px; border-radius: 6px; flex: 1; outline: none; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-analyze { background: var(--accent); color: white; }
+        .btn-trend { background: var(--secondary); color: black; }
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* Grid Layout */
+        .main-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
+        .section-header { font-size: 13px; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Video Kartları */
+        .v-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .v-title { font-weight: 600; margin-bottom: 6px; color: #fff; line-height: 1.4; }
+        .v-stats { color: var(--accent); font-weight: bold; font-size: 11px; }
+        .v-meta { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #333; color: #888; font-size: 10px; }
+        .v-music { color: var(--secondary); font-style: italic; }
+
+        /* Trend Kartları */
+        .t-card { background: var(--card); border: 1px solid #222; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .t-img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); }
+        .t-info { flex: 1; }
+        .t-reason { color: var(--secondary); font-size: 9px; margin-top: 2px; }
+        .t-growth { background: #222; color: var(--accent); padding: 4px 8px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="header">
-        <input type="text" id="userInput" placeholder="Profil adı (məs: khaby.lame)">
-        <button class="btn" onclick="location.href='/analyze/'+document.getElementById('userInput').value">PROFİL ANALİZ</button>
-        <button class="btn btn-discover" onclick="location.href='/fetch-global-trends'">KƏŞF ET (GLOBAL TRENDS)</button>
+        <input type="text" id="userInp" placeholder="TikTok istifadəçi adı...">
+        <button class="btn btn-analyze" onclick="location.href='/analyze/'+document.getElementById('userInp').value">ANALİZ ET</button>
+        <button class="btn btn-trend" onclick="location.href='/fetch-global-trends'">TRENDLƏRİ ÇƏK</button>
     </div>
 
-    <div class="grid">
-        <div>
-            <div class="section-title">🎬 SON ANALİZ OLUNAN VİDEOLAR</div>
+    <div class="main-grid">
+        <section>
+            <div class="section-header">🔍 SON ANALİZLƏR</div>
             <% videos.forEach(v => { %>
-                <div class="card">
-                    <div style="font-weight: bold; margin-bottom: 4px;"><%= v.caption.substring(0, 60) %>...</div>
-                    <div class="stats-row">
-                        👁 <%= (v.view_count/1000).toFixed(1) %>K | ❤️ <%= v.like_count %> | 👤 @<%= v.accounts?.username %>
+                <div class="v-card">
+                    <div class="v-title"><%= v.caption || "Açıqlama yoxdur" %></div>
+                    <div class="v-stats">📈 <%= (v.view_count/1000).toFixed(1) %>K baxış</div>
+                    <div class="v-meta">
+                        <span>📅 <%= new Date(v.created_at).toLocaleDateString('az-AZ') %></span>
+                        <span class="v-music">🎵 <%= v.music_name %></span>
+                        <span>👤 @<%= v.accounts?.username %></span>
                     </div>
                 </div>
             <% }) %>
-        </div>
+        </section>
 
-        <div>
-            <div class="section-title">📈 TREND POTENSİALI (AĞILLI ANALİZ)</div>
+        <section>
+            <div class="section-header">🔥 TREND MUSİQİLƏR</div>
             <% trends.forEach(t => { %>
-                <div class="card">
-                    <div class="trend-item">
-                        <img src="<%= t.thumbnail %>" class="trend-img">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold;"><%= t.trend_name %></div>
-                            <div class="reason">💡 <%= t.trend_reason %></div>
-                        </div>
-                        <div class="growth">+<%= t.growth_rate %>%</div>
+                <div class="t-card">
+                    <img src="<%= t.thumbnail %>" class="t-img">
+                    <div class="t-info">
+                        <div style="font-weight: bold;"><%= t.trend_name %></div>
+                        <div class="t-reason">💡 <%= t.trend_reason %></div>
                     </div>
+                    <div class="t-growth">+<%= t.growth_rate %>%</div>
                 </div>
             <% }) %>
-        </div>
+        </section>
     </div>
+</div>
 
 </body>
 </html>
