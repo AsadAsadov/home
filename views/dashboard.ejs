@@ -27,8 +27,9 @@
         .t-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99; }
-        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
+        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:95%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
         .modal-item { background:#222; padding:12px; border-radius:10px; margin-bottom:12px; border-left: 3px solid var(--accent); }
+        .hot-label { background: var(--accent); color: white; padding: 2px 5px; border-radius: 3px; font-size: 9px; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -74,9 +75,9 @@
                     <img src="<%= t.thumbnail %>" class="t-img" onerror="this.src='https://www.tiktok.com/favicon.ico'">
                     <div style="flex:1">
                         <div style="font-weight: bold;"><%= t.trend_name %></div>
-                        <div style="font-size:10px; color:#666">📈 Artım: <%= t.growth_rate %>%</div>
+                        <div style="font-size:10px; color:#666">📈 Viral Gücü: <%= t.growth_rate %>%</div>
                     </div>
-                    <div style="color:var(--accent); font-weight:bold;">#<%= t.id %></div>
+                    <div style="color:var(--accent); font-weight:bold; font-size: 10px;"><%= t.trend_reason %></div>
                 </div>
             <% }) %>
         </section>
@@ -86,7 +87,7 @@
 <div class="modal-overlay" onclick="closeM()"></div>
 <div id="musicModal">
     <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:20px;">
-        <b id="mTitle" style="color:var(--secondary); font-size:14px;">Musiqi Detalları</b>
+        <b id="mTitle" style="color:var(--secondary); font-size:14px;">Viral Videolar (Top 8)</b>
         <button onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">BAĞLA</button>
     </div>
     <div id="mList"></div>
@@ -98,28 +99,34 @@
         document.getElementById('musicModal').style.display = 'block';
         document.getElementById('mTitle').innerText = name;
         const list = document.getElementById('mList');
-        list.innerHTML = "<p style='text-align:center; color:#444;'>Dərin analiz aparılır...</p>";
+        list.innerHTML = "<p style='text-align:center; color:#444;'>Sürətli analiz aparılır...</p>";
 
         try {
             const res = await fetch('/music-trends/' + id);
             const data = await res.json();
             
+            if(data.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#555;'>Bu musiqi ilə son 48 saatda 50K+ baxış alan video tapılmadı.</p>";
+                return;
+            }
+
             list.innerHTML = data.map(v => `
-                <div class="modal-item">
-                    <div style="font-size:11px; margin-bottom:8px; line-height:1.4;">${v.title}</div>
+                <div class="modal-item" style="${v.is_hot ? 'border-left: 3px solid #00f2ea;' : ''}">
+                    <div style="font-size:11px; margin-bottom:8px; line-height:1.4;">
+                        ${v.is_hot ? '<span class="hot-label">🔥 VİRAL SÜRƏT</span>' : ''} ${v.title}
+                    </div>
                     <div style="display:flex; gap:10px; margin-bottom:8px;">
                         <span style="color:var(--accent); font-weight:bold;">👁 ${v.play_count > 1000 ? (v.play_count/1000).toFixed(1)+'K' : v.play_count}</span>
-                        <span style="color:var(--secondary)">❤️ ${v.digg_count}</span>
-                        <span style="color:#aaa">💬 ${v.comment_count}</span>
+                        <span style="color:var(--secondary)">❤️ ${v.digg_count > 1000 ? (v.digg_count/1000).toFixed(1)+'K' : v.digg_count}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <small style="color:#444;">${v.time}</small>
-                        <a href="${v.link}" target="_blank" style="color:var(--secondary); text-decoration:none; font-weight:bold; font-size:10px;">VİDEOYA BAX ↗</a>
+                        <small style="color:#666;">${v.time}</small>
+                        <a href="${v.link}" target="_blank" style="color:var(--secondary); text-decoration:none; font-weight:bold; font-size:10px;">VİDEO ↗</a>
                     </div>
                 </div>
             `).join('');
         } catch (e) {
-            list.innerHTML = "Məlumat tapılmadı.";
+            list.innerHTML = "Xəta baş verdi.";
         }
     }
     function closeM() {
