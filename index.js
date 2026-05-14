@@ -11,7 +11,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-// Ana səhifə - Videoları göstər
 app.get('/', async (req, res) => {
     try {
         const { data: videos } = await supabase
@@ -25,16 +24,15 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Analiz hissəsi - Yeni TikTok Scraper API ilə
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     const rapidKey = process.env.RAPIDAPI_KEY;
-    const rapidHost = 'tiktok-scraper7.p.rapidapi.com'; // Yeni tapdığın host
+    const rapidHost = 'tiktok-scraper7.p.rapidapi.com'; 
 
     try {
-        console.log(`${username} üçün məlumatlar çəkilir...`);
+        console.log(`🔍 ${username} yoxlanılır...`);
 
-        // 1. İstifadəçi məlumatlarını və secUid tapmaq
+        // 1. İstifadəçi məlumatlarını çəkmək
         const userRes = await axios.get('https://tiktok-scraper7.p.rapidapi.com/user/info', {
             params: { unique_id: username },
             headers: { 
@@ -43,33 +41,32 @@ app.get('/analyze/:username', async (req, res) => {
             }
         });
 
-        if (!userRes.data || userRes.data.code !== 0) {
-            return res.status(404).send("İstifadəçi tapılmadı və ya API xətası.");
+        // Diqqət: Bu API-də data "data" obyektinin içində olur
+        if (!userRes.data || !userRes.data.data) {
+            return res.status(404).send("İstifadəçi tapılmadı. Adı düzgün yazdığınızdan əmin olun.");
         }
 
         const userInfo = userRes.data.data.user;
-        const stats = userRes.data.data.stats;
         
         // 2. Videoları çəkmək
         const postRes = await axios.get('https://tiktok-scraper7.p.rapidapi.com/user/posts', {
             params: { unique_id: username, count: '10', cursor: '0' },
             headers: { 
                 'x-rapidapi-key': rapidKey, 
-                'x-rapidapi-host': 'rapidHost' 
+                'x-rapidapi-host': rapidHost // Burada dırnaqları sildim
             }
         });
 
-        const posts = postRes.data.data.videos || [];
+        const posts = postRes.data.data ? (postRes.data.data.videos || []) : [];
 
-        // 3. Supabase-ə qeyd etmək
-        const { data: account } = await supabase
+        // 3. Supabase əməliyyatları
+        const { data: account, error: accError } = await supabase
             .from('accounts')
-            .upsert({ 
-                username: username, 
-                fullname: userInfo.nickname 
-            }, { onConflict: 'username' })
+            .upsert({ username: username, fullname: userInfo.nickname }, { onConflict: 'username' })
             .select()
             .single();
+
+        if (accError) throw accError;
 
         if (posts.length > 0) {
             const videoData = posts.map(v => ({
@@ -85,10 +82,10 @@ app.get('/analyze/:username', async (req, res) => {
 
         res.redirect('/');
     } catch (error) {
-        console.error("Xəta:", error.message);
-        res.status(500).send("Analiz zamanı xəta baş verdi: " + error.message);
+        console.error("Xəta detalları:", error.response ? error.response.data : error.message);
+        res.status(500).send("Xəta baş verdi: " + (error.response ? error.response.status : error.message));
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server ${PORT} portunda çalışır.`));
+app.listen(PORT, () => console.log(`🚀 Server ${PORT} portunda aktivdir.`));
