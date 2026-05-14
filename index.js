@@ -24,7 +24,7 @@ app.get('/', async (req, res) => {
             .from('global_trends')
             .select('*')
             .order('growth_rate', { ascending: false })
-            .limit(10);
+            .limit(12);
 
         res.render('dashboard', { videos: videos || [], trends: trends || [] });
     } catch (err) {
@@ -32,7 +32,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// 1. PROFİL ANALİZİ ROUTE
+// 1. PROFİL ANALİZİ
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     try {
@@ -45,7 +45,7 @@ app.get('/analyze/:username', async (req, res) => {
         const userObj = userRes.data.data.user;
 
         const postRes = await axios.get(`https://${RAPID_HOST}/user/posts`, {
-            params: { unique_id: username, count: '10' },
+            params: { unique_id: username, count: '12' },
             headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
 
@@ -59,11 +59,11 @@ app.get('/analyze/:username', async (req, res) => {
             const videoData = posts.map(v => ({
                 account_id: account.id,
                 tiktok_id: v.video_id,
-                caption: v.title || "",
+                caption: v.title || "Açıqlama yoxdur",
                 view_count: v.play_count || 0,
                 like_count: v.digg_count || 0,
                 share_count: v.share_count || 0,
-                music_name: v.music_info?.title || "Original Sound",
+                music_name: v.music_info?.title || "Səs məlumatı yoxdur",
                 created_at: new Date(v.create_time * 1000).toISOString()
             }));
             await supabase.from('videos').upsert(videoData, { onConflict: 'tiktok_id' });
@@ -74,37 +74,51 @@ app.get('/analyze/:username', async (req, res) => {
     }
 });
 
-// 2. TRENDLƏRİ YENİLƏ ROUTE
+// 2. TRENDLƏRİ ÇƏK (Musiqi Adı Problemi Həll Olunub)
 app.get('/fetch-global-trends', async (req, res) => {
     try {
-        // 404 xətası almamaq üçün 'tiktok' rəsmi hesabı üzərindən trendləri çəkirik
         const response = await axios.get(`https://${RAPID_HOST}/user/posts`, {
-            params: { unique_id: 'tiktok', count: '10' }, 
+            params: { unique_id: 'tiktok', count: '15' }, 
             headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
 
         const trendingVideos = response.data.data.videos || [];
 
         for (let v of trendingVideos) {
-            const views = v.play_count || 1;
-            const engagement = ((v.digg_count + v.share_count) / views) * 100;
+            const engagement = (((v.digg_count + v.share_count) / (v.play_count || 1)) * 100).toFixed(2);
             
-            let reason = "Stabil Artım";
-            if (engagement > 10) reason = "Yüksək Reaksiya Faizi";
-            if (v.share_count > 5000) reason = "Viral Paylaşım Dalğası";
+            // Əgər musiqi adı "original sound" dursa, videonun başlığını istifadə edirik
+            let displayTitle = v.music_info.title;
+            if (displayTitle.toLowerCase().includes("original sound")) {
+                displayTitle = v.title ? v.title.substring(0, 30) + "..." : displayTitle;
+            }
 
             await supabase.from('global_trends').upsert({
                 trend_type: 'music',
-                trend_name: v.music_info.title,
+                trend_name: displayTitle,
                 trend_id: v.music_info.id,
-                growth_rate: engagement.toFixed(2),
-                trend_reason: reason,
-                thumbnail: v.music_info.cover_medium
+                growth_rate: engagement,
+                trend_reason: v.digg_count > 100000 ? "Viral Reaksiya" : "Sürətli Artım",
+                thumbnail: v.music_info.cover_medium || v.origin_cover
             }, { onConflict: 'trend_id' });
         }
         res.redirect('/');
     } catch (error) {
         res.status(500).send("Trend xətası: " + error.message);
+    }
+});
+
+// 3. MUSİQİYƏ KLİKLƏYƏNDƏ SON 5 VİDEO
+app.get('/music-trends/:musicId', async (req, res) => {
+    try {
+        const { musicId } = req.params;
+        const response = await axios.get(`https://${RAPID_HOST}/music/posts`, {
+            params: { music_id: musicId, count: '5' },
+            headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
+        });
+        res.json(response.data.data.videos || []);
+    } catch (error) {
+        res.status(500).json({ error: "Məlumat alınmadı" });
     }
 });
 
