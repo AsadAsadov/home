@@ -1,27 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TikTok Analiz</title>
+    <title>Trend Analiz</title>
     <style>
-        body { background: #111; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        input { padding: 10px; border-radius: 5px; border: none; width: 250px; }
-        button { padding: 10px 20px; background: #00f; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        body { background: #000; color: #fff; font-family: sans-serif; font-size: 11px; margin: 10px; }
+        .container { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        .card { background: #1a1a1a; padding: 8px; border-radius: 4px; margin-bottom: 5px; border: 1px solid #333; }
+        .trend-badge { color: #00ff00; font-weight: bold; }
+        input { font-size: 11px; padding: 5px; background: #222; color: #fff; border: 1px solid #444; }
+        button { font-size: 11px; background: #0055ff; color: #fff; border: none; padding: 5px 10px; cursor: pointer; }
+        .stats { color: #888; margin-top: 3px; }
+        h3 { font-size: 13px; border-bottom: 1px solid #333; padding-bottom: 5px; }
     </style>
 </head>
 <body>
-    <h2>TikTok Data Recycler</h2>
-    <div style="margin-bottom: 30px;">
-        <input type="text" id="user" placeholder="İstifadəçi adı...">
-        <button onclick="location.href='/analyze/'+document.getElementById('user').value">Analiz Et</button>
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="username" placeholder="TikTok Username...">
+        <button onclick="window.location.href='/analyze/'+document.getElementById('username').value">Analiz Et</button>
     </div>
-    <div id="list">
-        <% videos.forEach(v => { %>
-            <div class="card">
-                <span><%= v.caption.substring(0, 50) %>...</span>
-                <strong><%= (v.view_count / 1000).toFixed(1) %>K baxış</strong>
-            </div>
-        <% }) %>
+
+    <div class="container">
+        <div>
+            <h3>🔥 Ən Çox Baxılanlar</h3>
+            <% videos.forEach(v => { %>
+                <div class="card">
+                    <strong><%= v.caption.substring(0, 50) %>...</strong>
+                    <div class="stats">
+                        👁 <%= (v.view_count/1000).toFixed(1) %>k | 
+                        ❤️ <%= v.like_count %> | 
+                        🎵 <%= v.music_name %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div>
+            <h3>📈 Potensial Trend Musiqilər</h3>
+            <% trends.forEach(t => { %>
+                <div class="card" style="border-left: 3px solid #00ff00;">
+                    <div class="trend-badge">TRENDING</div>
+                    <strong><%= t.trend_name %></strong>
+                    <div class="stats">Səbəb: <%= t.trend_reason %></div>
+                    <div style="color: #00ff00;">Artım: +<%= t.growth_rate %>%</div>
+                </div>
+            <% }) %>
+        </div>
     </div>
 </body>
 </html>
