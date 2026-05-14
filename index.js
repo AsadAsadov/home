@@ -32,7 +32,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-// 1. PROFİL ANALİZİ (Linklər əlavə olundu)
+// 1. PROFİL ANALİZİ
 app.get('/analyze/:username', async (req, res) => {
     const { username } = req.params;
     try {
@@ -76,7 +76,7 @@ app.get('/analyze/:username', async (req, res) => {
     }
 });
 
-// 2. TRENDLƏRİ ÇƏK (Musiqi və Müəllif analizi dəqiqləşdi)
+// 2. TRENDLƏRİ ÇƏK
 app.get('/fetch-global-trends', async (req, res) => {
     try {
         const response = await axios.get(`https://${RAPID_HOST}/user/posts`, {
@@ -89,7 +89,6 @@ app.get('/fetch-global-trends', async (req, res) => {
         for (let v of trendingVideos) {
             const engagement = (((v.digg_count + v.share_count) / (v.play_count || 1)) * 100).toFixed(2);
             
-            // "Original sound" yerinə müəllifi göstəririk
             let displayTitle = v.music_info.title;
             if (displayTitle.toLowerCase().includes("original sound")) {
                 displayTitle = `${v.music_info.author} (Original)`;
@@ -100,7 +99,7 @@ app.get('/fetch-global-trends', async (req, res) => {
                 trend_name: displayTitle,
                 trend_id: v.music_info.id,
                 growth_rate: engagement,
-                trend_reason: v.digg_count > 100000 ? "Viral Partlayış" : "Stabil Artım",
+                trend_reason: v.play_count > 1000000 ? "🔥 Milyonluq" : "🚀 Sürətli",
                 thumbnail: v.music_info.cover_medium || v.origin_cover,
                 author_name: v.music_info.author
             }, { onConflict: 'trend_id' });
@@ -111,27 +110,39 @@ app.get('/fetch-global-trends', async (req, res) => {
     }
 });
 
-// 3. MUSİQİYƏ KLİKLƏYƏNDƏ DETALLI ANALİZ
+// 3. MUSİQİYƏ KLİKLƏYƏNDƏ VİRAL ANALİZ (YENİLƏNDİ)
 app.get('/music-trends/:musicId', async (req, res) => {
     try {
         const { musicId } = req.params;
         const response = await axios.get(`https://${RAPID_HOST}/music/posts`, {
-            params: { music_id: musicId, count: '6' },
+            params: { music_id: musicId, count: '20' }, // Daha çox çəkirik ki, süzgəcdən keçirək
             headers: { 'x-rapidapi-key': process.env.RAPIDAPI_KEY, 'x-rapidapi-host': RAPID_HOST }
         });
         
-        // Videoları bütün detalları ilə göndəririk
-        const detailedVideos = response.data.data.videos.map(v => ({
-            title: v.title || "Başlıqsız",
-            play_count: v.play_count,
-            digg_count: v.digg_count,
-            comment_count: v.comment_count,
-            share_count: v.share_count,
-            time: new Date(v.create_time * 1000).toLocaleString('az-AZ'),
-            link: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`
-        }));
+        const now = Math.floor(Date.now() / 1000);
+        const videos = response.data.data.videos || [];
+
+        const viralResults = videos
+            .filter(v => v.play_count >= 50000 && v.title) // 50K limit və başlıqsızları sil
+            .map(v => {
+                const hoursOld = Math.max((now - v.create_time) / 3600, 1);
+                const velocity = v.play_count / hoursOld; // Saatlıq izlənmə sürəti
+                
+                return {
+                    title: v.title,
+                    play_count: v.play_count,
+                    digg_count: v.digg_count,
+                    comment_count: v.comment_count,
+                    time: new Date(v.create_time * 1000).toLocaleDateString('az-AZ', { hour: '2-digit', minute: '2-digit' }),
+                    link: `https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`,
+                    velocity: velocity,
+                    is_hot: velocity > 10000 // Saatda 10k-dan çox izlənirsə partlayıb deməkdir
+                };
+            })
+            .sort((a, b) => b.velocity - a.velocity) // Ən sürətli artanları başa qoy
+            .slice(0, 8); // Top 8 video
         
-        res.json(detailedVideos);
+        res.json(viralResults);
     } catch (error) {
         res.status(500).json([]);
     }
