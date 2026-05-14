@@ -2,48 +2,38 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TikTok Music Strategist Pro</title>
     <style>
         :root { --bg: #080808; --card: #121212; --accent: #ff0050; --secondary: #00f2ea; --text: #e0e0e0; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; font-size: 12px; }
         .container { max-width: 1200px; margin: auto; }
         
-        /* Header & Input */
         .header { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #222; display: flex; gap: 10px; margin-bottom: 25px; }
         input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px 15px; border-radius: 8px; flex: 1; outline: none; }
         .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-analyze { background: var(--accent); color: white; }
         .btn-trend { background: var(--secondary); color: black; }
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-        /* Grid */
         .main-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
-        h3 { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .v-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; position: relative; }
+        .v-title { font-weight: 600; margin-bottom: 10px; color: #fff; display: block; text-decoration: none; }
+        .v-title:hover { color: var(--secondary); }
 
-        /* Video Cards */
-        .v-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 3px solid var(--accent); }
-        .v-title { font-weight: 600; margin-bottom: 10px; color: #fff; line-height: 1.4; }
-        .stat-group { display: flex; gap: 12px; }
+        .stat-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .stat-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: rgba(255,255,255,0.05); }
-        .v-meta { display: flex; justify-content: space-between; margin-top: 12px; font-size: 10px; color: #666; border-top: 1px solid #222; padding-top: 8px; }
 
-        /* Trend Cards */
-        .t-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        .t-card:hover { border-color: var(--secondary); background: #1a1a1a; }
-        .t-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid #333; }
-        .growth { margin-left: auto; color: var(--secondary); font-weight: bold; }
+        .t-card { background: var(--card); border: 1px solid #222; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .t-card:hover { border-color: var(--secondary); transform: translateX(5px); }
+        .t-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 
-        /* Modal */
-        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99; }
-        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:450px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; }
-        .modal-video { background:#222; padding:10px; border-radius:8px; margin-bottom:10px; display: flex; justify-content: space-between; align-items: center;}
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99; }
+        #musicModal { display: none; position: fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:500px; background:#181818; border:1px solid var(--secondary); border-radius:16px; padding:20px; z-index:100; max-height: 80vh; overflow-y: auto; }
+        .modal-item { background:#222; padding:12px; border-radius:10px; margin-bottom:12px; border-left: 3px solid var(--accent); }
     </style>
 </head>
 <body>
 
 <% 
-    // Rəqəmləri 1.2M və ya 150K formatına salan funksiya
     function format(num) {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
@@ -53,41 +43,40 @@
 
 <div class="container">
     <div class="header">
-        <input type="text" id="userInp" placeholder="Analiz üçün istifadəçi adı...">
+        <input type="text" id="userInp" placeholder="TikTok istifadəçi adı...">
         <button class="btn btn-analyze" onclick="location.href='/analyze/'+document.getElementById('userInp').value">ANALİZ ET</button>
         <button class="btn btn-trend" onclick="location.href='/fetch-global-trends'">TRENDLƏRİ ÇƏK</button>
     </div>
 
     <div class="main-grid">
         <section>
-            <h3>🔍 Son Analizlər</h3>
+            <h3>🔍 Son Paylaşımlar</h3>
             <% videos.forEach(v => { %>
                 <div class="v-card">
-                    <div class="v-title"><%= v.caption %></div>
+                    <a href="<%= v.video_url %>" target="_blank" class="v-title"><%= v.caption %> ↗</a>
                     <div class="stat-group">
-                        <span class="stat-badge" style="color:var(--accent)">👁 <%= format(v.view_count) %> baxış</span>
+                        <span class="stat-badge" style="color:var(--accent)">👁 <%= format(v.view_count) %></span>
                         <span class="stat-badge" style="color:var(--secondary)">❤️ <%= format(v.like_count) %></span>
-                        <span class="stat-badge">🔗 <%= format(v.share_count) %></span>
+                        <span class="stat-badge">💬 <%= format(v.comment_count || 0) %></span>
+                        <span class="stat-badge">🔄 <%= format(v.share_count) %></span>
                     </div>
-                    <div class="v-meta">
-                        <span>📅 <%= new Date(v.created_at).toLocaleDateString('az-AZ') %></span>
-                        <span style="color:var(--secondary)">🎵 <%= v.music_name %></span>
-                        <span>👤 @<%= v.accounts?.username %></span>
+                    <div style="margin-top:10px; font-size:10px; color:#555;">
+                        🎵 <%= v.music_name %> | 👤 @<%= v.accounts?.username %>
                     </div>
                 </div>
             <% }) %>
         </section>
 
         <section>
-            <h3>🔥 Trend Musiqilər (Detallar üçün kliklə)</h3>
+            <h3>🔥 Trend Musiqilər</h3>
             <% trends.forEach(t => { %>
                 <div class="t-card" onclick="showMusic('<%= t.trend_id %>', '<%= t.trend_name %>')">
                     <img src="<%= t.thumbnail %>" class="t-img" onerror="this.src='https://www.tiktok.com/favicon.ico'">
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 3px;"><%= t.trend_name %></div>
-                        <div style="font-size: 10px; color: #666;">💡 <%= t.trend_reason %></div>
+                    <div style="flex:1">
+                        <div style="font-weight: bold;"><%= t.trend_name %></div>
+                        <div style="font-size:10px; color:#666">📈 Artım: <%= t.growth_rate %>%</div>
                     </div>
-                    <div class="growth">+<%= t.growth_rate %>%</div>
+                    <div style="color:var(--accent); font-weight:bold;">#<%= t.id %></div>
                 </div>
             <% }) %>
         </section>
@@ -96,11 +85,10 @@
 
 <div class="modal-overlay" onclick="closeM()"></div>
 <div id="musicModal">
-    <div style="display:flex; justify-content: space-between; margin-bottom: 20px;">
-        <b id="mTitle" style="color:var(--secondary)">Musiqi Analizi</b>
-        <span onclick="closeM()" style="cursor:pointer; color:var(--accent)">BAĞLA</span>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:20px;">
+        <b id="mTitle" style="color:var(--secondary); font-size:14px;">Musiqi Detalları</b>
+        <button onclick="closeM()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:bold;">BAĞLA</button>
     </div>
-    <div id="mLoading" style="text-align: center; padding: 20px; color: #555;">Yüklənir...</div>
     <div id="mList"></div>
 </div>
 
@@ -109,22 +97,29 @@
         document.querySelector('.modal-overlay').style.display = 'block';
         document.getElementById('musicModal').style.display = 'block';
         document.getElementById('mTitle').innerText = name;
-        document.getElementById('mList').innerHTML = "";
-        document.getElementById('mLoading').style.display = "block";
+        const list = document.getElementById('mList');
+        list.innerHTML = "<p style='text-align:center; color:#444;'>Dərin analiz aparılır...</p>";
 
         try {
             const res = await fetch('/music-trends/' + id);
             const data = await res.json();
-            document.getElementById('mLoading').style.display = "none";
             
-            document.getElementById('mList').innerHTML = data.map(v => `
-                <div class="modal-video">
-                    <span style="font-size:10px; flex:1; padding-right:10px;">${v.title.substring(0,40)}...</span>
-                    <b style="color:#ff0050;">👁 ${(v.play_count/1000).toFixed(1)}K</b>
+            list.innerHTML = data.map(v => `
+                <div class="modal-item">
+                    <div style="font-size:11px; margin-bottom:8px; line-height:1.4;">${v.title}</div>
+                    <div style="display:flex; gap:10px; margin-bottom:8px;">
+                        <span style="color:var(--accent); font-weight:bold;">👁 ${v.play_count > 1000 ? (v.play_count/1000).toFixed(1)+'K' : v.play_count}</span>
+                        <span style="color:var(--secondary)">❤️ ${v.digg_count}</span>
+                        <span style="color:#aaa">💬 ${v.comment_count}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <small style="color:#444;">${v.time}</small>
+                        <a href="${v.link}" target="_blank" style="color:var(--secondary); text-decoration:none; font-weight:bold; font-size:10px;">VİDEOYA BAX ↗</a>
+                    </div>
                 </div>
             `).join('');
         } catch (e) {
-            document.getElementById('mLoading').innerText = "Məlumat tapılmadı.";
+            list.innerHTML = "Məlumat tapılmadı.";
         }
     }
     function closeM() {
