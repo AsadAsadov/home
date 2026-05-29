@@ -1,6 +1,6 @@
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const prisma = require('../src/prisma');
+const prisma = require('../src/lib/prisma');
 
 async function main() {
   const adminEmail = 'admin@besthome.az';

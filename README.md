@@ -16,7 +16,7 @@ Production-ready Express + Prisma backend for the existing BestHome.az single-pa
 cp .env.example .env
 npm install
 npx prisma generate
-npx prisma migrate deploy
+# Production migrations are applied manually; do not run migrate deploy in Render builds.
 npm run db:seed
 npm start
 ```
@@ -30,14 +30,20 @@ Default seeded logins:
 
 ## Supabase
 
-Paste Supabase PostgreSQL URI values into `.env`:
+Paste the Supabase Transaction Pooler URI into `.env`. Prisma must use the pooler with PgBouncer mode and a single connection to avoid prepared statement conflicts:
 
 ```env
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public&pgbouncer=true"
-DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
+DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
 ```
 
-Run migrations with `npx prisma migrate deploy`.
+Do not configure `DIRECT_URL` and do not use the direct TCP database host for production. Apply migrations manually in Supabase SQL Editor or from a controlled migration environment, not from the Render build command.
+
+Manual gallery compatibility migration:
+
+```sql
+ALTER TABLE "gallery"
+ADD COLUMN IF NOT EXISTS "images" JSONB;
+```
 
 ## REST API
 
@@ -61,9 +67,8 @@ Write operations require `Authorization: Bearer <JWT>` unless the endpoint is a 
 
 `render.yaml` is included. Set these Render environment variables:
 
-- `DATABASE_URL`
-- `DIRECT_URL`
+- `DATABASE_URL` (Supabase Transaction Pooler URL with `?pgbouncer=true&connection_limit=1`)
 - `CORS_ORIGIN` (for example `https://besthome.az,https://www.besthome.az`)
 - `JWT_SECRET` (Render can generate it)
 
-The build command runs Prisma generation and migration deployment automatically.
+The build command runs `npm install && npx prisma generate` only. Run database migrations manually before or during deployment.
