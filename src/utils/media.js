@@ -12,12 +12,14 @@ function isMp4Url(url = '') {
   return /\.mp4($|[?#])/i.test(String(url));
 }
 
+const DEFAULT_YOUTUBE_ORIGIN = process.env.PUBLIC_SITE_ORIGIN || 'https://besthome.onrender.com';
+
 function normalizeVideo(url = '') {
   const youtubeId = getYouTubeId(url);
   if (youtubeId) {
     return {
       provider: 'youtube',
-      videoUrl: `https://www.youtube.com/embed/${youtubeId}`,
+      videoUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&origin=${DEFAULT_YOUTUBE_ORIGIN}`,
       thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
     };
   }
