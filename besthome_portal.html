@@ -335,6 +335,7 @@
                                     <option value="Apartment">Mənzil (Apartment)</option>
                                     <option value="Villa">Şəxsi Villa</option>
                                     <option value="Townhouse">Taunhaus</option>
+                                    <option value="LandSale">Torpaq satışı</option>
                                 </select>
                             </div>
                         </div>
@@ -373,7 +374,7 @@
                             </div>
                         </div>
 
-                        <!-- Torpaq sahəsi (Only visible for Villa & Townhouse) -->
+                        <!-- Torpaq sahəsi (Villa, Townhouse və Torpaq satışı üçün görünür) -->
                         <div id="torpaq-sahəsi-block" class="hidden">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Torpaq sahəsi (Sot)</label>
                             <input type="number" id="sb-land" min="1" step="any" placeholder="Məs: 4.5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
@@ -580,9 +581,13 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="overflow-y-auto">
-                <div class="relative h-72">
-                    <img id="op-modal-img" class="w-full h-full object-cover" src="" alt="">
-                    <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
+                <div class="relative h-72 md:h-96 overflow-hidden">
+                    <picture class="block w-full h-full imageMove">
+                        <source id="op-modal-source-desktop" media="(min-width: 1024px)" srcset="">
+                        <source id="op-modal-source-tablet" media="(min-width: 640px)" srcset="">
+                        <img id="op-modal-img" class="w-full h-full object-cover lazyload" loading="lazy" data-parallax="true" src="" alt="">
+                    </picture>
+                    <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-black/20 to-transparent"></div>
                     <div class="absolute bottom-6 left-6 md:left-8">
                         <span id="op-modal-year" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
                         <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
@@ -592,17 +597,18 @@
                 <div class="p-6 md:p-8 space-y-6">
                     <!-- Tab Headers -->
                     <div class="flex border-b border-white/10">
-                        <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Layihə Təsviri</button>
-                        <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Texniki Göstəricilər</button>
+                        <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Detallar</button>
+                        <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
                     </div>
 
                     <!-- Tab Content: Desc -->
-                    <div id="op-tab-desc" class="space-y-2">
+                    <div id="op-tab-desc" class="hidden space-y-2 rounded-2xl bg-white/[0.02] border border-white/5 p-5">
+                        <h4 class="text-white text-sm font-extrabold uppercase tracking-wider">Təsvir</h4>
                         <p id="op-modal-desc-text" class="text-gray-300 text-sm font-light leading-relaxed whitespace-pre-line"></p>
                     </div>
 
                     <!-- Tab Content: Details -->
-                    <div id="op-tab-details" class="hidden grid grid-cols-2 gap-4 text-sm">
+                    <div id="op-tab-details" class="grid grid-cols-2 gap-4 text-sm">
                         <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
                             <span class="text-xs text-gray-500 block">Mərtəbə Sayı</span>
                             <strong id="op-detail-floors" class="text-white"></strong>
@@ -691,6 +697,11 @@
                 title: "Caspian Dream Liner",
                 year: "2027",
                 img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Xəzər dənizinin mavi dalğalarında üzən bəyaz layner formasında fantastik 11 mərtəbəli apart-hotel. Xüsusi olaraq Caspian Dream Liner üçün süni yarımada salınıb. Müasir memarlıq və mühəndisliyin bu şah əsəri Adel Zehni tərəfindən dizayn edilib.",
                 floors: "11 mərtəbə",
                 area: "50-838 m²",
@@ -704,6 +715,11 @@
                 title: "Blue Waters",
                 year: "2028",
                 img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Dəniz dalğalarından ilhamlanan və şüşə divarları sanki ağuşuna alan fasad dekoru ilə premium yaşayış kompleksi. Layihənin valehedici memarlıq dizaynı aparıcı Benoy və Squire & Partners beynəlxalq bürosu tərəfindən hazırlanmışdır.",
                 floors: "11-12-14 mərtəbə",
                 area: "44-587 m²",
@@ -717,6 +733,11 @@
                 title: "Sky Park",
                 year: "2028",
                 img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Ultramüasir premium mənzil kompleksi: high tech üslubda dörd bina. Qlobal meqapolislərə ithafən layihələndirilmiş memarlıq incisi dəniz kurortunun təbii gözəlliyi ilə harmoniyada yaradılmışdır. Panoramik pəncərələrdən möhtəşəm dəniz mənzərələri açılır. Dekorativ fəvvarə və dizayner işıqlandırması hər gəzintini parlaq təcrübəyə çevirir.",
                 floors: "24 mərtəbə",
                 area: "52-89 m²",
@@ -730,6 +751,11 @@
                 title: "Marina Village",
                 year: "2026",
                 img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "İtalyansayağı dəbdəbə üslubunda mini-şəhər. Hündür tağları və kirəmitli damları olan eleqant evlər, mənzərəli yaxta limanı və Venesiya tərzində kanallar. Bu, Azərbaycanda özəl marina və yaxta klubu olan yeganə layihədir. 'Kiçik Venesiya' birinci sahil xəttində, dənizdən cəmi 40 metr məsafədə yerləşir.",
                 floors: "4-6 mərtəbə",
                 area: "38-479 m²",
@@ -743,6 +769,11 @@
                 title: "Park Residences 3",
                 year: "2026",
                 img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Eleqant Park Residences 3 yaşayış kompleksi Xəzər dənizinin sahillərində ənənəvi Avropa üslubu və müasir dizayn həllərinin harmoniyasını təmsil edir. Panoramik pəncərələr və terraslar, palma ağaclarının kölgəsində geniş həyət və rahat lounge məkanları – həyatın gözəlliyindən zövq almaq üçün lazım olan hər şey burada var.",
                 floors: "9 mərtəbə",
                 area: "57-158 m²",
@@ -756,6 +787,11 @@
                 title: "Park Lane",
                 year: "2028",
                 img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Minimalist üslubda müasir yaşayış kompleksi. Pilləli memarlıq, lakonik xətlər və mənzərəli şəffaf lociyalar. Dörd bina palma ağacları ilə əhatə olunmuş və landşaft dizaynı ile layihələndirilmiş yaşıl bulvarlarla birləşdirilib.",
                 floors: "14-16 mərtəbə",
                 area: "30-293 m²",
@@ -769,6 +805,11 @@
                 title: "Skyline",
                 year: "2026",
                 img: "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Xəzərin sahilini qucaqlayan dalğalar kaskadını xatırladan futuristik apart-hotel. Unikal memarlıq sakit təbii mühitlə uzlaşır: açıq terraslarda tropik ağaclardan yaşıl parklar yaradılıb.",
                 floors: "7 mərtəbə",
                 area: "45-466 m²",
@@ -782,6 +823,11 @@
                 title: "Palazzo del Mare",
                 year: "2027",
                 img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Xəzər dənizi sahilində təntənəli tağları, bəzəkli terrakota damları və geniş qalereyaları olan italyan sarayları üslubunda dəbdəbəli kompleks. Açıq rəngli fasadları olan zərif binalar abadlaşdırılmış bağlarla, şəffaf sulu firuzəyi hovuz isə palma ağacları ilə əhatə olunub.",
                 floors: "8 mərtəbə",
                 area: "49-196 m²",
@@ -795,6 +841,11 @@
                 title: "Harbour Residence",
                 year: "2028",
                 img: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Avropa sahil şəhərləri üslubunda premium apart-hotel kompleksi. Zərif həndəsi fasadlar, isti terrakota tonları və şəffaf lociyalar gözəllik və rahat yaşam hissi bəxş edir. Harbour Residence-in yaxınlığında Azərbaycanın ən hündür binası olan futuristik Cipriani Tower tikiləcək.",
                 floors: "9 mərtəbə",
                 area: "48-215 m²",
@@ -808,6 +859,11 @@
                 title: "Park Residences 4",
                 year: "2029",
                 img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Park Residences 4 sevimli Park Residences layihəsinin davamıdır. Geniş eyvanları olan parlaq ağ binalardan ibarət bu yaşayış kompleksi müasir Avropa minimalizmini rahat dənizkənarı tətil atmosferi ilə birləşdirir.",
                 floors: "9 mərtəbə",
                 area: "37-102 m²",
@@ -821,6 +877,11 @@
                 title: "Sea Breeze Golden Villas",
                 year: "2026",
                 img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Tamamilə dəniz mənzərəli, rəsmi elit villalar xətti. Landşaft dizaynlı geniş özəl bağçası, fərdi üzmə hovuzu və müasir smart home infrastrukturu.",
                 floors: "2-3 mərtəbə",
                 area: "350-1200 m²",
@@ -834,6 +895,11 @@
                 title: "Sea Breeze Townhouses",
                 year: "2027",
                 img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                picture: {
+                    desktop: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                    tablet: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                    mobile: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
+                },
                 desc: "Müasir ailələr üçün optimal tərəfdaşlıq layihəsi: dördmərtəbəli modern tərzdə taunhauslar. Həm şəxsi bağ sahəsi, həm də mənzil kompaktlığı bir arada.",
                 floors: "3 mərtəbə",
                 area: "180-340 m²",
@@ -888,6 +954,22 @@
                 price: 1350000,
                 img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
                 desc: "Sea Breeze daxilində şəxsi hovuzlu, geniş həyəti və 8.5 sot torpaq sahəsi olan modern villa.",
+                authorId: "admin",
+                status: "Approved"
+            },
+            {
+                id: 3,
+                title: "Sea Breeze investisiya üçün torpaq sahəsi",
+                project: "Digər",
+                listingType: "Satis",
+                category: "LandSale",
+                rooms: 1,
+                area: 600,
+                floor: 1,
+                land: 6,
+                price: 390000,
+                img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                desc: "Sea Breeze ərazisinə yaxın investisiya və fərdi tikinti üçün uyğun torpaq satışı.",
                 authorId: "admin",
                 status: "Approved"
             }
@@ -1036,6 +1118,20 @@
             renderOfficialProjects();
         }
 
+        function getProjectPictureMarkup(p, imgClasses = "w-full h-full object-cover group-hover:scale-105 transition duration-500") {
+            const picture = p.picture || {};
+            const desktopSrc = picture.desktop || p.img;
+            const tabletSrc = picture.tablet || desktopSrc;
+            const mobileSrc = picture.mobile || p.img;
+            return `
+                <picture class="block w-full h-full imageMove">
+                    <source media="(min-width: 1024px)" srcset="${desktopSrc}">
+                    <source media="(min-width: 640px)" srcset="${tabletSrc}">
+                    <img src="${mobileSrc}" alt="${p.title}" loading="lazy" data-parallax="true" class="${imgClasses} lazyload">
+                </picture>
+            `;
+        }
+
         // RENDER OFFICIAL LAYOUTS
         function renderOfficialProjects() {
             const container = document.getElementById('sea-breeze-projects-list');
@@ -1047,7 +1143,7 @@
                 const cardHtml = `
                     <div onclick="openOfficialProjectModal('${p.id}')" class="group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300">
                         <div class="h-56 relative overflow-hidden">
-                            <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
                             <h4 class="absolute bottom-4 left-4 text-xl font-extrabold text-white">${p.title}</h4>
@@ -1066,7 +1162,7 @@
         }
 
         // OPEN OFFICIAL PROJECT MODAL
-        let activeOfficialModalTab = 'desc';
+        let activeOfficialModalTab = 'details';
         let activeOfficialProject = null;
 
         function openOfficialProjectModal(id) {
@@ -1074,7 +1170,11 @@
             if (!p) return;
             activeOfficialProject = p;
 
-            document.getElementById('op-modal-img').src = p.img;
+            const picture = p.picture || {};
+            document.getElementById('op-modal-source-desktop').srcset = picture.desktop || p.img;
+            document.getElementById('op-modal-source-tablet').srcset = picture.tablet || picture.desktop || p.img;
+            document.getElementById('op-modal-img').src = picture.mobile || p.img;
+            document.getElementById('op-modal-img').alt = p.title;
             document.getElementById('op-modal-title').textContent = p.title;
             document.getElementById('op-modal-year').textContent = p.year;
             document.getElementById('op-modal-desc-text').textContent = p.desc;
@@ -1087,7 +1187,7 @@
             document.getElementById('op-detail-repair').textContent = p.repairStatus;
             document.getElementById('op-detail-features').textContent = p.features;
 
-            switchOfficialModalTab('desc');
+            switchOfficialModalTab('details');
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
         }
 
@@ -1437,6 +1537,11 @@
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
+            const isRestrictedDashboardTab = ['cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
+            if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
+                subtab = 'seabreeze-manager';
+            }
+
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
@@ -1444,11 +1549,16 @@
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
 
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
-                btn.className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm";
+                const restrictedClass = btn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
+                const hiddenClass = activeUser && activeUser.role !== 'admin' && btn.id !== 'subtab-btn-sb' ? ' hidden' : '';
+                btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
             const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
-            if (activeBtn) activeBtn.className = "pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
+            if (activeBtn) {
+                const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
+                activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
+            }
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
         }
@@ -1474,16 +1584,20 @@
             }
         }
 
-        // TOGGLE EXTRA FORM FIELDS FOR VILLAS & TOWNHOUSES
+        // TOGGLE EXTRA FORM FIELDS FOR VILLAS, TOWNHOUSES & LAND SALE
         function toggleFormFieldsBasedOnCategory() {
             const cat = document.getElementById('sb-form-category').value;
             const landBlock = document.getElementById('torpaq-sahəsi-block');
+            const landInput = document.getElementById('sb-land');
+            const shouldShowLand = cat === 'Villa' || cat === 'Townhouse' || cat === 'LandSale';
             
-            if (cat === 'Villa' || cat === 'Townhouse') {
+            if (shouldShowLand) {
                 landBlock.classList.remove('hidden');
+                landInput.required = cat === 'LandSale';
             } else {
                 landBlock.classList.add('hidden');
-                document.getElementById('sb-land').value = '';
+                landInput.required = false;
+                landInput.value = '';
             }
             calculateSqPrice();
         }
@@ -1707,9 +1821,19 @@
             const price = parseFloat(document.getElementById('sb-price').value);
             const desc = document.getElementById('sb-desc').value;
 
+            if (!floor || floor < 1) {
+                alert('Mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
+                return;
+            }
+            if (category === 'LandSale' && (!land || land <= 0)) {
+                alert('Torpaq satışı üçün torpaq sahəsi daxil edilməlidir.');
+                return;
+            }
+
             const base64Img = document.getElementById('sb-img-preview-val').value;
             const urlImg = document.getElementById('sb-img-url').value;
-            const img = base64Img || urlImg || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80";
+            const officialProjectImage = officialSeaBreezeProjects.find(item => item.title === project)?.img;
+            const img = base64Img || urlImg || officialProjectImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80";
 
             const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
 
