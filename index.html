@@ -338,7 +338,7 @@
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
-                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Əmlak Əməkdaşları</button>
+                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
                 <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
             </div>
@@ -570,19 +570,28 @@
             </div>
 
             <!-- SUBTAB 3: AGENTS -->
-            <div id="admin-subtab-agents-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-4 glass-card p-6 rounded-2xl space-y-4">
-                    <h3 class="text-base font-bold text-white">Yeni Əməkdaş Qeydiyyatı</h3>
+            <div id="admin-subtab-agents-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-4 glass-card p-5 rounded-2xl space-y-4">
+                    <h3 class="text-base font-bold text-white">Yeni İstifadəçi Qeydiyyatı</h3>
                     <form onsubmit="handleRegisterAgent(event)" class="space-y-3">
-                        <input type="text" id="agent-reg-name" required placeholder="Ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                        <input type="text" id="agent-reg-surname" required placeholder="Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                        <input type="tel" id="agent-reg-phone" required placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="text" id="agent-reg-fullname" required placeholder="Tam ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                         <input type="email" id="agent-reg-email" required placeholder="Giriş E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <select id="agent-reg-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="user">İstifadəçi</option>
+                            <option value="employee">Əməkdaş</option>
+                            <option value="admin">Admin</option>
+                        </select>
                         <input type="password" id="agent-reg-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                         <button type="submit" class="w-full bg-brand-500 text-white font-bold py-2 rounded-xl text-xs">Yarat</button>
                     </form>
                 </div>
-                <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4" id="admin-agents-grid"></div>
+                <div class="lg:col-span-8 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-white uppercase tracking-wide">İstifadəçilər</h3>
+                        <span id="admin-users-count" class="text-[10px] text-gray-400 bg-white/5 border border-white/10 rounded-full px-3 py-1">0 istifadəçi</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3" id="admin-agents-grid"></div>
+                </div>
             </div>
 
             <!-- SUBTAB 4: VACANCIES -->
@@ -702,6 +711,28 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- İSTİFADƏÇİ REDAKTƏ MODALI -->
+    <div id="user-edit-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl border border-white/10 p-6 space-y-4 relative">
+            <button onclick="closeUserEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <div>
+                <h3 class="text-lg font-extrabold text-white">İstifadəçini redaktə et</h3>
+                <p class="text-xs text-gray-400">Tam ad, e-poçt və rol məlumatlarını yeniləyin.</p>
+            </div>
+            <form onsubmit="handleSaveUserEdit(event)" class="space-y-3">
+                <input type="hidden" id="edit-user-id">
+                <input type="text" id="edit-user-fullname" required placeholder="Tam ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                <input type="email" id="edit-user-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                <select id="edit-user-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                    <option value="user">İstifadəçi</option>
+                    <option value="employee">Əməkdaş</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda saxla</button>
+            </form>
         </div>
     </div>
 
@@ -1251,8 +1282,14 @@
             return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', cvFile: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
         }
 
+        function userToUi(u) {
+            const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
+            const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********' };
+        }
+
         function employeeToUi(e) {
-            return { id: e.id, name: e.firstName || e.first_name || '', surname: e.lastName || e.last_name || '', phone: e.phone || '', email: e.email || '', pass: '********' };
+            return userToUi({ ...e, fullname: [e.firstName || e.first_name, e.lastName || e.last_name].filter(Boolean).join(' '), role: e.role || 'employee' });
         }
 
         const appData = {
@@ -1320,18 +1357,28 @@
             };
         }
 
+        function safeNumber(value) {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : undefined;
+        }
+
         function uiListingToApi(l) {
+            const area = safeNumber(l.area);
+            const price = safeNumber(l.price);
+            const roomCount = Number.parseInt(l.rooms, 10);
+            const floorCount = Number.parseInt(l.floor, 10);
             return {
-                title: l.title,
-                listing_type: l.listingType,
-                property_category: l.category,
-                project_name: l.project,
-                room_count: l.rooms,
-                area: l.area,
-                floor_count: String(l.floor || 1),
-                price: l.price,
-                image_url: l.img,
-                description: l.desc
+                title: l.title || '',
+                listingType: l.listingType || 'Satis',
+                propertyCategory: l.category || 'Apartment',
+                projectName: l.project || 'Digər',
+                roomCount: Number.isFinite(roomCount) ? roomCount : undefined,
+                area,
+                floorCount: String(Number.isFinite(floorCount) && floorCount > 0 ? floorCount : 1),
+                price,
+                pricePerM2: area && price ? price / area : undefined,
+                imageUrl: l.img || '',
+                description: l.desc || ''
             };
         }
 
@@ -1380,20 +1427,20 @@
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             try {
-                const [projects, listings, vacancies, gallery, applications, employees] = await Promise.all([
+                const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
                     apiRequest('/api/projects'),
                     apiRequest('/api/listings'),
                     apiRequest('/api/vacancies'),
                     apiRequest('/api/gallery'),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
-                    getAuthToken() ? apiRequest('/api/employees').catch(() => []) : Promise.resolve([])
+                    getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([])
                 ]);
                 cacheData('projects', projects.map(dbProjectToUi));
                 cacheData('listings', listings.map(dbListingToUi));
                 cacheData('vacancies', vacancies.map(dbVacancyToUi));
                 cacheData('gallery', gallery.map(dbGalleryToUi));
                 cacheData('applications', applications.map(dbAppToUi));
-                if (employees.length) cacheData('agents', employees.map(employeeToUi));
+                if (users.length) cacheData('agents', users.map(userToUi));
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreeze();
@@ -1448,33 +1495,38 @@
         function renderProjectImageInputs(images = ['']) {
             const container = document.getElementById('project-images-list');
             if (!container) return;
-            const values = images.length ? images : [''];
-            container.innerHTML = values.map((url, idx) => `
-                <div class="flex gap-2 items-center">
-                    <input type="url" value="${url || ''}" oninput="handleProjectImageInput(${idx}, this.value)" placeholder="Əlavə şəkil URL" class="project-image-url flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                    <button type="button" onclick="removeProjectImageInput(${idx})" class="${idx === 0 ? 'hidden' : ''} text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white w-9 h-9 rounded-xl transition"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            `).join('');
+            const normalized = (Array.isArray(images) ? images : [images]).map(value => String(value || '').trim());
+            if (!normalized.length) normalized.push('');
+            const primaryInput = document.getElementById('project-img');
+            const primary = normalized[0] || primaryInput?.value.trim() || '';
+            if (primaryInput && primaryInput.value !== primary) primaryInput.value = primary;
+            const extras = normalized.slice(1);
+            container.innerHTML = extras.map((url, idx) => {
+                const imageIndex = idx + 1;
+                return `
+                    <div class="flex gap-2 items-center" data-image-index="${imageIndex}">
+                        <input type="url" value="${url || ''}" oninput="handleProjectImageInput(${imageIndex}, this.value)" placeholder="Əlavə şəkil URL" class="project-image-url flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <button type="button" onclick="removeProjectImageInput(${imageIndex})" class="text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white w-9 h-9 rounded-xl transition" aria-label="Şəkli sil"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+            }).join('');
         }
 
         function rawProjectImageInputValues() {
-            const values = Array.from(document.querySelectorAll('.project-image-url')).map(input => input.value.trim());
-            return values.length ? values : [document.getElementById('project-img')?.value.trim() || ''];
+            const primary = document.getElementById('project-img')?.value.trim() || '';
+            const extras = Array.from(document.querySelectorAll('.project-image-url')).map(input => input.value.trim());
+            return [primary, ...extras];
         }
 
         function collectProjectImageInputs() {
-            const primary = document.getElementById('project-img')?.value.trim() || '';
-            return normalizeProjectImages(rawProjectImageInputValues(), primary);
+            return normalizeProjectImages(rawProjectImageInputValues());
         }
 
-        function syncPrimaryProjectImage(value) {
-            const firstExtra = document.querySelector('.project-image-url');
-            if (firstExtra && firstExtra.value !== value) firstExtra.value = value;
+        function syncPrimaryProjectImage(_value) {
             updateProjectImagePreview();
         }
 
-        function handleProjectImageInput(index, value) {
-            if (index === 0) document.getElementById('project-img').value = value;
+        function handleProjectImageInput(_index, _value) {
             updateProjectImagePreview();
         }
 
@@ -2436,13 +2488,13 @@
             const adminTags = document.querySelectorAll('.admin-only-element');
             if (activeUser.role === 'agent') {
                 adminTags.forEach(el => el.classList.add('hidden'));
-                document.getElementById('dashboard-user-title').textContent = `BestHome Əməkdaş Kabineti`;
+                document.getElementById('dashboard-user-title').textContent = `BestHome İstifadəçi Kabineti`;
                 document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name} ${activeUser.surname}. Elanlarınızı yerləşdirin və redaktə edin.`;
                 switchAdminSubtab('seabreeze-manager');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, namizəd məlumatlarını və daxili əməkdaşları idarə edin.`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, namizəd məlumatlarını və istifadəçiləri idarə edin.`;
             }
 
             // 1. Listings Grid
@@ -2506,18 +2558,29 @@
                     });
                 }
 
-                // 3. Agents List
+                // 3. Users List
                 const agents = appData.agents;
                 const agentsContainer = document.getElementById('admin-agents-grid');
+                const usersCount = document.getElementById('admin-users-count');
                 agentsContainer.innerHTML = '';
+                if (usersCount) usersCount.textContent = `${agents.length} istifadəçi`;
                 agents.forEach(a => {
+                    const fullname = a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || 'Adsız istifadəçi';
+                    const initials = fullname.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
                     agentsContainer.innerHTML += `
-                        <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs">
-                            <div>
-                                <h4 class="font-bold text-white">${a.name} ${a.surname}</h4>
-                                <span class="text-[10px] text-gray-400">${a.email} <br> ${a.phone}</span>
+                        <div class="glass-card p-3 rounded-2xl border border-white/5 text-xs flex items-center gap-3 hover:border-brand-500/30 transition">
+                            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0">${initials}</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <h4 class="font-bold text-white truncate">${fullname}</h4>
+                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10 shrink-0">${roleLabel(a.role)}</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400 truncate block">${a.email || 'E-poçt yoxdur'}</span>
                             </div>
-                            <button onclick="deleteAgent('${a.id}')" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteAgent('${a.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
+                            </div>
                         </div>
                     `;
                 });
@@ -2697,47 +2760,76 @@
             }
         }
 
-        // AGENT REGISTRATION
+        // USER REGISTRATION / EDITING
+        function roleLabel(role) {
+            return role === 'admin' ? 'Admin' : role === 'employee' ? 'Əməkdaş' : 'İstifadəçi';
+        }
+
         async function handleRegisterAgent(e) {
             e.preventDefault();
-            const newAgent = {
-                name: document.getElementById('agent-reg-name').value,
-                surname: document.getElementById('agent-reg-surname').value,
-                phone: document.getElementById('agent-reg-phone').value,
-                email: document.getElementById('agent-reg-email').value,
-                pass: document.getElementById('agent-reg-pass').value
+            const newUser = {
+                fullname: document.getElementById('agent-reg-fullname').value.trim(),
+                email: document.getElementById('agent-reg-email').value.trim(),
+                role: document.getElementById('agent-reg-role').value,
+                password: document.getElementById('agent-reg-pass').value
             };
             try {
-                const created = await apiRequest('/api/employees', {
+                const created = await apiRequest('/api/users', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        first_name: newAgent.name,
-                        last_name: newAgent.surname,
-                        phone: newAgent.phone,
-                        email: newAgent.email,
-                        password: newAgent.pass,
-                        role: 'employee'
-                    })
+                    body: JSON.stringify(newUser)
                 });
-                cacheData('agents', [employeeToUi(created), ...appData.agents]);
-                document.getElementById('agent-reg-name').value = '';
-                document.getElementById('agent-reg-surname').value = '';
-                document.getElementById('agent-reg-phone').value = '';
+                cacheData('agents', [userToUi(created), ...appData.agents]);
+                document.getElementById('agent-reg-fullname').value = '';
                 document.getElementById('agent-reg-email').value = '';
+                document.getElementById('agent-reg-role').value = 'user';
                 document.getElementById('agent-reg-pass').value = '';
                 renderAdminDashboard();
             } catch (error) {
-                alert('Əməkdaş API-yə yazılmadı: ' + error.message);
+                alert('İstifadəçi API-yə yazılmadı: ' + error.message);
+            }
+        }
+
+        function openUserEditModal(id) {
+            const user = appData.agents.find(x => String(x.id) === String(id));
+            if (!user) return;
+            document.getElementById('edit-user-id').value = user.id;
+            document.getElementById('edit-user-fullname').value = user.fullname || `${user.name || ''} ${user.surname || ''}`.trim();
+            document.getElementById('edit-user-email').value = user.email || '';
+            document.getElementById('edit-user-role').value = user.role || 'user';
+            document.getElementById('user-edit-modal').classList.remove('hidden');
+        }
+
+        function closeUserEditModal() {
+            document.getElementById('user-edit-modal').classList.add('hidden');
+            document.getElementById('edit-user-id').value = '';
+        }
+
+        async function handleSaveUserEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-user-id').value;
+            const payload = {
+                fullname: document.getElementById('edit-user-fullname').value.trim(),
+                email: document.getElementById('edit-user-email').value.trim(),
+                role: document.getElementById('edit-user-role').value
+            };
+            try {
+                const updated = await apiRequest(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+                cacheData('agents', appData.agents.map(x => String(x.id) === String(id) ? userToUi(updated) : x));
+                closeUserEditModal();
+                renderAdminDashboard();
+            } catch (error) {
+                alert('İstifadəçi yenilənmədi: ' + error.message);
             }
         }
 
         async function deleteAgent(id) {
+            if (!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
             try {
-                await apiRequest(`/api/employees/${id}`, { method: 'DELETE' });
+                await apiRequest(`/api/users/${id}`, { method: 'DELETE' });
                 cacheData('agents', appData.agents.filter(x => String(x.id) !== String(id)));
                 renderAdminDashboard();
             } catch (error) {
-                alert('Əməkdaş API-dən silinmədi: ' + error.message);
+                alert('İstifadəçi API-dən silinmədi: ' + error.message);
             }
         }
 
@@ -2746,6 +2838,8 @@
             e.preventDefault();
             const editId = document.getElementById('edit-vac-id').value;
             const list = [...appData.vacancies];
+            const existingVacancy = list.find(v => String(v.id) === String(editId));
+            const existingActive = existingVacancy ? (existingVacancy.isActive ?? existingVacancy.status === 'Aktiv') : true;
             const vacancyPayload = {
                 id: editId || null,
                 title: document.getElementById('vac-title').value,
@@ -2753,8 +2847,8 @@
                 salary: document.getElementById('vac-salary').value,
                 location: document.getElementById('vac-location').value,
                 desc: document.getElementById('vac-desc').value,
-                status: "Aktiv",
-                isActive: true
+                status: existingActive ? "Aktiv" : "Bloklanıb",
+                isActive: existingActive
             };
 
             try {

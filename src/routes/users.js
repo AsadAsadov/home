@@ -10,8 +10,15 @@ function publicUser(user) {
   return safe;
 }
 
+function clean(value) {
+  if (value === undefined || value === null) return undefined;
+  const trimmed = String(value).trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
 function data(body) {
-  const out = { fullname: body.fullname, email: body.email, role: body.role };
+  const role = clean(body.role);
+  const out = { fullname: clean(body.fullname), email: clean(body.email), role: ['admin', 'user', 'employee'].includes(role) ? role : undefined };
   return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
 }
 

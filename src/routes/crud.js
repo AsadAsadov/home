@@ -1,10 +1,16 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 
+function cleanString(value) {
+  if (value === undefined || value === null) return undefined;
+  const cleaned = String(value).trim();
+  return cleaned === '' ? undefined : cleaned;
+}
+
 function toInt(value) {
   if (value === undefined || value === null || value === '') return undefined;
   const parsed = Number.parseInt(value, 10);
-  return Number.isNaN(parsed) ? undefined : parsed;
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function parseJsonArray(value) {
@@ -30,54 +36,54 @@ function toBool(value) {
 function toDecimal(value) {
   if (value === undefined || value === null || value === '') return undefined;
   const parsed = Number(value);
-  return Number.isNaN(parsed) ? undefined : parsed;
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 const serializers = {
   project: (body) => ({
-    title: body.title,
-    category: body.category,
-    deliveryDate: body.delivery_date ?? body.deliveryDate,
-    floorCount: body.floor_count ?? body.floorCount,
-    area: body.area,
-    apartmentCount: body.apartment_count ?? body.apartmentCount,
-    repairStatus: body.repair_status ?? body.repairStatus,
-    features: Array.isArray(body.features) ? body.features.join(' / ') : body.features,
-    description: body.description,
-    imageUrl: body.image_url ?? body.imageUrl,
+    title: cleanString(body.title),
+    category: cleanString(body.category),
+    deliveryDate: cleanString(body.delivery_date ?? body.deliveryDate),
+    floorCount: cleanString(body.floor_count ?? body.floorCount),
+    area: cleanString(body.area),
+    apartmentCount: cleanString(body.apartment_count ?? body.apartmentCount),
+    repairStatus: cleanString(body.repair_status ?? body.repairStatus),
+    features: Array.isArray(body.features) ? body.features.map(cleanString).filter(Boolean).join(' / ') : cleanString(body.features),
+    description: cleanString(body.description),
+    imageUrl: cleanString(body.image_url ?? body.imageUrl),
     images: parseJsonArray(body.images),
   }),
   listing: (body) => {
     const area = toDecimal(body.area);
     const price = toDecimal(body.price);
     return {
-      title: body.title,
-      listingType: body.listing_type ?? body.listingType,
-      propertyCategory: body.property_category ?? body.propertyCategory,
-      projectName: body.project_name ?? body.projectName,
+      title: cleanString(body.title),
+      listingType: cleanString(body.listing_type ?? body.listingType),
+      propertyCategory: cleanString(body.property_category ?? body.propertyCategory),
+      projectName: cleanString(body.project_name ?? body.projectName),
       roomCount: toInt(body.room_count ?? body.roomCount),
       area,
-      floorCount: body.floor_count ?? body.floorCount,
+      floorCount: cleanString(body.floor_count ?? body.floorCount),
       price,
       pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (area && price ? price / area : undefined),
-      imageUrl: body.image_url ?? body.imageUrl,
-      description: body.description,
+      imageUrl: cleanString(body.image_url ?? body.imageUrl),
+      description: cleanString(body.description),
       userId: toInt(body.user_id ?? body.userId),
     };
   },
   vacancy: (body) => ({
-    title: body.title,
-    employmentType: body.employment_type ?? body.employmentType,
-    salary: body.salary,
-    city: body.city,
-    description: body.description,
+    title: cleanString(body.title),
+    employmentType: cleanString(body.employment_type ?? body.employmentType),
+    salary: cleanString(body.salary),
+    city: cleanString(body.city),
+    description: cleanString(body.description),
     isActive: toBool(body.is_active ?? body.isActive),
   }),
   application: (body) => ({
-    fullname: body.fullname,
-    phone: body.phone,
+    fullname: cleanString(body.fullname),
+    phone: cleanString(body.phone),
     vacancyId: toInt(body.vacancy_id ?? body.vacancyId),
-    cvFile: body.cv_file ?? body.cvFile,
+    cvFile: cleanString(body.cv_file ?? body.cvFile),
   }),
 };
 

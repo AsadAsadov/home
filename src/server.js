@@ -57,7 +57,11 @@ app.use((err, _req, res, _next) => {
     return res.status(413).json({ message: 'Request entity too large.' });
   }
   const status = err.status || (err.code === 'P2025' ? 404 : 500);
-  return res.status(status).json({ message: status === 500 ? 'Internal server error.' : err.message, details: process.env.NODE_ENV === 'production' ? undefined : err });
+  const isProduction = process.env.NODE_ENV === 'production';
+  return res.status(status).json({
+    message: status === 500 && isProduction ? 'Internal server error.' : err.message,
+    details: isProduction ? undefined : { name: err.name, code: err.code, meta: err.meta },
+  });
 });
 
 async function ensureDefaultAdmin() {
