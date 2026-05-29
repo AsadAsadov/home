@@ -25,7 +25,7 @@ Open `http://localhost:3000`. The server serves the existing `index.html` and al
 
 Default seeded logins:
 
-- Admin: `admin@besthome.az` / `admin123` (override with `ADMIN_PASSWORD` before seeding)
+- Admin: `admin@besthome.az` / `Admin12345` (override with `ADMIN_PASSWORD` before seeding)
 - Employee: `elnur@besthome.az` / `agent123`
 
 ## Supabase
@@ -52,6 +52,7 @@ Run migrations with `npx prisma migrate deploy`.
 - CRUD: `/api/users`
 - CRUD: `/api/employees`
 - Upload: `POST /api/uploads` with multipart field `file`
+- Gallery uploads: `POST /api/gallery` / `PUT /api/gallery/:id` support multipart fields repeated `images`, `image`, and `video`, plus YouTube, Vimeo, and MP4 URLs
 - Frontend DB bootstrap/sync: `/api/sync`
 
 Write operations require `Authorization: Bearer <JWT>` unless the endpoint is a public CV application submission.

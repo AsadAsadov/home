@@ -53,13 +53,15 @@ function vacancyData(v) {
 
 function galleryData(g) {
   const mediaType = g.media_type || g.mediaType || (g.type === 'video' ? 'video' : 'image');
-  const firstImage = Array.isArray(g.images) ? g.images[0] : (g.image_url || g.imageUrl || g.img);
+  const images = Array.isArray(g.images) ? g.images.filter(Boolean) : [g.image_url || g.imageUrl || g.img].filter(Boolean);
+  const firstImage = images[0];
   const video = mediaType === 'video' ? normalizeVideo(g.video_url || g.videoUrl || g.url || '') : {};
   return {
     title: g.title || 'Untitled media',
     description: g.description || g.desc || null,
     mediaType,
     imageUrl: mediaType === 'image' ? (firstImage || null) : null,
+    images: mediaType === 'image' && images.length ? images : undefined,
     videoUrl: mediaType === 'video' ? video.videoUrl : null,
     thumbnailUrl: g.thumbnail_url || g.thumbnailUrl || video.thumbnailUrl || firstImage || null,
   };

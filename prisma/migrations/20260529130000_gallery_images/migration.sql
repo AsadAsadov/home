@@ -1,0 +1,1 @@
+ALTER TABLE "gallery" ADD COLUMN IF NOT EXISTS "images" JSONB;

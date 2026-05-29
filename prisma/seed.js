@@ -4,7 +4,7 @@ const prisma = require('../src/prisma');
 
 async function main() {
   const adminEmail = 'admin@besthome.az';
-  const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 12);
+  const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'Admin12345', 12);
   await prisma.user.upsert({
     where: { email: adminEmail },
     update: { passwordHash, role: 'admin' },

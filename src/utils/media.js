@@ -1,5 +1,5 @@
 function getYouTubeId(url = '') {
-  const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  const match = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
   return match?.[1] || null;
 }
 
@@ -8,22 +8,28 @@ function getVimeoId(url = '') {
   return match?.[1] || null;
 }
 
+function isMp4Url(url = '') {
+  return /\.mp4($|[?#])/i.test(String(url));
+}
+
 function normalizeVideo(url = '') {
   const youtubeId = getYouTubeId(url);
   if (youtubeId) {
     return {
+      provider: 'youtube',
       videoUrl: `https://www.youtube.com/embed/${youtubeId}`,
-      thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+      thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
     };
   }
   const vimeoId = getVimeoId(url);
   if (vimeoId) {
     return {
+      provider: 'vimeo',
       videoUrl: `https://player.vimeo.com/video/${vimeoId}`,
       thumbnailUrl: `https://vumbnail.com/${vimeoId}.jpg`,
     };
   }
-  return { videoUrl: url, thumbnailUrl: null };
+  return { provider: isMp4Url(url) ? 'mp4' : 'external', videoUrl: url, thumbnailUrl: null };
 }
 
-module.exports = { normalizeVideo };
+module.exports = { getYouTubeId, getVimeoId, isMp4Url, normalizeVideo };

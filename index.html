@@ -591,8 +591,9 @@
                             <div id="gallery-multi-preview" class="grid grid-cols-3 gap-2 pt-2"></div>
                         </div>
 
-                        <div id="gallery-video-fields" class="hidden">
-                            <input type="url" id="g-video-url" placeholder="https://www.youtube.com/embed/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <div id="gallery-video-fields" class="hidden space-y-2">
+                            <input type="url" id="g-video-url" placeholder="YouTube, Vimeo və ya MP4 URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <input type="file" id="g-video-file" accept="video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300">
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
@@ -1095,21 +1096,63 @@
         let syncTimer = null;
 
         function getAuthToken() {
-            return sessionStorage.getItem('besthome_auth_token') || '';
+            return sessionStorage.getItem('token') || sessionStorage.getItem('besthome_auth_token') || '';
         }
 
-        function apiHeaders(json = true) {
-            const headers = json ? { 'Content-Type': 'application/json' } : {};
+        function setAuthSession(token, user) {
+            if (token) {
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('besthome_auth_token', token);
+            }
+            if (user) {
+                const role = user.role === 'employee' ? 'agent' : user.role;
+                sessionStorage.setItem('besthome_logged_in_role', role);
+                sessionStorage.setItem('besthome_user_data', JSON.stringify({ ...user, role }));
+                if (role === 'agent') sessionStorage.setItem('besthome_agent_data', JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, role }));
+            }
+        }
+
+        function clearAuthSession() {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('besthome_auth_token');
+            sessionStorage.removeItem('besthome_logged_in_role');
+            sessionStorage.removeItem('besthome_agent_data');
+            sessionStorage.removeItem('besthome_user_data');
+        }
+
+        function redirectToLoginOnAuthFailure() {
+            clearAuthSession();
+            activeUser = null;
+            updateHeaderUI();
+            switchTab('admin-login');
+        }
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            let options = {};
+            if (typeof method === 'object') {
+                options = { ...method };
+                method = options.method || 'GET';
+                body = options.body ?? null;
+            }
+
+            const headers = { ...(options.headers || {}) };
+            const isFormData = body instanceof FormData;
+            if (body && !isFormData && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
             const token = getAuthToken();
             if (token) headers.Authorization = `Bearer ${token}`;
-            return headers;
-        }
 
-        async function apiRequest(path, options = {}) {
-            const response = await fetch(`${API_BASE}${path}`, {
+            const response = await fetch(url.startsWith('http') ? url : `${API_BASE}${url}`, {
                 ...options,
-                headers: { ...(options.headers || {}), ...(options.body instanceof FormData ? apiHeaders(false) : apiHeaders(true)) }
+                method,
+                body,
+                headers
             });
+
+            if (response.status === 401) {
+                const errorBody = await response.json().catch(() => ({}));
+                if (getAuthToken()) redirectToLoginOnAuthFailure();
+                throw new Error(errorBody.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
+            }
             if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'API sorğusu uğursuz oldu');
             return response.status === 204 ? null : response.json();
         }
@@ -1141,9 +1184,10 @@
 
         function dbGalleryToUi(g) {
             const mediaType = g.mediaType || g.media_type;
+            const images = Array.isArray(g.images) && g.images.length ? g.images : [g.imageUrl || g.image_url || g.thumbnailUrl || g.thumbnail_url].filter(Boolean);
             return mediaType === 'video'
                 ? { id: g.id, title: g.title, type: 'video', url: g.videoUrl || g.video_url || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || '', desc: g.description || '' }
-                : { id: g.id, title: g.title, type: 'event', images: [g.imageUrl || g.image_url || g.thumbnailUrl || g.thumbnail_url].filter(Boolean), desc: g.description || '' };
+                : { id: g.id, title: g.title, type: 'event', images, desc: g.description || '' };
         }
 
         function dbAppToUi(a) {
@@ -1212,7 +1256,7 @@
                 floor_count: p.floors,
                 area: p.area,
                 apartment_count: p.apartments,
-                repair_status: p.repairStatus,
+                repair_status: p.repairStatus || p.repair,
                 features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
                 description: p.desc,
                 image_url: p.img
@@ -1245,13 +1289,21 @@
         }
 
         function getYouTubeThumbnail(url = '') {
-            const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-            return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : '';
+            const match = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            return match ? `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg` : '';
+        }
+
+        function getVimeoThumbnail(url = '') {
+            const match = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
+            return match ? `https://vumbnail.com/${match[1]}.jpg` : '';
         }
 
         function normalizeGalleryVideoUrl(url = '') {
-            const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-            return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+            const youtube = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
+            const vimeo = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
+            if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+            return url;
         }
 
         function uiGalleryToApi(g) {
@@ -1262,7 +1314,8 @@
                 media_type: isVideo ? 'video' : 'image',
                 image_url: isVideo ? undefined : (g.images?.[0] || ''),
                 video_url: isVideo ? g.url : undefined,
-                thumbnail_url: isVideo ? (g.thumbnail || getYouTubeThumbnail(g.url)) : (g.images?.[0] || '')
+                thumbnail_url: isVideo ? (g.thumbnail || getYouTubeThumbnail(g.url) || getVimeoThumbnail(g.url)) : (g.images?.[0] || ''),
+                images: isVideo ? undefined : (g.images || [])
             };
         }
 
@@ -1330,20 +1383,43 @@
         let activeUser = null;
         let selectedProjectCategory = 'Apartment';
         let uploadedEventImages = [];
+        let uploadedEventImageFiles = [];
         let currentlyEditingGalleryItemId = null;
 
         // SESSION CONTROL
-        function checkSession() {
-            const role = sessionStorage.getItem('besthome_logged_in_role');
-            if (role === 'admin') {
-                activeUser = { role: 'admin', name: 'Admin', id: 'admin' };
-            } else if (role === 'agent') {
-                activeUser = JSON.parse(sessionStorage.getItem('besthome_agent_data'));
-                activeUser.role = 'agent';
-            } else {
+        async function initializeAuth() {
+            const token = getAuthToken();
+            const cachedUser = sessionStorage.getItem('besthome_user_data');
+            if (cachedUser) {
+                try {
+                    const user = JSON.parse(cachedUser);
+                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'Əməkdaş'), id: user.id, email: user.email };
+                } catch (_error) {
+                    activeUser = null;
+                }
+            }
+
+            if (!token) {
+                activeUser = null;
+                updateHeaderUI();
+                return;
+            }
+
+            try {
+                const result = await apiRequest('/api/auth/me');
+                const user = result.user || result;
+                const role = user.role === 'employee' ? 'agent' : user.role;
+                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'Əməkdaş'), id: user.id, email: user.email };
+                setAuthSession(token, { ...user, role, fullname: activeUser.name });
+            } catch (_error) {
+                clearAuthSession();
                 activeUser = null;
             }
             updateHeaderUI();
+        }
+
+        function checkSession() {
+            initializeAuth();
         }
 
         function updateHeaderUI() {
@@ -1360,7 +1436,7 @@
                     </button>
                     <button onclick="logoutAdmin()" class="text-gray-400 hover:text-red-400 text-xs"><i class="fa-solid fa-sign-out-alt"></i></button>
                 `;
-                mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${activeUser.name[0]}</div>`;
+                mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${(activeUser.name || 'U')[0]}</div>`;
                 mobileActions.innerHTML = `
                     <button onclick="switchTab('admin-dashboard'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">Kabinetə Keç</button>
                     <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
@@ -1374,9 +1450,7 @@
         }
 
         function logoutAdmin() {
-            sessionStorage.removeItem('besthome_logged_in_role');
-            sessionStorage.removeItem('besthome_agent_data');
-            sessionStorage.removeItem('besthome_auth_token');
+            clearAuthSession();
             activeUser = null;
             updateHeaderUI();
             switchTab('seabreeze');
@@ -1815,10 +1889,7 @@
                 const selectedVacancy = appData.vacancies.find(v => v.title === newItem.vacancy);
                 if (selectedVacancy && Number.isInteger(Number(selectedVacancy.id))) formData.append('vacancy_id', selectedVacancy.id);
                 if (document.getElementById('app-cv').files[0]) formData.append('cv', document.getElementById('app-cv').files[0]);
-                const created = await fetch(`${API_BASE}/api/applications`, { method: 'POST', body: formData }).then(async response => {
-                    if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Müraciət göndərilmədi');
-                    return response.json();
-                });
+                const created = await apiRequest('/api/applications', 'POST', formData);
                 cacheData('applications', [dbAppToUi(created), ...appData.applications]);
             } catch (error) {
                 alert('Müraciət API-yə göndərilmədi: ' + error.message);
@@ -1847,37 +1918,18 @@
                     body: JSON.stringify({ email, password: pass })
                 });
                 error.classList.add('hidden');
-                sessionStorage.setItem('besthome_auth_token', result.token);
-                sessionStorage.setItem('besthome_logged_in_role', result.user.role === 'employee' ? 'agent' : result.user.role);
+                sessionStorage.setItem('token', result.token);
+                setAuthSession(result.token, result.user);
                 activeUser = { role: result.user.role === 'employee' ? 'agent' : result.user.role, name: result.user.fullname, id: result.user.id, email: result.user.email };
                 updateHeaderUI();
                 await hydrateFromDatabase();
                 switchTab('admin-dashboard');
                 return;
             } catch (apiError) {
-                console.warn('API login alınmadı, lokal fallback yoxlanılır:', apiError.message);
-            }
-
-            if (email === 'admin@besthome.az' && pass === 'admin123') {
-                error.classList.add('hidden');
-                sessionStorage.setItem('besthome_logged_in_role', 'admin');
-                activeUser = { role: 'admin', name: 'Admin', id: 'admin' };
-                updateHeaderUI();
-                switchTab('admin-dashboard');
-                return;
-            }
-
-            const agents = appData.agents;
-            const found = agents.find(a => a.email.toLowerCase() === email.toLowerCase() && a.pass === pass);
-
-            if (found) {
-                error.classList.add('hidden');
-                sessionStorage.setItem('besthome_logged_in_role', 'agent');
-                sessionStorage.setItem('besthome_agent_data', JSON.stringify(found));
-                activeUser = { role: 'agent', ...found };
-                updateHeaderUI();
-                switchTab('admin-dashboard');
-            } else {
+                console.warn('API login alınmadı:', apiError.message);
+                clearAuthSession();
+                activeUser = null;
+                error.textContent = apiError.message || 'E-poçt və ya şifrə yanlışdır!';
                 error.classList.remove('hidden');
             }
         }
@@ -1978,16 +2030,12 @@
         function convertMultipleImagesToBase64(input) {
             const files = Array.from(input.files);
             document.getElementById('g-images-count').textContent = `${files.length + uploadedEventImages.length} şəkil seçildi`;
-            
-            let loaded = 0;
             files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedEventImages.push(e.target.result);
-                    renderGalleryMultiPreview();
-                };
-                reader.readAsDataURL(file);
+                uploadedEventImageFiles.push(file);
+                uploadedEventImages.push(URL.createObjectURL(file));
+                renderGalleryMultiPreview();
             });
+            input.value = '';
         }
 
         function renderGalleryMultiPreview() {
@@ -2013,6 +2061,7 @@
 
         function deleteGalleryPhotoFromTemp(index) {
             uploadedEventImages.splice(index, 1);
+            uploadedEventImageFiles.splice(index, 1);
             document.getElementById('g-images-count').textContent = `${uploadedEventImages.length} şəkil seçildi`;
             renderGalleryMultiPreview();
         }
@@ -2023,6 +2072,9 @@
                 const temp = uploadedEventImages[index];
                 uploadedEventImages[index] = uploadedEventImages[newIndex];
                 uploadedEventImages[newIndex] = temp;
+                const tempFile = uploadedEventImageFiles[index];
+                uploadedEventImageFiles[index] = uploadedEventImageFiles[newIndex];
+                uploadedEventImageFiles[newIndex] = tempFile;
                 renderGalleryMultiPreview();
             }
         }
@@ -2606,6 +2658,7 @@
             const type = document.getElementById('g-type').value;
             const desc = document.getElementById('g-desc').value;
             const videoUrl = document.getElementById('g-video-url').value.trim();
+            const videoFile = document.getElementById('g-video-file')?.files?.[0];
             const galleryPayload = {
                 id: editId || null,
                 title,
@@ -2613,22 +2666,36 @@
                 desc,
                 images: type === 'event' ? uploadedEventImages : [],
                 url: type === 'video' ? normalizeGalleryVideoUrl(videoUrl) : '',
-                thumbnail: type === 'video' ? getYouTubeThumbnail(videoUrl) : ''
+                thumbnail: type === 'video' ? (getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : ''
             };
 
-            if (type === 'event' && galleryPayload.images.length === 0) {
+            if (type === 'event' && galleryPayload.images.length === 0 && uploadedEventImageFiles.length === 0) {
                 alert('Qalereya üçün ən azı bir şəkil seçin.');
                 return;
             }
-            if (type === 'video' && !videoUrl) {
-                alert('Video URL daxil edin.');
+            if (type === 'video' && !videoUrl && !videoFile) {
+                alert('Video URL daxil edin və ya MP4 fayl seçin.');
                 return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', desc);
+            formData.append('media_type', type === 'video' ? 'video' : 'image');
+            if (type === 'event') {
+                uploadedEventImageFiles.forEach(file => formData.append('images', file));
+                const existingImages = uploadedEventImages.filter(src => !String(src).startsWith('blob:'));
+                if (existingImages.length) formData.append('existing_images', JSON.stringify(existingImages));
+            } else {
+                if (videoUrl) formData.append('video_url', videoUrl);
+                if (videoFile) formData.append('video', videoFile);
+                if (galleryPayload.thumbnail) formData.append('thumbnail_url', galleryPayload.thumbnail);
             }
 
             try {
                 const saved = editId
-                    ? await apiRequest(`/api/gallery/${editId}`, { method: 'PUT', body: JSON.stringify(uiGalleryToApi(galleryPayload)) })
-                    : await apiRequest('/api/gallery', { method: 'POST', body: JSON.stringify(uiGalleryToApi(galleryPayload)) });
+                    ? await apiRequest(`/api/gallery/${editId}`, 'PUT', formData)
+                    : await apiRequest('/api/gallery', 'POST', formData);
                 const savedUi = dbGalleryToUi(saved);
                 const list = [...appData.gallery];
                 const idx = list.findIndex(x => String(x.id) === String(editId));
@@ -2655,6 +2722,7 @@
 
                 if (g.type === 'event') {
                     uploadedEventImages = g.images || [];
+                    uploadedEventImageFiles = [];
                     document.getElementById('g-images-count').textContent = `${uploadedEventImages.length} şəkil yaddaşdadır`;
                     renderGalleryMultiPreview();
                 } else {
@@ -2669,8 +2737,10 @@
             document.getElementById('g-title').value = '';
             document.getElementById('g-type').value = 'event';
             document.getElementById('g-video-url').value = '';
+            if (document.getElementById('g-video-file')) document.getElementById('g-video-file').value = '';
             document.getElementById('g-desc').value = '';
             uploadedEventImages = [];
+            uploadedEventImageFiles = [];
             document.getElementById('gallery-multi-preview').innerHTML = '';
             document.getElementById('g-images-count').textContent = '0 şəkil seçildi';
             document.getElementById('gallery-form-title').textContent = "Yeni Qalereya";
@@ -2748,8 +2818,8 @@
 
         // MAIN SETUP AND BOOTSTRAP
         window.addEventListener('load', async () => {
+            await initializeAuth();
             await hydrateFromDatabase();
-            checkSession();
             switchTab('seabreeze');
         });
     </script>

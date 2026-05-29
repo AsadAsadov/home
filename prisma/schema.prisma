@@ -90,6 +90,7 @@ mediaType    MediaType @map("media_type")
 imageUrl     String?   @map("image_url") @db.Text
 videoUrl     String?   @map("video_url") @db.Text
 thumbnailUrl String?   @map("thumbnail_url") @db.Text
+images       Json?
 createdAt    DateTime  @default(now()) @map("created_at")
 
 @@map("gallery")
