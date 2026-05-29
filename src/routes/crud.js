@@ -7,6 +7,26 @@ function toInt(value) {
   return Number.isNaN(parsed) ? undefined : parsed;
 }
 
+function parseJsonArray(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (_error) {
+      return value.split(',').map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return undefined;
+}
+
+function toBool(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value === 'boolean') return value;
+  return ['true', '1', 'yes', 'on', 'aktiv'].includes(String(value).toLowerCase());
+}
+
 function toDecimal(value) {
   if (value === undefined || value === null || value === '') return undefined;
   const parsed = Number(value);
@@ -25,6 +45,7 @@ const serializers = {
     features: Array.isArray(body.features) ? body.features.join(' / ') : body.features,
     description: body.description,
     imageUrl: body.image_url ?? body.imageUrl,
+    images: parseJsonArray(body.images),
   }),
   listing: (body) => {
     const area = toDecimal(body.area);
@@ -50,6 +71,7 @@ const serializers = {
     salary: body.salary,
     city: body.city,
     description: body.description,
+    isActive: toBool(body.is_active ?? body.isActive),
   }),
   application: (body) => ({
     fullname: body.fullname,

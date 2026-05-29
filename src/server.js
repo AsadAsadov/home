@@ -13,6 +13,7 @@ const prisma = require('./lib/prisma');
 const app = express();
 const port = process.env.PORT || 3000;
 const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+const uploadsStaticDir = path.join(__dirname, '../uploads');
 
 const origins = (process.env.CORS_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean);
 app.use(cors({ origin: origins.length ? origins : true, credentials: true }));
@@ -26,6 +27,7 @@ app.use(express.urlencoded({
 }));
 
 app.use('/uploads', express.static(uploadDir));
+if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir));
 app.use(express.static(process.cwd()));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
