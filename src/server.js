@@ -42,7 +42,6 @@ app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/employees', require('./routes/employees'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/sync', require('./routes/sync'));
 

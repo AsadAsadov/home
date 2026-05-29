@@ -18,7 +18,7 @@ function clean(value) {
 
 function data(body) {
   const role = clean(body.role);
-  const out = { fullname: clean(body.fullname), email: clean(body.email), role: ['admin', 'user', 'employee'].includes(role) ? role : undefined };
+  const out = { fullname: clean(body.fullname), email: clean(body.email), role: ['admin', 'user'].includes(role) ? role : undefined };
   return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
 }
 
@@ -28,14 +28,16 @@ router.get('/', authenticate, authorize('admin'), asyncHandler(async (_req, res)
 }));
 
 router.post('/', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const nextData = data(req.body);
+  if (!nextData.fullname || !nextData.email) return res.status(400).json({ message: 'fullname and email are required.' });
   const passwordHash = await bcrypt.hash(req.body.password || 'BestHome123!', 12);
-  const user = await prisma.user.create({ data: { ...data(req.body), passwordHash } });
+  const user = await prisma.user.create({ data: { ...nextData, passwordHash } });
   res.status(201).json(publicUser(user));
 }));
 
 router.put('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const nextData = data(req.body);
-  if (req.body.password) nextData.passwordHash = await bcrypt.hash(req.body.password, 12);
+  if (req.body.password && String(req.body.password).trim()) nextData.passwordHash = await bcrypt.hash(String(req.body.password).trim(), 12);
   const user = await prisma.user.update({ where: { id: Number(req.params.id) }, data: nextData });
   res.json(publicUser(user));
 }));

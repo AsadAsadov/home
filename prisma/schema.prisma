@@ -45,19 +45,6 @@ user             User?    @relation(fields: [userId], references: [id], onDelete
 @@map("listings")
 }
 
-model Employee {
-id           Int      @id @default(autoincrement())
-firstName    String   @map("first_name")
-lastName     String   @map("last_name")
-phone        String?
-email        String   @unique
-passwordHash String   @map("password_hash")
-role         Role     @default(employee)
-createdAt    DateTime @default(now()) @map("created_at")
-
-@@map("employees")
-}
-
 model Vacancy {
 id             Int           @id @default(autoincrement())
 title          String
@@ -113,7 +100,6 @@ listings     Listing[]
 enum Role {
 admin
 user
-employee
 }
 
 enum MediaType {
