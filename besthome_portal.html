@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestHome.az - Sea Breeze Premium Portalı</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            500: '#2563eb', // Royal Blue to match logo
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        darkBg: '#090f1d',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-nav {
+            background: rgba(9, 15, 29, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090f1d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body class="bg-[#090f1d] text-gray-100 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo with dynamic fallback -->
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('seabreeze')">
+                    <img src="images/logo.png" alt="BestHome.az" class="h-11 w-auto max-w-[180px] object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\'bg-brand-500 p-2.5 rounded-xl shadow-lg shadow-brand-500/20\'><i class=\'fa-solid fa-house-chimney text-xl text-white\'></i></div><span class=\'text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-brand-100 to-brand-500 bg-clip-text text-transparent\'>besthome<span class=\'text-brand-500\'>.az</span></span>'">
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Sea Breeze Layihələri</button>
+                    <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya & Video</button>
+                    <button onclick="switchTab('career')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-career">Karyera</button>
+                    <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
+                </div>
+
+                <!-- Session status -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <div id="header-user-status" class="flex items-center space-x-3"></div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center space-x-3">
+                    <div id="mobile-user-status-icon"></div>
+                    <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div class="hidden md:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
+            <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Sea Breeze Layihələri</button>
+            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Qalereya & Video</button>
+            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Karyera</button>
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Haqqımızda</button>
+            <div id="mobile-user-status-actions" class="pt-2 border-t border-white/5 space-y-2"></div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow pt-28 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+
+        <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
+        <section id="tab-seabreeze" class="tab-content space-y-12">
+            <!-- Hero banner -->
+            <div class="relative rounded-3xl overflow-hidden glass-card p-8 md:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 min-h-[380px]">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] -z-10"></div>
+                
+                <div class="max-w-3xl space-y-5 text-center lg:text-left">
+                    <span class="bg-brand-500/10 text-brand-500 border border-brand-500/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">Premium Tərəfdaşlıq</span>
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-white leading-tight">
+                        Sea Breeze-də <br class="hidden md:inline"><span class="bg-gradient-to-r from-brand-500 to-blue-300 bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
+                    </h1>
+                    <p class="text-gray-300 text-base md:text-lg font-light leading-relaxed">
+                        BestHome rəsmi tərəfdaşlığı ilə Xəzərin ən prestijli sahili olan Sea Breeze kurortunda yerləşən rəsmi layihələri və əməkdaşlarımızın eksklüziv elanlarını araşdırın.
+                    </p>
+                </div>
+                <div class="w-full lg:w-1/3 flex justify-center">
+                    <div class="relative p-3 glass-card rounded-2xl border border-white/10 w-full max-w-[340px]">
+                        <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80" class="rounded-xl w-full h-56 object-cover shadow-2xl">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
+            <div class="space-y-6">
+                <div class="text-center md:text-left">
+                    <h2 class="text-2xl font-extrabold text-white">Sea Breeze Rəsmi Layihələri</h2>
+                    <p class="text-gray-400 text-xs">Aşağıdakı kateqoriyalardan birini seçərək rəsmi memarlıq inciləri ilə tanış ola bilərsiniz</p>
+                </div>
+
+                <!-- 3-lü Bölmə Filtri -->
+                <div class="flex flex-wrap justify-center md:justify-start gap-4" id="project-category-filters">
+                    <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-500 text-white transition duration-200">
+                        <i class="fa-solid fa-building mr-2"></i> Mənzillər (Apartments)
+                    </button>
+                    <button onclick="switchProjectCategory('Villa')" id="p-cat-Villa" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-white/5 text-gray-400 hover:text-white transition duration-200">
+                        <i class="fa-solid fa-tents mr-2"></i> Şəxsi Villalar
+                    </button>
+                    <button onclick="switchProjectCategory('Townhouse')" id="p-cat-Townhouse" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-white/5 text-gray-400 hover:text-white transition duration-200">
+                        <i class="fa-solid fa-house-flag mr-2"></i> Taunhauslar
+                    </button>
+                </div>
+
+                <!-- Layihələr Siyahısı (Grid) -->
+                <div id="sea-breeze-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Agent Elanları Grid -->
+            <div class="space-y-6 pt-12 border-t border-white/5" id="agent-listings-area">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Satış və Kirayə Elanları</h2>
+                        <p class="text-gray-400 text-xs font-light">Əməkdaşlarımızın daxili və xarici bazardan təqdim etdiyi aktiv elanlar</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select id="filter-sb-type" onchange="renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                            <option value="all">Bütün növlər (Satış/Kirayə)</option>
+                            <option value="Satis">Satış</option>
+                            <option value="Kiraye">Kirayə</option>
+                        </select>
+                        <select id="filter-sb-project" onchange="renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                            <option value="all">Bütün Layihələr</option>
+                            <option value="Caspian Dream Liner">Caspian Dream Liner</option>
+                            <option value="Blue Waters">Blue Waters</option>
+                            <option value="Sky Park">Sky Park</option>
+                            <option value="Marina Village">Marina Village</option>
+                            <option value="Park Residences 3">Park Residences 3</option>
+                            <option value="Park Lane">Park Lane</option>
+                            <option value="Skyline">Skyline</option>
+                            <option value="Palazzo del Mare">Palazzo del Mare</option>
+                            <option value="Harbour Residence">Harbour Residence</option>
+                            <option value="Park Residences 4">Park Residences 4</option>
+                            <option value="Digər">Digər Rezidensiyalar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="seabreeze-properties-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. PORTFOLIO SECTION -->
+        <section id="tab-portfolio" class="tab-content hidden space-y-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="space-y-2">
+                    <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Fəaliyyət</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white">Tədbirlərimiz və Media</h2>
+                </div>
+                <div class="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
+                    <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">Hamısı</button>
+                    <button onclick="filterPortfolio('event')" id="filter-event" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Fotolar</button>
+                    <button onclick="filterPortfolio('video')" id="filter-video" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Videolar</button>
+                </div>
+            </div>
+            <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </section>
+
+        <!-- 3. CAREER SECTION -->
+        <section id="tab-career" class="tab-content hidden space-y-12">
+            <div class="text-center max-w-3xl mx-auto space-y-4">
+                <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Karyera imkanları</span>
+                <h2 class="text-4xl font-black text-white">Bizim Komandaya Qoşul!</h2>
+                <p id="career-intro-text-view" class="text-gray-400 font-light text-base"></p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 space-y-4">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-briefcase text-brand-500"></i>
+                        <span>Aktiv Vakansiyalar</span>
+                    </h3>
+                    <div id="active-vacancies-list" class="space-y-4"></div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
+                        <h3 class="text-2xl font-bold text-white">Müraciət Anket Formu</h3>
+                        <div id="form-success-alert" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-4 rounded-xl text-sm flex items-center space-x-3">
+                            <i class="fa-solid fa-circle-check text-lg"></i>
+                            <span>Müraciətiniz uğurla göndərildi!</span>
+                        </div>
+                        <form id="career-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input type="text" id="app-name" required placeholder="Adınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                                <input type="text" id="app-surname" required placeholder="Soyadınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <input type="tel" id="app-phone" required placeholder="Əlaqə nömrəsi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                                <input type="email" id="app-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                            </div>
+                            <select id="app-vacancy" required class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"></select>
+                            
+                            <div class="relative border-2 border-dashed border-white/10 p-6 text-center cursor-pointer rounded-2xl" id="cv-dropzone">
+                                <input type="file" id="app-cv" accept=".pdf,.doc,.docx" required onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-semibold text-white" id="cv-file-name">CV Faylı seçin (PDF, DOCX)</p>
+                            </div>
+
+                            <textarea id="app-notes" rows="3" placeholder="Əlavə qeydləriniz..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"></textarea>
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl">Müraciəti Göndər</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. HAQQIMIZDA SECTION -->
+        <section id="tab-home" class="tab-content hidden space-y-16">
+            <div class="relative rounded-3xl overflow-hidden glass-card p-8 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 min-h-[350px]">
+                <div class="max-w-2xl space-y-5">
+                    <span class="bg-brand-500/10 text-brand-500 border border-brand-500/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">Haqqımızda</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-white">Sonsuz Güvən və Peşəkarlıq!</h2>
+                    <p class="text-gray-300 text-base font-light">
+                        BestHome komandası olaraq daşınmaz əmlak sahəsində etibarlı və premium layihələrin satışı üzrə ixtisaslaşmışıq. Kurort zonaları, xüsusilə Sea Breeze rəsmi layihələrinin real təqdimatını təklif edirik.
+                    </p>
+                </div>
+                <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80" class="rounded-xl w-full md:w-1/3 h-56 object-cover shadow-2xl">
+            </div>
+        </section>
+
+        <!-- 5. LOGIN -->
+        <section id="tab-admin-login" class="tab-content hidden max-w-md mx-auto py-12">
+            <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
+                <h2 class="text-2xl font-bold text-white">Sistemə Giriş</h2>
+                <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs">E-poçt və ya şifrə yanlışdır!</div>
+                <form onsubmit="handleGeneralLogin(event)" class="space-y-4 text-left">
+                    <input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                    <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Daxil Ol</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 6. COMPREHENSIVE DASHBOARD PANEL -->
+        <section id="tab-admin-dashboard" class="tab-content hidden space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+                <div>
+                    <h2 id="dashboard-user-title" class="text-2xl font-black text-white">İdarəetmə Paneli</h2>
+                    <p id="dashboard-user-subtitle" class="text-gray-400 text-xs"></p>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">Çıxış</button>
+            </div>
+
+            <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
+            <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
+                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
+                <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
+                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Əmlak Əməkdaşları</button>
+                <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
+                <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
+            </div>
+
+            <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
+            <div id="admin-subtab-seabreeze-manager" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-plus text-brand-500"></i>
+                        <span id="sb-form-action-title">Yeni Elan Əlavə Et</span>
+                    </h3>
+                    <form onsubmit="handleSaveSeaBreezeItem(event)" class="space-y-3">
+                        <input type="hidden" id="edit-sb-id" value="">
+                        
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Başlıq *</label>
+                            <input type="text" id="sb-title" required placeholder="Məs: 2 otaqlı dəniz mənzərəli apart" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Növü *</label>
+                                <select id="sb-listing-type" onchange="toggleFormFieldsBasedOnCategory()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <option value="Satis">Satış</option>
+                                    <option value="Kiraye">Kirayə</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Kateqoriya *</label>
+                                <select id="sb-form-category" onchange="toggleFormFieldsBasedOnCategory()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <option value="Apartment">Mənzil (Apartment)</option>
+                                    <option value="Villa">Şəxsi Villa</option>
+                                    <option value="Townhouse">Taunhaus</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Sea Breeze Layihəsi *</label>
+                                <select id="sb-project" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <option value="Caspian Dream Liner">Caspian Dream Liner</option>
+                                    <option value="Blue Waters">Blue Waters</option>
+                                    <option value="Sky Park">Sky Park</option>
+                                    <option value="Marina Village">Marina Village</option>
+                                    <option value="Park Residences 3">Park Residences 3</option>
+                                    <option value="Park Lane">Park Lane</option>
+                                    <option value="Skyline">Skyline</option>
+                                    <option value="Palazzo del Mare">Palazzo del Mare</option>
+                                    <option value="Harbour Residence">Harbour Residence</option>
+                                    <option value="Park Residences 4">Park Residences 4</option>
+                                    <option value="Digər">Digər Rezidensiya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Otaq sayı *</label>
+                                <input type="number" id="sb-rooms" required min="1" value="2" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Sahə (m²) *</label>
+                                <input type="number" id="sb-area" required min="1" step="any" oninput="calculateSqPrice()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mərtəbə Sayı *</label>
+                                <input type="number" id="sb-floor" required min="1" value="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                        </div>
+
+                        <!-- Torpaq sahəsi (Only visible for Villa & Townhouse) -->
+                        <div id="torpaq-sahəsi-block" class="hidden">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Torpaq sahəsi (Sot)</label>
+                            <input type="number" id="sb-land" min="1" step="any" placeholder="Məs: 4.5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Qiymət (AZN) *</label>
+                            <input type="number" id="sb-price" required min="1" oninput="calculateSqPrice()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        </div>
+
+                        <div id="calc-result-box" class="bg-brand-500/10 p-3 rounded-xl border border-brand-500/20 text-xs">
+                            <strong>1 m² Üçün Qiymət:</strong> <span id="sb-calc-val">0</span> AZN
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkil (Fayl yüklə və ya URL)*</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="sb-img-file" accept="image/*" onchange="convertImageToBase64(this, 'sb-img-preview-val')" class="hidden">
+                                <button type="button" onclick="document.getElementById('sb-img-file').click()" class="bg-white/5 border border-white/10 text-xs px-3 py-2 rounded-xl text-white">Seç</button>
+                                <input type="url" id="sb-img-url" placeholder="Yaxud şəkil URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                            <input type="hidden" id="sb-img-preview-val" value="">
+                            <div id="sb-file-name-badge" class="hidden bg-brand-500/10 text-[10px] p-2 rounded-xl flex items-center justify-between">
+                                <span class="truncate" id="sb-file-name-text">fayl.jpg</span>
+                                <button type="button" onclick="clearSelectedFile('sb-img-file','sb-img-preview-val','sb-file-name-badge')" class="text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Təsvir *</label>
+                            <textarea id="sb-desc" required rows="2" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div class="flex space-x-2">
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
+                            <button type="button" onclick="resetSeaBreezeForm()" class="bg-white/5 text-white px-3 rounded-xl text-xs">Təmizlə</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-7 space-y-4">
+                    <h3 class="text-lg font-bold text-white">Əlaqəli Elanlar</h3>
+                    <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB 2: CVS -->
+            <div id="admin-subtab-cvs" class="hidden">
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-white/[0.02] border-b border-white/5 text-gray-400 text-xs font-bold uppercase">
+                                <th class="p-4">Namizəd</th>
+                                <th class="p-4">Əlaqə</th>
+                                <th class="p-4">Vakansiya</th>
+                                <th class="p-4">CV faylı</th>
+                                <th class="p-4 text-right">Əməliyyat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-cv-tbody" class="divide-y divide-white/5 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SUBTAB 3: AGENTS -->
+            <div id="admin-subtab-agents-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-base font-bold text-white">Yeni Əməkdaş Qeydiyyatı</h3>
+                    <form onsubmit="handleRegisterAgent(event)" class="space-y-3">
+                        <input type="text" id="agent-reg-name" required placeholder="Ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="text" id="agent-reg-surname" required placeholder="Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="tel" id="agent-reg-phone" required placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="email" id="agent-reg-email" required placeholder="Giriş E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <input type="password" id="agent-reg-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <button type="submit" class="w-full bg-brand-500 text-white font-bold py-2 rounded-xl text-xs">Yarat</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4" id="admin-agents-grid"></div>
+            </div>
+
+            <!-- SUBTAB 4: VACANCIES -->
+            <div id="admin-subtab-vacancy-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="glass-card p-6 rounded-2xl space-y-3">
+                        <h4 class="text-xs font-bold text-white uppercase">Karyera giriş mətni</h4>
+                        <textarea id="admin-career-text" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white"></textarea>
+                        <button onclick="saveCareerIntroText()" class="w-full bg-brand-500 text-white text-xs py-2 rounded-xl">Yenilə</button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-2xl space-y-3">
+                        <h4 class="text-xs font-bold text-white uppercase" id="vac-form-title">Yeni Vakansiya</h4>
+                        <form onsubmit="handleSaveVacancy(event)" class="space-y-2">
+                            <input type="hidden" id="edit-vac-id">
+                            <input type="text" id="vac-title" required placeholder="Vakansiya Adı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
+                            <input type="text" id="vac-type" required placeholder="Ştat (məs: Tam ştat)" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
+                            <input type="text" id="vac-salary" required placeholder="Əmək haqqı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
+                            <input type="text" id="vac-location" required placeholder="Şəhər" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
+                            <textarea id="vac-desc" required rows="3" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white"></textarea>
+                            <button type="submit" class="w-full bg-brand-500 text-white text-xs py-2 rounded-xl">Yadda Saxla</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-8 space-y-4" id="admin-vacancies-list"></div>
+            </div>
+
+            <!-- SUBTAB 5: GALLERY -->
+            <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
+                    <form onsubmit="handleSaveGalleryItem(event)" class="space-y-3">
+                        <input type="hidden" id="edit-g-id">
+                        <input type="text" id="g-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        <select id="g-type" onchange="toggleGalleryTypeFields()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <option value="event">Tədbir (Çoxşəkilli)</option>
+                            <option value="video">Video (YouTube embed URL)</option>
+                        </select>
+
+                        <!-- Multi-image Upload Area with reordering & deletion -->
+                        <div id="gallery-event-fields" class="space-y-2">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase block">Tədbir Şəkilləri</label>
+                            <input type="file" id="g-img-files" accept="image/*" multiple onchange="convertMultipleImagesToBase64(this)" class="hidden">
+                            <button type="button" onclick="document.getElementById('g-img-files').click()" class="bg-white/5 border border-white/10 text-xs text-white px-3 py-2 rounded-xl">Cihazdan Şəkillər Seç</button>
+                            <span class="text-xs text-gray-400" id="g-images-count">0 şəkil seçildi</span>
+                            
+                            <!-- Draggable & Deletable Images grid list -->
+                            <div id="gallery-multi-preview" class="grid grid-cols-3 gap-2 pt-2"></div>
+                        </div>
+
+                        <div id="gallery-video-fields" class="hidden">
+                            <input type="url" id="g-video-url" placeholder="https://www.youtube.com/embed/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        </div>
+
+                        <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <button type="submit" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 space-y-4" id="admin-gallery-list"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN DETALLI MODAL -->
+    <div id="property-detail-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
+            <button onclick="closePropertyModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="overflow-y-auto">
+                <img id="p-modal-img" class="w-full h-64 object-cover" src="" alt="">
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <span id="p-modal-project" class="bg-brand-500/15 text-brand-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-brand-500/20"></span>
+                            <h3 id="p-modal-title" class="text-2xl font-extrabold text-white mt-2"></h3>
+                        </div>
+                        <div class="text-right">
+                            <div id="p-modal-price" class="text-2xl font-extrabold text-white"></div>
+                            <div id="p-modal-sqprice" class="text-xs text-brand-300 font-bold mt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Parametrlər Qutusu -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#0d1527] p-4 rounded-2xl border border-white/5 text-xs text-gray-300">
+                        <div>Otaq: <strong id="p-modal-rooms" class="text-white block mt-0.5"></strong></div>
+                        <div>Sahə: <strong id="p-modal-area" class="text-white block mt-0.5"></strong></div>
+                        <div>Mərtəbə: <strong id="p-modal-floor" class="text-white block mt-0.5"></strong></div>
+                        <div id="p-modal-land-box" class="hidden">Torpaq (Sot): <strong id="p-modal-land" class="text-white block mt-0.5"></strong></div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Ətraflı Təsvir</h4>
+                        <p id="p-modal-desc" class="text-gray-300 text-sm font-light leading-relaxed"></p>
+                    </div>
+
+                    <!-- Əməkdaş Məlumatları & WhatsApp Düyməsi -->
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3 text-left w-full sm:w-auto">
+                            <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-500 uppercase block font-medium">Əlaqəli Əməkdaş</span>
+                                <strong id="p-modal-agent-name" class="text-white block text-sm"></strong>
+                                <span id="p-modal-agent-phone" class="text-xs text-gray-400"></span>
+                            </div>
+                        </div>
+                        
+                        <a id="p-modal-whatsapp-btn" href="" target="_blank" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center space-x-2 transition duration-200">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>WhatsApp ilə Yaz</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
+    <div id="project-detail-modal-official" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
+            <button onclick="closeOfficialProjectModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="overflow-y-auto">
+                <div class="relative h-72">
+                    <img id="op-modal-img" class="w-full h-full object-cover" src="" alt="">
+                    <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
+                    <div class="absolute bottom-6 left-6 md:left-8">
+                        <span id="op-modal-year" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
+                        <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8 space-y-6">
+                    <!-- Tab Headers -->
+                    <div class="flex border-b border-white/10">
+                        <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Layihə Təsviri</button>
+                        <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Texniki Göstəricilər</button>
+                    </div>
+
+                    <!-- Tab Content: Desc -->
+                    <div id="op-tab-desc" class="space-y-2">
+                        <p id="op-modal-desc-text" class="text-gray-300 text-sm font-light leading-relaxed whitespace-pre-line"></p>
+                    </div>
+
+                    <!-- Tab Content: Details -->
+                    <div id="op-tab-details" class="hidden grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
+                            <span class="text-xs text-gray-500 block">Mərtəbə Sayı</span>
+                            <strong id="op-detail-floors" class="text-white"></strong>
+                        </div>
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
+                            <span class="text-xs text-gray-500 block">Sahə Ölçüsü</span>
+                            <strong id="op-detail-area" class="text-white"></strong>
+                        </div>
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
+                            <span class="text-xs text-gray-500 block">Mənzil Sayı</span>
+                            <strong id="op-detail-apartments" class="text-white"></strong>
+                        </div>
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
+                            <span class="text-xs text-gray-500 block">Təhvil Tarixi</span>
+                            <strong id="op-detail-year-val" class="text-white"></strong>
+                        </div>
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5 col-span-2">
+                            <span class="text-xs text-gray-500 block">Təmir Statusu</span>
+                            <strong id="op-detail-repair" class="text-white"></strong>
+                        </div>
+                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5 col-span-2">
+                            <span class="text-xs text-gray-500 block">Özəllikləri & Üstünlükləri</span>
+                            <strong id="op-detail-features" class="text-white"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
+    <div id="media-modal" class="hidden fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+        <button onclick="closeModal()" class="absolute top-6 right-6 text-white hover:text-brand-500 text-3xl z-50">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="max-w-4xl w-full max-h-[85vh] flex flex-col items-center justify-between relative">
+            <div id="modal-content" class="w-full h-full flex items-center justify-center relative min-h-[400px]"></div>
+            <div id="modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none">
+                <button onclick="changeModalImage(-1)" class="w-12 h-12 rounded-full bg-white/10 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto"><i class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="changeModalImage(1)" class="w-12 h-12 rounded-full bg-white/10 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="text-center mt-4">
+                <p id="modal-title" class="text-white text-lg font-semibold"></p>
+                <p id="modal-counter" class="text-gray-400 text-xs mt-1"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER AND SOCIAL MEDIA -->
+    <footer class="bg-[#050811] border-t border-white/5 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center space-x-2" onclick="switchTab('seabreeze')">
+                    <span class="text-xl font-bold tracking-tight text-white">besthome<span class="text-brand-500">.az</span></span>
+                </div>
+                <!-- Clickable Social Icons -->
+                <div class="flex items-center space-x-6">
+                    <a href="https://instagram.com" target="_blank" class="w-11 h-11 rounded-full bg-white/5 hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://tiktok.com" target="_blank" class="w-11 h-11 rounded-full bg-white/5 hover:bg-black text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="https://facebook.com" target="_blank" class="w-11 h-11 rounded-full bg-white/5 hover:bg-brand-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://youtube.com" target="_blank" class="w-11 h-11 rounded-full bg-white/5 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="h-px bg-white/5"></div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-gray-500">
+                <p class="cursor-pointer select-none hover:text-gray-400 transition" ondblclick="switchTab('admin-login')">
+                    &copy; 2026 besthome.az. Bütün hüquqlar qorunur. (Giriş)
+                </p>
+                <div class="flex flex-col md:flex-row items-center gap-4">
+                    <a href="tel:+994501234567" class="text-gray-300 hover:text-brand-500 flex items-center space-x-2 bg-white/5 px-4 py-2 rounded-xl">
+                        <i class="fa-solid fa-phone text-brand-500"></i>
+                        <span class="font-semibold">+994 (50) 123-45-67</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INLINE STATE & DATA MOTOR -->
+    <script>
+        // OFFICIAL SEA BREEZE 10 PROJECTS DATA WITH CAT & DETAILED SPECS
+        const officialSeaBreezeProjects = [
+            {
+                id: "op1",
+                category: "Apartment",
+                title: "Caspian Dream Liner",
+                year: "2027",
+                img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+                desc: "Xəzər dənizinin mavi dalğalarında üzən bəyaz layner formasında fantastik 11 mərtəbəli apart-hotel. Xüsusi olaraq Caspian Dream Liner üçün süni yarımada salınıb. Müasir memarlıq və mühəndisliyin bu şah əsəri Adel Zehni tərəfindən dizayn edilib.",
+                floors: "11 mərtəbə",
+                area: "50-838 m²",
+                apartments: "226 mənzil",
+                repairStatus: "Tam təmirli (mebel və texnika daxil)",
+                features: "Şəxsi hovuz / Yeraltı və yerüstü parkinq / Restoranlar və butiklər"
+            },
+            {
+                id: "op2",
+                category: "Apartment",
+                title: "Blue Waters",
+                year: "2028",
+                img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                desc: "Dəniz dalğalarından ilhamlanan və şüşə divarları sanki ağuşuna alan fasad dekoru ilə premium yaşayış kompleksi. Layihənin valehedici memarlıq dizaynı aparıcı Benoy və Squire & Partners beynəlxalq bürosu tərəfindən hazırlanmışdır.",
+                floors: "11-12-14 mərtəbə",
+                area: "44-587 m²",
+                apartments: "849 mənzil",
+                repairStatus: "Təmirsiz",
+                features: "Özəl hovuz / Yeraltı parkinq / Özəl yaşıllıq sahəsi / Restoranlar və barlar"
+            },
+            {
+                id: "op3",
+                category: "Apartment",
+                title: "Sky Park",
+                year: "2028",
+                img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                desc: "Ultramüasir premium mənzil kompleksi: high tech üslubda dörd bina. Qlobal meqapolislərə ithafən layihələndirilmiş memarlıq incisi dəniz kurortunun təbii gözəlliyi ilə harmoniyada yaradılmışdır. Panoramik pəncərələrdən möhtəşəm dəniz mənzərələri açılır. Dekorativ fəvvarə və dizayner işıqlandırması hər gəzintini parlaq təcrübəyə çevirir.",
+                floors: "24 mərtəbə",
+                area: "52-89 m²",
+                apartments: "1008 mənzil",
+                repairStatus: "Təmirsiz",
+                features: "Özəl hovuz / Yeraltı parkinq"
+            },
+            {
+                id: "op4",
+                category: "Apartment",
+                title: "Marina Village",
+                year: "2026",
+                img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+                desc: "İtalyansayağı dəbdəbə üslubunda mini-şəhər. Hündür tağları və kirəmitli damları olan eleqant evlər, mənzərəli yaxta limanı və Venesiya tərzində kanallar. Bu, Azərbaycanda özəl marina və yaxta klubu olan yeganə layihədir. 'Kiçik Venesiya' birinci sahil xəttində, dənizdən cəmi 40 metr məsafədə yerləşir.",
+                floors: "4-6 mərtəbə",
+                area: "38-479 m²",
+                apartments: "1010 mənzil",
+                repairStatus: "Təmirli",
+                features: "İcarə xidməti / Özəl hovuz / Yaxtalar və qayıqlar üçün pirs / Yeraltı və yerüstü parkinq"
+            },
+            {
+                id: "op5",
+                category: "Apartment",
+                title: "Park Residences 3",
+                year: "2026",
+                img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+                desc: "Eleqant Park Residences 3 yaşayış kompleksi Xəzər dənizinin sahillərində ənənəvi Avropa üslubu və müasir dizayn həllərinin harmoniyasını təmsil edir. Panoramik pəncərələr və terraslar, palma ağaclarının kölgəsində geniş həyət və rahat lounge məkanları – həyatın gözəlliyindən zövq almaq üçün lazım olan hər şey burada var.",
+                floors: "9 mərtəbə",
+                area: "57-158 m²",
+                apartments: "1620 mənzil",
+                repairStatus: "Təmirsiz",
+                features: "Yeraltı və yerüstü parkinq / Özəl hovuz / Yay terrası"
+            },
+            {
+                id: "op6",
+                category: "Apartment",
+                title: "Park Lane",
+                year: "2028",
+                img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+                desc: "Minimalist üslubda müasir yaşayış kompleksi. Pilləli memarlıq, lakonik xətlər və mənzərəli şəffaf lociyalar. Dörd bina palma ağacları ilə əhatə olunmuş və landşaft dizaynı ile layihələndirilmiş yaşıl bulvarlarla birləşdirilib.",
+                floors: "14-16 mərtəbə",
+                area: "30-293 m²",
+                apartments: "1756 mənzil",
+                repairStatus: "İlkin təmir",
+                features: "Yeraltı parkinq / Özəl hovuzlar / Barlar və restoranlar"
+            },
+            {
+                id: "op7",
+                category: "Apartment",
+                title: "Skyline",
+                year: "2026",
+                img: "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=800&q=80",
+                desc: "Xəzərin sahilini qucaqlayan dalğalar kaskadını xatırladan futuristik apart-hotel. Unikal memarlıq sakit təbii mühitlə uzlaşır: açıq terraslarda tropik ağaclardan yaşıl parklar yaradılıb.",
+                floors: "7 mərtəbə",
+                area: "45-466 m²",
+                apartments: "293 mənzil",
+                repairStatus: "Təmirli",
+                features: "İcarə xidməti / Yeraltı parkinq / Qapalı hovuz / Fitnes / Restoranlar"
+            },
+            {
+                id: "op8",
+                category: "Apartment",
+                title: "Palazzo del Mare",
+                year: "2027",
+                img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
+                desc: "Xəzər dənizi sahilində təntənəli tağları, bəzəkli terrakota damları və geniş qalereyaları olan italyan sarayları üslubunda dəbdəbəli kompleks. Açıq rəngli fasadları olan zərif binalar abadlaşdırılmış bağlarla, şəffaf sulu firuzəyi hovuz isə palma ağacları ilə əhatə olunub.",
+                floors: "8 mərtəbə",
+                area: "49-196 m²",
+                apartments: "939 mənzil",
+                repairStatus: "Təmirsiz",
+                features: "İcarə xidməti / Yeraltı və yerüstü parkinq / Özəl hovuz / Restoran"
+            },
+            {
+                id: "op9",
+                category: "Apartment",
+                title: "Harbour Residence",
+                year: "2028",
+                img: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
+                desc: "Avropa sahil şəhərləri üslubunda premium apart-hotel kompleksi. Zərif həndəsi fasadlar, isti terrakota tonları və şəffaf lociyalar gözəllik və rahat yaşam hissi bəxş edir. Harbour Residence-in yaxınlığında Azərbaycanın ən hündür binası olan futuristik Cipriani Tower tikiləcək.",
+                floors: "9 mərtəbə",
+                area: "48-215 m²",
+                apartments: "624 mənzil",
+                repairStatus: "İlkin təmir",
+                features: "Yeraltı və yerüstü parkinq / 3 üzgüçülük hovuzu / Kafe və restoranlar"
+            },
+            {
+                id: "op10",
+                category: "Apartment",
+                title: "Park Residences 4",
+                year: "2029",
+                img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
+                desc: "Park Residences 4 sevimli Park Residences layihəsinin davamıdır. Geniş eyvanları olan parlaq ağ binalardan ibarət bu yaşayış kompleksi müasir Avropa minimalizmini rahat dənizkənarı tətil atmosferi ilə birləşdirir.",
+                floors: "9 mərtəbə",
+                area: "37-102 m²",
+                apartments: "1872 mənzil",
+                repairStatus: "Təmirsiz",
+                features: "Yeraltı və yerüstü parkinq / Özəl hovuz / Kafe və restoranlar"
+            },
+            {
+                id: "op11",
+                category: "Villa",
+                title: "Sea Breeze Golden Villas",
+                year: "2026",
+                img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+                desc: "Tamamilə dəniz mənzərəli, rəsmi elit villalar xətti. Landşaft dizaynlı geniş özəl bağçası, fərdi üzmə hovuzu və müasir smart home infrastrukturu.",
+                floors: "2-3 mərtəbə",
+                area: "350-1200 m²",
+                apartments: "24 eksklüziv villa",
+                repairStatus: "Yüksək səviyyəli təmirli",
+                features: "Həyətyanı sahə / Açıq və qapalı hovuzlar / 24/7 mühafizə"
+            },
+            {
+                id: "op12",
+                category: "Townhouse",
+                title: "Sea Breeze Townhouses",
+                year: "2027",
+                img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                desc: "Müasir ailələr üçün optimal tərəfdaşlıq layihəsi: dördmərtəbəli modern tərzdə taunhauslar. Həm şəxsi bağ sahəsi, həm də mənzil kompaktlığı bir arada.",
+                floors: "3 mərtəbə",
+                area: "180-340 m²",
+                apartments: "42 blok",
+                repairStatus: "Təmirli / Döşəmə isitmə sistemi daxil",
+                features: "Şəxsi qaraj / Üst eyvan / Terras"
+            }
+        ];
+
+        // MOCK PUBLIC/PRIVATE STORAGE DATA
+        const defaultGallery = [
+            {
+                id: 1,
+                title: "Sea Breeze Rəsmi Tərəfdaşlıq Forumu 2026",
+                type: "event",
+                images: [
+                    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+                    "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80"
+                ],
+                desc: "Rəhbərlik səviyyəsində keçirilən rəsmi tərəfdaşlıq sazişinin imzalanma mərasimi."
+            }
+        ];
+
+        // Listings data (with floor and land sot specs)
+        const defaultSeaBreezeListings = [
+            {
+                id: 1,
+                title: "Caspian Dream Liner lüks 2 otaqlı",
+                project: "Caspian Dream Liner",
+                listingType: "Satis",
+                category: "Apartment",
+                rooms: 2,
+                area: 74,
+                floor: 5,
+                land: null,
+                price: 245000,
+                img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+                desc: "Caspian Dream Liner layihəsində, Adel Zehni dizaynı ilə dənizə mənzərəli premium apart.",
+                authorId: "admin",
+                status: "Approved"
+            },
+            {
+                id: 2,
+                title: "Sea Breeze Golden Villa - Möhtəşəm Həyət evi",
+                project: "Digər",
+                listingType: "Satis",
+                category: "Villa",
+                rooms: 6,
+                area: 450,
+                floor: 3,
+                land: 8.5,
+                price: 1350000,
+                img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80",
+                desc: "Sea Breeze daxilində şəxsi hovuzlu, geniş həyəti və 8.5 sot torpaq sahəsi olan modern villa.",
+                authorId: "admin",
+                status: "Approved"
+            }
+        ];
+
+        const defaultVacancies = [
+            {
+                id: 1,
+                title: "Daşınmaz Əmlak Agenti",
+                type: "Tam ştat",
+                salary: "Yüksək Faiz + Sabit",
+                location: "Bakı (Nardaran)",
+                desc: "Ünsiyyətcil, lüks əmlak bazarında təcrübəli və premium müştərilərlə işləmə bacarığı olan yoldaşlar axtarırıq.",
+                status: "Aktiv"
+            }
+        ];
+
+        const defaultAgents = [
+            {
+                id: "agent1",
+                name: "Elnur",
+                surname: "Qasımov",
+                phone: "+994503456789",
+                email: "elnur@besthome.az",
+                pass: "agent123"
+            }
+        ];
+
+        // INIT STORAGE
+        function initStorage(key, defaultValue) {
+            if (!localStorage.getItem(key)) {
+                localStorage.setItem(key, JSON.stringify(defaultValue));
+            }
+        }
+        initStorage('besthome_gallery', defaultGallery);
+        initStorage('besthome_seabreeze', defaultSeaBreezeListings);
+        initStorage('besthome_vacancies', defaultVacancies);
+        initStorage('besthome_agents', defaultAgents);
+        initStorage('besthome_applications', []);
+        if (!localStorage.getItem('besthome_career_text')) {
+            localStorage.setItem('besthome_career_text', "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq.");
+        }
+
+        let activeUser = null;
+        let selectedProjectCategory = 'Apartment';
+        let uploadedEventImages = [];
+        let currentlyEditingGalleryItemId = null;
+
+        // SESSION CONTROL
+        function checkSession() {
+            const role = sessionStorage.getItem('besthome_logged_in_role');
+            if (role === 'admin') {
+                activeUser = { role: 'admin', name: 'Admin', id: 'admin' };
+            } else if (role === 'agent') {
+                activeUser = JSON.parse(sessionStorage.getItem('besthome_agent_data'));
+                activeUser.role = 'agent';
+            } else {
+                activeUser = null;
+            }
+            updateHeaderUI();
+        }
+
+        function updateHeaderUI() {
+            const container = document.getElementById('header-user-status');
+            const mobileIcon = document.getElementById('mobile-user-status-icon');
+            const mobileActions = document.getElementById('mobile-user-status-actions');
+
+            if (activeUser) {
+                const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (Əməkdaş)`;
+                container.innerHTML = `
+                    <span class="text-xs text-gray-400">Xoş gəldiniz: <strong class="text-white">${welcomeName}</strong></span>
+                    <button onclick="switchTab('admin-dashboard')" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
+                        <i class="fa-solid fa-chart-line"></i> <span>Kabinet</span>
+                    </button>
+                    <button onclick="logoutAdmin()" class="text-gray-400 hover:text-red-400 text-xs"><i class="fa-solid fa-sign-out-alt"></i></button>
+                `;
+                mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${activeUser.name[0]}</div>`;
+                mobileActions.innerHTML = `
+                    <button onclick="switchTab('admin-dashboard'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">Kabinetə Keç</button>
+                    <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
+                `;
+            } else {
+                const btn = `<button onclick="switchTab('admin-login')" class="bg-white/5 border border-white/10 text-gray-200 hover:text-white font-semibold px-4 py-2 rounded-xl text-xs"><i class="fa-solid fa-sign-in-alt mr-1"></i> Giriş</button>`;
+                container.innerHTML = btn;
+                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="text-gray-300"><i class="fa-solid fa-sign-in-alt text-xl"></i></button>`;
+                mobileActions.innerHTML = `<button onclick="switchTab('admin-login'); toggleMobileMenu()" class="w-full py-2.5 rounded-xl bg-brand-500 text-white text-xs font-bold">Daxil Ol</button>`;
+            }
+        }
+
+        function logoutAdmin() {
+            sessionStorage.removeItem('besthome_logged_in_role');
+            sessionStorage.removeItem('besthome_agent_data');
+            activeUser = null;
+            updateHeaderUI();
+            switchTab('seabreeze');
+        }
+
+        // TABS SWITCHER
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('text-brand-500', 'border-b-2', 'border-brand-500');
+                link.classList.add('text-gray-300');
+            });
+            const activeLink = document.getElementById('nav-' + tabId);
+            if (activeLink) activeLink.classList.add('text-brand-500', 'border-b-2', 'border-brand-500');
+
+            if (tabId === 'seabreeze') {
+                switchProjectCategory(selectedProjectCategory);
+                renderSeaBreeze();
+            } else if (tabId === 'portfolio') {
+                renderPortfolio();
+            } else if (tabId === 'career') {
+                renderCareerSection();
+            } else if (tabId === 'admin-dashboard') {
+                renderAdminDashboard();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.className = "fa-solid fa-xmark text-2xl";
+            } else {
+                menu.classList.add('hidden');
+                icon.className = "fa-solid fa-bars text-2xl";
+            }
+        }
+
+        // 3-LÜ LAYİHƏ KATEQORİYASI (Apartment / Villa / Townhouse)
+        function switchProjectCategory(cat) {
+            selectedProjectCategory = cat;
+            document.querySelectorAll('.project-cat-btn').forEach(btn => {
+                btn.className = "project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-white/5 text-gray-400 hover:text-white transition duration-200";
+            });
+            const activeBtn = document.getElementById('p-cat-' + cat);
+            if (activeBtn) activeBtn.className = "project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-500 text-white transition duration-200";
+
+            renderOfficialProjects();
+        }
+
+        // RENDER OFFICIAL LAYOUTS
+        function renderOfficialProjects() {
+            const container = document.getElementById('sea-breeze-projects-list');
+            container.innerHTML = '';
+
+            const filtered = officialSeaBreezeProjects.filter(p => p.category === selectedProjectCategory);
+
+            filtered.forEach(p => {
+                const cardHtml = `
+                    <div onclick="openOfficialProjectModal('${p.id}')" class="group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300">
+                        <div class="h-56 relative overflow-hidden">
+                            <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <span class="absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
+                            <h4 class="absolute bottom-4 left-4 text-xl font-extrabold text-white">${p.title}</h4>
+                        </div>
+                        <div class="p-5">
+                            <p class="text-xs text-gray-400 line-clamp-2 font-light">${p.desc}</p>
+                            <div class="flex items-center justify-between text-[11px] text-brand-300 mt-4 border-t border-white/5 pt-3">
+                                <span><i class="fa-solid fa-expand mr-1"></i> ${p.area}</span>
+                                <span><i class="fa-solid fa-building mr-1"></i> ${p.floors}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // OPEN OFFICIAL PROJECT MODAL
+        let activeOfficialModalTab = 'desc';
+        let activeOfficialProject = null;
+
+        function openOfficialProjectModal(id) {
+            const p = officialSeaBreezeProjects.find(item => item.id === id);
+            if (!p) return;
+            activeOfficialProject = p;
+
+            document.getElementById('op-modal-img').src = p.img;
+            document.getElementById('op-modal-title').textContent = p.title;
+            document.getElementById('op-modal-year').textContent = p.year;
+            document.getElementById('op-modal-desc-text').textContent = p.desc;
+
+            // Details mapping
+            document.getElementById('op-detail-floors').textContent = p.floors;
+            document.getElementById('op-detail-area').textContent = p.area;
+            document.getElementById('op-detail-apartments').textContent = p.apartments;
+            document.getElementById('op-detail-year-val').textContent = p.year;
+            document.getElementById('op-detail-repair').textContent = p.repairStatus;
+            document.getElementById('op-detail-features').textContent = p.features;
+
+            switchOfficialModalTab('desc');
+            document.getElementById('project-detail-modal-official').classList.remove('hidden');
+        }
+
+        function closeOfficialProjectModal() {
+            document.getElementById('project-detail-modal-official').classList.add('hidden');
+        }
+
+        function switchOfficialModalTab(tab) {
+            activeOfficialModalTab = tab;
+            const btnDesc = document.getElementById('op-tab-btn-desc');
+            const btnDetails = document.getElementById('op-tab-btn-details');
+            const contentDesc = document.getElementById('op-tab-desc');
+            const contentDetails = document.getElementById('op-tab-details');
+
+            if (tab === 'desc') {
+                btnDesc.className = "pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
+                btnDetails.className = "pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm";
+                contentDesc.classList.remove('hidden');
+                contentDetails.classList.add('hidden');
+            } else {
+                btnDetails.className = "pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
+                btnDesc.className = "pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm";
+                contentDetails.classList.remove('hidden');
+                contentDesc.classList.add('hidden');
+            }
+        }
+
+        // RENDER PROPERTIES ELAN GRID
+        function renderSeaBreeze() {
+            const properties = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const grid = document.getElementById('seabreeze-properties-grid');
+            grid.innerHTML = '';
+
+            const projectFilter = document.getElementById('filter-sb-project').value;
+            const typeFilter = document.getElementById('filter-sb-type').value;
+
+            const filtered = properties.filter(p => {
+                if (p.status !== 'Approved') return false;
+                if (projectFilter !== 'all' && p.project !== projectFilter) return false;
+                if (typeFilter !== 'all' && p.listingType !== typeFilter) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500">Kriteriyalara uyğun elan tapılmadı.</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isRent = p.listingType === 'Kiraye';
+                const formattedPrice = Number(p.price).toLocaleString('az-AZ');
+                const badgeColor = isRent ? 'bg-amber-500/90' : 'bg-emerald-600/90';
+                
+                // ONLY show SQ Price on SALE listings, not for RENT
+                let sqPriceHtml = '';
+                if (!isRent) {
+                    const sqPrice = Math.round(p.price / p.area);
+                    sqPriceHtml = `
+                        <div class="text-right">
+                            <span class="text-[9px] text-brand-500 uppercase font-semibold">1 m² Qiyməti</span>
+                            <div class="text-xs font-bold text-brand-200">${Number(sqPrice).toLocaleString('az-AZ')} AZN</div>
+                        </div>
+                    `;
+                }
+
+                const cardHtml = `
+                    <div onclick="openPropertyModal('${p.id}')" class="cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col justify-between">
+                        <div>
+                            <div class="h-48 overflow-hidden relative">
+                                <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                                <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${p.project}</div>
+                                <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${isRent ? 'Kirayə' : 'Satış'}</div>
+                            </div>
+                            <div class="p-5 space-y-2">
+                                <h4 class="text-white font-extrabold text-base truncate">${p.title}</h4>
+                                <p class="text-gray-400 text-xs line-clamp-2 font-light">${p.desc}</p>
+                                <div class="grid grid-cols-2 gap-2 bg-white/[0.01] p-2.5 rounded-xl text-[11px] text-gray-400 border border-white/5">
+                                    <span>Otaq: <strong class="text-white">${p.rooms}</strong></span>
+                                    <span>Sahə: <strong class="text-white">${p.area} m²</strong></span>
+                                    <span>Mərtəbə: <strong class="text-white">${p.floor || 1}</strong></span>
+                                    ${p.land ? `<span>Torpaq: <strong class="text-white">${p.land} Sot</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0 mt-2 flex items-center justify-between border-t border-white/5 pt-3">
+                            <div>
+                                <span class="text-[9px] text-gray-500 uppercase block">Qiymət</span>
+                                <strong class="text-base font-extrabold text-white">${formattedPrice} AZN${isRent ? ' /ay' : ''}</strong>
+                            </div>
+                            ${sqPriceHtml}
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // OPEN PROPERTY DETAILS MODAL (WITH WHATSAPP AVTOMATİK ŞABLON)
+        function openPropertyModal(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const p = list.find(item => item.id === parseInt(id));
+            if (!p) return;
+
+            document.getElementById('p-modal-img').src = p.img;
+            document.getElementById('p-modal-project').textContent = p.project;
+            document.getElementById('p-modal-title').textContent = p.title;
+            document.getElementById('p-modal-desc').textContent = p.desc;
+            document.getElementById('p-modal-price').textContent = `${Number(p.price).toLocaleString('az-AZ')} AZN${p.listingType==='Kiraye'?' /ay':''}`;
+            document.getElementById('p-modal-rooms').textContent = p.rooms;
+            document.getElementById('p-modal-area').textContent = p.area + ' m²';
+            document.getElementById('p-modal-floor').textContent = p.floor || 1;
+
+            if (p.land) {
+                document.getElementById('p-modal-land-box').classList.remove('hidden');
+                document.getElementById('p-modal-land').textContent = p.land + ' Sot';
+            } else {
+                document.getElementById('p-modal-land-box').classList.add('hidden');
+            }
+
+            // Square price check (Not for rent)
+            if (p.listingType !== 'Kiraye') {
+                const perSq = Math.round(p.price / p.area);
+                document.getElementById('p-modal-sqprice').textContent = `1 m²: ${Number(perSq).toLocaleString('az-AZ')} AZN`;
+            } else {
+                document.getElementById('p-modal-sqprice').textContent = '';
+            }
+
+            // Get author information (Employee details)
+            let authorName = "BestHome Əmlak";
+            let authorPhone = "+994501234567";
+
+            if (p.authorId === 'admin') {
+                authorName = "Rəsmi Admin";
+            } else {
+                const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+                const ag = agents.find(a => a.id === p.authorId);
+                if (ag) {
+                    authorName = `${ag.name} ${ag.surname}`;
+                    authorPhone = ag.phone;
+                }
+            }
+
+            document.getElementById('p-modal-agent-name').textContent = authorName;
+            document.getElementById('p-modal-agent-phone').textContent = authorPhone;
+
+            // WhatsApp link formation with custom message template
+            const messageText = `Salam, ${authorName}. besthome.az saytındakı bu elanla bağlı məlumat almaq istəyirəm:\n"${p.title}"\nQiymət: ${p.price} AZN`;
+            const cleanPhone = authorPhone.replace(/[^0-9]/g, '');
+            document.getElementById('p-modal-whatsapp-btn').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+
+            document.getElementById('property-detail-modal').classList.remove('hidden');
+        }
+
+        function closePropertyModal() {
+            document.getElementById('property-detail-modal').classList.add('hidden');
+        }
+
+        // PORTFOLIO AND LIGHTBOX ENGINE
+        let currentFilter = 'all';
+        function filterPortfolio(type) {
+            currentFilter = type;
+            document.querySelectorAll('.portfolio-filter-btn').forEach(btn => {
+                btn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition duration-200";
+            });
+            const activeBtn = document.getElementById('filter-' + type);
+            if (activeBtn) activeBtn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white";
+            renderPortfolio();
+        }
+
+        function renderPortfolio() {
+            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = '';
+
+            const filtered = list.filter(item => currentFilter === 'all' || item.type === currentFilter);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">Hələlik heç bir media elementi yoxdur.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                let html = '';
+                if (item.type === 'event') {
+                    const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/090f1d/ffffff?text=Photo';
+                    const listString = encodeURIComponent(JSON.stringify(item.images || []));
+                    html = `
+                        <div onclick="openEventLightbox('${listString}', '${item.title}')" class="cursor-pointer group rounded-2xl overflow-hidden glass-card relative border border-white/5 h-64">
+                            <img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
+                            <span class="absolute top-4 right-4 bg-brand-500/80 backdrop-blur-sm text-xs font-bold text-white px-2.5 py-1 rounded-xl flex items-center space-x-1">
+                                <i class="fa-solid fa-images"></i> <span>${item.images ? item.images.length : 0} şəkil</span>
+                            </span>
+                            <div class="absolute bottom-5 left-5">
+                                <span class="text-[9px] bg-brand-500/20 text-brand-300 px-2 py-0.5 rounded uppercase font-bold">Tədbir</span>
+                                <h4 class="text-white font-bold text-base mt-1">${item.title}</h4>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html = `
+                        <div onclick="openMediaModal('video', '${item.url}', '${item.title}')" class="cursor-pointer group rounded-2xl overflow-hidden glass-card relative border border-white/5 h-64">
+                            <div class="w-full h-full bg-slate-900 flex items-center justify-center relative">
+                                <i class="fa-solid fa-play text-white text-4xl bg-brand-500 p-3.5 rounded-full shadow-lg"></i>
+                                <div class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=400&q=80')"></div>
+                            </div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
+                            <div class="absolute bottom-5 left-5">
+                                <span class="text-[9px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded uppercase font-bold">Video</span>
+                                <h4 class="text-white font-bold text-base mt-1">${item.title}</h4>
+                            </div>
+                        </div>
+                    `;
+                }
+                grid.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // KARYERA & VAKANSİYA SİSTEMİ
+        function renderCareerSection() {
+            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const container = document.getElementById('active-vacancies-list');
+            const dropdown = document.getElementById('app-vacancy');
+
+            document.getElementById('career-intro-text-view').textContent = localStorage.getItem('besthome_career_text') || '';
+
+            container.innerHTML = '';
+            dropdown.innerHTML = '<option value="" disabled selected>Vakansiya seçin *</option>';
+
+            const activeOnes = list.filter(v => v.status === 'Aktiv');
+
+            if (activeOnes.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-gray-500 glass-card rounded-2xl">Aktiv vakansiya yoxdur.</div>`;
+                dropdown.innerHTML += `<option value="Ümumi Müraciət">Ümumi Müraciət</option>`;
+                return;
+            }
+
+            activeOnes.forEach(v => {
+                container.innerHTML += `
+                    <div class="glass-card rounded-2xl overflow-hidden border-l-4 border-brand-500">
+                        <div onclick="toggleVacancyAccordion(${v.id})" class="p-5 flex justify-between items-center cursor-pointer hover:bg-white/[0.02]">
+                            <div>
+                                <h4 class="text-base font-bold text-white">${v.title}</h4>
+                                <div class="flex flex-wrap gap-3 text-xs text-gray-400 mt-1">
+                                    <span><i class="fa-solid fa-location-dot mr-1"></i> ${v.location}</span>
+                                    <span><i class="fa-solid fa-money-bill mr-1"></i> ${v.salary}</span>
+                                </div>
+                            </div>
+                            <i id="vac-arrow-${v.id}" class="fa-solid fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="vac-detail-${v.id}" class="hidden p-5 bg-[#070d1a] border-t border-white/5 text-xs text-gray-300 space-y-4 whitespace-pre-line">
+                            ${v.desc}
+                            <div class="pt-3 flex justify-end">
+                                <button onclick="selectVacancy('${v.title}')" class="bg-brand-500 text-white text-[10px] font-bold px-4 py-2 rounded-xl">Müraciət et</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                dropdown.innerHTML += `<option value="${v.title}">${v.title}</option>`;
+            });
+            dropdown.innerHTML += `<option value="Ümumi Müraciət">Ümumi Müraciət</option>`;
+        }
+
+        function toggleVacancyAccordion(id) {
+            const block = document.getElementById('vac-detail-' + id);
+            const arrow = document.getElementById('vac-arrow-' + id);
+            if (block.classList.contains('hidden')) {
+                block.classList.remove('hidden');
+                arrow.className = "fa-solid fa-chevron-up text-brand-500";
+            } else {
+                block.classList.add('hidden');
+                arrow.className = "fa-solid fa-chevron-down text-gray-500";
+            }
+        }
+
+        function selectVacancy(title) {
+            document.getElementById('app-vacancy').value = title;
+            document.getElementById('career-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        let selectedCvFile = '';
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedCvFile = file.name;
+                document.getElementById('cv-file-name').textContent = "Seçildi: " + file.name;
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const newItem = {
+                id: Date.now(),
+                name: document.getElementById('app-name').value,
+                surname: document.getElementById('app-surname').value,
+                phone: document.getElementById('app-phone').value,
+                email: document.getElementById('app-email').value,
+                vacancy: document.getElementById('app-vacancy').value,
+                fileName: selectedCvFile || "cv.pdf",
+                notes: document.getElementById('app-notes').value,
+                date: new Date().toLocaleDateString('az-AZ'),
+                status: "Gözləmədə"
+            };
+
+            const existing = JSON.parse(localStorage.getItem('besthome_applications')) || [];
+            existing.unshift(newItem);
+            localStorage.setItem('besthome_applications', JSON.stringify(existing));
+
+            document.getElementById('career-form').reset();
+            document.getElementById('cv-file-name').textContent = "CV Faylı seçin (PDF, DOCX)";
+            
+            const alertBox = document.getElementById('form-success-alert');
+            alertBox.classList.remove('hidden');
+            setTimeout(() => alertBox.classList.add('hidden'), 5000);
+        }
+
+        // LOGIN ENGINE
+        function handleGeneralLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const error = document.getElementById('login-error');
+
+            if (email === 'admin@besthome.az' && pass === 'admin123') {
+                error.classList.add('hidden');
+                sessionStorage.setItem('besthome_logged_in_role', 'admin');
+                activeUser = { role: 'admin', name: 'Admin', id: 'admin' };
+                updateHeaderUI();
+                switchTab('admin-dashboard');
+                return;
+            }
+
+            const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+            const found = agents.find(a => a.email.toLowerCase() === email.toLowerCase() && a.pass === pass);
+
+            if (found) {
+                error.classList.add('hidden');
+                sessionStorage.setItem('besthome_logged_in_role', 'agent');
+                sessionStorage.setItem('besthome_agent_data', JSON.stringify(found));
+                activeUser = { role: 'agent', ...found };
+                updateHeaderUI();
+                switchTab('admin-dashboard');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
+
+        // SUBTABS WITHIN THE DASHBOARD
+        function switchAdminSubtab(subtab) {
+            document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-cvs').classList.add('hidden');
+            document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
+
+            document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
+                btn.className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm";
+            });
+
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
+            if (activeBtn) activeBtn.className = "pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
+
+            document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
+        }
+
+        // DYNAMIC CALC 1m²
+        function calculateSqPrice() {
+            const area = parseFloat(document.getElementById('sb-area').value);
+            const price = parseFloat(document.getElementById('sb-price').value);
+            const isRent = document.getElementById('sb-listing-type').value === 'Kiraye';
+            const calcBox = document.getElementById('calc-result-box');
+
+            if (isRent) {
+                calcBox.classList.add('hidden');
+                return;
+            }
+            calcBox.classList.remove('hidden');
+
+            if (area > 0 && price > 0) {
+                const sq = Math.round(price / area);
+                document.getElementById('sb-calc-val').textContent = Number(sq).toLocaleString('az-AZ');
+            } else {
+                document.getElementById('sb-calc-val').textContent = '0';
+            }
+        }
+
+        // TOGGLE EXTRA FORM FIELDS FOR VILLAS & TOWNHOUSES
+        function toggleFormFieldsBasedOnCategory() {
+            const cat = document.getElementById('sb-form-category').value;
+            const landBlock = document.getElementById('torpaq-sahəsi-block');
+            
+            if (cat === 'Villa' || cat === 'Townhouse') {
+                landBlock.classList.remove('hidden');
+            } else {
+                landBlock.classList.add('hidden');
+                document.getElementById('sb-land').value = '';
+            }
+            calculateSqPrice();
+        }
+
+        // FILE BASE64 PREVIEWS
+        function convertImageToBase64(input, outputId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(outputId).value = e.target.result;
+                    document.getElementById('sb-file-name-badge').classList.remove('hidden');
+                    document.getElementById('sb-file-name-text').textContent = file.name;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearSelectedFile(fileInputId, hiddenInputId, badgeId) {
+            document.getElementById(fileInputId).value = '';
+            document.getElementById(hiddenInputId).value = '';
+            document.getElementById(badgeId).classList.add('hidden');
+        }
+
+        // CONVERT & REORDER IMAGES IN GALLERY
+        function convertMultipleImagesToBase64(input) {
+            const files = Array.from(input.files);
+            document.getElementById('g-images-count').textContent = `${files.length + uploadedEventImages.length} şəkil seçildi`;
+            
+            let loaded = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedEventImages.push(e.target.result);
+                    renderGalleryMultiPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderGalleryMultiPreview() {
+            const container = document.getElementById('gallery-multi-preview');
+            container.innerHTML = '';
+            uploadedEventImages.forEach((img, idx) => {
+                container.innerHTML += `
+                    <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 group">
+                        <img src="${img}" class="w-full h-full object-cover">
+                        <!-- X Close button for deleting this specific photo -->
+                        <button type="button" onclick="deleteGalleryPhotoFromTemp(${idx})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] z-10">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <!-- Left/Right controls for sorting order -->
+                        <div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-0 group-hover:opacity-100 transition">
+                            <button type="button" onclick="moveGalleryPhotoTemp(${idx}, -1)"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button type="button" onclick="moveGalleryPhotoTemp(${idx}, 1)"><i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteGalleryPhotoFromTemp(index) {
+            uploadedEventImages.splice(index, 1);
+            document.getElementById('g-images-count').textContent = `${uploadedEventImages.length} şəkil seçildi`;
+            renderGalleryMultiPreview();
+        }
+
+        function moveGalleryPhotoTemp(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < uploadedEventImages.length) {
+                const temp = uploadedEventImages[index];
+                uploadedEventImages[index] = uploadedEventImages[newIndex];
+                uploadedEventImages[newIndex] = temp;
+                renderGalleryMultiPreview();
+            }
+        }
+
+        // RENDER ADMIN CABINET (Realtime Data Mapping)
+        function renderAdminDashboard() {
+            if (!activeUser) {
+                switchTab('admin-login');
+                return;
+            }
+
+            // Hide/Show restriction tags
+            const adminTags = document.querySelectorAll('.admin-only-element');
+            if (activeUser.role === 'agent') {
+                adminTags.forEach(el => el.classList.add('hidden'));
+                document.getElementById('dashboard-user-title').textContent = `BestHome Əməkdaş Kabineti`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name} ${activeUser.surname}. Elanlarınızı yerləşdirin və redaktə edin.`;
+                switchAdminSubtab('seabreeze-manager');
+            } else {
+                adminTags.forEach(el => el.classList.remove('hidden'));
+                document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, namizəd məlumatlarını və daxili əməkdaşları idarə edin.`;
+            }
+
+            // 1. Listings Grid
+            const properties = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const pContainer = document.getElementById('admin-seabreeze-list');
+            pContainer.innerHTML = '';
+
+            properties.forEach(p => {
+                // Agent restriction filter
+                if (activeUser.role === 'agent' && p.authorId !== activeUser.id) return;
+
+                const isApproved = p.status === 'Approved';
+                const label = isApproved ? 'Təsdiqlənib' : 'Təsdiq Gözləyir';
+                const badge = isApproved ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500';
+
+                pContainer.innerHTML += `
+                    <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
+                        <div class="flex items-center space-x-3 truncate">
+                            <img src="${p.img}" class="w-12 h-12 rounded-lg object-cover">
+                            <div class="truncate">
+                                <h4 class="text-xs font-bold text-white truncate">${p.title}</h4>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
+                                <span class="text-[10px] text-gray-400 ml-2">${p.price} AZN • ${p.rooms} ot</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${activeUser.role === 'admin' && !isApproved ? `
+                                <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Təsdiqlə</button>
+                            ` : ''}
+                            <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
+                            <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (activeUser.role === 'admin') {
+                // 2. CV Table
+                const cvs = JSON.parse(localStorage.getItem('besthome_applications')) || [];
+                const cvBody = document.getElementById('admin-cv-tbody');
+                cvBody.innerHTML = '';
+                if (cvs.length === 0) {
+                    cvBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Müraciət yoxdur.</td></tr>`;
+                } else {
+                    cvs.forEach(c => {
+                        cvBody.innerHTML += `
+                            <tr class="border-b border-white/5 text-xs text-gray-300">
+                                <td class="p-4 font-bold text-white">${c.name} ${c.surname}</td>
+                                <td class="p-4">${c.phone} <br> <span class="text-[10px] text-gray-500">${c.email}</span></td>
+                                <td class="p-4 text-brand-500 font-semibold">${c.vacancy}</td>
+                                <td class="p-4 text-blue-400 cursor-pointer" onclick="handleMockDownload('${c.fileName}')"><i class="fa-solid fa-file-pdf mr-1"></i> ${c.fileName}</td>
+                                <td class="p-4 text-right">
+                                    <button onclick="deleteApp(${c.id})" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // 3. Agents List
+                const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+                const agentsContainer = document.getElementById('admin-agents-grid');
+                agentsContainer.innerHTML = '';
+                agents.forEach(a => {
+                    agentsContainer.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs">
+                            <div>
+                                <h4 class="font-bold text-white">${a.name} ${a.surname}</h4>
+                                <span class="text-[10px] text-gray-400">${a.email} <br> ${a.phone}</span>
+                            </div>
+                            <button onclick="deleteAgent('${a.id}')" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                });
+
+                // 4. Vacancies List
+                const vacancies = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+                const vacList = document.getElementById('admin-vacancies-list');
+                vacList.innerHTML = '';
+                vacancies.forEach(v => {
+                    vacList.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs">
+                            <div>
+                                <h4 class="font-bold text-white">${v.title} (${v.status})</h4>
+                                <span class="text-gray-400">${v.location} • ${v.salary}</span>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="editVacancy(${v.id})" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
+                                <button onclick="toggleVacancyStatus(${v.id})" class="text-yellow-400 px-2 py-1 bg-yellow-500/10 rounded">Blokla</button>
+                                <button onclick="deleteVacancy(${v.id})" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // 5. Media Gallery
+                const gallery = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+                const galContainer = document.getElementById('admin-gallery-list');
+                galContainer.innerHTML = '';
+                gallery.forEach(g => {
+                    galContainer.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs">
+                            <span class="font-bold text-white">${g.title} (${g.type === 'event' ? 'Tədbir' : 'Video'})</span>
+                            <div class="flex space-x-2">
+                                <button onclick="editGalleryItem(${g.id})" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
+                                <button onclick="deleteGalleryItem(${g.id})" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // SAVE & REGISTER EVENTS
+        function handleSaveSeaBreezeItem(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-sb-id').value;
+            const title = document.getElementById('sb-title').value;
+            const project = document.getElementById('sb-project').value;
+            const listingType = document.getElementById('sb-listing-type').value;
+            const category = document.getElementById('sb-form-category').value;
+            const rooms = parseInt(document.getElementById('sb-rooms').value);
+            const area = parseFloat(document.getElementById('sb-area').value);
+            const floor = parseInt(document.getElementById('sb-floor').value);
+            const land = document.getElementById('sb-land').value ? parseFloat(document.getElementById('sb-land').value) : null;
+            const price = parseFloat(document.getElementById('sb-price').value);
+            const desc = document.getElementById('sb-desc').value;
+
+            const base64Img = document.getElementById('sb-img-preview-val').value;
+            const urlImg = document.getElementById('sb-img-url').value;
+            const img = base64Img || urlImg || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80";
+
+            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+
+            if (editId) {
+                const item = list.find(x => x.id === parseInt(editId));
+                if (item) {
+                    item.title = title;
+                    item.project = project;
+                    item.listingType = listingType;
+                    item.category = category;
+                    item.rooms = rooms;
+                    item.area = area;
+                    item.floor = floor;
+                    item.land = land;
+                    item.price = price;
+                    item.img = img;
+                    item.desc = desc;
+                    // If edited by Agent: It remains approved (No need for re-approval)
+                    if (activeUser.role === 'admin') {
+                        item.status = 'Approved';
+                    }
+                }
+            } else {
+                const newItem = {
+                    id: Date.now(),
+                    title,
+                    project,
+                    listingType,
+                    category,
+                    rooms,
+                    area,
+                    floor,
+                    land,
+                    price,
+                    img,
+                    desc,
+                    authorId: activeUser.id,
+                    status: activeUser.role === 'admin' ? 'Approved' : 'Pending'
+                };
+                list.unshift(newItem);
+            }
+
+            localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
+            resetSeaBreezeForm();
+            renderAdminDashboard();
+        }
+
+        function editSeaBreezeItem(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const p = list.find(x => x.id === id);
+            if (p) {
+                document.getElementById('edit-sb-id').value = p.id;
+                document.getElementById('sb-title').value = p.title;
+                document.getElementById('sb-project').value = p.project;
+                document.getElementById('sb-listing-type').value = p.listingType;
+                document.getElementById('sb-form-category').value = p.category || "Apartment";
+                document.getElementById('sb-rooms').value = p.rooms;
+                document.getElementById('sb-area').value = p.area;
+                document.getElementById('sb-floor').value = p.floor || 1;
+                document.getElementById('sb-land').value = p.land || '';
+                document.getElementById('sb-price').value = p.price;
+                document.getElementById('sb-desc').value = p.desc;
+
+                if (p.img && p.img.startsWith('data:')) {
+                    document.getElementById('sb-img-preview-val').value = p.img;
+                    document.getElementById('sb-img-url').value = '';
+                    document.getElementById('sb-file-name-badge').classList.remove('hidden');
+                    document.getElementById('sb-file-name-text').textContent = "Yüklənmiş Şəkil";
+                } else {
+                    document.getElementById('sb-img-url').value = p.img;
+                    document.getElementById('sb-img-preview-val').value = '';
+                    document.getElementById('sb-file-name-badge').classList.add('hidden');
+                }
+
+                document.getElementById('sb-form-action-title').textContent = "Elanı Redaktə Et";
+                toggleFormFieldsBasedOnCategory();
+                document.getElementById('sb-form-action-title').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetSeaBreezeForm() {
+            document.getElementById('edit-sb-id').value = '';
+            document.getElementById('sb-title').value = '';
+            document.getElementById('sb-listing-type').value = 'Satis';
+            document.getElementById('sb-form-category').value = 'Apartment';
+            document.getElementById('sb-rooms').value = '2';
+            document.getElementById('sb-area').value = '';
+            document.getElementById('sb-floor').value = '1';
+            document.getElementById('sb-land').value = '';
+            document.getElementById('sb-price').value = '';
+            document.getElementById('sb-img-url').value = '';
+            document.getElementById('sb-img-preview-val').value = '';
+            document.getElementById('sb-desc').value = '';
+            document.getElementById('sb-file-name-badge').classList.add('hidden');
+            document.getElementById('sb-form-action-title').textContent = "Yeni Elan Əlavə Et";
+            toggleFormFieldsBasedOnCategory();
+        }
+
+        function deleteSeaBreezeItem(id) {
+            let list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            list = list.filter(x => x.id !== id);
+            localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
+            renderAdminDashboard();
+        }
+
+        function approveListing(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const item = list.find(x => x.id === id);
+            if (item) {
+                item.status = 'Approved';
+                localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
+                renderAdminDashboard();
+            }
+        }
+
+        // AGENT REGISTRATION
+        function handleRegisterAgent(e) {
+            e.preventDefault();
+            const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+            const newAgent = {
+                id: 'agent_' + Date.now(),
+                name: document.getElementById('agent-reg-name').value,
+                surname: document.getElementById('agent-reg-surname').value,
+                phone: document.getElementById('agent-reg-phone').value,
+                email: document.getElementById('agent-reg-email').value,
+                pass: document.getElementById('agent-reg-pass').value
+            };
+            agents.push(newAgent);
+            localStorage.setItem('besthome_agents', JSON.stringify(agents));
+            document.getElementById('agent-reg-name').value = '';
+            document.getElementById('agent-reg-surname').value = '';
+            document.getElementById('agent-reg-phone').value = '';
+            document.getElementById('agent-reg-email').value = '';
+            document.getElementById('agent-reg-pass').value = '';
+            renderAdminDashboard();
+        }
+
+        function deleteAgent(id) {
+            let agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+            agents = agents.filter(x => x.id !== id);
+            localStorage.setItem('besthome_agents', JSON.stringify(agents));
+            renderAdminDashboard();
+        }
+
+        // SAVE & MANAGE VACANCIES (ACTIVE / BLOCKED LOGIC)
+        function handleSaveVacancy(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-vac-id').value;
+            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+
+            if (editId) {
+                const item = list.find(v => v.id === parseInt(editId));
+                if (item) {
+                    item.title = document.getElementById('vac-title').value;
+                    item.type = document.getElementById('vac-type').value;
+                    item.salary = document.getElementById('vac-salary').value;
+                    item.location = document.getElementById('vac-location').value;
+                    item.desc = document.getElementById('vac-desc').value;
+                }
+            } else {
+                const newVac = {
+                    id: Date.now(),
+                    title: document.getElementById('vac-title').value,
+                    type: document.getElementById('vac-type').value,
+                    salary: document.getElementById('vac-salary').value,
+                    location: document.getElementById('vac-location').value,
+                    desc: document.getElementById('vac-desc').value,
+                    status: "Aktiv"
+                };
+                list.unshift(newVac);
+            }
+
+            localStorage.setItem('besthome_vacancies', JSON.stringify(list));
+            document.getElementById('edit-vac-id').value = '';
+            document.getElementById('vac-title').value = '';
+            document.getElementById('vac-type').value = '';
+            document.getElementById('vac-salary').value = '';
+            document.getElementById('vac-location').value = '';
+            document.getElementById('vac-desc').value = '';
+            document.getElementById('vac-form-title').textContent = "Yeni Vakansiya";
+            renderAdminDashboard();
+        }
+
+        function editVacancy(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const v = list.find(x => x.id === id);
+            if (v) {
+                document.getElementById('edit-vac-id').value = v.id;
+                document.getElementById('vac-title').value = v.title;
+                document.getElementById('vac-type').value = v.type;
+                document.getElementById('vac-salary').value = v.salary;
+                document.getElementById('vac-location').value = v.location;
+                document.getElementById('vac-desc').value = v.desc;
+                document.getElementById('vac-form-title').textContent = "Vakansiyanı Redaktə Et";
+            }
+        }
+
+        function toggleVacancyStatus(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const item = list.find(x => x.id === id);
+            if (item) {
+                item.status = item.status === 'Aktiv' ? 'Bloklanmış' : 'Aktiv';
+                localStorage.setItem('besthome_vacancies', JSON.stringify(list));
+                renderAdminDashboard();
+            }
+        }
+
+        function deleteVacancy(id) {
+            let list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            list = list.filter(x => x.id !== id);
+            localStorage.setItem('besthome_vacancies', JSON.stringify(list));
+            renderAdminDashboard();
+        }
+
+        function saveCareerIntroText() {
+            localStorage.setItem('besthome_career_text', document.getElementById('admin-career-text').value);
+        }
+
+        // SAVE & MANAGE GALLERY (EVENTS / VIDEOS)
+        function toggleGalleryTypeFields() {
+            const type = document.getElementById('g-type').value;
+            if (type === 'event') {
+                document.getElementById('gallery-event-fields').classList.remove('hidden');
+                document.getElementById('gallery-video-fields').classList.add('hidden');
+            } else {
+                document.getElementById('gallery-event-fields').classList.add('hidden');
+                document.getElementById('gallery-video-fields').classList.remove('hidden');
+            }
+        }
+
+        function handleSaveGalleryItem(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-g-id').value;
+            const title = document.getElementById('g-title').value;
+            const type = document.getElementById('g-type').value;
+            const desc = document.getElementById('g-desc').value;
+
+            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+
+            if (editId) {
+                const item = list.find(x => x.id === parseInt(editId));
+                if (item) {
+                    item.title = title;
+                    item.type = type;
+                    item.desc = desc;
+                    if (type === 'event') {
+                        item.images = uploadedEventImages;
+                    } else {
+                        item.url = document.getElementById('g-video-url').value;
+                    }
+                }
+            } else {
+                const newItem = {
+                    id: Date.now(),
+                    title,
+                    type,
+                    desc
+                };
+                if (type === 'event') {
+                    newItem.images = uploadedEventImages;
+                } else {
+                    newItem.url = document.getElementById('g-video-url').value;
+                }
+                list.unshift(newItem);
+            }
+
+            localStorage.setItem('besthome_gallery', JSON.stringify(list));
+            resetGalleryForm();
+            renderAdminDashboard();
+        }
+
+        function editGalleryItem(id) {
+            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+            const g = list.find(x => x.id === id);
+            if (g) {
+                document.getElementById('edit-g-id').value = g.id;
+                document.getElementById('g-title').value = g.title;
+                document.getElementById('g-type').value = g.type;
+                document.getElementById('g-desc').value = g.desc || '';
+                toggleGalleryTypeFields();
+
+                if (g.type === 'event') {
+                    uploadedEventImages = g.images || [];
+                    document.getElementById('g-images-count').textContent = `${uploadedEventImages.length} şəkil yaddaşdadır`;
+                    renderGalleryMultiPreview();
+                } else {
+                    document.getElementById('g-video-url').value = g.url || '';
+                }
+                document.getElementById('gallery-form-title').textContent = "Media Elementini Redaktə Et";
+            }
+        }
+
+        function resetGalleryForm() {
+            document.getElementById('edit-g-id').value = '';
+            document.getElementById('g-title').value = '';
+            document.getElementById('g-type').value = 'event';
+            document.getElementById('g-video-url').value = '';
+            document.getElementById('g-desc').value = '';
+            uploadedEventImages = [];
+            document.getElementById('gallery-multi-preview').innerHTML = '';
+            document.getElementById('g-images-count').textContent = '0 şəkil seçildi';
+            document.getElementById('gallery-form-title').textContent = "Yeni Qalereya";
+            toggleGalleryTypeFields();
+        }
+
+        function deleteGalleryItem(id) {
+            let list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+            list = list.filter(x => x.id !== id);
+            localStorage.setItem('besthome_gallery', JSON.stringify(list));
+            renderAdminDashboard();
+        }
+
+        function deleteApp(id) {
+            let list = JSON.parse(localStorage.getItem('besthome_applications')) || [];
+            list = list.filter(x => x.id !== id);
+            localStorage.setItem('besthome_applications', JSON.stringify(list));
+            renderAdminDashboard();
+        }
+
+        // LIGHTBOX GENERAL PREVIEW
+        let lightboxImages = [];
+        let lightboxIndex = 0;
+
+        function openEventLightbox(encoded, title) {
+            const arr = JSON.parse(decodeURIComponent(encoded));
+            if (arr.length === 0) return;
+            lightboxImages = arr;
+            lightboxIndex = 0;
+
+            document.getElementById('modal-slider-controls').className = arr.length > 1 ? "absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none" : "hidden";
+            document.getElementById('modal-title').textContent = title;
+            updateLightboxUI();
+            document.getElementById('media-modal').classList.remove('hidden');
+        }
+
+        function updateLightboxUI() {
+            document.getElementById('modal-content').innerHTML = `<img src="${lightboxImages[lightboxIndex]}" class="max-w-full max-h-[72vh] object-contain rounded-xl shadow-2xl">`;
+            document.getElementById('modal-counter').textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
+        }
+
+        function changeModalImage(dir) {
+            lightboxIndex += dir;
+            if (lightboxIndex < 0) lightboxIndex = lightboxImages.length - 1;
+            if (lightboxIndex >= lightboxImages.length) lightboxIndex = 0;
+            updateLightboxUI();
+        }
+
+        function openMediaModal(type, url, title) {
+            document.getElementById('modal-slider-controls').classList.add('hidden');
+            document.getElementById('modal-counter').textContent = '';
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-content').innerHTML = `<iframe src="${url}" class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+            document.getElementById('media-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('media-modal').classList.add('hidden');
+            document.getElementById('modal-content').innerHTML = '';
+        }
+
+        function handleMockDownload(name) {
+            alert(`Fayl sınaq rejimində yüklənir: ${name}`);
+        }
+
+        // MAIN SETUP AND BOOTSTRAP
+        window.addEventListener('load', () => {
+            checkSession();
+            switchTab('seabreeze');
+        });
+    </script>
+</body>
+</html>
