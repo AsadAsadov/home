@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Project {
+  id             Int      @id @default(autoincrement())
+  title          String
+  category       String?
+  deliveryDate   String?  @map("delivery_date")
+  floorCount     String?  @map("floor_count")
+  area           String?
+  apartmentCount String?  @map("apartment_count")
+  repairStatus   String?  @map("repair_status")
+  features       String?
+  description    String?  @db.Text
+  imageUrl       String?  @map("image_url") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("projects")
+}
+
+model Listing {
+  id               Int      @id @default(autoincrement())
+  title            String
+  listingType      String?  @map("listing_type")
+  propertyCategory String?  @map("property_category")
+  projectName      String?  @map("project_name")
+  roomCount        Int?     @map("room_count")
+  area             Decimal? @db.Decimal(12, 2)
+  floorCount       String?  @map("floor_count")
+  price            Decimal? @db.Decimal(14, 2)
+  pricePerM2       Decimal? @map("price_per_m2") @db.Decimal(12, 2)
+  imageUrl         String?  @map("image_url") @db.Text
+  description      String?  @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  userId           Int?     @map("user_id")
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("listings")
+}
+
+model Employee {
+  id           Int      @id @default(autoincrement())
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  phone        String?
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(employee)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("employees")
+}
+
+model Vacancy {
+  id             Int           @id @default(autoincrement())
+  title          String
+  employmentType String?       @map("employment_type")
+  salary         String?
+  city           String?
+  description    String?       @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  applications   Application[]
+
+  @@map("vacancies")
+}
+
+model Application {
+  id        Int      @id @default(autoincrement())
+  fullname  String
+  phone     String?
+  vacancyId Int?     @map("vacancy_id")
+  cvFile    String?  @map("cv_file") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  vacancy   Vacancy? @relation(fields: [vacancyId], references: [id], onDelete: SetNull)
+
+  @@map("applications")
+}
+
+model Gallery {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?   @db.Text
+  mediaType    MediaType @map("media_type")
+  imageUrl     String?   @map("image_url") @db.Text
+  videoUrl     String?   @map("video_url") @db.Text
+  thumbnailUrl String?   @map("thumbnail_url") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("gallery")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  fullname     String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(user)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  listings     Listing[]
+
+  @@map("users")
+}
+
+enum Role {
+  admin
+  user
+  employee
+}
+
+enum MediaType {
+  image
+  video
+}

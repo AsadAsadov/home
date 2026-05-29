@@ -1102,6 +1102,119 @@
             localStorage.setItem('besthome_career_text', "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq.");
         }
 
+
+        // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
+        const API_BASE = window.location.origin;
+        let isHydratingFromApi = false;
+        let syncTimer = null;
+
+        function getAuthToken() {
+            return sessionStorage.getItem('besthome_auth_token') || '';
+        }
+
+        function apiHeaders(json = true) {
+            const headers = json ? { 'Content-Type': 'application/json' } : {};
+            const token = getAuthToken();
+            if (token) headers.Authorization = `Bearer ${token}`;
+            return headers;
+        }
+
+        async function apiRequest(path, options = {}) {
+            const response = await fetch(`${API_BASE}${path}`, {
+                ...options,
+                headers: { ...(options.headers || {}), ...(options.body instanceof FormData ? apiHeaders(false) : apiHeaders(true)) }
+            });
+            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'API sorğusu uğursuz oldu');
+            return response.status === 204 ? null : response.json();
+        }
+
+        function dbProjectToUi(p) {
+            const img = p.imageUrl || p.image_url || '';
+            return {
+                id: String(p.id), title: p.title, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
+                floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
+                repair: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
+                desc: p.description || '', img, picture: buildProjectPictureFromLink(img)
+            };
+        }
+
+        function dbListingToUi(l) {
+            const area = Number(l.area || 0);
+            const price = Number(l.price || 0);
+            return {
+                id: l.id, title: l.title, project: l.projectName || l.project_name || 'Digər', listingType: l.listingType || l.listing_type || 'Satis',
+                category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
+                area, floor: parseInt(l.floorCount || l.floor_count || 1), price, img: l.imageUrl || l.image_url || '',
+                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved'
+            };
+        }
+
+        function dbVacancyToUi(v) {
+            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', status: 'Aktiv' };
+        }
+
+        function dbGalleryToUi(g) {
+            const mediaType = g.mediaType || g.media_type;
+            return mediaType === 'video'
+                ? { id: g.id, title: g.title, type: 'video', url: g.videoUrl || g.video_url || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || '', desc: g.description || '' }
+                : { id: g.id, title: g.title, type: 'event', images: [g.imageUrl || g.image_url || g.thumbnailUrl || g.thumbnail_url].filter(Boolean), desc: g.description || '' };
+        }
+
+        function dbAppToUi(a) {
+            const [name, ...surnameParts] = String(a.fullname || '').split(' ');
+            return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
+        }
+
+        function employeeToUi(e) {
+            return { id: e.id, name: e.firstName || e.first_name || '', surname: e.lastName || e.last_name || '', phone: e.phone || '', email: e.email || '', pass: '********' };
+        }
+
+        async function hydrateFromDatabase() {
+            try {
+                const data = await apiRequest('/api/sync');
+                isHydratingFromApi = true;
+                if (data.projects?.length) localStorage.setItem('besthome_official_projects', JSON.stringify(data.projects.map(dbProjectToUi)));
+                if (data.listings?.length) localStorage.setItem('besthome_seabreeze', JSON.stringify(data.listings.map(dbListingToUi)));
+                if (data.vacancies?.length) localStorage.setItem('besthome_vacancies', JSON.stringify(data.vacancies.map(dbVacancyToUi)));
+                if (data.gallery?.length) localStorage.setItem('besthome_gallery', JSON.stringify(data.gallery.map(dbGalleryToUi)));
+                if (data.applications?.length) localStorage.setItem('besthome_applications', JSON.stringify(data.applications.map(dbAppToUi)));
+                if (data.employees?.length) localStorage.setItem('besthome_agents', JSON.stringify(data.employees.map(employeeToUi)));
+            } catch (error) {
+                console.warn('Database sync oxunmadı, lokal fallback istifadə olunur:', error.message);
+            } finally {
+                isHydratingFromApi = false;
+            }
+        }
+
+        function scheduleDatabaseSync() {
+            if (isHydratingFromApi || !getAuthToken()) return;
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(async () => {
+                try {
+                    await apiRequest('/api/sync', {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            projects: JSON.parse(localStorage.getItem('besthome_official_projects')) || [],
+                            listings: JSON.parse(localStorage.getItem('besthome_seabreeze')) || [],
+                            vacancies: JSON.parse(localStorage.getItem('besthome_vacancies')) || [],
+                            gallery: JSON.parse(localStorage.getItem('besthome_gallery')) || [],
+                            applications: JSON.parse(localStorage.getItem('besthome_applications')) || []
+                        })
+                    });
+                } catch (error) {
+                    console.warn('Database sync yazılmadı:', error.message);
+                }
+            }, 500);
+        }
+
+        const originalSetItem = localStorage.setItem.bind(localStorage);
+        localStorage.setItem = function(key, value) {
+            originalSetItem(key, value);
+            if (['besthome_official_projects', 'besthome_seabreeze', 'besthome_vacancies', 'besthome_gallery', 'besthome_applications'].includes(key)) {
+                scheduleDatabaseSync();
+            }
+        };
+
         function getOfficialProjects() {
             return JSON.parse(localStorage.getItem('besthome_official_projects')) || officialSeaBreezeProjects;
         }
@@ -1185,6 +1298,7 @@
         function logoutAdmin() {
             sessionStorage.removeItem('besthome_logged_in_role');
             sessionStorage.removeItem('besthome_agent_data');
+            sessionStorage.removeItem('besthome_auth_token');
             activeUser = null;
             updateHeaderUI();
             switchTab('seabreeze');
@@ -1512,11 +1626,12 @@
                         </div>
                     `;
                 } else {
+                    const thumb = item.thumbnail || 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=400&q=80';
                     html = `
                         <div onclick="openMediaModal('video', '${item.url}', '${item.title}')" class="cursor-pointer group rounded-2xl overflow-hidden glass-card relative border border-white/5 h-64">
                             <div class="w-full h-full bg-slate-900 flex items-center justify-center relative">
-                                <i class="fa-solid fa-play text-white text-4xl bg-brand-500 p-3.5 rounded-full shadow-lg"></i>
-                                <div class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=400&q=80')"></div>
+                                <div class="absolute inset-0 bg-cover bg-center opacity-60 group-hover:scale-105 transition duration-300" style="background-image: url('${thumb}')"></div>
+                                <i class="fa-solid fa-play text-white text-4xl bg-brand-500 p-3.5 rounded-full shadow-lg z-10"></i>
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
                             <div class="absolute bottom-5 left-5">
@@ -1601,7 +1716,7 @@
             }
         }
 
-        function handleFormSubmit(e) {
+        async function handleFormSubmit(e) {
             e.preventDefault();
             const newItem = {
                 id: Date.now(),
@@ -1620,6 +1735,18 @@
             existing.unshift(newItem);
             localStorage.setItem('besthome_applications', JSON.stringify(existing));
 
+            try {
+                const formData = new FormData();
+                formData.append('fullname', `${newItem.name} ${newItem.surname}`);
+                formData.append('phone', newItem.phone);
+                const selectedVacancy = (JSON.parse(localStorage.getItem('besthome_vacancies')) || []).find(v => v.title === newItem.vacancy);
+                if (selectedVacancy && Number.isInteger(Number(selectedVacancy.id))) formData.append('vacancy_id', selectedVacancy.id);
+                if (document.getElementById('app-cv').files[0]) formData.append('cv', document.getElementById('app-cv').files[0]);
+                await fetch(`${API_BASE}/api/applications`, { method: 'POST', body: formData });
+            } catch (error) {
+                console.warn('CV müraciəti API-yə yazılmadı:', error.message);
+            }
+
             document.getElementById('career-form').reset();
             document.getElementById('cv-file-name').textContent = "CV Faylı seçin (PDF, DOCX)";
             
@@ -1629,11 +1756,28 @@
         }
 
         // LOGIN ENGINE
-        function handleGeneralLogin(e) {
+        async function handleGeneralLogin(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
             const error = document.getElementById('login-error');
+
+            try {
+                const result = await apiRequest('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password: pass })
+                });
+                error.classList.add('hidden');
+                sessionStorage.setItem('besthome_auth_token', result.token);
+                sessionStorage.setItem('besthome_logged_in_role', result.user.role === 'employee' ? 'agent' : result.user.role);
+                activeUser = { role: result.user.role === 'employee' ? 'agent' : result.user.role, name: result.user.fullname, id: result.user.id, email: result.user.email };
+                updateHeaderUI();
+                await hydrateFromDatabase();
+                switchTab('admin-dashboard');
+                return;
+            } catch (apiError) {
+                console.warn('API login alınmadı, lokal fallback yoxlanılır:', apiError.message);
+            }
 
             if (email === 'admin@besthome.az' && pass === 'admin123') {
                 error.classList.add('hidden');
@@ -2461,7 +2605,10 @@
             document.getElementById('modal-slider-controls').classList.add('hidden');
             document.getElementById('modal-counter').textContent = '';
             document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-content').innerHTML = `<iframe src="${url}" class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl" frameborder="0" allowfullscreen></iframe>`;
+            const isMp4 = /\.mp4($|\?)/i.test(url);
+            document.getElementById('modal-content').innerHTML = isMp4
+                ? `<video src="${url}" controls autoplay class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl bg-black"></video>`
+                : `<iframe src="${url}" class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
             document.getElementById('media-modal').classList.remove('hidden');
         }
 
@@ -2475,7 +2622,8 @@
         }
 
         // MAIN SETUP AND BOOTSTRAP
-        window.addEventListener('load', () => {
+        window.addEventListener('load', async () => {
+            await hydrateFromDatabase();
             checkSession();
             switchTab('seabreeze');
         });
