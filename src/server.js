@@ -8,7 +8,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
-const prisma = require('./prisma');
+const prisma = require('./lib/prisma');
 
 const app = express();
 const port = process.env.PORT || 3000;
