@@ -16,7 +16,7 @@ function optionalAuth(req, _res, next) {
 }
 
 function canManage(req) {
-  return ['admin', 'employee'].includes(req.auth?.role);
+  return ['admin'].includes(req.auth?.role);
 }
 
 router.get('/', optionalAuth, asyncHandler(async (req, res) => {
@@ -35,24 +35,24 @@ router.get('/:id', optionalAuth, asyncHandler(async (req, res) => {
   return res.json(data);
 }));
 
-router.post('/', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.post('/', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const created = await prisma.vacancy.create({ data: compact(serializers.vacancy(req.body)) });
   res.status(201).json(created);
 }));
 
-router.patch('/:id/toggle', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.patch('/:id/toggle', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const vacancy = await prisma.vacancy.findUnique({ where: { id: Number(req.params.id) } });
   if (!vacancy) return res.status(404).json({ message: 'Record not found.' });
   const updated = await prisma.vacancy.update({ where: { id: vacancy.id }, data: { isActive: !vacancy.isActive } });
   res.json(updated);
 }));
 
-router.put('/:id', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.put('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const updated = await prisma.vacancy.update({ where: { id: Number(req.params.id) }, data: compact(serializers.vacancy(req.body)) });
   res.json(updated);
 }));
 
-router.delete('/:id', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   await prisma.vacancy.delete({ where: { id: Number(req.params.id) } });
   res.status(204).send();
 }));

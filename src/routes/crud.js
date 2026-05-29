@@ -15,16 +15,23 @@ function toInt(value) {
 
 function parseJsonArray(value) {
   if (value === undefined || value === null || value === '') return undefined;
-  if (Array.isArray(value)) return value.filter(Boolean);
+  if (Array.isArray(value)) {
+    const cleaned = value.map((item) => String(item || '').trim()).filter(Boolean);
+    return cleaned.length ? cleaned : null;
+  }
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.map((item) => String(item || '').trim()).filter(Boolean);
+        return cleaned.length ? cleaned : null;
+      }
     } catch (_error) {
-      return value.split(',').map((item) => item.trim()).filter(Boolean);
+      const cleaned = value.split(',').map((item) => item.trim()).filter(Boolean);
+      return cleaned.length ? cleaned : null;
     }
   }
-  return undefined;
+  return null;
 }
 
 function toBool(value) {
@@ -93,7 +100,7 @@ function compact(data) {
 
 function crudRouter({ router, prisma, model, serializer, publicRead = true, publicCreate = false, include }) {
   const readGuard = publicRead ? [] : [authenticate];
-  const writeGuard = publicCreate ? [] : [authenticate, authorize('admin', 'employee')];
+  const writeGuard = publicCreate ? [] : [authenticate, authorize('admin')];
 
   router.get('/', ...readGuard, asyncHandler(async (_req, res) => {
     const data = await prisma[model].findMany({ orderBy: { createdAt: 'desc' }, include });

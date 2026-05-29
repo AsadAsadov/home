@@ -117,12 +117,12 @@
                 <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-[120px] -z-10"></div>
                 
                 <div class="max-w-3xl space-y-5 text-center lg:text-left">
-                    <span class="bg-brand-500/10 text-brand-500 border border-brand-500/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">Premium Tərəfdaşlıq</span>
+                    <span class="bg-brand-500/10 text-brand-500 border border-brand-500/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">Etibarlı seçim</span>
                     <h1 class="text-3xl md:text-5xl font-extrabold text-white leading-tight">
                         Sea Breeze-də <br class="hidden md:inline"><span class="bg-gradient-to-r from-brand-500 to-blue-300 bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
                     </h1>
                     <p class="text-gray-300 text-base md:text-lg font-light leading-relaxed">
-                        BestHome rəsmi tərəfdaşlığı ilə Xəzərin ən prestijli sahili olan Sea Breeze kurortunda yerləşən rəsmi layihələri və əməkdaşlarımızın eksklüziv elanlarını araşdırın.
+                        BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.
                     </p>
                 </div>
                 <div class="w-full lg:w-1/3 flex justify-center">
@@ -135,8 +135,8 @@
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
             <div class="space-y-6">
                 <div class="text-center md:text-left">
-                    <h2 class="text-2xl font-extrabold text-white">Sea Breeze Rəsmi Layihələri</h2>
-                    <p class="text-gray-400 text-xs">Aşağıdakı kateqoriyalardan birini seçərək rəsmi memarlıq inciləri ilə tanış ola bilərsiniz</p>
+                    <h2 class="text-2xl font-extrabold text-white">Sea Breeze Layihələri</h2>
+                    <p class="text-gray-400 text-xs">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
                 </div>
 
                 <!-- 3-lü Bölmə Filtri -->
@@ -161,9 +161,19 @@
                 </div>
 
                 <!-- Layihələr Siyahısı (Grid) -->
-                <div id="sea-breeze-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 max-w-3xl">
+                    <div class="w-full sm:w-52">
+                        <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Təhvil ili</label>
+                        <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects(); fetchProjectsBySearch()" class="mt-2 w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                            <option value="all">Bütün illər</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="sea-breeze-projects-list" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
                     <!-- Loaded dynamically via JS -->
                 </div>
+                <div id="projects-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
             </div>
 
             <!-- Agent Elanları Grid -->
@@ -171,16 +181,16 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-extrabold text-white">Satış və Kirayə Elanları</h2>
-                        <p class="text-gray-400 text-xs font-light">Əməkdaşlarımızın daxili və xarici bazardan təqdim etdiyi aktiv elanlar</p>
+                        <p class="text-gray-400 text-xs font-light">Komandamızın təqdim etdiyi aktual, yoxlanılmış satış və kirayə elanları</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
-                        <select id="filter-sb-type" onchange="renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                        <select id="filter-sb-type" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
                             <option value="all">Bütün növlər (Satış/Kirayə)</option>
                             <option value="Satis">Satış</option>
                             <option value="Kiraye">Kirayə</option>
                         </select>
-                        <select id="filter-sb-project" onchange="renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                        <select id="filter-sb-project" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
                             <option value="all">Bütün Layihələr</option>
                             <option value="Caspian Dream Liner">Caspian Dream Liner</option>
                             <option value="Blue Waters">Blue Waters</option>
@@ -197,9 +207,10 @@
                     </div>
                 </div>
 
-                <div id="seabreeze-properties-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div id="seabreeze-properties-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
                     <!-- Loaded dynamically -->
                 </div>
+                <div id="listings-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
             </div>
         </section>
 
@@ -578,7 +589,6 @@
                         <input type="email" id="agent-reg-email" required placeholder="Giriş E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                         <select id="agent-reg-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                             <option value="user">İstifadəçi</option>
-                            <option value="employee">Əməkdaş</option>
                             <option value="admin">Admin</option>
                         </select>
                         <input type="password" id="agent-reg-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
@@ -691,14 +701,14 @@
                         <p id="p-modal-desc" class="text-gray-300 text-sm font-light leading-relaxed"></p>
                     </div>
 
-                    <!-- Əməkdaş Məlumatları & WhatsApp Düyməsi -->
+                    <!-- Əlaqə məlumatları & WhatsApp Düyməsi -->
                     <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div class="flex items-center space-x-3 text-left w-full sm:w-auto">
                             <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl font-bold">
                                 <i class="fa-solid fa-user-tie"></i>
                             </div>
                             <div>
-                                <span class="text-[10px] text-gray-500 uppercase block font-medium">Əlaqəli Əməkdaş</span>
+                                <span class="text-[10px] text-gray-500 uppercase block font-medium">Əlaqəli nümayəndə</span>
                                 <strong id="p-modal-agent-name" class="text-white block text-sm"></strong>
                                 <span id="p-modal-agent-phone" class="text-xs text-gray-400"></span>
                             </div>
@@ -726,9 +736,9 @@
                 <input type="hidden" id="edit-user-id">
                 <input type="text" id="edit-user-fullname" required placeholder="Tam ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
                 <input type="email" id="edit-user-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-                <select id="edit-user-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                <input type="password" id="edit-user-password" placeholder="Yeni şifrə (boş saxlasanız dəyişməz)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                        <select id="edit-user-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                     <option value="user">İstifadəçi</option>
-                    <option value="employee">Əməkdaş</option>
                     <option value="admin">Admin</option>
                 </select>
                 <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda saxla</button>
@@ -1082,13 +1092,13 @@
         const defaultGallery = [
             {
                 id: 1,
-                title: "Sea Breeze Rəsmi Tərəfdaşlıq Forumu 2026",
+                title: "Sea Breeze İcma Görüşü 2026",
                 type: "event",
                 images: [
                     "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
                     "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80"
                 ],
-                desc: "Rəhbərlik səviyyəsində keçirilən rəsmi tərəfdaşlıq sazişinin imzalanma mərasimi."
+                desc: "Müştərilər və komanda üçün keçirilən təqdimat görüşü."
             }
         ];
 
@@ -1185,10 +1195,10 @@
                 sessionStorage.setItem('besthome_auth_token', token);
             }
             if (user) {
-                const role = user.role === 'employee' ? 'agent' : user.role;
+                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
                 sessionStorage.setItem('besthome_logged_in_role', role);
                 sessionStorage.setItem('besthome_user_data', JSON.stringify({ ...user, role }));
-                if (role === 'agent') sessionStorage.setItem('besthome_agent_data', JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, role }));
+                if (role === 'user') sessionStorage.setItem('besthome_agent_data', JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, role }));
             }
         }
 
@@ -1260,7 +1270,7 @@
                 id: l.id, title: l.title, project: l.projectName || l.project_name || 'Digər', listingType: l.listingType || l.listing_type || 'Satis',
                 category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
                 area, floor: parseInt(l.floorCount || l.floor_count || 1), price, img: l.imageUrl || l.image_url || '',
-                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved'
+                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', createdAt: l.createdAt || l.created_at || new Date().toISOString()
             };
         }
 
@@ -1286,10 +1296,6 @@
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
             return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********' };
-        }
-
-        function employeeToUi(e) {
-            return userToUi({ ...e, fullname: [e.firstName || e.first_name, e.lastName || e.last_name].filter(Boolean).join(' '), role: e.role || 'employee' });
         }
 
         const appData = {
@@ -1378,7 +1384,8 @@
                 price,
                 pricePerM2: area && price ? price / area : undefined,
                 imageUrl: l.img || '',
-                description: l.desc || ''
+                description: l.desc || '',
+                userId: activeUser?.role === 'user' ? activeUser.id : undefined
             };
         }
 
@@ -1428,15 +1435,17 @@
             bootstrapCachedData();
             try {
                 const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
-                    apiRequest('/api/projects'),
-                    apiRequest('/api/listings'),
+                    apiRequest('/api/projects?page=1&limit=100'),
+                    apiRequest('/api/listings?page=1&limit=100'),
                     apiRequest('/api/vacancies'),
                     apiRequest('/api/gallery'),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
                     getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([])
                 ]);
-                cacheData('projects', projects.map(dbProjectToUi));
-                cacheData('listings', listings.map(dbListingToUi));
+                const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
+                const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
+                cacheData('projects', projectRows.map(dbProjectToUi));
+                cacheData('listings', listingRows.map(dbListingToUi));
                 cacheData('vacancies', vacancies.map(dbVacancyToUi));
                 cacheData('gallery', gallery.map(dbGalleryToUi));
                 cacheData('applications', applications.map(dbAppToUi));
@@ -1471,6 +1480,7 @@
 
         function handleProjectSearchInput() {
             projectSearchQuery = document.getElementById('project-live-search')?.value.trim().toLowerCase() || '';
+            projectPage = 1;
             renderOfficialProjects();
             clearTimeout(projectSearchTimer);
             projectSearchTimer = setTimeout(fetchProjectsBySearch, 250);
@@ -1478,9 +1488,13 @@
 
         async function fetchProjectsBySearch() {
             try {
-                const endpoint = projectSearchQuery ? `/api/projects?q=${encodeURIComponent(projectSearchQuery)}` : '/api/projects';
-                const projects = await apiRequest(endpoint);
-                cacheData('projects', projects.map(dbProjectToUi));
+                const year = document.getElementById('project-delivery-year-filter')?.value || 'all';
+                const params = new URLSearchParams({ page: '1', limit: '100' });
+                if (projectSearchQuery) params.set('q', projectSearchQuery);
+                if (year !== 'all') params.set('deliveryYear', year);
+                const projects = await apiRequest(`/api/projects?${params.toString()}`);
+                const rows = Array.isArray(projects) ? projects : (projects.data || []);
+                cacheData('projects', rows.map(dbProjectToUi));
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
             } catch (error) {
@@ -1492,29 +1506,32 @@
             return normalizeProjectImages(project?.images, project?.img);
         }
 
+        let projectImageInputRows = [{ id: Date.now(), url: '' }];
+
         function renderProjectImageInputs(images = ['']) {
-            const container = document.getElementById('project-images-list');
-            if (!container) return;
-            const normalized = (Array.isArray(images) ? images : [images]).map(value => String(value || '').trim());
+            const normalized = (Array.isArray(images) ? images : [images]).map(value => String(value || '').trim()).filter((value, idx) => value || idx === 0);
             if (!normalized.length) normalized.push('');
             const primaryInput = document.getElementById('project-img');
-            const primary = normalized[0] || primaryInput?.value.trim() || '';
-            if (primaryInput && primaryInput.value !== primary) primaryInput.value = primary;
-            const extras = normalized.slice(1);
-            container.innerHTML = extras.map((url, idx) => {
-                const imageIndex = idx + 1;
-                return `
-                    <div class="flex gap-2 items-center" data-image-index="${imageIndex}">
-                        <input type="url" value="${url || ''}" oninput="handleProjectImageInput(${imageIndex}, this.value)" placeholder="Əlavə şəkil URL" class="project-image-url flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                        <button type="button" onclick="removeProjectImageInput(${imageIndex})" class="text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white w-9 h-9 rounded-xl transition" aria-label="Şəkli sil"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                `;
-            }).join('');
+            if (primaryInput) primaryInput.value = normalized[0] || '';
+            projectImageInputRows = normalized.slice(1).map((url, idx) => ({ id: Date.now() + idx + Math.random(), url }));
+            renderProjectImageRows();
+        }
+
+        function renderProjectImageRows() {
+            const container = document.getElementById('project-images-list');
+            if (!container) return;
+            container.innerHTML = projectImageInputRows.map((row) => `
+                <div class="flex gap-2 items-center" data-image-id="${row.id}">
+                    <input type="url" value="${row.url || ''}" oninput="handleProjectImageInput('${row.id}', this.value)" placeholder="Əlavə şəkil URL" class="project-image-url flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    <button type="button" onclick="removeProjectImageInput('${row.id}')" class="text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white w-9 h-9 rounded-xl transition" aria-label="Şəkli sil"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+            updateProjectImagePreview();
         }
 
         function rawProjectImageInputValues() {
             const primary = document.getElementById('project-img')?.value.trim() || '';
-            const extras = Array.from(document.querySelectorAll('.project-image-url')).map(input => input.value.trim());
+            const extras = projectImageInputRows.map(input => String(input.url || '').trim());
             return [primary, ...extras];
         }
 
@@ -1526,21 +1543,19 @@
             updateProjectImagePreview();
         }
 
-        function handleProjectImageInput(_index, _value) {
+        function handleProjectImageInput(id, value) {
+            projectImageInputRows = projectImageInputRows.map(item => String(item.id) === String(id) ? { ...item, url: value } : item);
             updateProjectImagePreview();
         }
 
         function addProjectImageInput(value = '') {
-            renderProjectImageInputs([...rawProjectImageInputValues(), value]);
+            projectImageInputRows.push({ id: Date.now() + Math.random(), url: value });
+            renderProjectImageRows();
         }
 
-        function removeProjectImageInput(index) {
-            const images = rawProjectImageInputValues();
-            images.splice(index, 1);
-            const next = images.length ? images : [''];
-            document.getElementById('project-img').value = next[0] || '';
-            renderProjectImageInputs(next);
-            updateProjectImagePreview();
+        function removeProjectImageInput(id) {
+            projectImageInputRows = projectImageInputRows.filter(item => String(item.id) !== String(id));
+            renderProjectImageRows();
         }
 
         function renderOfficialProjectOptions() {
@@ -1563,6 +1578,9 @@
         let activeUser = null;
         let selectedProjectCategory = 'Apartment';
         let projectSearchQuery = '';
+        let projectPage = 1;
+        let listingPage = 1;
+        const PAGE_SIZE = 20;
         let projectSearchTimer = null;
         let officialProjectImages = [];
         let officialProjectImageIndex = 0;
@@ -1577,7 +1595,7 @@
             if (cachedUser) {
                 try {
                     const user = JSON.parse(cachedUser);
-                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'Əməkdaş'), id: user.id, email: user.email };
+                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email };
                 } catch (_error) {
                     activeUser = null;
                 }
@@ -1592,8 +1610,8 @@
             try {
                 const result = await apiRequest('/api/auth/me');
                 const user = result.user || result;
-                const role = user.role === 'employee' ? 'agent' : user.role;
-                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'Əməkdaş'), id: user.id, email: user.email };
+                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (_error) {
                 clearAuthSession();
@@ -1612,7 +1630,7 @@
             const mobileActions = document.getElementById('mobile-user-status-actions');
 
             if (activeUser) {
-                const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (Əməkdaş)`;
+                const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (İstifadəçi)`;
                 container.innerHTML = `
                     <span class="text-xs text-gray-400">Xoş gəldiniz: <strong class="text-white">${welcomeName}</strong></span>
                     <button onclick="switchTab('admin-dashboard')" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
@@ -1683,6 +1701,7 @@
         // 3-LÜ LAYİHƏ KATEQORİYASI (Apartment / Villa / Townhouse)
         function switchProjectCategory(cat) {
             selectedProjectCategory = cat;
+            projectPage = 1;
             document.querySelectorAll('.project-cat-btn').forEach(btn => {
                 btn.className = "project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-white/5 text-gray-400 hover:text-white transition duration-200";
             });
@@ -1706,28 +1725,81 @@
             `;
         }
 
+
+        function renderPagination(containerId, page, totalPages, onPageChange) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = `
+                <button ${page <= 1 ? 'disabled' : ''} class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300 disabled:opacity-40 hover:bg-white/10 transition" onclick="${onPageChange}(${page - 1})">Əvvəlki</button>
+                <span class="text-xs text-gray-400 bg-white/5 border border-white/10 rounded-xl px-4 py-2">${page} / ${totalPages}</span>
+                <button ${page >= totalPages ? 'disabled' : ''} class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300 disabled:opacity-40 hover:bg-white/10 transition" onclick="${onPageChange}(${page + 1})">Növbəti</button>
+            `;
+        }
+
+        function setProjectPage(page) {
+            projectPage = Math.max(1, page);
+            renderOfficialProjects();
+            document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function setListingPage(page) {
+            listingPage = Math.max(1, page);
+            renderSeaBreeze();
+            document.getElementById('seabreeze-properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function formatAzDate(value) {
+            const date = new Date(value || Date.now());
+            return new Intl.DateTimeFormat('az-AZ', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+        }
+
+        function renderProjectYearOptions(projects) {
+            const select = document.getElementById('project-delivery-year-filter');
+            if (!select) return;
+            const current = select.value || 'all';
+            const years = [...new Set(projects.map(p => String(p.year || '').match(/\d{4}/)?.[0]).filter(Boolean))].sort();
+            select.innerHTML = '<option value="all">Bütün illər</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+            select.value = years.includes(current) ? current : 'all';
+        }
+
         // RENDER OFFICIAL LAYOUTS
         function renderOfficialProjects() {
             const container = document.getElementById('sea-breeze-projects-list');
             container.innerHTML = '';
 
-            const filtered = getOfficialProjects().filter(p => p.category === selectedProjectCategory && (!projectSearchQuery || p.title.toLowerCase().includes(projectSearchQuery)));
+            const allProjects = getOfficialProjects();
+            renderProjectYearOptions(allProjects);
+            const deliveryYear = document.getElementById('project-delivery-year-filter')?.value || 'all';
+            const filtered = allProjects.filter(p => {
+                const year = String(p.year || '').match(/\d{4}/)?.[0] || '';
+                return p.category === selectedProjectCategory
+                    && (!projectSearchQuery || p.title.toLowerCase().includes(projectSearchQuery))
+                    && (deliveryYear === 'all' || year === deliveryYear);
+            });
+            const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
+            projectPage = Math.min(projectPage, totalPages);
+            const paged = filtered.slice((projectPage - 1) * PAGE_SIZE, projectPage * PAGE_SIZE);
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Layihə tapılmadı.</div>`;
+                renderPagination('projects-pagination', 1, 1, 'setProjectPage');
                 return;
             }
 
-            filtered.forEach(p => {
+            paged.forEach(p => {
                 const cardHtml = `
-                    <div onclick="openOfficialProjectModal('${p.id}')" class="group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300">
-                        <div class="h-56 relative overflow-hidden">
+                    <div onclick="openOfficialProjectModal('${p.id}')" class="group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
+                        <div class="h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
-                            <h4 class="absolute bottom-4 left-4 text-xl font-extrabold text-white">${p.title}</h4>
+                            <h4 class="absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white truncate">${p.title}</h4>
                         </div>
-                        <div class="p-5">
+                        <div class="p-4 flex-1 flex flex-col justify-between">
                             <p class="text-xs text-gray-400 line-clamp-2 font-light">${p.desc}</p>
                             <div class="flex items-center justify-between text-[11px] text-brand-300 mt-4 border-t border-white/5 pt-3">
                                 <span><i class="fa-solid fa-expand mr-1"></i> ${p.area}</span>
@@ -1738,6 +1810,7 @@
                 `;
                 container.insertAdjacentHTML('beforeend', cardHtml);
             });
+            renderPagination('projects-pagination', projectPage, totalPages, 'setProjectPage');
         }
 
         // OPEN OFFICIAL PROJECT MODAL
@@ -1843,20 +1916,22 @@
                 if (typeFilter !== 'all' && p.listingType !== typeFilter) return false;
                 return true;
             });
+            const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
+            listingPage = Math.min(listingPage, totalPages);
+            const paged = filtered.slice((listingPage - 1) * PAGE_SIZE, listingPage * PAGE_SIZE);
 
             if (filtered.length === 0) {
                 grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500">Kriteriyalara uyğun elan tapılmadı.</div>`;
+                renderPagination('listings-pagination', 1, 1, 'setListingPage');
                 return;
             }
 
-            filtered.forEach(p => {
+            paged.forEach(p => {
                 const isRent = p.listingType === 'Kiraye';
                 const formattedPrice = Number(p.price).toLocaleString('az-AZ');
                 const badgeColor = isRent ? 'bg-amber-500/90' : 'bg-emerald-600/90';
-                
-                // ONLY show SQ Price on SALE listings, not for RENT
                 let sqPriceHtml = '';
-                if (!isRent) {
+                if (!isRent && Number(p.area) > 0) {
                     const sqPrice = Math.round(p.price / p.area);
                     sqPriceHtml = `
                         <div class="text-right">
@@ -1867,25 +1942,24 @@
                 }
 
                 const cardHtml = `
-                    <div onclick="openPropertyModal('${p.id}')" class="cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col justify-between">
-                        <div>
-                            <div class="h-48 overflow-hidden relative">
-                                <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
-                                <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${p.project}</div>
-                                <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${isRent ? 'Kirayə' : 'Satış'}</div>
-                            </div>
-                            <div class="p-5 space-y-2">
-                                <h4 class="text-white font-extrabold text-base truncate">${p.title}</h4>
-                                <p class="text-gray-400 text-xs line-clamp-2 font-light">${p.desc}</p>
-                                <div class="grid grid-cols-2 gap-2 bg-white/[0.01] p-2.5 rounded-xl text-[11px] text-gray-400 border border-white/5">
-                                    <span>Otaq: <strong class="text-white">${p.rooms}</strong></span>
-                                    <span>Sahə: <strong class="text-white">${p.area} m²</strong></span>
-                                    <span>Mərtəbə: <strong class="text-white">${p.floor || 1}</strong></span>
-                                    ${p.land ? `<span>Torpaq: <strong class="text-white">${p.land} Sot</strong></span>` : ''}
-                                </div>
+                    <div onclick="openPropertyModal('${p.id}')" class="cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full">
+                        <div class="h-44 md:h-48 overflow-hidden relative">
+                            <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                            <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase max-w-[65%] truncate">${p.project}</div>
+                            <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${isRent ? 'Kirayə' : 'Satış'}</div>
+                        </div>
+                        <div class="p-4 space-y-2 flex-1">
+                            <h4 class="text-white font-extrabold text-base truncate">${p.title}</h4>
+                            <p class="text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)}</p>
+                            <p class="text-gray-400 text-xs line-clamp-2 font-light">${p.desc}</p>
+                            <div class="grid grid-cols-2 gap-2 bg-white/[0.01] p-2.5 rounded-xl text-[11px] text-gray-400 border border-white/5">
+                                <span>Otaq: <strong class="text-white">${p.rooms}</strong></span>
+                                <span>Sahə: <strong class="text-white">${p.area} m²</strong></span>
+                                <span>Mərtəbə: <strong class="text-white">${p.floor || 1}</strong></span>
+                                ${p.land ? `<span>Torpaq: <strong class="text-white">${p.land} Sot</strong></span>` : ''}
                             </div>
                         </div>
-                        <div class="p-5 pt-0 mt-2 flex items-center justify-between border-t border-white/5 pt-3">
+                        <div class="p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5">
                             <div>
                                 <span class="text-[9px] text-gray-500 uppercase block">Qiymət</span>
                                 <strong class="text-base font-extrabold text-white">${formattedPrice} AZN${isRent ? ' /ay' : ''}</strong>
@@ -1896,6 +1970,7 @@
                 `;
                 grid.insertAdjacentHTML('beforeend', cardHtml);
             });
+            renderPagination('listings-pagination', listingPage, totalPages, 'setListingPage');
         }
 
         // OPEN PROPERTY DETAILS MODAL (WITH WHATSAPP AVTOMATİK ŞABLON)
@@ -2143,7 +2218,7 @@
                 error.classList.add('hidden');
                 sessionStorage.setItem('token', result.token);
                 setAuthSession(result.token, result.user);
-                activeUser = { role: result.user.role === 'employee' ? 'agent' : result.user.role, name: result.user.fullname, id: result.user.id, email: result.user.email };
+                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, id: result.user.id, email: result.user.email };
                 updateHeaderUI();
                 await hydrateFromDatabase();
                 switchTab('admin-dashboard');
@@ -2486,10 +2561,10 @@
 
             // Hide/Show restriction tags
             const adminTags = document.querySelectorAll('.admin-only-element');
-            if (activeUser.role === 'agent') {
+            if (activeUser.role === 'user') {
                 adminTags.forEach(el => el.classList.add('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İstifadəçi Kabineti`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name} ${activeUser.surname}. Elanlarınızı yerləşdirin və redaktə edin.`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name}. Elanlarınızı yerləşdirin və redaktə edin.`;
                 switchAdminSubtab('seabreeze-manager');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
@@ -2504,7 +2579,7 @@
 
             properties.forEach(p => {
                 // Agent restriction filter
-                if (activeUser.role === 'agent' && p.authorId !== activeUser.id) return;
+                if (activeUser.role === 'user' && p.authorId !== activeUser.id) return;
 
                 const isApproved = p.status === 'Approved';
                 const label = isApproved ? 'Təsdiqlənib' : 'Təsdiq Gözləyir';
@@ -2762,7 +2837,7 @@
 
         // USER REGISTRATION / EDITING
         function roleLabel(role) {
-            return role === 'admin' ? 'Admin' : role === 'employee' ? 'Əməkdaş' : 'İstifadəçi';
+            return role === 'admin' ? 'Admin' : 'İstifadəçi';
         }
 
         async function handleRegisterAgent(e) {
@@ -2795,13 +2870,15 @@
             document.getElementById('edit-user-id').value = user.id;
             document.getElementById('edit-user-fullname').value = user.fullname || `${user.name || ''} ${user.surname || ''}`.trim();
             document.getElementById('edit-user-email').value = user.email || '';
-            document.getElementById('edit-user-role').value = user.role || 'user';
+            document.getElementById('edit-user-role').value = ['admin', 'user'].includes(user.role) ? user.role : 'user';
             document.getElementById('user-edit-modal').classList.remove('hidden');
         }
 
         function closeUserEditModal() {
             document.getElementById('user-edit-modal').classList.add('hidden');
             document.getElementById('edit-user-id').value = '';
+            const pass = document.getElementById('edit-user-password');
+            if (pass) pass.value = '';
         }
 
         async function handleSaveUserEdit(e) {
@@ -2812,6 +2889,8 @@
                 email: document.getElementById('edit-user-email').value.trim(),
                 role: document.getElementById('edit-user-role').value
             };
+            const password = document.getElementById('edit-user-password')?.value.trim();
+            if (password) payload.password = password;
             try {
                 const updated = await apiRequest(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
                 cacheData('agents', appData.agents.map(x => String(x.id) === String(id) ? userToUi(updated) : x));

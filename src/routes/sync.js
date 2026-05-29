@@ -94,19 +94,18 @@ function appData(a) {
 }
 
 router.get('/', asyncHandler(async (_req, res) => {
-  const [projects, listings, vacancies, gallery, applications, employees, users] = await Promise.all([
+  const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
     prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.listing.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.vacancy.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.gallery.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.application.findMany({ orderBy: { createdAt: 'desc' }, include: { vacancy: true } }),
-    prisma.employee.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),
   ]);
-  res.json({ projects, listings, vacancies, gallery, applications, employees: employees.map(({ passwordHash, ...e }) => e), users: users.map(({ passwordHash, ...u }) => u) });
+  res.json({ projects, listings, vacancies, gallery, applications, users: users.map(({ passwordHash, ...u }) => u) });
 }));
 
-router.put('/', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.put('/', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   await prisma.$transaction(async (tx) => {
     if (Array.isArray(req.body.projects)) {
       await tx.project.deleteMany();

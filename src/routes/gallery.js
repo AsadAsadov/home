@@ -61,7 +61,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
   return res.json(data);
 }));
 
-router.post('/', authenticate, authorize('admin', 'employee'), upload.fields([
+router.post('/', authenticate, authorize('admin'), upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
@@ -70,7 +70,7 @@ router.post('/', authenticate, authorize('admin', 'employee'), upload.fields([
   res.status(201).json(created);
 }));
 
-router.put('/:id', authenticate, authorize('admin', 'employee'), upload.fields([
+router.put('/:id', authenticate, authorize('admin'), upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
@@ -79,7 +79,7 @@ router.put('/:id', authenticate, authorize('admin', 'employee'), upload.fields([
   res.json(updated);
 }));
 
-router.delete('/:id', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   await prisma.gallery.delete({ where: { id: Number(req.params.id) } });
   res.status(204).send();
 }));
