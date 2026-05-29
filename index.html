@@ -300,6 +300,7 @@
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
             <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
+                <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Əmlak Əməkdaşları</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
@@ -418,6 +419,93 @@
                 <div class="lg:col-span-7 space-y-4">
                     <h3 class="text-lg font-bold text-white">Əlaqəli Elanlar</h3>
                     <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB 2: OFFICIAL PROJECTS MANAGER (Admin only) -->
+            <div id="admin-subtab-projects-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-diagram-project text-brand-500"></i>
+                            <span id="project-form-action-title">Yeni Layihə Əlavə Et</span>
+                        </h3>
+                        <button type="button" onclick="resetOfficialProjectForm()" class="text-[10px] bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg font-bold transition">Formu təmizlə</button>
+                    </div>
+                    <form onsubmit="handleSaveOfficialProject(event)" class="space-y-3">
+                        <input type="hidden" id="edit-project-id" value="">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə adı *</label>
+                            <input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Kateqoriya *</label>
+                                <select id="project-category" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <option value="Apartment">Mənzil (Apartment)</option>
+                                    <option value="Villa">Şəxsi Villa</option>
+                                    <option value="Townhouse">Taunhaus</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Təhvil tarixi *</label>
+                                <input type="text" id="project-year" required placeholder="2028" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mərtəbə sayı *</label>
+                                <input type="text" id="project-floors" required placeholder="11 mərtəbə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Sahə *</label>
+                                <input type="text" id="project-area" required placeholder="50-838 m²" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mənzil sayı *</label>
+                                <input type="text" id="project-apartments" required placeholder="226 mənzil" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Təmir statusu *</label>
+                                <input type="text" id="project-repair" required placeholder="Təmirli" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Xüsusiyyətlər *</label>
+                            <textarea id="project-features" rows="2" required placeholder="İcarə xidməti / Yeraltı parkinq / Hovuz" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Təsvir *</label>
+                            <textarea id="project-desc" rows="4" required placeholder="Layihə haqqında geniş təsvir" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkil linki *</label>
+                            <input type="url" id="project-img" required oninput="updateProjectImagePreview()" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40">
+                                <picture class="block w-full h-full imageMove">
+                                    <source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset="">
+                                    <source id="project-preview-source-tablet" media="(min-width: 640px)" srcset="">
+                                    <img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload">
+                                </picture>
+                            </div>
+                            <p class="text-[10px] text-gray-500">Bu link saxlanıldıqda kart, modal, carousel və detal şəkillərində eyni <code>picture/source/img</code> strukturu ilə avtomatik istifadə olunur.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla
+                        </button>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-xl font-extrabold text-white">Layihələrin idarə edilməsi</h3>
+                            <p class="text-gray-400 text-xs">Mövcud 1-10 layihə silinmədən localStorage üzərindən redaktə edilə bilir.</p>
+                        </div>
+                        <button onclick="restoreDefaultOfficialProjects()" class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Default bərpa et</button>
+                    </div>
+                    <div id="admin-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
             </div>
 
@@ -1004,6 +1092,7 @@
                 localStorage.setItem(key, JSON.stringify(defaultValue));
             }
         }
+        initStorage('besthome_official_projects', officialSeaBreezeProjects);
         initStorage('besthome_gallery', defaultGallery);
         initStorage('besthome_seabreeze', defaultSeaBreezeListings);
         initStorage('besthome_vacancies', defaultVacancies);
@@ -1011,6 +1100,40 @@
         initStorage('besthome_applications', []);
         if (!localStorage.getItem('besthome_career_text')) {
             localStorage.setItem('besthome_career_text', "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq.");
+        }
+
+        function getOfficialProjects() {
+            return JSON.parse(localStorage.getItem('besthome_official_projects')) || officialSeaBreezeProjects;
+        }
+
+        function saveOfficialProjects(projects) {
+            localStorage.setItem('besthome_official_projects', JSON.stringify(projects));
+        }
+
+        function buildProjectPictureFromLink(imageUrl, existingPicture = {}) {
+            const safeUrl = imageUrl || existingPicture.mobile || existingPicture.tablet || existingPicture.desktop || '';
+            return {
+                desktop: safeUrl,
+                tablet: safeUrl,
+                mobile: safeUrl
+            };
+        }
+
+        function renderOfficialProjectOptions() {
+            const projects = getOfficialProjects();
+            const optionHtml = projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('') + '<option value="Digər">Digər Rezidensiya</option>';
+            const filter = document.getElementById('filter-sb-project');
+            const formSelect = document.getElementById('sb-project');
+            if (filter) {
+                const selected = filter.value || 'all';
+                filter.innerHTML = '<option value="all">Bütün Layihələr</option>' + optionHtml.replace('Digər Rezidensiya', 'Digər Rezidensiyalar');
+                filter.value = Array.from(filter.options).some(opt => opt.value === selected) ? selected : 'all';
+            }
+            if (formSelect) {
+                const selected = formSelect.value;
+                formSelect.innerHTML = optionHtml;
+                if (selected && Array.from(formSelect.options).some(opt => opt.value === selected)) formSelect.value = selected;
+            }
         }
 
         let activeUser = null;
@@ -1081,6 +1204,7 @@
             if (activeLink) activeLink.classList.add('text-brand-500', 'border-b-2', 'border-brand-500');
 
             if (tabId === 'seabreeze') {
+                renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
                 renderSeaBreeze();
             } else if (tabId === 'portfolio') {
@@ -1137,7 +1261,7 @@
             const container = document.getElementById('sea-breeze-projects-list');
             container.innerHTML = '';
 
-            const filtered = officialSeaBreezeProjects.filter(p => p.category === selectedProjectCategory);
+            const filtered = getOfficialProjects().filter(p => p.category === selectedProjectCategory);
 
             filtered.forEach(p => {
                 const cardHtml = `
@@ -1166,7 +1290,7 @@
         let activeOfficialProject = null;
 
         function openOfficialProjectModal(id) {
-            const p = officialSeaBreezeProjects.find(item => item.id === id);
+            const p = getOfficialProjects().find(item => item.id === id);
             if (!p) return;
             activeOfficialProject = p;
 
@@ -1537,12 +1661,13 @@
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
-            const isRestrictedDashboardTab = ['cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
 
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
@@ -1554,13 +1679,17 @@
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
             }
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
+            if (subtab === 'projects-manager') {
+                renderAdminProjects();
+                updateProjectImagePreview();
+            }
         }
 
         // DYNAMIC CALC 1m²
@@ -1675,6 +1804,153 @@
             }
         }
 
+        function updateProjectImagePreview() {
+            const imageUrl = document.getElementById('project-img')?.value || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80';
+            const desktop = document.getElementById('project-preview-source-desktop');
+            const tablet = document.getElementById('project-preview-source-tablet');
+            const img = document.getElementById('project-preview-img');
+            if (desktop) desktop.srcset = imageUrl;
+            if (tablet) tablet.srcset = imageUrl;
+            if (img) img.src = imageUrl;
+        }
+
+        function resetOfficialProjectForm() {
+            document.getElementById('edit-project-id').value = '';
+            document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
+            document.querySelector('#admin-subtab-projects-manager form').reset();
+            updateProjectImagePreview();
+        }
+
+        function renderAdminProjects() {
+            const grid = document.getElementById('admin-projects-grid');
+            if (!grid) return;
+            const projects = getOfficialProjects();
+            grid.innerHTML = '';
+
+            if (projects.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Layihə tapılmadı.</div>`;
+                return;
+            }
+
+            projects.forEach(project => {
+                grid.innerHTML += `
+                    <div class="glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+                        <div class="h-40 relative overflow-hidden">
+                            ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            <span class="absolute top-3 right-3 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${project.year}</span>
+                            <h4 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${project.title}</h4>
+                        </div>
+                        <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between gap-2 text-[10px] text-gray-400">
+                                    <span><i class="fa-solid fa-building mr-1 text-brand-500"></i>${project.floors}</span>
+                                    <span><i class="fa-solid fa-expand mr-1 text-brand-500"></i>${project.area}</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 line-clamp-2">${project.desc}</p>
+                            </div>
+                            <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
+                                <button onclick="editOfficialProject('${project.id}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button onclick="deleteOfficialProject('${project.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function handleSaveOfficialProject(e) {
+            e.preventDefault();
+            if (!activeUser || activeUser.role !== 'admin') return;
+
+            const editId = document.getElementById('edit-project-id').value;
+            const imageUrl = document.getElementById('project-img').value.trim();
+            const title = document.getElementById('project-title').value.trim();
+            const projects = getOfficialProjects();
+            const existing = projects.find(item => item.id === editId) || {};
+            const projectPayload = {
+                id: editId || `op-${Date.now()}`,
+                category: document.getElementById('project-category').value,
+                title,
+                year: document.getElementById('project-year').value.trim(),
+                img: imageUrl,
+                picture: buildProjectPictureFromLink(imageUrl, existing.picture),
+                desc: document.getElementById('project-desc').value.trim(),
+                floors: document.getElementById('project-floors').value.trim(),
+                area: document.getElementById('project-area').value.trim(),
+                apartments: document.getElementById('project-apartments').value.trim(),
+                repairStatus: document.getElementById('project-repair').value.trim(),
+                features: document.getElementById('project-features').value.trim()
+            };
+
+            const idx = projects.findIndex(item => item.id === editId);
+            if (idx > -1) {
+                const oldTitle = projects[idx].title;
+                projects[idx] = projectPayload;
+                syncListingProjectNames(oldTitle, title, imageUrl);
+            } else {
+                projects.unshift(projectPayload);
+            }
+
+            saveOfficialProjects(projects);
+            renderOfficialProjectOptions();
+            renderOfficialProjects();
+            renderAdminProjects();
+            resetOfficialProjectForm();
+        }
+
+        function editOfficialProject(id) {
+            const project = getOfficialProjects().find(item => item.id === id);
+            if (!project) return;
+            document.getElementById('edit-project-id').value = project.id;
+            document.getElementById('project-form-action-title').textContent = 'Layihəni Redaktə Et';
+            document.getElementById('project-title').value = project.title;
+            document.getElementById('project-category').value = project.category;
+            document.getElementById('project-year').value = project.year;
+            document.getElementById('project-floors').value = project.floors;
+            document.getElementById('project-area').value = project.area;
+            document.getElementById('project-apartments').value = project.apartments;
+            document.getElementById('project-repair').value = project.repairStatus;
+            document.getElementById('project-features').value = project.features;
+            document.getElementById('project-desc').value = project.desc;
+            document.getElementById('project-img').value = project.img;
+            updateProjectImagePreview();
+            document.getElementById('admin-subtab-projects-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function deleteOfficialProject(id) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!confirm('Bu layihəni silmək istədiyinizə əminsiniz?')) return;
+            const projects = getOfficialProjects().filter(item => item.id !== id);
+            saveOfficialProjects(projects);
+            renderOfficialProjectOptions();
+            renderOfficialProjects();
+            renderAdminProjects();
+        }
+
+        function restoreDefaultOfficialProjects() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!confirm('Bütün layihə məlumatları ilkin 1-10 layihə datası ilə bərpa edilsin?')) return;
+            saveOfficialProjects(officialSeaBreezeProjects);
+            renderOfficialProjectOptions();
+            renderOfficialProjects();
+            renderAdminProjects();
+            resetOfficialProjectForm();
+        }
+
+        function syncListingProjectNames(oldTitle, newTitle, newImage) {
+            const listings = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            let changed = false;
+            listings.forEach(item => {
+                if (item.project === oldTitle) {
+                    item.project = newTitle;
+                    if (newImage) item.img = newImage;
+                    changed = true;
+                }
+            });
+            if (changed) localStorage.setItem('besthome_seabreeze', JSON.stringify(listings));
+        }
+
         // RENDER ADMIN CABINET (Realtime Data Mapping)
         function renderAdminDashboard() {
             if (!activeUser) {
@@ -1692,7 +1968,7 @@
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, namizəd məlumatlarını və daxili əməkdaşları idarə edin.`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, namizəd məlumatlarını və daxili əməkdaşları idarə edin.`;
             }
 
             // 1. Listings Grid
@@ -1832,7 +2108,7 @@
 
             const base64Img = document.getElementById('sb-img-preview-val').value;
             const urlImg = document.getElementById('sb-img-url').value;
-            const officialProjectImage = officialSeaBreezeProjects.find(item => item.title === project)?.img;
+            const officialProjectImage = getOfficialProjects().find(item => item.title === project)?.img;
             const img = base64Img || urlImg || officialProjectImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80";
 
             const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
