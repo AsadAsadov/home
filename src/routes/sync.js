@@ -1,0 +1,117 @@
+const express = require('express');
+const prisma = require('../prisma');
+const asyncHandler = require('../utils/asyncHandler');
+const { authenticate, authorize } = require('../middleware/auth');
+const { normalizeVideo } = require('../utils/media');
+const router = express.Router();
+
+const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v));
+const int = (v) => (v === '' || v == null || Number.isNaN(Number.parseInt(v, 10)) ? null : Number.parseInt(v, 10));
+
+function projectData(p) {
+  return {
+    title: p.title || 'Untitled project',
+    category: p.category || null,
+    deliveryDate: p.delivery_date || p.deliveryDate || p.year || null,
+    floorCount: p.floor_count || p.floorCount || p.floors || null,
+    area: p.area || null,
+    apartmentCount: p.apartment_count || p.apartmentCount || p.apartments || null,
+    repairStatus: p.repair_status || p.repairStatus || p.repair || null,
+    features: Array.isArray(p.features) ? p.features.join(' / ') : (p.features || null),
+    description: p.description || p.desc || null,
+    imageUrl: p.image_url || p.imageUrl || p.img || p.picture?.mobile || null,
+  };
+}
+
+function listingData(l) {
+  const area = num(l.area);
+  const price = num(l.price);
+  return {
+    title: l.title || 'Untitled listing',
+    listingType: l.listing_type || l.listingType || null,
+    propertyCategory: l.property_category || l.propertyCategory || l.category || null,
+    projectName: l.project_name || l.projectName || l.project || null,
+    roomCount: int(l.room_count || l.roomCount || l.rooms),
+    area,
+    floorCount: l.floor_count || l.floorCount || String(l.floor || ''),
+    price,
+    pricePerM2: num(l.price_per_m2 || l.pricePerM2) || (area && price ? price / area : null),
+    imageUrl: l.image_url || l.imageUrl || l.img || null,
+    description: l.description || l.desc || null,
+  };
+}
+
+function vacancyData(v) {
+  return {
+    title: v.title || 'Untitled vacancy',
+    employmentType: v.employment_type || v.employmentType || v.type || null,
+    salary: v.salary || null,
+    city: v.city || v.location || null,
+    description: v.description || v.desc || null,
+  };
+}
+
+function galleryData(g) {
+  const mediaType = g.media_type || g.mediaType || (g.type === 'video' ? 'video' : 'image');
+  const firstImage = Array.isArray(g.images) ? g.images[0] : (g.image_url || g.imageUrl || g.img);
+  const video = mediaType === 'video' ? normalizeVideo(g.video_url || g.videoUrl || g.url || '') : {};
+  return {
+    title: g.title || 'Untitled media',
+    description: g.description || g.desc || null,
+    mediaType,
+    imageUrl: mediaType === 'image' ? (firstImage || null) : null,
+    videoUrl: mediaType === 'video' ? video.videoUrl : null,
+    thumbnailUrl: g.thumbnail_url || g.thumbnailUrl || video.thumbnailUrl || firstImage || null,
+  };
+}
+
+function appData(a) {
+  return {
+    fullname: a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || 'Namizəd',
+    phone: a.phone || null,
+    vacancyId: int(a.vacancy_id || a.vacancyId),
+    cvFile: a.cv_file || a.cvFile || a.fileName || null,
+  };
+}
+
+router.get('/', asyncHandler(async (_req, res) => {
+  const [projects, listings, vacancies, gallery, applications, employees, users] = await Promise.all([
+    prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.listing.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.vacancy.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.gallery.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.application.findMany({ orderBy: { createdAt: 'desc' }, include: { vacancy: true } }),
+    prisma.employee.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.user.findMany({ orderBy: { createdAt: 'desc' } }),
+  ]);
+  res.json({ projects, listings, vacancies, gallery, applications, employees: employees.map(({ passwordHash, ...e }) => e), users: users.map(({ passwordHash, ...u }) => u) });
+}));
+
+router.put('/', authenticate, authorize('admin', 'employee'), asyncHandler(async (req, res) => {
+  await prisma.$transaction(async (tx) => {
+    if (Array.isArray(req.body.projects)) {
+      await tx.project.deleteMany();
+      if (req.body.projects.length) await tx.project.createMany({ data: req.body.projects.map(projectData) });
+    }
+    if (Array.isArray(req.body.listings)) {
+      await tx.listing.deleteMany();
+      if (req.body.listings.length) await tx.listing.createMany({ data: req.body.listings.map(listingData) });
+    }
+    if (Array.isArray(req.body.vacancies)) {
+      await tx.application.deleteMany();
+      await tx.vacancy.deleteMany();
+      if (req.body.vacancies.length) await tx.vacancy.createMany({ data: req.body.vacancies.map(vacancyData) });
+    }
+    if (Array.isArray(req.body.gallery)) {
+      await tx.gallery.deleteMany();
+      if (req.body.gallery.length) await tx.gallery.createMany({ data: req.body.gallery.map(galleryData) });
+    }
+    if (Array.isArray(req.body.applications)) {
+      await tx.application.deleteMany();
+      if (req.body.applications.length) await tx.application.createMany({ data: req.body.applications.map(appData) });
+    }
+  });
+  res.json({ ok: true });
+}));
+
+module.exports = router;
