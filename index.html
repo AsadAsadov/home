@@ -501,7 +501,7 @@
                     <div class="flex items-center justify-between gap-3">
                         <div>
                             <h3 class="text-xl font-extrabold text-white">Layihələrin idarə edilməsi</h3>
-                            <p class="text-gray-400 text-xs">Mövcud 1-10 layihə silinmədən localStorage üzərindən redaktə edilə bilir.</p>
+                            <p class="text-gray-400 text-xs">Layihələr backend API və Supabase üzərindən redaktə edilir.</p>
                         </div>
                         <button onclick="restoreDefaultOfficialProjects()" class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Default bərpa et</button>
                     </div>
@@ -1086,21 +1086,7 @@
             }
         ];
 
-        // INIT STORAGE
-        function initStorage(key, defaultValue) {
-            if (!localStorage.getItem(key)) {
-                localStorage.setItem(key, JSON.stringify(defaultValue));
-            }
-        }
-        initStorage('besthome_official_projects', officialSeaBreezeProjects);
-        initStorage('besthome_gallery', defaultGallery);
-        initStorage('besthome_seabreeze', defaultSeaBreezeListings);
-        initStorage('besthome_vacancies', defaultVacancies);
-        initStorage('besthome_agents', defaultAgents);
-        initStorage('besthome_applications', []);
-        if (!localStorage.getItem('besthome_career_text')) {
-            localStorage.setItem('besthome_career_text', "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq.");
-        }
+        // OPTIONAL CACHE ONLY: data is loaded from and saved to the backend APIs.
 
 
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
@@ -1169,58 +1155,150 @@
             return { id: e.id, name: e.firstName || e.first_name || '', surname: e.lastName || e.last_name || '', phone: e.phone || '', email: e.email || '', pass: '********' };
         }
 
-        async function hydrateFromDatabase() {
-            try {
-                const data = await apiRequest('/api/sync');
-                isHydratingFromApi = true;
-                if (data.projects?.length) localStorage.setItem('besthome_official_projects', JSON.stringify(data.projects.map(dbProjectToUi)));
-                if (data.listings?.length) localStorage.setItem('besthome_seabreeze', JSON.stringify(data.listings.map(dbListingToUi)));
-                if (data.vacancies?.length) localStorage.setItem('besthome_vacancies', JSON.stringify(data.vacancies.map(dbVacancyToUi)));
-                if (data.gallery?.length) localStorage.setItem('besthome_gallery', JSON.stringify(data.gallery.map(dbGalleryToUi)));
-                if (data.applications?.length) localStorage.setItem('besthome_applications', JSON.stringify(data.applications.map(dbAppToUi)));
-                if (data.employees?.length) localStorage.setItem('besthome_agents', JSON.stringify(data.employees.map(employeeToUi)));
-            } catch (error) {
-                console.warn('Database sync oxunmadı, lokal fallback istifadə olunur:', error.message);
-            } finally {
-                isHydratingFromApi = false;
-            }
-        }
-
-        function scheduleDatabaseSync() {
-            if (isHydratingFromApi || !getAuthToken()) return;
-            clearTimeout(syncTimer);
-            syncTimer = setTimeout(async () => {
-                try {
-                    await apiRequest('/api/sync', {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                            projects: JSON.parse(localStorage.getItem('besthome_official_projects')) || [],
-                            listings: JSON.parse(localStorage.getItem('besthome_seabreeze')) || [],
-                            vacancies: JSON.parse(localStorage.getItem('besthome_vacancies')) || [],
-                            gallery: JSON.parse(localStorage.getItem('besthome_gallery')) || [],
-                            applications: JSON.parse(localStorage.getItem('besthome_applications')) || []
-                        })
-                    });
-                } catch (error) {
-                    console.warn('Database sync yazılmadı:', error.message);
-                }
-            }, 500);
-        }
-
-        const originalSetItem = localStorage.setItem.bind(localStorage);
-        localStorage.setItem = function(key, value) {
-            originalSetItem(key, value);
-            if (['besthome_official_projects', 'besthome_seabreeze', 'besthome_vacancies', 'besthome_gallery', 'besthome_applications'].includes(key)) {
-                scheduleDatabaseSync();
-            }
+        const appData = {
+            projects: officialSeaBreezeProjects,
+            listings: defaultSeaBreezeListings,
+            vacancies: defaultVacancies,
+            gallery: defaultGallery,
+            applications: [],
+            agents: defaultAgents,
+            careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
         };
 
+        const CACHE_KEYS = {
+            projects: 'besthome_official_projects',
+            listings: 'besthome_seabreeze',
+            vacancies: 'besthome_vacancies',
+            gallery: 'besthome_gallery',
+            applications: 'besthome_applications',
+            agents: 'besthome_agents',
+            careerText: 'besthome_career_text'
+        };
+
+        function readCache(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (_error) {
+                return fallback;
+            }
+        }
+
+        function cacheData(name, value) {
+            appData[name] = value;
+            try {
+                const key = CACHE_KEYS[name];
+                if (key) localStorage.setItem(key, JSON.stringify(value));
+            } catch (_error) {
+                // localStorage is now only an optional cache; API data remains authoritative.
+            }
+        }
+
+        function bootstrapCachedData() {
+            appData.projects = readCache(CACHE_KEYS.projects, officialSeaBreezeProjects);
+            appData.listings = readCache(CACHE_KEYS.listings, defaultSeaBreezeListings);
+            appData.vacancies = readCache(CACHE_KEYS.vacancies, defaultVacancies);
+            appData.gallery = readCache(CACHE_KEYS.gallery, defaultGallery);
+            appData.applications = readCache(CACHE_KEYS.applications, []);
+            appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
+            appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
+        }
+
+        function uiProjectToApi(p) {
+            return {
+                title: p.title,
+                category: p.category,
+                delivery_date: p.year,
+                floor_count: p.floors,
+                area: p.area,
+                apartment_count: p.apartments,
+                repair_status: p.repairStatus,
+                features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
+                description: p.desc,
+                image_url: p.img
+            };
+        }
+
+        function uiListingToApi(l) {
+            return {
+                title: l.title,
+                listing_type: l.listingType,
+                property_category: l.category,
+                project_name: l.project,
+                room_count: l.rooms,
+                area: l.area,
+                floor_count: String(l.floor || 1),
+                price: l.price,
+                image_url: l.img,
+                description: l.desc
+            };
+        }
+
+        function uiVacancyToApi(v) {
+            return {
+                title: v.title,
+                employment_type: v.type,
+                salary: v.salary,
+                city: v.location,
+                description: v.desc
+            };
+        }
+
+        function getYouTubeThumbnail(url = '') {
+            const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : '';
+        }
+
+        function normalizeGalleryVideoUrl(url = '') {
+            const match = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+        }
+
+        function uiGalleryToApi(g) {
+            const isVideo = g.type === 'video';
+            return {
+                title: g.title,
+                description: g.desc,
+                media_type: isVideo ? 'video' : 'image',
+                image_url: isVideo ? undefined : (g.images?.[0] || ''),
+                video_url: isVideo ? g.url : undefined,
+                thumbnail_url: isVideo ? (g.thumbnail || getYouTubeThumbnail(g.url)) : (g.images?.[0] || '')
+            };
+        }
+
+        async function hydrateFromDatabase() {
+            bootstrapCachedData();
+            try {
+                const [projects, listings, vacancies, gallery, applications, employees] = await Promise.all([
+                    apiRequest('/api/projects'),
+                    apiRequest('/api/listings'),
+                    apiRequest('/api/vacancies'),
+                    apiRequest('/api/gallery'),
+                    getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
+                    getAuthToken() ? apiRequest('/api/employees').catch(() => []) : Promise.resolve([])
+                ]);
+                cacheData('projects', projects.map(dbProjectToUi));
+                cacheData('listings', listings.map(dbListingToUi));
+                cacheData('vacancies', vacancies.map(dbVacancyToUi));
+                cacheData('gallery', gallery.map(dbGalleryToUi));
+                cacheData('applications', applications.map(dbAppToUi));
+                if (employees.length) cacheData('agents', employees.map(employeeToUi));
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderSeaBreeze();
+                renderPortfolio();
+                renderCareerSection();
+            } catch (error) {
+                console.warn('API məlumatları oxunmadı, yalnız lokal cache göstərilir:', error.message);
+            }
+        }
+
         function getOfficialProjects() {
-            return JSON.parse(localStorage.getItem('besthome_official_projects')) || officialSeaBreezeProjects;
+            return appData.projects || officialSeaBreezeProjects;
         }
 
         function saveOfficialProjects(projects) {
-            localStorage.setItem('besthome_official_projects', JSON.stringify(projects));
+            cacheData('projects', projects);
         }
 
         function buildProjectPictureFromLink(imageUrl, existingPicture = {}) {
@@ -1455,7 +1533,7 @@
 
         // RENDER PROPERTIES ELAN GRID
         function renderSeaBreeze() {
-            const properties = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const properties = appData.listings;
             const grid = document.getElementById('seabreeze-properties-grid');
             grid.innerHTML = '';
 
@@ -1525,7 +1603,7 @@
 
         // OPEN PROPERTY DETAILS MODAL (WITH WHATSAPP AVTOMATİK ŞABLON)
         function openPropertyModal(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const list = appData.listings;
             const p = list.find(item => item.id === parseInt(id));
             if (!p) return;
 
@@ -1560,7 +1638,7 @@
             if (p.authorId === 'admin') {
                 authorName = "Rəsmi Admin";
             } else {
-                const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+                const agents = appData.agents;
                 const ag = agents.find(a => a.id === p.authorId);
                 if (ag) {
                     authorName = `${ag.name} ${ag.surname}`;
@@ -1596,7 +1674,7 @@
         }
 
         function renderPortfolio() {
-            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+            const list = appData.gallery;
             const grid = document.getElementById('portfolio-grid');
             grid.innerHTML = '';
 
@@ -1647,11 +1725,11 @@
 
         // KARYERA & VAKANSİYA SİSTEMİ
         function renderCareerSection() {
-            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const list = appData.vacancies;
             const container = document.getElementById('active-vacancies-list');
             const dropdown = document.getElementById('app-vacancy');
 
-            document.getElementById('career-intro-text-view').textContent = localStorage.getItem('besthome_career_text') || '';
+            document.getElementById('career-intro-text-view').textContent = appData.careerText || '';
 
             container.innerHTML = '';
             dropdown.innerHTML = '<option value="" disabled selected>Vakansiya seçin *</option>';
@@ -1719,7 +1797,6 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             const newItem = {
-                id: Date.now(),
                 name: document.getElementById('app-name').value,
                 surname: document.getElementById('app-surname').value,
                 phone: document.getElementById('app-phone').value,
@@ -1731,24 +1808,26 @@
                 status: "Gözləmədə"
             };
 
-            const existing = JSON.parse(localStorage.getItem('besthome_applications')) || [];
-            existing.unshift(newItem);
-            localStorage.setItem('besthome_applications', JSON.stringify(existing));
-
             try {
                 const formData = new FormData();
-                formData.append('fullname', `${newItem.name} ${newItem.surname}`);
+                formData.append('fullname', `${newItem.name} ${newItem.surname}`.trim());
                 formData.append('phone', newItem.phone);
-                const selectedVacancy = (JSON.parse(localStorage.getItem('besthome_vacancies')) || []).find(v => v.title === newItem.vacancy);
+                const selectedVacancy = appData.vacancies.find(v => v.title === newItem.vacancy);
                 if (selectedVacancy && Number.isInteger(Number(selectedVacancy.id))) formData.append('vacancy_id', selectedVacancy.id);
                 if (document.getElementById('app-cv').files[0]) formData.append('cv', document.getElementById('app-cv').files[0]);
-                await fetch(`${API_BASE}/api/applications`, { method: 'POST', body: formData });
+                const created = await fetch(`${API_BASE}/api/applications`, { method: 'POST', body: formData }).then(async response => {
+                    if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Müraciət göndərilmədi');
+                    return response.json();
+                });
+                cacheData('applications', [dbAppToUi(created), ...appData.applications]);
             } catch (error) {
-                console.warn('CV müraciəti API-yə yazılmadı:', error.message);
+                alert('Müraciət API-yə göndərilmədi: ' + error.message);
+                return;
             }
 
             document.getElementById('career-form').reset();
             document.getElementById('cv-file-name').textContent = "CV Faylı seçin (PDF, DOCX)";
+            selectedCvFile = '';
             
             const alertBox = document.getElementById('form-success-alert');
             alertBox.classList.remove('hidden');
@@ -1788,7 +1867,7 @@
                 return;
             }
 
-            const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+            const agents = appData.agents;
             const found = agents.find(a => a.email.toLowerCase() === email.toLowerCase() && a.pass === pass);
 
             if (found) {
@@ -2003,17 +2082,17 @@
             });
         }
 
-        function handleSaveOfficialProject(e) {
+        async function handleSaveOfficialProject(e) {
             e.preventDefault();
             if (!activeUser || activeUser.role !== 'admin') return;
 
             const editId = document.getElementById('edit-project-id').value;
             const imageUrl = document.getElementById('project-img').value.trim();
             const title = document.getElementById('project-title').value.trim();
-            const projects = getOfficialProjects();
-            const existing = projects.find(item => item.id === editId) || {};
+            const projects = [...getOfficialProjects()];
+            const existing = projects.find(item => String(item.id) === String(editId)) || {};
             const projectPayload = {
-                id: editId || `op-${Date.now()}`,
+                id: editId || null,
                 category: document.getElementById('project-category').value,
                 title,
                 year: document.getElementById('project-year').value.trim(),
@@ -2027,20 +2106,27 @@
                 features: document.getElementById('project-features').value.trim()
             };
 
-            const idx = projects.findIndex(item => item.id === editId);
-            if (idx > -1) {
-                const oldTitle = projects[idx].title;
-                projects[idx] = projectPayload;
-                syncListingProjectNames(oldTitle, title, imageUrl);
-            } else {
-                projects.unshift(projectPayload);
+            try {
+                const saved = editId
+                    ? await apiRequest(`/api/projects/${editId}`, { method: 'PUT', body: JSON.stringify(uiProjectToApi(projectPayload)) })
+                    : await apiRequest('/api/projects', { method: 'POST', body: JSON.stringify(uiProjectToApi(projectPayload)) });
+                const savedUi = dbProjectToUi(saved);
+                const idx = projects.findIndex(item => String(item.id) === String(editId));
+                if (idx > -1) {
+                    const oldTitle = projects[idx].title;
+                    projects[idx] = savedUi;
+                    await syncListingProjectNames(oldTitle, title, imageUrl);
+                } else {
+                    projects.unshift(savedUi);
+                }
+                saveOfficialProjects(projects);
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+                resetOfficialProjectForm();
+            } catch (error) {
+                alert('Layihə API-yə yazılmadı: ' + error.message);
             }
-
-            saveOfficialProjects(projects);
-            renderOfficialProjectOptions();
-            renderOfficialProjects();
-            renderAdminProjects();
-            resetOfficialProjectForm();
         }
 
         function editOfficialProject(id) {
@@ -2062,37 +2148,52 @@
             document.getElementById('admin-subtab-projects-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function deleteOfficialProject(id) {
+        async function deleteOfficialProject(id) {
             if (!activeUser || activeUser.role !== 'admin') return;
             if (!confirm('Bu layihəni silmək istədiyinizə əminsiniz?')) return;
-            const projects = getOfficialProjects().filter(item => item.id !== id);
-            saveOfficialProjects(projects);
-            renderOfficialProjectOptions();
-            renderOfficialProjects();
-            renderAdminProjects();
+            try {
+                await apiRequest(`/api/projects/${id}`, { method: 'DELETE' });
+                saveOfficialProjects(getOfficialProjects().filter(item => String(item.id) !== String(id)));
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+            } catch (error) {
+                alert('Layihə API-dən silinmədi: ' + error.message);
+            }
         }
 
-        function restoreDefaultOfficialProjects() {
+        async function restoreDefaultOfficialProjects() {
             if (!activeUser || activeUser.role !== 'admin') return;
             if (!confirm('Bütün layihə məlumatları ilkin 1-10 layihə datası ilə bərpa edilsin?')) return;
-            saveOfficialProjects(officialSeaBreezeProjects);
-            renderOfficialProjectOptions();
-            renderOfficialProjects();
-            renderAdminProjects();
-            resetOfficialProjectForm();
+            try {
+                for (const project of getOfficialProjects()) {
+                    if (Number.isInteger(Number(project.id))) await apiRequest(`/api/projects/${project.id}`, { method: 'DELETE' });
+                }
+                const created = [];
+                for (const project of officialSeaBreezeProjects) {
+                    created.push(dbProjectToUi(await apiRequest('/api/projects', { method: 'POST', body: JSON.stringify(uiProjectToApi(project)) })));
+                }
+                saveOfficialProjects(created);
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+                resetOfficialProjectForm();
+            } catch (error) {
+                alert('Layihələr API-də bərpa edilmədi: ' + error.message);
+            }
         }
 
-        function syncListingProjectNames(oldTitle, newTitle, newImage) {
-            const listings = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
-            let changed = false;
-            listings.forEach(item => {
+        async function syncListingProjectNames(oldTitle, newTitle, newImage) {
+            const listings = [...appData.listings];
+            const updates = listings.map(async (item, index) => {
                 if (item.project === oldTitle) {
-                    item.project = newTitle;
-                    if (newImage) item.img = newImage;
-                    changed = true;
+                    const updated = { ...item, project: newTitle, img: newImage || item.img };
+                    const saved = await apiRequest(`/api/listings/${item.id}`, { method: 'PUT', body: JSON.stringify(uiListingToApi(updated)) });
+                    listings[index] = dbListingToUi(saved);
                 }
             });
-            if (changed) localStorage.setItem('besthome_seabreeze', JSON.stringify(listings));
+            await Promise.all(updates);
+            cacheData('listings', listings);
         }
 
         // RENDER ADMIN CABINET (Realtime Data Mapping)
@@ -2116,7 +2217,7 @@
             }
 
             // 1. Listings Grid
-            const properties = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const properties = appData.listings;
             const pContainer = document.getElementById('admin-seabreeze-list');
             pContainer.innerHTML = '';
 
@@ -2151,7 +2252,7 @@
 
             if (activeUser.role === 'admin') {
                 // 2. CV Table
-                const cvs = JSON.parse(localStorage.getItem('besthome_applications')) || [];
+                const cvs = appData.applications;
                 const cvBody = document.getElementById('admin-cv-tbody');
                 cvBody.innerHTML = '';
                 if (cvs.length === 0) {
@@ -2173,7 +2274,7 @@
                 }
 
                 // 3. Agents List
-                const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
+                const agents = appData.agents;
                 const agentsContainer = document.getElementById('admin-agents-grid');
                 agentsContainer.innerHTML = '';
                 agents.forEach(a => {
@@ -2189,7 +2290,7 @@
                 });
 
                 // 4. Vacancies List
-                const vacancies = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+                const vacancies = appData.vacancies;
                 const vacList = document.getElementById('admin-vacancies-list');
                 vacList.innerHTML = '';
                 vacancies.forEach(v => {
@@ -2209,7 +2310,7 @@
                 });
 
                 // 5. Media Gallery
-                const gallery = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+                const gallery = appData.gallery;
                 const galContainer = document.getElementById('admin-gallery-list');
                 galContainer.innerHTML = '';
                 gallery.forEach(g => {
@@ -2227,7 +2328,7 @@
         }
 
         // SAVE & REGISTER EVENTS
-        function handleSaveSeaBreezeItem(e) {
+        async function handleSaveSeaBreezeItem(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-sb-id').value;
             const title = document.getElementById('sb-title').value;
@@ -2255,54 +2356,43 @@
             const officialProjectImage = getOfficialProjects().find(item => item.title === project)?.img;
             const img = base64Img || urlImg || officialProjectImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80";
 
-            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const list = [...appData.listings];
+            const itemPayload = {
+                id: editId || null,
+                title,
+                project,
+                listingType,
+                category,
+                rooms,
+                area,
+                floor,
+                land,
+                price,
+                img,
+                desc,
+                authorId: activeUser.id,
+                status: 'Approved'
+            };
 
-            if (editId) {
-                const item = list.find(x => x.id === parseInt(editId));
-                if (item) {
-                    item.title = title;
-                    item.project = project;
-                    item.listingType = listingType;
-                    item.category = category;
-                    item.rooms = rooms;
-                    item.area = area;
-                    item.floor = floor;
-                    item.land = land;
-                    item.price = price;
-                    item.img = img;
-                    item.desc = desc;
-                    // If edited by Agent: It remains approved (No need for re-approval)
-                    if (activeUser.role === 'admin') {
-                        item.status = 'Approved';
-                    }
-                }
-            } else {
-                const newItem = {
-                    id: Date.now(),
-                    title,
-                    project,
-                    listingType,
-                    category,
-                    rooms,
-                    area,
-                    floor,
-                    land,
-                    price,
-                    img,
-                    desc,
-                    authorId: activeUser.id,
-                    status: activeUser.role === 'admin' ? 'Approved' : 'Pending'
-                };
-                list.unshift(newItem);
+            try {
+                const saved = editId
+                    ? await apiRequest(`/api/listings/${editId}`, { method: 'PUT', body: JSON.stringify(uiListingToApi(itemPayload)) })
+                    : await apiRequest('/api/listings', { method: 'POST', body: JSON.stringify(uiListingToApi(itemPayload)) });
+                const savedUi = dbListingToUi(saved);
+                const idx = list.findIndex(x => String(x.id) === String(editId));
+                if (idx > -1) list[idx] = savedUi;
+                else list.unshift(savedUi);
+                cacheData('listings', list);
+                resetSeaBreezeForm();
+                renderAdminDashboard();
+                renderSeaBreeze();
+            } catch (error) {
+                alert('Elan API-yə yazılmadı: ' + error.message);
             }
-
-            localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
-            resetSeaBreezeForm();
-            renderAdminDashboard();
         }
 
         function editSeaBreezeItem(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
+            const list = appData.listings;
             const p = list.find(x => x.id === id);
             if (p) {
                 document.getElementById('edit-sb-id').value = p.id;
@@ -2352,93 +2442,112 @@
             toggleFormFieldsBasedOnCategory();
         }
 
-        function deleteSeaBreezeItem(id) {
-            let list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
-            list = list.filter(x => x.id !== id);
-            localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
-            renderAdminDashboard();
+        async function deleteSeaBreezeItem(id) {
+            try {
+                await apiRequest(`/api/listings/${id}`, { method: 'DELETE' });
+                cacheData('listings', appData.listings.filter(x => String(x.id) !== String(id)));
+                renderAdminDashboard();
+                renderSeaBreeze();
+            } catch (error) {
+                alert('Elan API-dən silinmədi: ' + error.message);
+            }
         }
 
-        function approveListing(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_seabreeze')) || [];
-            const item = list.find(x => x.id === id);
-            if (item) {
-                item.status = 'Approved';
-                localStorage.setItem('besthome_seabreeze', JSON.stringify(list));
+        async function approveListing(id) {
+            const list = [...appData.listings];
+            const idx = list.findIndex(x => String(x.id) === String(id));
+            if (idx > -1) {
+                list[idx].status = 'Approved';
+                cacheData('listings', list);
                 renderAdminDashboard();
+                renderSeaBreeze();
             }
         }
 
         // AGENT REGISTRATION
-        function handleRegisterAgent(e) {
+        async function handleRegisterAgent(e) {
             e.preventDefault();
-            const agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
             const newAgent = {
-                id: 'agent_' + Date.now(),
                 name: document.getElementById('agent-reg-name').value,
                 surname: document.getElementById('agent-reg-surname').value,
                 phone: document.getElementById('agent-reg-phone').value,
                 email: document.getElementById('agent-reg-email').value,
                 pass: document.getElementById('agent-reg-pass').value
             };
-            agents.push(newAgent);
-            localStorage.setItem('besthome_agents', JSON.stringify(agents));
-            document.getElementById('agent-reg-name').value = '';
-            document.getElementById('agent-reg-surname').value = '';
-            document.getElementById('agent-reg-phone').value = '';
-            document.getElementById('agent-reg-email').value = '';
-            document.getElementById('agent-reg-pass').value = '';
-            renderAdminDashboard();
+            try {
+                const created = await apiRequest('/api/employees', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        first_name: newAgent.name,
+                        last_name: newAgent.surname,
+                        phone: newAgent.phone,
+                        email: newAgent.email,
+                        password: newAgent.pass,
+                        role: 'employee'
+                    })
+                });
+                cacheData('agents', [employeeToUi(created), ...appData.agents]);
+                document.getElementById('agent-reg-name').value = '';
+                document.getElementById('agent-reg-surname').value = '';
+                document.getElementById('agent-reg-phone').value = '';
+                document.getElementById('agent-reg-email').value = '';
+                document.getElementById('agent-reg-pass').value = '';
+                renderAdminDashboard();
+            } catch (error) {
+                alert('Əməkdaş API-yə yazılmadı: ' + error.message);
+            }
         }
 
-        function deleteAgent(id) {
-            let agents = JSON.parse(localStorage.getItem('besthome_agents')) || [];
-            agents = agents.filter(x => x.id !== id);
-            localStorage.setItem('besthome_agents', JSON.stringify(agents));
-            renderAdminDashboard();
+        async function deleteAgent(id) {
+            try {
+                await apiRequest(`/api/employees/${id}`, { method: 'DELETE' });
+                cacheData('agents', appData.agents.filter(x => String(x.id) !== String(id)));
+                renderAdminDashboard();
+            } catch (error) {
+                alert('Əməkdaş API-dən silinmədi: ' + error.message);
+            }
         }
 
         // SAVE & MANAGE VACANCIES (ACTIVE / BLOCKED LOGIC)
-        function handleSaveVacancy(e) {
+        async function handleSaveVacancy(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-vac-id').value;
-            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const list = [...appData.vacancies];
+            const vacancyPayload = {
+                id: editId || null,
+                title: document.getElementById('vac-title').value,
+                type: document.getElementById('vac-type').value,
+                salary: document.getElementById('vac-salary').value,
+                location: document.getElementById('vac-location').value,
+                desc: document.getElementById('vac-desc').value,
+                status: "Aktiv"
+            };
 
-            if (editId) {
-                const item = list.find(v => v.id === parseInt(editId));
-                if (item) {
-                    item.title = document.getElementById('vac-title').value;
-                    item.type = document.getElementById('vac-type').value;
-                    item.salary = document.getElementById('vac-salary').value;
-                    item.location = document.getElementById('vac-location').value;
-                    item.desc = document.getElementById('vac-desc').value;
-                }
-            } else {
-                const newVac = {
-                    id: Date.now(),
-                    title: document.getElementById('vac-title').value,
-                    type: document.getElementById('vac-type').value,
-                    salary: document.getElementById('vac-salary').value,
-                    location: document.getElementById('vac-location').value,
-                    desc: document.getElementById('vac-desc').value,
-                    status: "Aktiv"
-                };
-                list.unshift(newVac);
+            try {
+                const saved = editId
+                    ? await apiRequest(`/api/vacancies/${editId}`, { method: 'PUT', body: JSON.stringify(uiVacancyToApi(vacancyPayload)) })
+                    : await apiRequest('/api/vacancies', { method: 'POST', body: JSON.stringify(uiVacancyToApi(vacancyPayload)) });
+                const savedUi = dbVacancyToUi(saved);
+                const idx = list.findIndex(v => String(v.id) === String(editId));
+                if (idx > -1) list[idx] = savedUi;
+                else list.unshift(savedUi);
+                cacheData('vacancies', list);
+                document.getElementById('edit-vac-id').value = '';
+                document.getElementById('vac-title').value = '';
+                document.getElementById('vac-type').value = '';
+                document.getElementById('vac-salary').value = '';
+                document.getElementById('vac-location').value = '';
+                document.getElementById('vac-desc').value = '';
+                document.getElementById('vac-form-title').textContent = "Yeni Vakansiya";
+                renderAdminDashboard();
+                renderCareerSection();
+            } catch (error) {
+                alert('Vakansiya API-yə yazılmadı: ' + error.message);
             }
-
-            localStorage.setItem('besthome_vacancies', JSON.stringify(list));
-            document.getElementById('edit-vac-id').value = '';
-            document.getElementById('vac-title').value = '';
-            document.getElementById('vac-type').value = '';
-            document.getElementById('vac-salary').value = '';
-            document.getElementById('vac-location').value = '';
-            document.getElementById('vac-desc').value = '';
-            document.getElementById('vac-form-title').textContent = "Yeni Vakansiya";
-            renderAdminDashboard();
         }
 
         function editVacancy(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
+            const list = appData.vacancies;
             const v = list.find(x => x.id === id);
             if (v) {
                 document.getElementById('edit-vac-id').value = v.id;
@@ -2451,21 +2560,27 @@
             }
         }
 
-        function toggleVacancyStatus(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
-            const item = list.find(x => x.id === id);
-            if (item) {
-                item.status = item.status === 'Aktiv' ? 'Bloklanmış' : 'Aktiv';
-                localStorage.setItem('besthome_vacancies', JSON.stringify(list));
+        async function toggleVacancyStatus(id) {
+            const list = [...appData.vacancies];
+            const idx = list.findIndex(x => String(x.id) === String(id));
+            if (idx > -1) {
+                // Backend vacancies do not expose a status column, so this UI-only flag is cached.
+                list[idx].status = list[idx].status === 'Aktiv' ? 'Bloklanmış' : 'Aktiv';
+                cacheData('vacancies', list);
                 renderAdminDashboard();
+                renderCareerSection();
             }
         }
 
-        function deleteVacancy(id) {
-            let list = JSON.parse(localStorage.getItem('besthome_vacancies')) || [];
-            list = list.filter(x => x.id !== id);
-            localStorage.setItem('besthome_vacancies', JSON.stringify(list));
-            renderAdminDashboard();
+        async function deleteVacancy(id) {
+            try {
+                await apiRequest(`/api/vacancies/${id}`, { method: 'DELETE' });
+                cacheData('vacancies', appData.vacancies.filter(x => String(x.id) !== String(id)));
+                renderAdminDashboard();
+                renderCareerSection();
+            } catch (error) {
+                alert('Vakansiya API-dən silinmədi: ' + error.message);
+            }
         }
 
         function saveCareerIntroText() {
@@ -2484,49 +2599,52 @@
             }
         }
 
-        function handleSaveGalleryItem(e) {
+        async function handleSaveGalleryItem(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-g-id').value;
             const title = document.getElementById('g-title').value;
             const type = document.getElementById('g-type').value;
             const desc = document.getElementById('g-desc').value;
+            const videoUrl = document.getElementById('g-video-url').value.trim();
+            const galleryPayload = {
+                id: editId || null,
+                title,
+                type,
+                desc,
+                images: type === 'event' ? uploadedEventImages : [],
+                url: type === 'video' ? normalizeGalleryVideoUrl(videoUrl) : '',
+                thumbnail: type === 'video' ? getYouTubeThumbnail(videoUrl) : ''
+            };
 
-            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
-
-            if (editId) {
-                const item = list.find(x => x.id === parseInt(editId));
-                if (item) {
-                    item.title = title;
-                    item.type = type;
-                    item.desc = desc;
-                    if (type === 'event') {
-                        item.images = uploadedEventImages;
-                    } else {
-                        item.url = document.getElementById('g-video-url').value;
-                    }
-                }
-            } else {
-                const newItem = {
-                    id: Date.now(),
-                    title,
-                    type,
-                    desc
-                };
-                if (type === 'event') {
-                    newItem.images = uploadedEventImages;
-                } else {
-                    newItem.url = document.getElementById('g-video-url').value;
-                }
-                list.unshift(newItem);
+            if (type === 'event' && galleryPayload.images.length === 0) {
+                alert('Qalereya üçün ən azı bir şəkil seçin.');
+                return;
+            }
+            if (type === 'video' && !videoUrl) {
+                alert('Video URL daxil edin.');
+                return;
             }
 
-            localStorage.setItem('besthome_gallery', JSON.stringify(list));
-            resetGalleryForm();
-            renderAdminDashboard();
+            try {
+                const saved = editId
+                    ? await apiRequest(`/api/gallery/${editId}`, { method: 'PUT', body: JSON.stringify(uiGalleryToApi(galleryPayload)) })
+                    : await apiRequest('/api/gallery', { method: 'POST', body: JSON.stringify(uiGalleryToApi(galleryPayload)) });
+                const savedUi = dbGalleryToUi(saved);
+                const list = [...appData.gallery];
+                const idx = list.findIndex(x => String(x.id) === String(editId));
+                if (idx > -1) list[idx] = savedUi;
+                else list.unshift(savedUi);
+                cacheData('gallery', list);
+                resetGalleryForm();
+                renderAdminDashboard();
+                renderPortfolio();
+            } catch (error) {
+                alert('Qalereya API-yə yazılmadı: ' + error.message);
+            }
         }
 
         function editGalleryItem(id) {
-            const list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
+            const list = appData.gallery;
             const g = list.find(x => x.id === id);
             if (g) {
                 document.getElementById('edit-g-id').value = g.id;
@@ -2559,18 +2677,25 @@
             toggleGalleryTypeFields();
         }
 
-        function deleteGalleryItem(id) {
-            let list = JSON.parse(localStorage.getItem('besthome_gallery')) || [];
-            list = list.filter(x => x.id !== id);
-            localStorage.setItem('besthome_gallery', JSON.stringify(list));
-            renderAdminDashboard();
+        async function deleteGalleryItem(id) {
+            try {
+                await apiRequest(`/api/gallery/${id}`, { method: 'DELETE' });
+                cacheData('gallery', appData.gallery.filter(x => String(x.id) !== String(id)));
+                renderAdminDashboard();
+                renderPortfolio();
+            } catch (error) {
+                alert('Qalereya API-dən silinmədi: ' + error.message);
+            }
         }
 
-        function deleteApp(id) {
-            let list = JSON.parse(localStorage.getItem('besthome_applications')) || [];
-            list = list.filter(x => x.id !== id);
-            localStorage.setItem('besthome_applications', JSON.stringify(list));
-            renderAdminDashboard();
+        async function deleteApp(id) {
+            try {
+                await apiRequest(`/api/applications/${id}`, { method: 'DELETE' });
+                cacheData('applications', appData.applications.filter(x => String(x.id) !== String(id)));
+                renderAdminDashboard();
+            } catch (error) {
+                alert('Müraciət API-dən silinmədi: ' + error.message);
+            }
         }
 
         // LIGHTBOX GENERAL PREVIEW
