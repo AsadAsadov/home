@@ -152,6 +152,14 @@
                     </button>
                 </div>
 
+                <div class="max-w-md">
+                    <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Layihə axtarışı</label>
+                    <div class="relative mt-2">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        <input id="project-live-search" type="search" oninput="handleProjectSearchInput()" placeholder="Layihə adına görə axtarın..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+                    </div>
+                </div>
+
                 <!-- Layihələr Siyahısı (Grid) -->
                 <div id="sea-breeze-projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- Loaded dynamically via JS -->
@@ -481,8 +489,14 @@
                             <textarea id="project-desc" rows="4" required placeholder="Layihə haqqında geniş təsvir" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"></textarea>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkil linki *</label>
-                            <input type="url" id="project-img" required oninput="updateProjectImagePreview()" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <div class="flex items-center justify-between gap-3">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label>
+                                <button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">
+                                    <i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et
+                                </button>
+                            </div>
+                            <input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <div id="project-images-list" class="space-y-2"></div>
                             <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40">
                                 <picture class="block w-full h-full imageMove">
                                     <source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset="">
@@ -490,7 +504,7 @@
                                     <img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload">
                                 </picture>
                             </div>
-                            <p class="text-[10px] text-gray-500">Bu link saxlanıldıqda kart, modal, carousel və detal şəkillərində eyni <code>picture/source/img</code> strukturu ilə avtomatik istifadə olunur.</p>
+                            <p class="text-[10px] text-gray-500">Birinci link kartda əsas şəkil kimi göstərilir, bütün linklər isə detal modalında slider/carousel kimi açılır.</p>
                         </div>
                         <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
                             <i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla
@@ -677,11 +691,18 @@
                         <img id="op-modal-img" class="w-full h-full object-cover lazyload" loading="lazy" data-parallax="true" src="" alt="">
                     </picture>
                     <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-black/20 to-transparent"></div>
+                    <div id="op-modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none z-10">
+                        <button onclick="changeOfficialProjectImage(-1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="changeOfficialProjectImage(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div id="op-modal-image-counter" class="hidden absolute top-4 left-4 bg-black/50 text-white text-[10px] font-bold px-3 py-1 rounded-full z-10"></div>
                     <div class="absolute bottom-6 left-6 md:left-8">
                         <span id="op-modal-year" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
                         <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
                     </div>
                 </div>
+
+                <div id="op-modal-thumbnails" class="hidden px-6 md:px-8 pt-5 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
 
                 <div class="p-6 md:p-8 space-y-6">
                     <!-- Tab Headers -->
@@ -1157,13 +1178,19 @@
             return response.status === 204 ? null : response.json();
         }
 
+        function normalizeProjectImages(images, fallback = '') {
+            const arr = Array.isArray(images) ? images : [];
+            return [...arr, fallback].map(x => String(x || '').trim()).filter((x, idx, all) => x && all.indexOf(x) === idx);
+        }
+
         function dbProjectToUi(p) {
-            const img = p.imageUrl || p.image_url || '';
+            const images = normalizeProjectImages(p.images, p.imageUrl || p.image_url || '');
+            const img = images[0] || '';
             return {
                 id: String(p.id), title: p.title, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
-                repair: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
-                desc: p.description || '', img, picture: buildProjectPictureFromLink(img)
+                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
+                desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img)
             };
         }
 
@@ -1179,7 +1206,8 @@
         }
 
         function dbVacancyToUi(v) {
-            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', status: 'Aktiv' };
+            const isActive = v.isActive ?? v.is_active ?? true;
+            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', isActive, status: isActive ? 'Aktiv' : 'Bloklanıb' };
         }
 
         function dbGalleryToUi(g) {
@@ -1192,7 +1220,7 @@
 
         function dbAppToUi(a) {
             const [name, ...surnameParts] = String(a.fullname || '').split(' ');
-            return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
+            return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', cvFile: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
         }
 
         function employeeToUi(e) {
@@ -1259,7 +1287,8 @@
                 repair_status: p.repairStatus || p.repair,
                 features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
                 description: p.desc,
-                image_url: p.img
+                image_url: p.img,
+                images: normalizeProjectImages(p.images, p.img)
             };
         }
 
@@ -1284,7 +1313,8 @@
                 employment_type: v.type,
                 salary: v.salary,
                 city: v.location,
-                description: v.desc
+                description: v.desc,
+                is_active: v.isActive ?? v.status !== 'Bloklanıb'
             };
         }
 
@@ -1363,6 +1393,62 @@
             };
         }
 
+
+        function handleProjectSearchInput() {
+            projectSearchQuery = document.getElementById('project-live-search')?.value.trim().toLowerCase() || '';
+            renderOfficialProjects();
+        }
+
+        function getProjectImages(project) {
+            return normalizeProjectImages(project?.images, project?.img);
+        }
+
+        function renderProjectImageInputs(images = ['']) {
+            const container = document.getElementById('project-images-list');
+            if (!container) return;
+            const values = images.length ? images : [''];
+            container.innerHTML = values.map((url, idx) => `
+                <div class="flex gap-2 items-center">
+                    <input type="url" value="${url || ''}" oninput="handleProjectImageInput(${idx}, this.value)" placeholder="Əlavə şəkil URL" class="project-image-url flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    <button type="button" onclick="removeProjectImageInput(${idx})" class="${idx === 0 ? 'hidden' : ''} text-red-400 bg-red-500/10 hover:bg-red-500 hover:text-white w-9 h-9 rounded-xl transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function rawProjectImageInputValues() {
+            const values = Array.from(document.querySelectorAll('.project-image-url')).map(input => input.value.trim());
+            return values.length ? values : [document.getElementById('project-img')?.value.trim() || ''];
+        }
+
+        function collectProjectImageInputs() {
+            const primary = document.getElementById('project-img')?.value.trim() || '';
+            return normalizeProjectImages(rawProjectImageInputValues(), primary);
+        }
+
+        function syncPrimaryProjectImage(value) {
+            const firstExtra = document.querySelector('.project-image-url');
+            if (firstExtra && firstExtra.value !== value) firstExtra.value = value;
+            updateProjectImagePreview();
+        }
+
+        function handleProjectImageInput(index, value) {
+            if (index === 0) document.getElementById('project-img').value = value;
+            updateProjectImagePreview();
+        }
+
+        function addProjectImageInput(value = '') {
+            renderProjectImageInputs([...rawProjectImageInputValues(), value]);
+        }
+
+        function removeProjectImageInput(index) {
+            const images = rawProjectImageInputValues();
+            images.splice(index, 1);
+            const next = images.length ? images : [''];
+            document.getElementById('project-img').value = next[0] || '';
+            renderProjectImageInputs(next);
+            updateProjectImagePreview();
+        }
+
         function renderOfficialProjectOptions() {
             const projects = getOfficialProjects();
             const optionHtml = projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('') + '<option value="Digər">Digər Rezidensiya</option>';
@@ -1382,6 +1468,9 @@
 
         let activeUser = null;
         let selectedProjectCategory = 'Apartment';
+        let projectSearchQuery = '';
+        let officialProjectImages = [];
+        let officialProjectImageIndex = 0;
         let uploadedEventImages = [];
         let uploadedEventImageFiles = [];
         let currentlyEditingGalleryItemId = null;
@@ -1527,7 +1616,12 @@
             const container = document.getElementById('sea-breeze-projects-list');
             container.innerHTML = '';
 
-            const filtered = getOfficialProjects().filter(p => p.category === selectedProjectCategory);
+            const filtered = getOfficialProjects().filter(p => p.category === selectedProjectCategory && (!projectSearchQuery || p.title.toLowerCase().includes(projectSearchQuery)));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Layihə tapılmadı.</div>`;
+                return;
+            }
 
             filtered.forEach(p => {
                 const cardHtml = `
@@ -1560,10 +1654,9 @@
             if (!p) return;
             activeOfficialProject = p;
 
-            const picture = p.picture || {};
-            document.getElementById('op-modal-source-desktop').srcset = picture.desktop || p.img;
-            document.getElementById('op-modal-source-tablet').srcset = picture.tablet || picture.desktop || p.img;
-            document.getElementById('op-modal-img').src = picture.mobile || p.img;
+            officialProjectImages = getProjectImages(p);
+            officialProjectImageIndex = 0;
+            updateOfficialProjectImage();
             document.getElementById('op-modal-img').alt = p.title;
             document.getElementById('op-modal-title').textContent = p.title;
             document.getElementById('op-modal-year').textContent = p.year;
@@ -1579,6 +1672,41 @@
 
             switchOfficialModalTab('details');
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
+        }
+
+
+        function updateOfficialProjectImage() {
+            const p = activeOfficialProject;
+            if (!p) return;
+            const current = officialProjectImages[officialProjectImageIndex] || p.img || '';
+            document.getElementById('op-modal-source-desktop').srcset = current;
+            document.getElementById('op-modal-source-tablet').srcset = current;
+            document.getElementById('op-modal-img').src = current;
+
+            const controls = document.getElementById('op-modal-slider-controls');
+            const counter = document.getElementById('op-modal-image-counter');
+            const thumbs = document.getElementById('op-modal-thumbnails');
+            const hasMany = officialProjectImages.length > 1;
+            controls.classList.toggle('hidden', !hasMany);
+            counter.classList.toggle('hidden', !hasMany);
+            thumbs.classList.toggle('hidden', !hasMany);
+            counter.textContent = hasMany ? `${officialProjectImageIndex + 1} / ${officialProjectImages.length}` : '';
+            thumbs.innerHTML = hasMany ? officialProjectImages.map((img, idx) => `
+                <button onclick="setOfficialProjectImage(${idx})" class="h-16 rounded-xl overflow-hidden border ${idx === officialProjectImageIndex ? 'border-brand-500' : 'border-white/10'} transition">
+                    <img src="${img}" class="w-full h-full object-cover" alt="${p.title}">
+                </button>
+            `).join('') : '';
+        }
+
+        function changeOfficialProjectImage(direction) {
+            if (!officialProjectImages.length) return;
+            officialProjectImageIndex = (officialProjectImageIndex + direction + officialProjectImages.length) % officialProjectImages.length;
+            updateOfficialProjectImage();
+        }
+
+        function setOfficialProjectImage(index) {
+            officialProjectImageIndex = index;
+            updateOfficialProjectImage();
         }
 
         function closeOfficialProjectModal() {
@@ -1808,7 +1936,7 @@
             container.innerHTML = '';
             dropdown.innerHTML = '<option value="" disabled selected>Vakansiya seçin *</option>';
 
-            const activeOnes = list.filter(v => v.status === 'Aktiv');
+            const activeOnes = list.filter(v => (v.isActive ?? v.status === 'Aktiv') === true);
 
             if (activeOnes.length === 0) {
                 container.innerHTML = `<div class="p-6 text-center text-gray-500 glass-card rounded-2xl">Aktiv vakansiya yoxdur.</div>`;
@@ -2080,7 +2208,7 @@
         }
 
         function updateProjectImagePreview() {
-            const imageUrl = document.getElementById('project-img')?.value || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80';
+            const imageUrl = (collectProjectImageInputs()[0] || document.getElementById('project-img')?.value) || 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80';
             const desktop = document.getElementById('project-preview-source-desktop');
             const tablet = document.getElementById('project-preview-source-tablet');
             const img = document.getElementById('project-preview-img');
@@ -2093,6 +2221,7 @@
             document.getElementById('edit-project-id').value = '';
             document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
             document.querySelector('#admin-subtab-projects-manager form').reset();
+            renderProjectImageInputs(['']);
             updateProjectImagePreview();
         }
 
@@ -2114,6 +2243,7 @@
                             ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="absolute top-3 right-3 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${project.year}</span>
+                            <span class="absolute top-3 left-3 bg-black/50 text-white text-[10px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-images mr-1"></i>${getProjectImages(project).length}</span>
                             <h4 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${project.title}</h4>
                         </div>
                         <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
@@ -2139,7 +2269,8 @@
             if (!activeUser || activeUser.role !== 'admin') return;
 
             const editId = document.getElementById('edit-project-id').value;
-            const imageUrl = document.getElementById('project-img').value.trim();
+            const projectImages = collectProjectImageInputs();
+            const imageUrl = projectImages[0] || '';
             const title = document.getElementById('project-title').value.trim();
             const projects = [...getOfficialProjects()];
             const existing = projects.find(item => String(item.id) === String(editId)) || {};
@@ -2149,6 +2280,7 @@
                 title,
                 year: document.getElementById('project-year').value.trim(),
                 img: imageUrl,
+                images: projectImages,
                 picture: buildProjectPictureFromLink(imageUrl, existing.picture),
                 desc: document.getElementById('project-desc').value.trim(),
                 floors: document.getElementById('project-floors').value.trim(),
@@ -2195,7 +2327,9 @@
             document.getElementById('project-repair').value = project.repairStatus;
             document.getElementById('project-features').value = project.features;
             document.getElementById('project-desc').value = project.desc;
-            document.getElementById('project-img').value = project.img;
+            const images = getProjectImages(project);
+            document.getElementById('project-img').value = images[0] || project.img || '';
+            renderProjectImageInputs(images.length ? images : ['']);
             updateProjectImagePreview();
             document.getElementById('admin-subtab-projects-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -2316,9 +2450,13 @@
                                 <td class="p-4 font-bold text-white">${c.name} ${c.surname}</td>
                                 <td class="p-4">${c.phone} <br> <span class="text-[10px] text-gray-500">${c.email}</span></td>
                                 <td class="p-4 text-brand-500 font-semibold">${c.vacancy}</td>
-                                <td class="p-4 text-blue-400 cursor-pointer" onclick="handleMockDownload('${c.fileName}')"><i class="fa-solid fa-file-pdf mr-1"></i> ${c.fileName}</td>
+                                <td class="p-4 text-gray-300"><i class="fa-solid fa-file-lines mr-1 text-blue-400"></i> ${getCvDisplayName(c.fileName)}</td>
                                 <td class="p-4 text-right">
-                                    <button onclick="deleteApp(${c.id})" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                                    <div class="flex justify-end gap-2">
+                                        <button onclick="previewCvFile('${c.fileName}', '${c.name} ${c.surname}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Preview</button>
+                                        <a href="${getCvUrl(c.fileName)}" download target="_blank" class="text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded">Download</a>
+                                        <button onclick="deleteApp(${c.id})" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -2354,7 +2492,7 @@
                             </div>
                             <div class="flex space-x-2">
                                 <button onclick="editVacancy(${v.id})" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
-                                <button onclick="toggleVacancyStatus(${v.id})" class="text-yellow-400 px-2 py-1 bg-yellow-500/10 rounded">Blokla</button>
+                                <button onclick="toggleVacancyStatus(${v.id})" class="${(v.isActive ?? v.status === 'Aktiv') ? 'text-emerald-400 bg-emerald-500/10' : 'text-yellow-400 bg-yellow-500/10'} px-2 py-1 rounded">${(v.isActive ?? v.status === 'Aktiv') ? 'Aktiv' : 'Bloklanıb'}</button>
                                 <button onclick="deleteVacancy(${v.id})" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
@@ -2572,7 +2710,8 @@
                 salary: document.getElementById('vac-salary').value,
                 location: document.getElementById('vac-location').value,
                 desc: document.getElementById('vac-desc').value,
-                status: "Aktiv"
+                status: "Aktiv",
+                isActive: true
             };
 
             try {
@@ -2615,12 +2754,27 @@
         async function toggleVacancyStatus(id) {
             const list = [...appData.vacancies];
             const idx = list.findIndex(x => String(x.id) === String(id));
-            if (idx > -1) {
-                // Backend vacancies do not expose a status column, so this UI-only flag is cached.
-                list[idx].status = list[idx].status === 'Aktiv' ? 'Bloklanmış' : 'Aktiv';
+            if (idx === -1) return;
+
+            const previous = { ...list[idx] };
+            const nextActive = !(previous.isActive ?? previous.status === 'Aktiv');
+            list[idx] = { ...previous, isActive: nextActive, status: nextActive ? 'Aktiv' : 'Bloklanıb' };
+            cacheData('vacancies', list);
+            renderAdminDashboard();
+            renderCareerSection();
+
+            try {
+                const updated = await apiRequest(`/api/vacancies/${id}/toggle`, { method: 'PATCH' });
+                list[idx] = dbVacancyToUi(updated);
                 cacheData('vacancies', list);
                 renderAdminDashboard();
                 renderCareerSection();
+            } catch (error) {
+                list[idx] = previous;
+                cacheData('vacancies', list);
+                renderAdminDashboard();
+                renderCareerSection();
+                alert('Vakansiya statusu dəyişmədi: ' + error.message);
             }
         }
 
@@ -2797,13 +2951,14 @@
         }
 
         function openMediaModal(type, url, title) {
+            url = normalizeGalleryVideoUrl(url);
             document.getElementById('modal-slider-controls').classList.add('hidden');
             document.getElementById('modal-counter').textContent = '';
             document.getElementById('modal-title').textContent = title;
             const isMp4 = /\.mp4($|\?)/i.test(url);
             document.getElementById('modal-content').innerHTML = isMp4
                 ? `<video src="${url}" controls autoplay class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl bg-black"></video>`
-                : `<iframe src="${url}" class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+                : `<iframe src="${url}" class="w-[80vw] h-[45vw] max-w-[854px] max-h-[480px] rounded-xl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
             document.getElementById('media-modal').classList.remove('hidden');
         }
 
@@ -2812,12 +2967,46 @@
             document.getElementById('modal-content').innerHTML = '';
         }
 
-        function handleMockDownload(name) {
-            alert(`Fayl sınaq rejimində yüklənir: ${name}`);
+        function getCvUrl(fileName = '') {
+            if (!fileName) return '#';
+            return fileName.startsWith('http') ? fileName : `${API_BASE}${fileName.startsWith('/') ? fileName : '/uploads/' + fileName}`;
+        }
+
+        function getCvDisplayName(fileName = '') {
+            return decodeURIComponent(String(fileName).split('/').pop() || 'CV faylı');
+        }
+
+        function getFileExtension(fileName = '') {
+            return String(fileName).split('?')[0].split('.').pop().toLowerCase();
+        }
+
+        function forceDownload(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = getCvDisplayName(url);
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function previewCvFile(fileName, title = 'CV faylı') {
+            const url = getCvUrl(fileName);
+            const ext = getFileExtension(fileName);
+            if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'].includes(ext)) {
+                openEventLightbox(encodeURIComponent(JSON.stringify([url])), `${title} — CV Preview`);
+                return;
+            }
+            if (ext === 'pdf') {
+                window.open(url, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            forceDownload(url);
         }
 
         // MAIN SETUP AND BOOTSTRAP
         window.addEventListener('load', async () => {
+            renderProjectImageInputs(['']);
             await initializeAuth();
             await hydrateFromDatabase();
             switchTab('seabreeze');

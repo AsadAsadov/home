@@ -5,10 +5,25 @@ const { authenticate, authorize } = require('../middleware/auth');
 const { normalizeVideo } = require('../utils/media');
 const router = express.Router();
 
+function parseImages(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (_error) {
+      return value.split(',').map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Number(v));
 const int = (v) => (v === '' || v == null || Number.isNaN(Number.parseInt(v, 10)) ? null : Number.parseInt(v, 10));
 
 function projectData(p) {
+  const images = [...parseImages(p.images), p.image_url || p.imageUrl || p.img || p.picture?.mobile].filter(Boolean);
   return {
     title: p.title || 'Untitled project',
     category: p.category || null,
@@ -19,7 +34,8 @@ function projectData(p) {
     repairStatus: p.repair_status || p.repairStatus || p.repair || null,
     features: Array.isArray(p.features) ? p.features.join(' / ') : (p.features || null),
     description: p.description || p.desc || null,
-    imageUrl: p.image_url || p.imageUrl || p.img || p.picture?.mobile || null,
+    imageUrl: images[0] || null,
+    images: images.length ? images : undefined,
   };
 }
 
@@ -48,6 +64,7 @@ function vacancyData(v) {
     salary: v.salary || null,
     city: v.city || v.location || null,
     description: v.description || v.desc || null,
+    isActive: v.is_active ?? v.isActive ?? (v.status !== 'Bloklanıb' && v.status !== 'Bloklanmış'),
   };
 }
 
