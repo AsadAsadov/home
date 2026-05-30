@@ -63,20 +63,24 @@
             box-shadow: 0 12px 30px rgba(127, 127, 255, 0.10);
         }
         .site-logo {
-            height: 42px;
+            height: 56px;
             width: auto;
+            max-height: 100%;
             object-fit: contain;
             image-rendering: auto;
         }
         .site-footer-logo {
-            height: 40px;
+            height: 56px;
             width: auto;
             object-fit: contain;
             image-rendering: auto;
         }
         @media (min-width: 768px) {
             .site-logo {
-                height: 56px;
+                height: 80px;
+            }
+            .site-footer-logo {
+                height: 72px;
             }
         }
 
@@ -308,12 +312,12 @@
             color: var(--color-primary) !important;
         }
         #sea-breeze-hero-title {
-            color: var(--color-text-primary) !important;
-            text-shadow: 0 8px 28px rgba(255, 255, 255, 0.55);
+            color: #111827 !important;
+            text-shadow: 0 2px 14px rgba(255, 255, 255, 0.86), 0 1px 2px rgba(15, 23, 42, 0.28);
         }
         #sea-breeze-hero-description {
-            color: #374151 !important;
-            text-shadow: 0 6px 22px rgba(255, 255, 255, 0.70);
+            color: #1F2937 !important;
+            text-shadow: 0 2px 12px rgba(255, 255, 255, 0.82), 0 1px 1px rgba(15, 23, 42, 0.18);
         }
         .absolute.text-white,
         .absolute .text-white,
@@ -333,7 +337,7 @@
     <!-- NAVIGATION BAR -->
     <nav class="glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
+            <div class="flex items-center justify-between h-20 md:h-24">
                 <!-- Logo -->
                 <div class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
                     <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-logo" decoding="async">
@@ -385,10 +389,10 @@
 
                 <div class="relative z-10 max-w-3xl space-y-5 px-6 py-8 sm:px-10 md:px-14 md:py-12 lg:py-14 text-left">
                     <span id="sea-breeze-hero-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
-                    <h1 id="sea-breeze-hero-title" class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[0.95] drop-shadow-2xl">
-                        Sea Breeze-də <br><span class="bg-gradient-to-r from-brand-600 via-brand-500 to-white bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
+                    <h1 id="sea-breeze-hero-title" class="text-3xl md:text-5xl lg:text-6xl font-black text-gray-950 leading-[1.02] drop-shadow-xl">
+                        Sea Breeze-də <br><span class="bg-gradient-to-r from-gray-950 via-brand-900 to-gray-900 bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
                     </h1>
-                    <p id="sea-breeze-hero-description" class="max-w-2xl text-gray-100 text-base md:text-xl font-light leading-relaxed drop-shadow-lg">
+                    <p id="sea-breeze-hero-description" class="max-w-2xl text-gray-800 text-lg md:text-2xl font-semibold leading-snug md:leading-relaxed drop-shadow-md">
                         BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.
                     </p>
                 </div>
@@ -397,8 +401,8 @@
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
             <div class="space-y-6">
                 <div class="text-center md:text-left">
-                    <h2 class="text-2xl font-extrabold text-white">Sea Breeze Layihələri</h2>
-                    <p class="text-gray-400 text-xs">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
+                    <h2 class="text-2xl font-extrabold text-gray-900">Sea Breeze Layihələri</h2>
+                    <p class="text-gray-700 text-xs font-medium">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
                 </div>
 
                 <!-- 3-lü Bölmə Filtri -->
@@ -481,7 +485,8 @@
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div class="space-y-2">
                     <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Fəaliyyət</span>
-                    <h2 class="text-3xl md:text-4xl font-extrabold text-white">Tədbirlərimiz və Media</h2>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Tədbirlərimiz və Media</h2>
+                    <p class="text-gray-700 text-sm font-medium max-w-2xl">Qalereyada ən son tədbir fotolarını və videolarını rahat şəkildə nəzərdən keçirin.</p>
                 </div>
                 <div class="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
                     <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">Hamısı</button>
@@ -493,48 +498,48 @@
         </section>
 
         <!-- 3. CAREER SECTION -->
-        <section id="tab-career" class="tab-content hidden space-y-12">
-            <div class="text-center max-w-3xl mx-auto space-y-4">
+        <section id="tab-career" class="tab-content hidden space-y-7 md:space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-2 md:space-y-3">
                 <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Karyera imkanları</span>
-                <h2 class="text-4xl font-black text-white">Bizim Komandaya Qoşul!</h2>
-                <p id="career-intro-text-view" class="text-gray-400 font-light text-base"></p>
+                <h2 class="text-3xl md:text-4xl font-black text-gray-900">Bizim Komandaya Qoşul!</h2>
+                <p id="career-intro-text-view" class="text-gray-700 font-medium text-sm md:text-base leading-relaxed"></p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div class="lg:col-span-5 space-y-4">
-                    <h3 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 items-start">
+                <div class="lg:col-span-5 space-y-3">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-900 mb-2 flex items-center space-x-2">
                         <i class="fa-solid fa-briefcase text-brand-500"></i>
                         <span>Aktiv Vakansiyalar</span>
                     </h3>
-                    <div id="active-vacancies-list" class="space-y-4"></div>
+                    <div id="active-vacancies-list" class="space-y-3"></div>
                 </div>
 
                 <div class="lg:col-span-7">
-                    <div class="glass-card p-6 md:p-8 rounded-3xl space-y-6">
-                        <h3 class="text-2xl font-bold text-white">Müraciət Anket Formu</h3>
+                    <div class="glass-card p-5 md:p-6 rounded-3xl space-y-4">
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-900">Müraciət Anket Formu</h3>
                         <div id="form-success-alert" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-4 rounded-xl text-sm flex items-center space-x-3">
                             <i class="fa-solid fa-circle-check text-lg"></i>
                             <span>Müraciətiniz uğurla göndərildi!</span>
                         </div>
-                        <form id="career-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <input type="text" id="app-name" required placeholder="Adınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
-                                <input type="text" id="app-surname" required placeholder="Soyadınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                        <form id="career-form" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <input type="text" id="app-name" required placeholder="Adınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                                <input type="text" id="app-surname" required placeholder="Soyadınız" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <input type="tel" id="app-phone" required placeholder="Əlaqə nömrəsi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
-                                <input type="email" id="app-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <input type="tel" id="app-phone" required placeholder="Əlaqə nömrəsi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                                <input type="email" id="app-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                             </div>
-                            <select id="app-vacancy" required class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"></select>
+                            <select id="app-vacancy" required class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></select>
                             
-                            <div class="relative border-2 border-dashed border-white/10 p-6 text-center cursor-pointer rounded-2xl" id="cv-dropzone">
+                            <div class="relative border-2 border-dashed border-white/10 p-4 text-center cursor-pointer rounded-2xl" id="cv-dropzone">
                                 <input type="file" id="app-cv" accept=".pdf,.doc,.docx" required onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                                <p class="text-sm font-semibold text-white" id="cv-file-name">CV Faylı seçin (PDF, DOCX)</p>
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-500 mb-1"></i>
+                                <p class="text-sm font-semibold text-gray-800" id="cv-file-name">CV Faylı seçin (PDF, DOCX)</p>
                             </div>
 
-                            <textarea id="app-notes" rows="3" placeholder="Əlavə qeydləriniz..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"></textarea>
-                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl">Müraciəti Göndər</button>
+                            <textarea id="app-notes" rows="2" placeholder="Əlavə qeydləriniz..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></textarea>
+                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl">Müraciəti Göndər</button>
                         </form>
                     </div>
                 </div>
@@ -589,8 +594,8 @@
                 <h2 class="text-2xl font-bold text-white">Sistemə Giriş</h2>
                 <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs">E-poçt və ya şifrə yanlışdır!</div>
                 <form onsubmit="handleGeneralLogin(event)" class="space-y-4 text-left">
-                    <input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
-                    <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none">
+                    <input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Daxil Ol</button>
                 </form>
             </div>
@@ -1045,7 +1050,7 @@ Title: Park Villas
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN DETALLI MODAL -->
     <div id="property-detail-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="glass-card max-w-2xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
-            <button onclick="closePropertyModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20">
+            <button onclick="closePropertyModal()" class="absolute top-4 right-4 text-gray-700 hover:text-brand-500 text-2xl z-20">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
@@ -1055,25 +1060,25 @@ Title: Park Villas
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <span id="p-modal-project" class="bg-brand-500/15 text-brand-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-brand-500/20"></span>
-                            <h3 id="p-modal-title" class="text-2xl font-extrabold text-white mt-2"></h3>
+                            <h3 id="p-modal-title" class="text-2xl font-extrabold text-gray-900 mt-2"></h3>
                         </div>
                         <div class="text-right">
-                            <div id="p-modal-price" class="text-2xl font-extrabold text-white"></div>
+                            <div id="p-modal-price" class="text-2xl font-extrabold text-gray-900"></div>
                             <div id="p-modal-sqprice" class="text-xs text-brand-300 font-bold mt-1"></div>
                         </div>
                     </div>
 
                     <!-- Parametrlər Qutusu -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#0d1527] p-4 rounded-2xl border border-white/5 text-xs text-gray-300">
-                        <div>Otaq: <strong id="p-modal-rooms" class="text-white block mt-0.5"></strong></div>
-                        <div>Sahə: <strong id="p-modal-area" class="text-white block mt-0.5"></strong></div>
-                        <div>Mərtəbə: <strong id="p-modal-floor" class="text-white block mt-0.5"></strong></div>
-                        <div id="p-modal-land-box" class="hidden">Torpaq (Sot): <strong id="p-modal-land" class="text-white block mt-0.5"></strong></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-brand-50/80 p-4 rounded-2xl border border-brand-200 text-xs text-gray-700">
+                        <div>Otaq: <strong id="p-modal-rooms" class="text-gray-900 block mt-0.5"></strong></div>
+                        <div>Sahə: <strong id="p-modal-area" class="text-gray-900 block mt-0.5"></strong></div>
+                        <div>Mərtəbə: <strong id="p-modal-floor" class="text-gray-900 block mt-0.5"></strong></div>
+                        <div id="p-modal-land-box" class="hidden">Torpaq (Sot): <strong id="p-modal-land" class="text-gray-900 block mt-0.5"></strong></div>
                     </div>
 
                     <div class="space-y-2">
-                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Ətraflı Təsvir</h4>
-                        <p id="p-modal-desc" class="text-gray-300 text-sm font-light leading-relaxed"></p>
+                        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Ətraflı Təsvir</h4>
+                        <p id="p-modal-desc" class="text-gray-700 text-sm font-medium leading-relaxed"></p>
                     </div>
 
                     <!-- Əlaqə məlumatları & WhatsApp Düyməsi -->
@@ -1084,8 +1089,8 @@ Title: Park Villas
                             </div>
                             <div>
                                 <span class="text-[10px] text-gray-500 uppercase block font-medium">Əlaqəli nümayəndə</span>
-                                <strong id="p-modal-agent-name" class="text-white block text-sm"></strong>
-                                <span id="p-modal-agent-phone" class="text-xs text-gray-400"></span>
+                                <strong id="p-modal-agent-name" class="text-gray-900 block text-sm"></strong>
+                                <span id="p-modal-agent-phone" class="text-xs text-gray-700"></span>
                             </div>
                         </div>
                         
@@ -1124,7 +1129,7 @@ Title: Park Villas
     <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
     <div id="project-detail-modal-official" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
         <div class="glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
-            <button onclick="closeOfficialProjectModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20">
+            <button onclick="closeOfficialProjectModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20 drop-shadow-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="overflow-y-auto">
@@ -1134,7 +1139,7 @@ Title: Park Villas
                         <source id="op-modal-source-tablet" media="(min-width: 640px)" srcset="">
                         <img id="op-modal-img" class="w-full h-full object-cover lazyload" loading="lazy" data-parallax="true" src="" alt="">
                     </picture>
-                    <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-black/20 to-transparent"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
                     <div id="op-modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none z-10">
                         <button onclick="changeOfficialProjectImage(-1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-left"></i></button>
                         <button onclick="changeOfficialProjectImage(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-right"></i></button>
@@ -1156,36 +1161,36 @@ Title: Park Villas
                     </div>
 
                     <!-- Tab Content: Desc -->
-                    <div id="op-tab-desc" class="hidden space-y-2 rounded-2xl bg-white/[0.02] border border-white/5 p-5">
-                        <h4 class="text-white text-sm font-extrabold uppercase tracking-wider">Təsvir</h4>
-                        <p id="op-modal-desc-text" class="text-gray-300 text-sm font-light leading-relaxed whitespace-pre-line"></p>
+                    <div id="op-tab-desc" class="hidden space-y-2 rounded-2xl bg-brand-50/70 border border-brand-200 p-5">
+                        <h4 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h4>
+                        <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
 
                     <!-- Tab Content: Details -->
                     <div id="op-tab-details" class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
-                            <span class="text-xs text-gray-500 block">Mərtəbə Sayı</span>
-                            <strong id="op-detail-floors" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
+                            <span class="text-xs text-gray-600 block font-semibold">Mərtəbə Sayı</span>
+                            <strong id="op-detail-floors" class="text-gray-800"></strong>
                         </div>
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
-                            <span class="text-xs text-gray-500 block">Sahə Ölçüsü</span>
-                            <strong id="op-detail-area" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
+                            <span class="text-xs text-gray-600 block font-semibold">Sahə Ölçüsü</span>
+                            <strong id="op-detail-area" class="text-gray-800"></strong>
                         </div>
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
-                            <span class="text-xs text-gray-500 block">Mənzil Sayı</span>
-                            <strong id="op-detail-apartments" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
+                            <span class="text-xs text-gray-600 block font-semibold">Mənzil Sayı</span>
+                            <strong id="op-detail-apartments" class="text-gray-800"></strong>
                         </div>
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5">
-                            <span class="text-xs text-gray-500 block">Təhvil Tarixi</span>
-                            <strong id="op-detail-year-val" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
+                            <span class="text-xs text-gray-600 block font-semibold">Təhvil Tarixi</span>
+                            <strong id="op-detail-year-val" class="text-gray-800"></strong>
                         </div>
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5 col-span-2">
-                            <span class="text-xs text-gray-500 block">Təmir Statusu</span>
-                            <strong id="op-detail-repair" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200 col-span-2">
+                            <span class="text-xs text-gray-600 block font-semibold">Təmir Statusu</span>
+                            <strong id="op-detail-repair" class="text-gray-800"></strong>
                         </div>
-                        <div class="bg-white/[0.01] p-3 rounded-xl border border-white/5 col-span-2">
-                            <span class="text-xs text-gray-500 block">Özəllikləri & Üstünlükləri</span>
-                            <strong id="op-detail-features" class="text-white"></strong>
+                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200 col-span-2">
+                            <span class="text-xs text-gray-600 block font-semibold">Özəllikləri & Üstünlükləri</span>
+                            <strong id="op-detail-features" class="text-gray-800"></strong>
                         </div>
                     </div>
                 </div>
@@ -2290,8 +2295,8 @@ Title: Park Villas
                             <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${p.title}</h4>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
-                            <p class="sea-breeze-project-card__description text-xs text-gray-400 line-clamp-2 font-light">${p.desc}</p>
-                            <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-brand-300 mt-4 border-t border-white/5 pt-3 overflow-hidden">
+                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${p.desc}</p>
+                            <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-gray-800 font-semibold mt-4 border-t border-brand-200 pt-3 overflow-hidden">
                                 <span title="${p.area}"><i class="fa-solid fa-expand"></i> ${p.area}</span>
                                 <span title="${p.floors}"><i class="fa-solid fa-building"></i> ${p.floors}</span>
                             </div>
@@ -2439,20 +2444,20 @@ Title: Park Villas
                             <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${isRent ? 'Kirayə' : 'Satış'}</div>
                         </div>
                         <div class="p-4 space-y-2 flex-1">
-                            <h4 class="text-white font-extrabold text-base truncate">${p.title}</h4>
+                            <h4 class="text-gray-900 font-extrabold text-base truncate">${p.title}</h4>
                             <p class="text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)}</p>
-                            <p class="text-gray-400 text-xs line-clamp-2 font-light">${p.desc}</p>
-                            <div class="grid grid-cols-2 gap-2 bg-white/[0.01] p-2.5 rounded-xl text-[11px] text-gray-400 border border-white/5">
-                                <span>Otaq: <strong class="text-white">${p.rooms}</strong></span>
-                                <span>Sahə: <strong class="text-white">${p.area} m²</strong></span>
-                                <span>Mərtəbə: <strong class="text-white">${p.floor || 1}</strong></span>
-                                ${p.land ? `<span>Torpaq: <strong class="text-white">${p.land} Sot</strong></span>` : ''}
+                            <p class="text-gray-700 text-xs line-clamp-2 font-medium">${p.desc}</p>
+                            <div class="grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
+                                <span>Otaq: <strong class="text-gray-900">${p.rooms}</strong></span>
+                                <span>Sahə: <strong class="text-gray-900">${p.area} m²</strong></span>
+                                <span>Mərtəbə: <strong class="text-gray-900">${p.floor || 1}</strong></span>
+                                ${p.land ? `<span>Torpaq: <strong class="text-gray-900">${p.land} Sot</strong></span>` : ''}
                             </div>
                         </div>
                         <div class="p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5">
                             <div>
                                 <span class="text-[9px] text-gray-500 uppercase block">Qiymət</span>
-                                <strong class="text-base font-extrabold text-white">${formattedPrice} AZN${isRent ? ' /ay' : ''}</strong>
+                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice} AZN${isRent ? ' /ay' : ''}</strong>
                             </div>
                             ${sqPriceHtml}
                         </div>
@@ -2607,19 +2612,19 @@ Title: Park Villas
             activeOnes.forEach(v => {
                 container.innerHTML += `
                     <div class="glass-card rounded-2xl overflow-hidden border-l-4 border-brand-500">
-                        <div onclick="toggleVacancyAccordion(${v.id})" class="p-5 flex justify-between items-center cursor-pointer hover:bg-white/[0.02]">
+                        <div onclick="toggleVacancyAccordion(${v.id})" class="p-4 flex justify-between items-center cursor-pointer hover:bg-brand-50/70 transition">
                             <div>
-                                <h4 class="text-base font-bold text-white">${v.title}</h4>
-                                <div class="flex flex-wrap gap-3 text-xs text-gray-400 mt-1">
+                                <h4 class="text-sm md:text-base font-bold text-gray-900">${v.title}</h4>
+                                <div class="flex flex-wrap gap-2 text-[11px] md:text-xs text-gray-700 mt-1">
                                     <span><i class="fa-solid fa-location-dot mr-1"></i> ${v.location}</span>
                                     <span><i class="fa-solid fa-money-bill mr-1"></i> ${v.salary}</span>
                                 </div>
                             </div>
                             <i id="vac-arrow-${v.id}" class="fa-solid fa-chevron-down text-gray-500"></i>
                         </div>
-                        <div id="vac-detail-${v.id}" class="hidden p-5 bg-[#070d1a] border-t border-white/5 text-xs text-gray-300 space-y-4 whitespace-pre-line">
+                        <div id="vac-detail-${v.id}" class="hidden p-4 bg-brand-50/80 border-t border-brand-200 text-xs text-gray-700 space-y-3 whitespace-pre-line">
                             ${v.desc}
-                            <div class="pt-3 flex justify-end">
+                            <div class="pt-2 flex justify-end">
                                 <button onclick="selectVacancy('${v.title}')" class="bg-brand-500 text-white text-[10px] font-bold px-4 py-2 rounded-xl">Müraciət et</button>
                             </div>
                         </div>
