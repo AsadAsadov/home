@@ -4,6 +4,7 @@ const slugify = require('slugify');
 
 const CAREER_CV_BUCKET = process.env.SUPABASE_CV_BUCKET || 'career-cv';
 const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
+const GALLERY_BUCKET = process.env.SUPABASE_GALLERY_BUCKET || 'gallery';
 const MAX_CV_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_LISTING_IMAGE_SIZE_BYTES = Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024);
 const ALLOWED_CV_MIME_TYPES = new Set([
@@ -131,6 +132,12 @@ function normalizeStorageObjectPath(filePath = '', bucket = CAREER_CV_BUCKET) {
 async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl = 'public, max-age=31536000', upsert = false }) {
   const { url, serviceKey } = getSupabaseConfig();
   const uploadUrl = `${url}/storage/v1/object/${bucket}/${encodeStorageObjectPath(objectPath)}`;
+  const body = file.buffer || (file.path ? require('fs').readFileSync(file.path) : undefined);
+  if (!body) {
+    const error = new Error('Yükləmə üçün fayl məzmunu tapılmadı.');
+    error.status = 400;
+    throw error;
+  }
   const response = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
@@ -140,7 +147,7 @@ async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl =
       'Cache-Control': cacheControl,
       'x-upsert': upsert ? 'true' : 'false',
     },
-    body: file.buffer,
+    body,
   });
   if (!response.ok) {
     const details = await response.text().catch(() => '');
@@ -173,6 +180,31 @@ async function uploadCareerCv(file) {
     cacheControl: 'private, max-age=31536000',
   });
   return `${CAREER_CV_BUCKET}/${objectPath}`;
+}
+
+function assertValidGalleryFile(file) {
+  if (!file) {
+    const error = new Error('Qalereya faylı tələb olunur.');
+    error.status = 400;
+    throw error;
+  }
+  const isImage = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
+  const isVideo = ['video/mp4', 'video/webm', 'video/quicktime'].includes(file.mimetype);
+  if (!isImage && !isVideo) {
+    const error = new Error('Qalereya üçün yalnız şəkil və MP4/WebM/MOV video faylları qəbul olunur.');
+    error.status = 400;
+    throw error;
+  }
+}
+
+async function uploadToGalleryBucket(file) {
+  assertValidGalleryFile(file);
+  const originalName = file.originalname || 'gallery-file';
+  const sanitizedName = sanitizeFileName(originalName);
+  const folder = file.mimetype?.startsWith('video/') ? 'videos' : 'images';
+  const objectPath = buildStoragePath(sanitizedName, folder);
+  await uploadToSupabaseBucket({ bucket: GALLERY_BUCKET, objectPath, file });
+  return buildPublicUrl(GALLERY_BUCKET, objectPath);
 }
 
 async function uploadListingImage(file) {
@@ -315,6 +347,7 @@ async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
 module.exports = {
   CAREER_CV_BUCKET,
   LISTINGS_BUCKET,
+  GALLERY_BUCKET,
   MAX_CV_SIZE_BYTES,
   MAX_LISTING_IMAGE_SIZE_BYTES,
   sanitizeText,
@@ -323,12 +356,14 @@ module.exports = {
   ALLOWED_IMAGE_MIME_TYPES,
   assertValidCvFile,
   assertValidListingImage,
+  assertValidGalleryFile,
   buildCareerCvPath,
   buildStoragePath,
   encodeStorageObjectPath,
   normalizeStorageObjectPath,
   uploadCareerCv,
   uploadListingImage,
+  uploadToGalleryBucket,
   checkSupabaseStorageObjectExists,
   checkCareerCvObjectLocations,
   createCareerCvSignedUrl,

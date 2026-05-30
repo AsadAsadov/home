@@ -1,9 +1,11 @@
 const express = require('express');
+const fs = require('fs/promises');
 const prisma = require('../lib/prisma');
 const upload = require('../middleware/upload');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { normalizeVideo } = require('../utils/media');
+const { uploadToGalleryBucket } = require('../utils/supabaseStorage');
 const router = express.Router();
 
 function parseImages(value) {
@@ -26,18 +28,49 @@ function mediaFiles(req) {
   return Object.values(req.files).flat();
 }
 
-function payload(req) {
+function localUploadUrl(file) {
+  return file?.filename ? `/uploads/${file.filename}` : null;
+}
+
+async function removeLocalUploadedFile(file) {
+  if (!file?.path) return;
+  await fs.unlink(file.path).catch(() => {});
+}
+
+async function uploadGalleryFileWithFallback(file) {
+  try {
+    const publicUrl = await uploadToGalleryBucket(file);
+    await removeLocalUploadedFile(file);
+    return publicUrl;
+  } catch (error) {
+    console.warn('[gallery] Supabase Storage upload unavailable; using local upload fallback.', {
+      file: file?.originalname,
+      status: error.status,
+      message: error.message,
+    });
+    return localUploadUrl(file);
+  }
+}
+
+async function payload(req) {
   const { body } = req;
   const files = mediaFiles(req);
-  const uploadedUrls = files.map((file) => `/uploads/${file.filename}`);
-  const firstVideoUpload = files.find((file) => file.mimetype.startsWith('video/'));
-  const imageUploads = files.filter((file) => file.mimetype.startsWith('image/')).map((file) => `/uploads/${file.filename}`);
+  const uploadedPairs = await Promise.all(files.map(async (file) => ({ file, url: await uploadGalleryFileWithFallback(file) })));
+  const firstVideoUpload = uploadedPairs.find(({ file }) => file.mimetype.startsWith('video/'));
+  const imageUploads = uploadedPairs.filter(({ file }) => file.mimetype.startsWith('image/')).map(({ url }) => url).filter(Boolean);
+  const uploadedUrls = uploadedPairs.map(({ url }) => url).filter(Boolean);
   const mediaType = body.media_type ?? body.mediaType ?? body.type ?? (firstVideoUpload ? 'video' : 'image');
-  const images = [...imageUploads, ...parseImages(body.images), ...parseImages(body.existing_images ?? body.existingImages), body.image_url ?? body.imageUrl].filter(Boolean);
-  const originalVideoUrl = firstVideoUpload ? `/uploads/${firstVideoUpload.filename}` : (body.video_url ?? body.videoUrl ?? body.url);
+  const submittedImages = parseImages(body.images);
+  const existingImages = parseImages(body.existing_images ?? body.existingImages);
+  const imageField = body.image_url ?? body.imageUrl;
+  const images = [...imageUploads, ...submittedImages, ...existingImages, imageField].filter(Boolean);
+  const originalVideoUrl = firstVideoUpload ? firstVideoUpload.url : (body.video_url ?? body.videoUrl ?? body.url);
   const normalized = mediaType === 'video' && originalVideoUrl ? normalizeVideo(originalVideoUrl) : {};
-  const imageUrl = mediaType === 'image' ? (images[0] || uploadedUrls[0] || null) : (body.image_url ?? body.imageUrl ?? null);
-  const thumbnailUrl = body.thumbnail_url ?? body.thumbnailUrl ?? normalized.thumbnailUrl ?? imageUrl ?? null;
+  const imageUrl = mediaType === 'image' ? (images[0] || uploadedUrls[0] || null) : (imageField ?? null);
+  const mediaUrls = mediaType === 'video'
+    ? [normalized.videoUrl ?? originalVideoUrl].filter(Boolean)
+    : images;
+  const thumbnailUrl = body.thumbnail_url ?? body.thumbnailUrl ?? normalized.thumbnailUrl ?? imageUrl ?? images[0] ?? null;
 
   return Object.fromEntries(Object.entries({
     title: body.title,
@@ -45,14 +78,27 @@ function payload(req) {
     mediaType,
     imageUrl,
     images: images.length ? images : undefined,
+    mediaUrls: mediaUrls.length ? mediaUrls : undefined,
     videoUrl: mediaType === 'video' ? (normalized.videoUrl ?? originalVideoUrl) : undefined,
     thumbnailUrl,
   }).filter(([, v]) => v !== undefined));
 }
 
-router.get('/', asyncHandler(async (_req, res) => {
-  const data = await prisma.gallery.findMany({ orderBy: { createdAt: 'desc' } });
-  res.json(data);
+function positiveInt(value, fallback, max = 100) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.min(parsed, max);
+}
+
+router.get('/', asyncHandler(async (req, res) => {
+  const page = positiveInt(req.query.page, 1, 1000000);
+  const limit = positiveInt(req.query.limit, 18, 100);
+  const skip = (page - 1) * limit;
+  const [items, total] = await Promise.all([
+    prisma.gallery.findMany({ orderBy: { createdAt: 'desc' }, skip, take: limit }),
+    prisma.gallery.count(),
+  ]);
+  res.json({ items, total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
@@ -66,7 +112,7 @@ router.post('/', authenticate, authorize('admin'), upload.fields([
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
-  const created = await prisma.gallery.create({ data: payload(req) });
+  const created = await prisma.gallery.create({ data: await payload(req) });
   res.status(201).json(created);
 }));
 
@@ -75,7 +121,7 @@ router.put('/:id', authenticate, authorize('admin'), upload.fields([
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
-  const updated = await prisma.gallery.update({ where: { id: Number(req.params.id) }, data: payload(req) });
+  const updated = await prisma.gallery.update({ where: { id: Number(req.params.id) }, data: await payload(req) });
   res.json(updated);
 }));
 
