@@ -98,15 +98,15 @@ listings     Listing[]
 }
 
 model HeroSection {
-id           Int     @id @default(autoincrement())
-pageKey      String  @map("page_key")
-badgeText    String? @map("badge_text")
-title        String?
-description  String? @db.Text
-heroImageUrl String? @map("hero_image_url") @db.Text
-isActive     Boolean @default(true) @map("is_active")
+  id           Int     @id @default(autoincrement())
+  pageKey      String  @unique @map("page_key")
+  badgeText    String? @map("badge_text")
+  title        String?
+  description  String? @db.Text
+  heroImageUrl String? @map("hero_image_url") @db.Text
+  isActive     Boolean @default(true) @map("is_active")
 
-@@map("hero_sections")
+  @@map("hero_sections")
 }
 
 enum Role {
