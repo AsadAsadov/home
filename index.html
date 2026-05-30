@@ -48,13 +48,53 @@
             -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        #sea-breeze-projects-list {
+            grid-auto-rows: 1fr;
+        }
+        .sea-breeze-project-card {
+            height: 100%;
+            min-width: 0;
+        }
+        .sea-breeze-project-card__title,
+        .sea-breeze-project-card__description {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .sea-breeze-project-card__title {
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            text-overflow: ellipsis;
+            white-space: normal;
+        }
+        .sea-breeze-project-card__description {
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+        .sea-breeze-project-card__meta {
+            flex-wrap: nowrap;
+        }
+        .sea-breeze-project-card__meta span {
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sea-breeze-project-card__meta i {
+            flex: 0 0 auto;
+        }
         @media (max-width: 767px) {
             #sea-breeze-projects-list {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-auto-rows: 1fr;
                 gap: 12px;
             }
             .sea-breeze-project-card {
                 min-width: 0;
+                height: 100%;
             }
             .sea-breeze-project-card__image {
                 height: auto;
@@ -93,13 +133,27 @@
                 margin-top: 0.6rem;
                 padding-top: 0.55rem;
                 gap: 0.35rem;
-                align-items: flex-start;
+                align-items: center;
+                flex-wrap: nowrap;
                 font-size: 0.62rem;
                 line-height: 1.25;
             }
             .sea-breeze-project-card__meta span {
                 min-width: 0;
-                overflow-wrap: anywhere;
+                display: inline-flex;
+                align-items: center;
+                flex: 1 1 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .sea-breeze-project-card__meta span:last-child {
+                justify-content: flex-end;
+            }
+            .sea-breeze-project-card__meta i {
+                flex: 0 0 auto;
+                font-size: 0.58rem;
+                margin-right: 0.2rem;
             }
         }
         @media (max-width: 374px) {
@@ -184,12 +238,12 @@
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
         <section id="tab-seabreeze" class="tab-content space-y-12">
             <!-- Hero banner -->
-            <div class="relative rounded-3xl overflow-hidden glass-card min-h-[520px] md:min-h-[620px] flex items-end">
+            <div class="relative rounded-3xl overflow-hidden glass-card min-h-[60vh] md:min-h-[70vh] flex items-center">
                 <div id="sea-breeze-hero-bg" class="absolute inset-0 w-full h-full bg-cover bg-center" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
                 <div class="absolute inset-0 bg-gradient-to-br from-[#090f1d]/90 via-[#090f1d]/55 to-[#090f1d]/20"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#090f1d]/70 via-transparent to-transparent"></div>
 
-                <div class="relative z-10 max-w-3xl space-y-6 px-6 py-10 sm:px-10 md:px-14 md:py-16 lg:py-20 text-left">
+                <div class="relative z-10 max-w-3xl space-y-5 px-6 py-8 sm:px-10 md:px-14 md:py-12 lg:py-14 text-left">
                     <span id="sea-breeze-hero-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
                     <h1 id="sea-breeze-hero-title" class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[0.95] drop-shadow-2xl">
                         Sea Breeze-də <br><span class="bg-gradient-to-r from-brand-500 via-blue-200 to-white bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
@@ -2093,13 +2147,13 @@ Title: Park Villas
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
-                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white truncate">${p.title}</h4>
+                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${p.title}</h4>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
                             <p class="sea-breeze-project-card__description text-xs text-gray-400 line-clamp-2 font-light">${p.desc}</p>
-                            <div class="sea-breeze-project-card__meta flex items-center justify-between text-[11px] text-brand-300 mt-4 border-t border-white/5 pt-3">
-                                <span><i class="fa-solid fa-expand mr-1"></i> ${p.area}</span>
-                                <span><i class="fa-solid fa-building mr-1"></i> ${p.floors}</span>
+                            <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-brand-300 mt-4 border-t border-white/5 pt-3 overflow-hidden">
+                                <span title="${p.area}"><i class="fa-solid fa-expand"></i> ${p.area}</span>
+                                <span title="${p.floors}"><i class="fa-solid fa-building"></i> ${p.floors}</span>
                             </div>
                         </div>
                     </div>
