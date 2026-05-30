@@ -70,17 +70,73 @@
             image-rendering: auto;
         }
         .site-footer-logo {
-            height: 60px;
+            height: 88px;
             width: auto;
             object-fit: contain;
             image-rendering: auto;
+        }
+        .footer-premium {
+            background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%) !important;
+            border-top: 1px solid rgba(127, 127, 255, .15) !important;
+        }
+        .footer-stat-card {
+            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+        }
+        .footer-stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(127, 127, 255, .32);
+            box-shadow: 0 20px 40px rgba(127, 127, 255, .14);
+        }
+        .whatsapp-floating-btn {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 60;
+            width: 3.75rem;
+            height: 3.75rem;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 18px 35px rgba(37, 211, 102, .34);
+            transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+        }
+        .whatsapp-floating-btn::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: inherit;
+            border: 1px solid rgba(37, 211, 102, .32);
+            animation: whatsappPulse 2s ease-out infinite;
+        }
+        .whatsapp-floating-btn:hover {
+            transform: translateY(-4px) scale(1.06);
+            box-shadow: 0 24px 45px rgba(37, 211, 102, .45);
+            filter: saturate(1.08);
+        }
+        .whatsapp-floating-btn i {
+            font-size: 1.85rem;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes whatsappPulse {
+            0% { transform: scale(.9); opacity: .75; }
+            80%, 100% { transform: scale(1.25); opacity: 0; }
         }
         @media (min-width: 768px) {
             .site-logo {
                 height: 80px;
             }
             .site-footer-logo {
-                height: 80px;
+                height: 110px;
+            }
+            .whatsapp-floating-btn {
+                right: 1.5rem;
+                bottom: 1.5rem;
+                width: 4rem;
+                height: 4rem;
             }
         }
 
@@ -1326,34 +1382,94 @@ Title: Park Villas
     </div>
 
     <!-- FOOTER AND SOCIAL MEDIA -->
-    <footer class="bg-[#050811] border-t border-white/5 py-12 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
-                    <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-footer-logo" decoding="async">
+    <footer class="footer-premium mt-12 pt-14 pb-8 text-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+                <div class="space-y-4 sm:col-span-2 lg:col-span-1">
+                    <button type="button" class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')" aria-label="BestHome.az ana səhifə">
+                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-footer-logo" decoding="async">
+                    </button>
+                    <p class="text-sm leading-6 text-gray-600 max-w-sm">
+                        BestHome.az Sea Breeze və premium daşınmaz əmlak bazarında etibarlı seçimlər, aktual satış/kirayə elanları və peşəkar məsləhət təqdim edir.
+                    </p>
                 </div>
-                <!-- Clickable Social Icons -->
-                <div class="flex items-center space-x-6">
-                    <a href="https://www.instagram.com/best_home_estate?igsh=NGR3b3JobGwzZmpu" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-full bg-white/5 hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="https://www.tiktok.com/@sunay_asadov?is_from_webapp=1&sender_device=pc" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-full bg-white/5 hover:bg-black text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-tiktok"></i></a>
-                    <a href="https://www.facebook.com/share/18u6Thh53S/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-full bg-white/5 hover:bg-brand-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="https://www.youtube.com/@besthome.az_" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-full bg-white/5 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center text-lg transition duration-300"><i class="fa-brands fa-youtube"></i></a>
+
+                <div>
+                    <h3 class="text-gray-900 font-extrabold mb-4">Sürətli Keçidlər</h3>
+                    <nav class="space-y-3 text-sm font-semibold" aria-label="Footer sürətli keçidlər">
+                        <button type="button" onclick="switchTab('seabreeze')" class="block text-left text-gray-600 hover:text-brand-600 transition">Sea Breeze Layihələri</button>
+                        <button type="button" onclick="switchTab('seabreeze'); setTimeout(() => document.getElementById('agent-listings-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)" class="block text-left text-gray-600 hover:text-brand-600 transition">Satış və Kirayə</button>
+                        <button type="button" onclick="switchTab('portfolio')" class="block text-left text-gray-600 hover:text-brand-600 transition">Qalereya</button>
+                        <button type="button" onclick="switchTab('career')" class="block text-left text-gray-600 hover:text-brand-600 transition">Karyera</button>
+                        <button type="button" onclick="switchTab('home')" class="block text-left text-gray-600 hover:text-brand-600 transition">Haqqımızda</button>
+                        <button type="button" onclick="switchTab('mortgage')" class="block text-left text-gray-600 hover:text-brand-600 transition">İpoteka Kalkulyatoru</button>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-gray-900 font-extrabold mb-4">Əlaqə</h3>
+                    <div class="space-y-3 text-sm font-semibold">
+                        <a href="tel:+994703152222" class="flex items-center gap-3 text-gray-600 hover:text-brand-600 transition">
+                            <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><i class="fa-solid fa-phone"></i></span>
+                            <span>+994 (70) 315-22-22</span>
+                        </a>
+                        <a href="mailto:info@besthome.az" class="flex items-center gap-3 text-gray-600 hover:text-brand-600 transition">
+                            <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><i class="fa-solid fa-envelope"></i></span>
+                            <span>info@besthome.az</span>
+                        </a>
+                        <div class="flex items-center gap-3 text-gray-600">
+                            <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><i class="fa-solid fa-location-dot"></i></span>
+                            <span>Sea Breeze, Bakı</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-gray-900 font-extrabold mb-4">Sosial Şəbəkələr</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm font-bold">
+                        <a href="https://www.instagram.com/best_home_estate?igsh=NGR3b3JobGwzZmpu" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-instagram mr-2"></i>Instagram</a>
+                        <a href="https://www.tiktok.com/@sunay_asadov?is_from_webapp=1&sender_device=pc" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-black hover:border-transparent transition duration-300"><i class="fa-brands fa-tiktok mr-2"></i>TikTok</a>
+                        <a href="https://www.facebook.com/share/18u6Thh53S/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-brand-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-facebook-f mr-2"></i>Facebook</a>
+                        <a href="https://www.youtube.com/@besthome.az_" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-red-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-youtube mr-2"></i>YouTube</a>
+                    </div>
                 </div>
             </div>
-            <div class="h-px bg-white/5"></div>
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-gray-500">
-                <p class="cursor-pointer select-none hover:text-gray-400 transition" ondblclick="switchTab('admin-login')">
-                    &copy; 2026 besthome.az. Bütün hüquqlar qorunur.
-                </p>
-                <div class="flex flex-col md:flex-row items-center gap-4">
-                    <a href="tel:+994703152222" class="text-gray-300 hover:text-brand-500 flex items-center space-x-2 bg-white/5 px-4 py-2 rounded-xl">
-                        <i class="fa-solid fa-phone text-brand-500"></i>
-                        <span class="font-semibold">+994 (70) 315-22-22</span>
-                    </a>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                    <strong class="block text-2xl sm:text-3xl font-black text-brand-600">1500+</strong>
+                    <span class="text-xs sm:text-sm font-bold text-gray-600">Müştəri</span>
                 </div>
+                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                    <strong class="block text-2xl sm:text-3xl font-black text-brand-600">500+</strong>
+                    <span class="text-xs sm:text-sm font-bold text-gray-600">Satılmış Mənzil</span>
+                </div>
+                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                    <strong class="block text-2xl sm:text-3xl font-black text-brand-600">20+</strong>
+                    <span class="text-xs sm:text-sm font-bold text-gray-600">Layihə</span>
+                </div>
+                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                    <strong class="block text-2xl sm:text-3xl font-black text-brand-600">10+</strong>
+                    <span class="text-xs sm:text-sm font-bold text-gray-600">İl Təcrübə</span>
+                </div>
+            </div>
+
+            <div class="h-px bg-brand-500/10"></div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+                <p class="cursor-pointer select-none hover:text-brand-600 transition" ondblclick="switchTab('admin-login')">
+                    &copy; 2026 BestHome.az. Bütün hüquqlar qorunur.
+                </p>
+                <a href="tel:+994703152222" class="text-gray-700 hover:text-brand-600 flex items-center space-x-2 bg-white/75 border border-brand-200/70 px-4 py-2 rounded-xl transition">
+                    <i class="fa-solid fa-phone text-brand-500"></i>
+                    <span class="font-semibold">+994 (70) 315-22-22</span>
+                </a>
             </div>
         </div>
     </footer>
+
+    <a href="https://wa.me/994703152222?text=Salam%20BestHome.az%20ilə%20əlaqə%20saxlamaq%20istəyirəm" target="_blank" rel="noopener noreferrer" class="whatsapp-floating-btn" aria-label="WhatsApp ilə əlaqə saxla">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
 
     <!-- INLINE STATE & DATA MOTOR -->
     <script>
