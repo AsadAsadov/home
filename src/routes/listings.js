@@ -183,6 +183,41 @@ function logListingApiError(error) {
   });
 }
 
+
+function summarizeUploadedFiles(files) {
+  return files.map((file) => ({
+    fieldname: file.fieldname,
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size,
+  }));
+}
+
+function compareListingFieldNames(body) {
+  const pairs = [
+    ['title', 'title'],
+    ['listing_type', 'listingType'],
+    ['property_category', 'propertyCategory'],
+    ['project_name', 'projectName'],
+    ['room_count', 'roomCount'],
+    ['area', 'area'],
+    ['floor_number', 'floorNumber'],
+    ['floor_count', 'floorCount'],
+    ['price', 'price'],
+    ['description', 'description'],
+  ];
+  const comparison = {};
+  for (const [snakeCase, camelCase] of pairs) {
+    comparison[snakeCase] = {
+      snakeCaseValue: body[snakeCase],
+      camelCaseField: camelCase,
+      camelCaseValue: body[camelCase],
+      selectedValue: body[snakeCase] ?? body[camelCase],
+    };
+  }
+  return comparison;
+}
+
 function listingImageCreateMany(urls) {
   return urls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder }));
 }
@@ -244,6 +279,11 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
   try {
     const files = listingFiles(req);
     const fileOriginalNames = files.map((file) => file.originalname);
+    const fileSummary = summarizeUploadedFiles(files);
+    console.log('BODY', req.body);
+    console.log('FILES', req.files);
+    console.log('[listings] files summary', fileSummary);
+    console.log('[listings] field name comparison', compareListingFieldNames(req.body));
     fileOriginalNames.forEach((originalname) => console.log('file.originalname', originalname));
     const uploadedImageUrls = await uploadListingFiles(files);
     const rawImageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
@@ -259,21 +299,17 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
       images: imageUrls.length ? { create: listingImagesPayload } : undefined,
     };
     const createArgs = { data: payload, include };
+    console.log('PRISMA PAYLOAD', payload);
     console.log(JSON.stringify(payload, null, 2));
     const nullByteFields = stringNullByteFields(payload);
     console.log('image_url', payload.imageUrl);
     console.log('listing_images payload', listingImagesPayload);
     console.info('[listings] prisma payload', createArgs);
-    console.info('[listings] prisma.listing.create skipped for debug', createArgs);
 
-    return res.json({
-      payload,
-      nullByteFields,
-      fileOriginalNames,
-      image_url: payload.imageUrl,
-      listing_images: listingImagesPayload,
-      createArgs,
-    });
+    const created = await prisma.listing.create(createArgs);
+    console.log('INSERTED RECORD', created);
+
+    return res.status(201).json(created);
   } catch (error) {
     logListingApiError(error);
     return res.status(500).json({

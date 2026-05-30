@@ -35,6 +35,26 @@ test('createCareerCvSignedUrl calls Supabase without duplicating bucket name', a
   }
 });
 
+
+test('createCareerCvSignedUrl prefixes storage v1 for Supabase object-relative signed URLs', async () => {
+  process.env.SUPABASE_URL = 'https://demo.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+
+  const originalFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ signedURL: '/object/sign/career-cv/2026/05/cv.pdf?token=abc' }),
+  });
+
+  try {
+    const signedUrl = await storage.createCareerCvSignedUrl('career-cv/2026/05/cv.pdf', 60);
+    assert.equal(signedUrl, 'https://demo.supabase.co/storage/v1/object/sign/career-cv/2026/05/cv.pdf?token=abc');
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
 test('elanlar uploads return public URLs from the elanlar bucket', async () => {
   process.env.SUPABASE_URL = 'https://demo.supabase.co';
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';

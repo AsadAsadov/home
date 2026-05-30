@@ -2183,19 +2183,19 @@ Title: Park Villas
             const floorCount = Number.parseInt(l.floorCount ?? l.floor, 10);
             return {
                 title: l.title || '',
-                listingType: l.listingType || 'Satis',
-                propertyCategory: l.category || 'Apartment',
-                projectName: l.project || 'Digər',
-                roomCount: Number.isFinite(roomCount) ? roomCount : undefined,
+                listing_type: l.listingType || 'Satis',
+                property_category: l.category || 'Apartment',
+                project_name: l.project || 'Digər',
+                room_count: Number.isFinite(roomCount) ? roomCount : undefined,
                 area,
-                floorNumber: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
-                floorCount: String(Number.isFinite(floorCount) && floorCount > 0 ? floorCount : 1),
+                floor_number: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
+                floor_count: String(Number.isFinite(floorCount) && floorCount > 0 ? floorCount : 1),
                 price,
-                pricePerM2: area && price ? price / area : undefined,
-                imageUrl: l.img || '',
+                price_per_m2: area && price ? price / area : undefined,
+                image_url: l.img || '',
                 images: Array.isArray(l.images) ? l.images : (l.img ? [l.img] : []),
                 description: l.desc || '',
-                userId: activeUser?.role === 'user' ? activeUser.id : undefined
+                user_id: activeUser?.role === 'user' ? activeUser.id : undefined
             };
         }
 
@@ -4541,15 +4541,16 @@ Title: Park Villas
                     method: 'POST',
                     body: JSON.stringify({ expiresIn: 60 })
                 });
+                const { signedUrl } = result;
                 console.info('[admin] CV preview signed URL', {
                     originalPath: result.originalPath || result.filePath,
                     normalizedPath: result.normalizedPath || result.createSignedUrlPath,
                     bucket: result.bucket,
                     supabaseResponse: result.supabaseResponse,
-                    finalSignedUrl: result.signedUrl,
+                    finalSignedUrl: signedUrl,
                     displayName
                 });
-                window.open(result.signedUrl, '_blank');
+                window.open(signedUrl, '_blank');
             } catch (error) {
                 alert('CV üçün signed URL yaradılmadı: ' + error.message);
             }
