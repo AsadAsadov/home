@@ -36,6 +36,7 @@ function projectData(p) {
     description: p.description || p.desc || null,
     imageUrl: images[0] || null,
     images: images.length ? images : undefined,
+    displayOrder: int(p.display_order ?? p.displayOrder ?? p.order),
   };
 }
 
@@ -55,6 +56,7 @@ function listingData(l) {
     pricePerM2: num(l.price_per_m2 || l.pricePerM2) || (area && price ? price / area : null),
     imageUrl: l.image_url || l.imageUrl || l.img || null,
     description: l.description || l.desc || null,
+    displayOrder: int(l.display_order ?? l.displayOrder ?? l.order),
   };
 }
 
@@ -96,8 +98,8 @@ function appData(a) {
 
 router.get('/', asyncHandler(async (_req, res) => {
   const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
-    prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.listing.findMany({ orderBy: { createdAt: 'desc' }, include: { images: { orderBy: { sortOrder: 'asc' } } } }),
+    prisma.project.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] }),
+    prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include: { images: { orderBy: { sortOrder: 'asc' } } } }),
     prisma.vacancy.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.gallery.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.application.findMany({ orderBy: { createdAt: 'desc' }, include: { vacancy: true } }),

@@ -59,6 +59,7 @@ const serializers = {
     description: cleanString(body.description),
     imageUrl: cleanString(body.image_url ?? body.imageUrl),
     images: parseJsonArray(body.images),
+    displayOrder: toInt(body.display_order ?? body.displayOrder),
   }),
   listing: (body) => {
     const area = toDecimal(body.area);
@@ -76,6 +77,7 @@ const serializers = {
       pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (area && price ? price / area : undefined),
       imageUrl: cleanString(body.image_url ?? body.imageUrl),
       description: cleanString(body.description),
+      displayOrder: toInt(body.display_order ?? body.displayOrder),
       userId: toInt(body.user_id ?? body.userId),
     };
   },

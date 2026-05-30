@@ -20,8 +20,10 @@ model Project {
   description    String?  @db.Text
   imageUrl       String?  @map("image_url") @db.Text
   images         Json?
+  displayOrder   Int?     @map("display_order")
   createdAt      DateTime @default(now()) @map("created_at")
 
+  @@index([displayOrder, id])
   @@map("projects")
 }
 
@@ -39,11 +41,13 @@ model Listing {
   pricePerM2       Decimal? @map("price_per_m2") @db.Decimal(12, 2)
   imageUrl         String?  @map("image_url") @db.Text
   description      String?  @db.Text
+  displayOrder     Int?     @map("display_order")
   createdAt        DateTime @default(now()) @map("created_at")
   userId           Int?     @map("user_id")
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   images           ListingImage[]
 
+  @@index([displayOrder, id])
   @@map("listings")
 }
 
