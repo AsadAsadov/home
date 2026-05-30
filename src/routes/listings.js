@@ -56,11 +56,30 @@ function listingFiles(req) {
 
 async function uploadListingFiles(files) {
   const urls = [];
-  for (const file of files) {
+  console.info('[listings] upload start', { fileCount: files.length });
+  for (const [index, file] of files.entries()) {
     assertValidListingImage(file);
-    urls.push(await uploadListingImage(file));
+    console.info('[listings] upload start', {
+      index,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    const publicUrl = await uploadListingImage(file);
+    console.info('[listings] upload result', { index, originalname: file.originalname, publicUrl });
+    console.info('[listings] public URL result', { index, publicUrl });
+    urls.push(publicUrl);
   }
   return urls;
+}
+
+function logListingApiError(error) {
+  console.error('[listings] real error', {
+    message: error.message,
+    code: error.code,
+    meta: error.meta,
+    stack: error.stack,
+  });
 }
 
 function listingImageCreateMany(urls) {
@@ -92,20 +111,32 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
   { name: 'image', maxCount: 1 },
   { name: 'images', maxCount: Number(process.env.MAX_LISTING_IMAGES || 20) },
 ]), asyncHandler(async (req, res) => {
-  const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
-  const imageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
-  const data = compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req));
-  if (req.auth.role === 'user') data.userId = req.auth.id;
-  if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
+  try {
+    const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
+    const imageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
+    const data = compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req));
+    if (req.auth.role === 'user') data.userId = req.auth.id;
+    if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
-  const created = await prisma.listing.create({
-    data: {
-      ...data,
-      images: imageUrls.length ? { create: listingImageCreateMany(imageUrls) } : undefined,
-    },
-    include,
-  });
-  res.status(201).json(created);
+    const createArgs = {
+      data: {
+        ...data,
+        images: imageUrls.length ? { create: listingImageCreateMany(imageUrls) } : undefined,
+      },
+      include,
+    };
+    console.info('[listings] prisma.listing.create', createArgs);
+
+    const created = await prisma.listing.create(createArgs);
+    res.status(201).json(created);
+  } catch (error) {
+    logListingApiError(error);
+    return res.status(500).json({
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+    });
+  }
 }));
 
 router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.fields([
@@ -127,6 +158,7 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
   if (req.auth.role === 'user') data.userId = req.auth.id;
 
   const updated = await prisma.$transaction(async (tx) => {
+    console.info('[listings] prisma.listing.update', { where: { id: Number(req.params.id) }, data });
     const listing = await tx.listing.update({ where: { id: Number(req.params.id) }, data });
     if (!keepCurrentImages) {
       await tx.listingImage.deleteMany({ where: { listingId: listing.id } });

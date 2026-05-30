@@ -33,6 +33,7 @@ model Listing {
   projectName      String?  @map("project_name")
   roomCount        Int?     @map("room_count")
   area             Decimal? @db.Decimal(12, 2)
+  floorNumber      Int?     @map("floor_number")
   floorCount       String?  @map("floor_count")
   price            Decimal? @db.Decimal(14, 2)
   pricePerM2       Decimal? @map("price_per_m2") @db.Decimal(12, 2)

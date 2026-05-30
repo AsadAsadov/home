@@ -70,6 +70,7 @@ const serializers = {
       projectName: cleanString(body.project_name ?? body.projectName),
       roomCount: toInt(body.room_count ?? body.roomCount),
       area,
+      floorNumber: toInt(body.floor_number ?? body.floorNumber),
       floorCount: cleanString(body.floor_count ?? body.floorCount),
       price,
       pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (area && price ? price / area : undefined),
