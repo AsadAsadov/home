@@ -328,6 +328,24 @@
         .text-brand-500 {
             color: var(--color-primary) !important;
         }
+        button.vacancy-cta,
+        #mobile-menu button.vacancy-cta {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+        }
+        button.vacancy-cta:hover {
+            background-color: #b91c1c !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+        #mobile-menu .vacancy-cta:hover {
+            background-color: #b91c1c !important;
+            color: #ffffff !important;
+        }
+        .vacancy-badge {
+            background-color: #facc15 !important;
+            color: #000000 !important;
+        }
         .text-white,
         .text-gray-100 {
             color: var(--color-text-primary) !important;
@@ -482,9 +500,12 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Sea Breeze Layihələri</button>
                     <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya & Video</button>
-                    <button onclick="switchTab('career')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-career">Vakansiya</button>
                     <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka Kalkulyatoru</button>
                     <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
+                    <button onclick="switchTab('career')" class="nav-link vacancy-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200" id="nav-career">
+                        <span>Vakansiya</span>
+                        <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
+                    </button>
                 </div>
 
                 <!-- Session status -->
@@ -506,9 +527,12 @@
         <div class="hidden md:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
             <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Sea Breeze Layihələri</button>
             <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Qalereya & Video</button>
-            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Vakansiya</button>
             <button onclick="switchTab('mortgage'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">İpoteka Kalkulyatoru</button>
             <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Haqqımızda</button>
+            <button onclick="switchTab('career'); toggleMobileMenu()" class="vacancy-cta flex w-full items-center justify-center gap-2 px-4 py-3 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200">
+                <span>Vakansiya</span>
+                <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
+            </button>
             <div id="mobile-user-status-actions" class="pt-2 border-t border-white/5 space-y-2"></div>
         </div>
     </nav>
