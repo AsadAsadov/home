@@ -114,16 +114,16 @@
         <section id="tab-seabreeze" class="tab-content space-y-12">
             <!-- Hero banner -->
             <div class="relative rounded-3xl overflow-hidden glass-card min-h-[520px] md:min-h-[620px] flex items-end">
-                <img src="https://scontent.fgyd21-1.fna.fbcdn.net/v/t39.30808-6/557956945_1410435877753430_6514473924415472229_n.jpg" alt="Sea Breeze premium həyat tərzi" class="absolute inset-0 w-full h-full object-cover" style="background-size: cover; background-position: center; background-repeat: no-repeat;">
+                <div id="sea-breeze-hero-bg" class="absolute inset-0 w-full h-full bg-cover bg-center" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
                 <div class="absolute inset-0 bg-gradient-to-br from-[#090f1d]/90 via-[#090f1d]/55 to-[#090f1d]/20"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-[#090f1d]/70 via-transparent to-transparent"></div>
 
                 <div class="relative z-10 max-w-3xl space-y-6 px-6 py-10 sm:px-10 md:px-14 md:py-16 lg:py-20 text-left">
-                    <span class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
-                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[0.95] drop-shadow-2xl">
+                    <span id="sea-breeze-hero-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
+                    <h1 id="sea-breeze-hero-title" class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[0.95] drop-shadow-2xl">
                         Sea Breeze-də <br><span class="bg-gradient-to-r from-brand-500 via-blue-200 to-white bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
                     </h1>
-                    <p class="max-w-2xl text-gray-100 text-base md:text-xl font-light leading-relaxed drop-shadow-lg">
+                    <p id="sea-breeze-hero-description" class="max-w-2xl text-gray-100 text-base md:text-xl font-light leading-relaxed drop-shadow-lg">
                         BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.
                     </p>
                 </div>
@@ -345,6 +345,7 @@
             <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
+                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Bölmələri</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
@@ -623,6 +624,49 @@ Title: Park Villas
                                     <tbody id="bulk-project-preview-body" class="divide-y divide-white/5"></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBTAB: HERO SECTIONS -->
+            <div id="admin-subtab-hero-sections" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-image text-brand-500"></i>
+                        <span>Sea Breeze Hero Bölməsi</span>
+                    </h3>
+                    <div id="hero-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Hero bölməsi uğurla yeniləndi.</div>
+                    <form onsubmit="handleSaveHeroSection(event)" class="space-y-3">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Badge mətni</label>
+                            <input type="text" id="hero-badge-text" placeholder="Məs: Etibarlı seçim" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</label>
+                            <textarea id="hero-title-input" rows="3" placeholder="Hero başlığı" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
+                            <p class="text-[10px] text-gray-500">Sətir qırmaq üçün Enter istifadə edə bilərsiniz.</p>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama</label>
+                            <textarea id="hero-description-input" rows="4" placeholder="Hero açıqlaması" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Fon şəkli URL</label>
+                            <input type="url" id="hero-image-url-input" placeholder="https://..." oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                            <p class="text-[10px] text-gray-500">Boş saxlanılarsa mövcud default şəkil göstəriləcək.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 glass-card p-5 rounded-2xl border border-white/5">
+                    <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden min-h-[360px] flex items-end bg-cover bg-center">
+                        <div class="absolute inset-0 bg-gradient-to-br from-[#090f1d]/90 via-[#090f1d]/55 to-[#090f1d]/20"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#090f1d]/70 via-transparent to-transparent"></div>
+                        <div class="relative z-10 p-8 space-y-4">
+                            <span id="hero-preview-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em]">Etibarlı seçim</span>
+                            <h4 id="hero-preview-title" class="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl"></h4>
+                            <p id="hero-preview-description" class="max-w-xl text-gray-100 text-sm md:text-base font-light leading-relaxed drop-shadow-lg"></p>
                         </div>
                     </div>
                 </div>
@@ -934,6 +978,17 @@ Title: Park Villas
 
     <!-- INLINE STATE & DATA MOTOR -->
     <script>
+        const SEA_BREEZE_PAGE_KEY = 'sea-breeze';
+        const DEFAULT_SEA_BREEZE_HERO_IMAGE = 'https://scontent.fgyd21-1.fna.fbcdn.net/v/t39.30808-6/557956945_1410435877753430_6514473924415472229_n.jpg';
+        const defaultSeaBreezeHero = {
+            page_key: SEA_BREEZE_PAGE_KEY,
+            badge_text: 'Etibarlı seçim',
+            title: 'Sea Breeze-də\nPremium Həyat Tərzi!',
+            description: 'BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.',
+            hero_image_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
+            is_active: true
+        };
+
         // OFFICIAL SEA BREEZE 10 PROJECTS DATA WITH CAT & DETAILED SPECS
         const officialSeaBreezeProjects = [
             {
@@ -1371,6 +1426,7 @@ Title: Park Villas
             gallery: defaultGallery,
             applications: [],
             agents: defaultAgents,
+            heroSection: defaultSeaBreezeHero,
             careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
         };
 
@@ -1381,6 +1437,7 @@ Title: Park Villas
             gallery: 'besthome_gallery',
             applications: 'besthome_applications',
             agents: 'besthome_agents',
+            heroSection: 'besthome_hero_sea_breeze',
             careerText: 'besthome_career_text'
         };
 
@@ -1410,7 +1467,104 @@ Title: Park Villas
             appData.gallery = readCache(CACHE_KEYS.gallery, defaultGallery);
             appData.applications = readCache(CACHE_KEYS.applications, []);
             appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
+            appData.heroSection = normalizeHeroSection(readCache(CACHE_KEYS.heroSection, defaultSeaBreezeHero));
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
+        }
+
+        function normalizeHeroSection(hero = {}) {
+            return {
+                id: hero.id,
+                page_key: hero.page_key || hero.pageKey || SEA_BREEZE_PAGE_KEY,
+                badge_text: hero.badge_text ?? hero.badgeText ?? defaultSeaBreezeHero.badge_text,
+                title: hero.title ?? defaultSeaBreezeHero.title,
+                description: hero.description ?? defaultSeaBreezeHero.description,
+                hero_image_url: hero.hero_image_url ?? hero.heroImageUrl ?? defaultSeaBreezeHero.hero_image_url,
+                is_active: hero.is_active ?? hero.isActive ?? true
+            };
+        }
+
+        function escapeHtml(value = '') {
+            return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+        }
+
+        function formatHeroTitle(title = '') {
+            const lines = String(title || defaultSeaBreezeHero.title).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+            if (lines.length <= 1) return escapeHtml(lines[0] || defaultSeaBreezeHero.title);
+            const firstLines = lines.slice(0, -1).map(escapeHtml).join('<br>');
+            const lastLine = escapeHtml(lines[lines.length - 1]);
+            return `${firstLines}<br><span class="bg-gradient-to-r from-brand-500 via-blue-200 to-white bg-clip-text text-transparent">${lastLine}</span>`;
+        }
+
+        function getHeroImageUrl(hero = appData.heroSection) {
+            const url = String(hero?.hero_image_url || hero?.heroImageUrl || '').trim();
+            return url || DEFAULT_SEA_BREEZE_HERO_IMAGE;
+        }
+
+        function renderSeaBreezeHero() {
+            const hero = normalizeHeroSection(appData.heroSection);
+            const bg = document.getElementById('sea-breeze-hero-bg');
+            const badge = document.getElementById('sea-breeze-hero-badge');
+            const title = document.getElementById('sea-breeze-hero-title');
+            const description = document.getElementById('sea-breeze-hero-description');
+            if (bg) bg.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
+            if (badge) badge.textContent = hero.badge_text || defaultSeaBreezeHero.badge_text;
+            if (title) title.innerHTML = formatHeroTitle(hero.title);
+            if (description) description.textContent = hero.description || defaultSeaBreezeHero.description;
+        }
+
+        function fillHeroAdminForm() {
+            const hero = normalizeHeroSection(appData.heroSection);
+            const badge = document.getElementById('hero-badge-text');
+            const title = document.getElementById('hero-title-input');
+            const description = document.getElementById('hero-description-input');
+            const image = document.getElementById('hero-image-url-input');
+            if (badge) badge.value = hero.badge_text || '';
+            if (title) title.value = hero.title || '';
+            if (description) description.value = hero.description || '';
+            if (image) image.value = hero.hero_image_url || '';
+            updateHeroAdminPreview();
+        }
+
+        function updateHeroAdminPreview() {
+            const hero = {
+                badge_text: document.getElementById('hero-badge-text')?.value || defaultSeaBreezeHero.badge_text,
+                title: document.getElementById('hero-title-input')?.value || defaultSeaBreezeHero.title,
+                description: document.getElementById('hero-description-input')?.value || defaultSeaBreezeHero.description,
+                hero_image_url: document.getElementById('hero-image-url-input')?.value || DEFAULT_SEA_BREEZE_HERO_IMAGE
+            };
+            const preview = document.getElementById('hero-admin-preview');
+            if (preview) preview.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
+            const badge = document.getElementById('hero-preview-badge');
+            const title = document.getElementById('hero-preview-title');
+            const description = document.getElementById('hero-preview-description');
+            if (badge) badge.textContent = hero.badge_text;
+            if (title) title.innerHTML = formatHeroTitle(hero.title);
+            if (description) description.textContent = hero.description;
+        }
+
+        async function handleSaveHeroSection(e) {
+            e.preventDefault();
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const payload = {
+                badge_text: document.getElementById('hero-badge-text').value.trim(),
+                title: document.getElementById('hero-title-input').value.trim(),
+                description: document.getElementById('hero-description-input').value.trim(),
+                hero_image_url: document.getElementById('hero-image-url-input').value.trim(),
+                is_active: true
+            };
+            try {
+                const saved = await apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`, { method: 'PUT', body: JSON.stringify(payload) });
+                cacheData('heroSection', normalizeHeroSection(saved));
+                renderSeaBreezeHero();
+                fillHeroAdminForm();
+                const success = document.getElementById('hero-save-success');
+                if (success) {
+                    success.classList.remove('hidden');
+                    setTimeout(() => success.classList.add('hidden'), 4000);
+                }
+            } catch (error) {
+                alert('Hero bölməsi saxlanılmadı: ' + error.message);
+            }
         }
 
         function uiProjectToApi(p) {
@@ -1500,11 +1654,12 @@ Title: Park Villas
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             try {
-                const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
+                const [projects, listings, vacancies, gallery, heroSection, applications, users] = await Promise.all([
                     apiRequest('/api/projects?page=1&limit=100'),
                     apiRequest('/api/listings?page=1&limit=100'),
                     apiRequest('/api/vacancies'),
                     apiRequest('/api/gallery'),
+                    apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`).catch(() => defaultSeaBreezeHero),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
                     getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([])
                 ]);
@@ -1514,15 +1669,18 @@ Title: Park Villas
                 cacheData('listings', listingRows.map(dbListingToUi));
                 cacheData('vacancies', vacancies.map(dbVacancyToUi));
                 cacheData('gallery', gallery.map(dbGalleryToUi));
+                cacheData('heroSection', normalizeHeroSection(heroSection));
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
+                renderSeaBreezeHero();
                 renderSeaBreeze();
                 renderPortfolio();
                 renderCareerSection();
             } catch (error) {
                 console.warn('API məlumatları oxunmadı, yalnız lokal cache göstərilir:', error.message);
+                renderSeaBreezeHero();
             }
         }
 
@@ -2301,13 +2459,14 @@ Title: Park Villas
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
-            const isRestrictedDashboardTab = ['projects-manager', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
 
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
             document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-hero-sections').classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
@@ -2319,7 +2478,7 @@ Title: Park Villas
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -2330,6 +2489,9 @@ Title: Park Villas
                 renderAdminProjects();
                 renderBulkProjectPreview();
                 updateProjectImagePreview();
+            }
+            if (subtab === 'hero-sections') {
+                fillHeroAdminForm();
             }
         }
 
@@ -2886,7 +3048,7 @@ Title: Park Villas
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, namizəd məlumatlarını və istifadəçiləri idarə edin.`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, hero bölmələrini, namizəd məlumatlarını və istifadəçiləri idarə edin.`;
             }
 
             // 1. Listings Grid
