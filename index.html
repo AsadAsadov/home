@@ -431,6 +431,40 @@
             from { opacity: 0; transform: scale(0.94); }
             to { opacity: 1; transform: scale(1); }
         }
+
+        .listing-detail-shell {
+            background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
+            box-shadow: 0 30px 90px rgba(15, 23, 42, .32);
+        }
+        .listing-detail-main-image {
+            aspect-ratio: 16 / 11;
+            min-height: 260px;
+        }
+        .listing-detail-thumbnail {
+            border: 2px solid transparent;
+            transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .listing-detail-thumbnail:hover,
+        .listing-detail-thumbnail.is-active {
+            transform: translateY(-2px);
+            border-color: var(--color-primary);
+            box-shadow: 0 12px 30px rgba(127, 127, 255, .24);
+        }
+        .listing-detail-stat {
+            background: rgba(248, 250, 252, .92);
+            border: 1px solid rgba(226, 232, 240, .9);
+            border-radius: 1rem;
+            padding: .95rem;
+        }
+        .listing-detail-action {
+            box-shadow: 0 14px 30px rgba(15, 23, 42, .12);
+        }
+        @media (max-width: 767px) {
+            .listing-detail-main-image {
+                min-height: 220px;
+                aspect-ratio: 4 / 3;
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -1212,57 +1246,72 @@ Title: Park Villas
 
     </main>
 
-    <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN DETALLI MODAL -->
-    <div id="property-detail-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="glass-card max-w-2xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
-            <button onclick="closePropertyModal()" class="absolute top-4 right-4 text-gray-700 hover:text-brand-500 text-2xl z-20">
+    <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
+    <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
+        <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative max-h-[92vh] flex flex-col">
+            <button onclick="closePropertyModal()" class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 text-gray-800 hover:text-white hover:bg-brand-500 shadow-xl text-xl z-30 transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            
             <div class="overflow-y-auto">
-                <img id="p-modal-img" class="w-full h-64 object-cover cursor-zoom-in" src="" alt="">
-                <div class="p-6 md:p-8 space-y-6">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <span id="p-modal-project" class="bg-brand-500/15 text-brand-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-brand-500/20"></span>
-                            <h3 id="p-modal-title" class="text-2xl font-extrabold text-gray-900 mt-2"></h3>
+                <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-0">
+                    <div class="bg-slate-950 p-3 md:p-5 space-y-3">
+                        <div class="relative overflow-hidden rounded-[1.5rem] bg-slate-900 listing-detail-main-image">
+                            <img id="p-modal-img" class="w-full h-full object-cover cursor-zoom-in" src="" alt="Elan şəkli">
+                            <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/55 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">1 / 1</div>
+                            <button type="button" id="p-modal-gallery-button" class="absolute bottom-4 right-4 bg-white/95 hover:bg-brand-500 hover:text-white text-gray-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl transition">
+                                <i class="fa-solid fa-expand mr-2"></i>Şəkli böyüt
+                            </button>
                         </div>
-                        <div class="text-right">
-                            <div id="p-modal-price" class="text-2xl font-extrabold text-gray-900"></div>
-                            <div id="p-modal-sqprice" class="text-xs text-brand-300 font-bold mt-1"></div>
-                        </div>
+                        <div id="p-modal-thumbnails" class="grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
                     </div>
 
-                    <!-- Parametrlər Qutusu -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-brand-50/80 p-4 rounded-2xl border border-brand-200 text-xs text-gray-700">
-                        <div>Otaq: <strong id="p-modal-rooms" class="text-gray-900 block mt-0.5"></strong></div>
-                        <div>Sahə: <strong id="p-modal-area" class="text-gray-900 block mt-0.5"></strong></div>
-                        <div>Mərtəbə: <strong id="p-modal-floor" class="text-gray-900 block mt-0.5"></strong></div>
-                        <div id="p-modal-land-box" class="hidden">Torpaq (Sot): <strong id="p-modal-land" class="text-gray-900 block mt-0.5"></strong></div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Ətraflı Təsvir</h4>
-                        <p id="p-modal-desc" class="text-gray-700 text-sm font-medium leading-relaxed"></p>
-                    </div>
-
-                    <!-- Əlaqə məlumatları & WhatsApp Düyməsi -->
-                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="flex items-center space-x-3 text-left w-full sm:w-auto">
-                            <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl font-bold">
-                                <i class="fa-solid fa-user-tie"></i>
+                    <div class="p-5 md:p-8 lg:p-10 space-y-7">
+                        <div class="space-y-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="p-modal-type" class="bg-emerald-500/10 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-emerald-200"></span>
+                                <span id="p-modal-category" class="bg-brand-500/10 text-brand-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-brand-200"></span>
+                                <span id="p-modal-project" class="bg-slate-100 text-slate-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200"></span>
                             </div>
+                            <h3 id="p-modal-title" class="text-2xl md:text-4xl font-black text-gray-950 leading-tight"></h3>
+                            <p id="p-modal-date" class="text-xs text-gray-500 font-semibold"><i class="fa-regular fa-calendar mr-1"></i></p>
+                        </div>
+
+                        <div class="rounded-[1.5rem] bg-gradient-to-br from-brand-50 to-white border border-brand-100 p-5 flex flex-wrap items-end justify-between gap-4 shadow-sm">
                             <div>
-                                <span class="text-[10px] text-gray-500 uppercase block font-medium">Əlaqəli nümayəndə</span>
-                                <strong id="p-modal-agent-name" class="text-gray-900 block text-sm"></strong>
-                                <span id="p-modal-agent-phone" class="text-xs text-gray-700"></span>
+                                <span class="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-black">Qiymət</span>
+                                <div id="p-modal-price" class="text-3xl md:text-4xl font-black text-gray-950 mt-1"></div>
+                            </div>
+                            <div id="p-modal-sqprice" class="text-sm text-brand-600 font-black bg-white/80 px-4 py-2 rounded-full border border-brand-100"></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                            <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Otaq sayı</span><strong id="p-modal-rooms" class="text-gray-950 text-lg"></strong></div>
+                            <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Sahə</span><strong id="p-modal-area" class="text-gray-950 text-lg"></strong></div>
+                            <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Mərtəbə</span><strong id="p-modal-floor" class="text-gray-950 text-lg"></strong></div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">Təsvir</h4>
+                            <p id="p-modal-desc" class="text-gray-700 text-sm md:text-base font-medium leading-7 whitespace-pre-line"></p>
+                        </div>
+
+                        <div class="rounded-[1.5rem] bg-slate-50 border border-slate-200 p-5 space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-gray-500 uppercase block font-black">Əlaqə</span>
+                                    <strong id="p-modal-agent-name" class="text-gray-950 block text-sm"></strong>
+                                    <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
+                                </div>
+                            </div>
+                            <div class="grid sm:grid-cols-3 gap-3">
+                                <a id="p-modal-whatsapp-btn" href="" target="_blank" class="listing-detail-action bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
+                                <a id="p-modal-call-btn" href="" class="listing-detail-action bg-slate-950 hover:bg-brand-600 text-white font-black py-3 px-4 rounded-2xl flex items-center justify-center gap-2 transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
+                                <button id="p-modal-share-btn" type="button" class="listing-detail-action bg-white hover:bg-brand-50 text-gray-900 font-black py-3 px-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200 transition"><i class="fa-solid fa-share-nodes"></i><span>Paylaş</span></button>
                             </div>
                         </div>
-                        
-                        <a id="p-modal-whatsapp-btn" href="" target="_blank" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center space-x-2 transition duration-200">
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                            <span>WhatsApp ilə Yaz</span>
-                        </a>
                     </div>
                 </div>
             </div>
@@ -1896,19 +1945,54 @@ Title: Park Villas
             return '1';
         }
 
+        function firstDefined(...values) {
+            return values.find(value => value !== undefined && value !== null && value !== '');
+        }
+
+        function numericValue(...values) {
+            const value = firstDefined(...values);
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function integerValue(...values) {
+            const value = firstDefined(...values);
+            const parsed = Number.parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function normalizeListingImages(l = {}) {
+            const rows = Array.isArray(l.images) ? l.images : [];
+            const fromRows = rows.map(item => typeof item === 'string' ? item : item.imageUrl || item.image_url).filter(Boolean);
+            return [...fromRows, l.imageUrl || l.image_url || l.img].map(x => String(x || '').trim()).filter((x, idx, all) => x && all.indexOf(x) === idx);
+        }
+
         function dbListingToUi(l) {
-            const area = Number(l.area || 0);
-            const price = Number(l.price || 0);
-            const images = Array.isArray(l.images)
-                ? l.images.map(item => typeof item === 'string' ? item : item.imageUrl || item.image_url).filter(Boolean)
-                : [];
-            if (!images.length && (l.imageUrl || l.image_url)) images.push(l.imageUrl || l.image_url);
+            const area = numericValue(l.area);
+            const price = numericValue(l.price);
+            const floorNumber = integerValue(l.floorNumber, l.floor_number, l.floor);
+            const floorCount = integerValue(l.floorCount, l.floor_count);
+            const images = normalizeListingImages(l);
             return {
-                id: l.id, title: l.title, project: l.projectName || l.project_name || 'Digər', listingType: l.listingType || l.listing_type || 'Satis',
-                category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
-                area, floorNumber: parseInt(l.floorNumber || l.floor_number || l.floor || 1), floorCount: parseInt(l.floorCount || l.floor_count || 1),
-                floor: parseInt(l.floorNumber || l.floor_number || l.floor || l.floorCount || l.floor_count || 1), price, img: images[0] || '', images,
-                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', displayOrder: Number(l.displayOrder ?? l.display_order ?? l.id), createdAt: l.createdAt || l.created_at || new Date().toISOString()
+                id: l.id,
+                title: firstDefined(l.title, 'Başlıqsız elan'),
+                project: firstDefined(l.projectName, l.project_name, l.project, 'Digər'),
+                listingType: firstDefined(l.listingType, l.listing_type, 'Satis'),
+                category: firstDefined(l.propertyCategory, l.property_category, l.category, 'Apartment'),
+                rooms: integerValue(l.roomCount, l.room_count, l.rooms),
+                area,
+                floorNumber,
+                floorCount,
+                floor: floorNumber || floorCount,
+                price,
+                pricePerM2: numericValue(l.pricePerM2, l.price_per_m2) || (area && price ? price / area : 0),
+                img: images[0] || '',
+                images,
+                desc: firstDefined(l.description, l.desc, ''),
+                authorId: firstDefined(l.userId, l.user_id, 'admin'),
+                status: firstDefined(l.status, 'Approved'),
+                displayOrder: Number(l.displayOrder ?? l.display_order ?? l.id),
+                createdAt: firstDefined(l.createdAt, l.created_at, new Date().toISOString())
             };
         }
 
@@ -2804,61 +2888,103 @@ Title: Park Villas
             renderPagination('listings-pagination', listingPage, totalPages, 'setListingPage');
         }
 
-        // OPEN PROPERTY DETAILS MODAL (WITH WHATSAPP AVTOMATİK ŞABLON)
+        // OPEN PROPERTY DETAILS MODAL (WITH PREMIUM GALLERY + WHATSAPP ŞABLON)
+        let activePropertyImages = [];
+        let activePropertyImageIndex = 0;
+
+        function setPropertyMainImage(index) {
+            if (!activePropertyImages.length) return;
+            activePropertyImageIndex = Math.max(0, Math.min(index, activePropertyImages.length - 1));
+            const image = document.getElementById('p-modal-img');
+            const selectedUrl = activePropertyImages[activePropertyImageIndex];
+            image.src = selectedUrl;
+            image.onclick = () => openPropertyLightbox(activePropertyImageIndex);
+            document.getElementById('p-modal-image-counter').textContent = `${activePropertyImageIndex + 1} / ${activePropertyImages.length}`;
+            document.querySelectorAll('.listing-detail-thumbnail').forEach((btn, idx) => btn.classList.toggle('is-active', idx === activePropertyImageIndex));
+        }
+
+        function renderPropertyThumbnails(images) {
+            const container = document.getElementById('p-modal-thumbnails');
+            container.innerHTML = '';
+            images.forEach((url, index) => {
+                container.insertAdjacentHTML('beforeend', `
+                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''} overflow-hidden rounded-2xl bg-slate-900 aspect-[4/3]">
+                        <img src="${escapeHtml(url)}" class="w-full h-full object-cover" alt="Elan şəkli ${index + 1}">
+                    </button>
+                `);
+            });
+        }
+
+        function openPropertyLightbox(index = 0) {
+            if (!activePropertyImages.length) return;
+            openEventLightbox(encodeURIComponent(JSON.stringify(activePropertyImages)), document.getElementById('p-modal-title').textContent || 'Elan şəkilləri');
+            lightboxIndex = index;
+            updateLightboxUI();
+        }
+
+        async function shareListing(p) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}#listing-${p.id}`;
+            const shareData = { title: p.title, text: `${p.title} - ${Number(p.price).toLocaleString('az-AZ')} AZN`, url: shareUrl };
+            if (navigator.share) {
+                await navigator.share(shareData).catch(() => {});
+                return;
+            }
+            await navigator.clipboard?.writeText(shareUrl).catch(() => {});
+            alert('Elan linki kopyalandı.');
+        }
+
         function openPropertyModal(id) {
             const list = appData.listings;
-            const p = list.find(item => item.id === parseInt(id));
+            const p = list.find(item => String(item.id) === String(id));
             if (!p) return;
 
-            const propertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img].filter(Boolean);
-            const propertyImage = document.getElementById('p-modal-img');
-            propertyImage.src = propertyImages[0] || p.img;
-            propertyImage.onclick = () => openEventLightbox(encodeURIComponent(JSON.stringify(propertyImages)), p.title);
-            document.getElementById('p-modal-project').textContent = p.project;
-            document.getElementById('p-modal-title').textContent = p.title;
-            document.getElementById('p-modal-desc').textContent = p.desc;
-            document.getElementById('p-modal-price').textContent = `${Number(p.price).toLocaleString('az-AZ')} AZN${p.listingType==='Kiraye'?' /ay':''}`;
-            document.getElementById('p-modal-rooms').textContent = p.rooms;
-            document.getElementById('p-modal-area').textContent = p.area + ' m²';
+            const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
+            activePropertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
+            activePropertyImageIndex = 0;
+            renderPropertyThumbnails(activePropertyImages);
+            setPropertyMainImage(0);
+            document.getElementById('p-modal-gallery-button').onclick = () => openPropertyLightbox(activePropertyImageIndex);
+
+            const isRent = p.listingType === 'Kiraye';
+            const categoryLabel = p.category === 'Villa' ? 'Villa' : (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
+            const price = Number(p.price || 0);
+            const area = Number(p.area || 0);
+            const pricePerM2 = Number(p.pricePerM2 || (area && price ? price / area : 0));
+
+            document.getElementById('p-modal-type').textContent = isRent ? 'Kirayə' : 'Satış';
+            document.getElementById('p-modal-category').textContent = categoryLabel;
+            document.getElementById('p-modal-project').textContent = p.project || 'Digər';
+            document.getElementById('p-modal-title').textContent = p.title || 'Başlıqsız elan';
+            document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
+            document.getElementById('p-modal-desc').textContent = p.desc || 'Təsvir əlavə edilməyib.';
+            document.getElementById('p-modal-price').textContent = `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}`;
+            document.getElementById('p-modal-rooms').textContent = p.rooms || '—';
+            document.getElementById('p-modal-area').textContent = area ? `${area.toLocaleString('az-AZ')} m²` : '—';
             document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
+            document.getElementById('p-modal-sqprice').textContent = pricePerM2 ? `1 m²: ${Math.round(pricePerM2).toLocaleString('az-AZ')} AZN` : '1 m²: —';
 
-            if (p.land) {
-                document.getElementById('p-modal-land-box').classList.remove('hidden');
-                document.getElementById('p-modal-land').textContent = p.land + ' Sot';
-            } else {
-                document.getElementById('p-modal-land-box').classList.add('hidden');
-            }
-
-            // Square price check (Not for rent)
-            if (p.listingType !== 'Kiraye') {
-                const perSq = Math.round(p.price / p.area);
-                document.getElementById('p-modal-sqprice').textContent = `1 m²: ${Number(perSq).toLocaleString('az-AZ')} AZN`;
-            } else {
-                document.getElementById('p-modal-sqprice').textContent = '';
-            }
-
-            // Get author information (Employee details)
             let authorName = "BestHome Əmlak";
             let authorPhone = "+994703152222";
-
             if (p.authorId === 'admin') {
                 authorName = "Rəsmi Admin";
             } else {
-                const agents = appData.agents;
-                const ag = agents.find(a => a.id === p.authorId);
+                const ag = appData.agents.find(a => String(a.id) === String(p.authorId));
                 if (ag) {
-                    authorName = `${ag.name} ${ag.surname}`;
-                    authorPhone = ag.phone;
+                    authorName = ag.fullname || `${ag.name || ''} ${ag.surname || ''}`.trim() || authorName;
+                    authorPhone = ag.phone || authorPhone;
                 }
             }
 
             document.getElementById('p-modal-agent-name').textContent = authorName;
             document.getElementById('p-modal-agent-phone').textContent = authorPhone;
 
-            // WhatsApp link formation with custom message template
-            const messageText = `Salam, ${authorName}. besthome.az saytındakı bu elanla bağlı məlumat almaq istəyirəm:\n"${p.title}"\nQiymət: ${p.price} AZN`;
+            const messageText = `Salam, ${authorName}. besthome.az saytındakı bu elanla bağlı məlumat almaq istəyirəm:
+"${p.title}"
+Qiymət: ${price.toLocaleString('az-AZ')} AZN`;
             const cleanPhone = authorPhone.replace(/[^0-9]/g, '');
             document.getElementById('p-modal-whatsapp-btn').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+            document.getElementById('p-modal-call-btn').href = `tel:${cleanPhone ? '+' + cleanPhone : authorPhone}`;
+            document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
 
             document.getElementById('property-detail-modal').classList.remove('hidden');
         }

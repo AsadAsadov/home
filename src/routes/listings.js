@@ -324,18 +324,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const payloadInspection = inspectPayloadFields(payload);
     console.info('[listings] payload field inspection', payloadInspection);
 
-    // Temporarily disabled to inspect the exact payload that would be sent to Prisma.
-    // const created = await prisma.listing.create(createArgs);
-    // console.log('INSERTED RECORD', created);
+    const listing = await prisma.listing.create(createArgs);
+    console.log("INSERTED RECORD", listing);
 
-    return res.status(200).json({
-      body: req.body,
-      files: req.files,
-      payload,
-      payloadFields: payloadInspection.fields,
-      nullByteFields,
-      bufferOrObjectFields: payloadInspection.bufferOrObjectFields,
-    });
+    return res.status(201).json(listing);
   } catch (error) {
     logListingApiError(error);
     return res.status(500).json({
