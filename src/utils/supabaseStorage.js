@@ -189,9 +189,55 @@ async function uploadListingImage(file) {
   return buildPublicUrl(LISTINGS_BUCKET, objectPath);
 }
 
+async function checkSupabaseStorageObjectExists(bucket, objectPath) {
+  const { url, serviceKey } = getSupabaseConfig();
+  const requestedPath = String(objectPath || '').trim().replace(/^\/+/, '');
+  const normalizedPath = normalizeStorageObjectPath(requestedPath, bucket);
+  const requestUrl = `${url}/storage/v1/object/${bucket}/${encodeStorageObjectPath(requestedPath)}`;
+  const response = await fetch(requestUrl, {
+    method: 'HEAD',
+    headers: {
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+    },
+  });
+  const result = {
+    bucket,
+    originalPath: objectPath,
+    requestedPath,
+    normalizedPath,
+    requestUrl,
+    status: response.status,
+    ok: response.ok,
+    exists: response.ok,
+  };
+  console.log('[supabaseStorage] object existence check', result);
+  return result;
+}
+
+async function checkCareerCvObjectLocations(filePath) {
+  const originalPath = String(filePath || '').trim().replace(/^\/+/, '');
+  const normalizedPath = normalizeStorageObjectPath(originalPath, CAREER_CV_BUCKET);
+  const candidates = Array.from(new Set([normalizedPath, originalPath].filter(Boolean)));
+  const results = [];
+  for (const candidatePath of candidates) {
+    results.push(await checkSupabaseStorageObjectExists(CAREER_CV_BUCKET, candidatePath));
+  }
+  const located = results.find((item) => item.exists) || null;
+  const debug = {
+    bucket: CAREER_CV_BUCKET,
+    originalPath,
+    normalizedPath,
+    candidates: results,
+    locatedPath: located?.requestedPath || null,
+  };
+  console.log('[supabaseStorage] career CV object locations', debug);
+  return debug;
+}
+
 async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
   const objectPath = normalizeStorageObjectPath(filePath, CAREER_CV_BUCKET);
-  console.info('[supabaseStorage] createSignedUrl request path', {
+  console.log({
     bucket: CAREER_CV_BUCKET,
     originalPath: filePath,
     normalizedPath: objectPath,
@@ -204,6 +250,13 @@ async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
   }
   const { url, serviceKey } = getSupabaseConfig();
   const requestUrl = `${url}/storage/v1/object/sign/${CAREER_CV_BUCKET}/${encodeStorageObjectPath(objectPath)}`;
+  const createSignedUrlParams = {
+    bucket: CAREER_CV_BUCKET,
+    path: objectPath,
+    expiresIn,
+    requestUrl,
+  };
+  console.log('[supabaseStorage] createSignedUrl parameters', createSignedUrlParams);
   const response = await fetch(requestUrl, {
     method: 'POST',
     headers: {
@@ -214,15 +267,20 @@ async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
     body: JSON.stringify({ expiresIn }),
   });
   const payload = await response.json().catch(() => ({}));
-  console.info('[supabaseStorage] createSignedUrl response', {
+  const createSignedUrlResponse = {
     data: response.ok ? payload : null,
     error: response.ok ? null : payload,
-  });
+    status: response.status,
+    ok: response.ok,
+  };
+  console.log('[supabaseStorage] createSignedUrl response', createSignedUrlResponse);
   const debug = {
     bucket: CAREER_CV_BUCKET,
     originalPath: filePath,
     normalizedPath: objectPath,
     requestUrl,
+    createSignedUrlParams,
+    createSignedUrlResponse,
     supabaseResponse: payload,
     status: response.status,
     ok: response.ok,
@@ -260,6 +318,8 @@ module.exports = {
   normalizeStorageObjectPath,
   uploadCareerCv,
   uploadListingImage,
+  checkSupabaseStorageObjectExists,
+  checkCareerCvObjectLocations,
   createCareerCvSignedUrl,
   createCareerCvSignedUrlDebug,
 };

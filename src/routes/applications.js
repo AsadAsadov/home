@@ -11,6 +11,7 @@ const {
   assertValidCvFile,
   uploadCareerCv,
   normalizeStorageObjectPath,
+  checkCareerCvObjectLocations,
   createCareerCvSignedUrlDebug,
 } = require('../utils/supabaseStorage');
 
@@ -70,6 +71,7 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
         path: '2026/05/file.pdf',
       },
     });
+    const storageLocations = await checkCareerCvObjectLocations(originalPath);
     const result = await createCareerCvSignedUrlDebug(originalPath, Number(req.body?.expiresIn || 60));
     console.info('[applications] createSignedUrl debug', {
       applicationId: application.id,
@@ -78,6 +80,9 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
       normalizedPath: result.normalizedPath,
       finalSignedUrl: result.signedUrl,
       requestUrl: result.requestUrl,
+      createSignedUrlParams: result.createSignedUrlParams,
+      createSignedUrlResponse: result.createSignedUrlResponse,
+      storageLocations,
       supabaseResponse: {
         data: result.ok ? result.supabaseResponse : null,
         error: result.ok ? null : result.supabaseResponse,
@@ -91,6 +96,9 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
       filePath: application.cvFile,
       normalizedPath: result.normalizedPath,
       createSignedUrlPath: result.normalizedPath,
+      createSignedUrlParams: result.createSignedUrlParams,
+      createSignedUrlResponse: result.createSignedUrlResponse,
+      storageLocations,
       supabaseResponse: {
         data: result.ok ? result.supabaseResponse : null,
         error: result.ok ? null : result.supabaseResponse,
