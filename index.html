@@ -727,13 +727,17 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <label class="text-[10px] text-gray-400 font-bold uppercase">Sahə (m²) *</label>
                                 <input type="number" id="sb-area" required min="1" step="any" oninput="calculateSqPrice()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                             </div>
                             <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mərtəbə Sayı *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Yerləşdiyi mərtəbə *</label>
+                                <input type="number" id="sb-floor-number" required min="1" value="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Ümumi mərtəbə sayı *</label>
                                 <input type="number" id="sb-floor" required min="1" value="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                             </div>
                         </div>
@@ -1729,6 +1733,15 @@ Title: Park Villas
             };
         }
 
+        function formatListingFloor(floorNumber, floorCount) {
+            const placed = Number.parseInt(floorNumber, 10);
+            const total = Number.parseInt(floorCount, 10);
+            if (Number.isFinite(placed) && placed > 0 && Number.isFinite(total) && total > 0) return `${placed} / ${total}`;
+            if (Number.isFinite(placed) && placed > 0) return String(placed);
+            if (Number.isFinite(total) && total > 0) return String(total);
+            return '1';
+        }
+
         function dbListingToUi(l) {
             const area = Number(l.area || 0);
             const price = Number(l.price || 0);
@@ -1739,7 +1752,8 @@ Title: Park Villas
             return {
                 id: l.id, title: l.title, project: l.projectName || l.project_name || 'Digər', listingType: l.listingType || l.listing_type || 'Satis',
                 category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
-                area, floor: parseInt(l.floorCount || l.floor_count || 1), price, img: images[0] || '', images,
+                area, floorNumber: parseInt(l.floorNumber || l.floor_number || l.floor || 1), floorCount: parseInt(l.floorCount || l.floor_count || 1),
+                floor: parseInt(l.floorNumber || l.floor_number || l.floor || l.floorCount || l.floor_count || 1), price, img: images[0] || '', images,
                 desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', createdAt: l.createdAt || l.created_at || new Date().toISOString()
             };
         }
@@ -2010,7 +2024,8 @@ Title: Park Villas
             const area = safeNumber(l.area);
             const price = safeNumber(l.price);
             const roomCount = Number.parseInt(l.rooms, 10);
-            const floorCount = Number.parseInt(l.floor, 10);
+            const floorNumber = Number.parseInt(l.floorNumber ?? l.floor, 10);
+            const floorCount = Number.parseInt(l.floorCount ?? l.floor, 10);
             return {
                 title: l.title || '',
                 listingType: l.listingType || 'Satis',
@@ -2018,6 +2033,7 @@ Title: Park Villas
                 projectName: l.project || 'Digər',
                 roomCount: Number.isFinite(roomCount) ? roomCount : undefined,
                 area,
+                floorNumber: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
                 floorCount: String(Number.isFinite(floorCount) && floorCount > 0 ? floorCount : 1),
                 price,
                 pricePerM2: area && price ? price / area : undefined,
@@ -2607,7 +2623,7 @@ Title: Park Villas
                             <div class="grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
                                 <span>Otaq: <strong class="text-gray-900">${p.rooms}</strong></span>
                                 <span>Sahə: <strong class="text-gray-900">${p.area} m²</strong></span>
-                                <span>Mərtəbə: <strong class="text-gray-900">${p.floor || 1}</strong></span>
+                                <span>Mərtəbə: <strong class="text-gray-900">${formatListingFloor(p.floorNumber ?? p.floor, p.floorCount)}</strong></span>
                                 ${p.land ? `<span>Torpaq: <strong class="text-gray-900">${p.land} Sot</strong></span>` : ''}
                             </div>
                         </div>
@@ -2641,7 +2657,7 @@ Title: Park Villas
             document.getElementById('p-modal-price').textContent = `${Number(p.price).toLocaleString('az-AZ')} AZN${p.listingType==='Kiraye'?' /ay':''}`;
             document.getElementById('p-modal-rooms').textContent = p.rooms;
             document.getElementById('p-modal-area').textContent = p.area + ' m²';
-            document.getElementById('p-modal-floor').textContent = p.floor || 1;
+            document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
 
             if (p.land) {
                 document.getElementById('p-modal-land-box').classList.remove('hidden');
@@ -2720,13 +2736,14 @@ Title: Park Villas
                     html = `
                         <div onclick="openEventLightbox('${listString}', '${item.title}')" class="cursor-pointer group rounded-2xl overflow-hidden glass-card relative border border-white/5 h-64">
                             <img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                            <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
                             <span class="absolute top-4 right-4 bg-brand-500/80 backdrop-blur-sm text-xs font-bold text-white px-2.5 py-1 rounded-xl flex items-center space-x-1">
                                 <i class="fa-solid fa-images"></i> <span>${item.images ? item.images.length : 0} şəkil</span>
                             </span>
-                            <div class="absolute bottom-5 left-5">
-                                <span class="text-[9px] bg-brand-500/20 text-brand-300 px-2 py-0.5 rounded uppercase font-bold">Tədbir</span>
-                                <h4 class="text-white font-bold text-base mt-1">${item.title}</h4>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <span class="text-[9px] bg-brand-500/20 text-brand-700 px-2 py-0.5 rounded uppercase font-bold">Tədbir</span>
+                                <h4 class="text-gray-900 font-bold text-base mt-1">${item.title}</h4>
+                                <p class="text-gray-700 text-xs line-clamp-2">${item.desc || ''}</p>
                             </div>
                         </div>
                     `;
@@ -2738,10 +2755,11 @@ Title: Park Villas
                                 <div class="absolute inset-0 bg-cover bg-center opacity-60 group-hover:scale-105 transition duration-300" style="background-image: url('${thumb}')"></div>
                                 <i class="fa-solid fa-play text-white text-4xl bg-brand-500 p-3.5 rounded-full shadow-lg z-10"></i>
                             </div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-darkBg via-transparent to-transparent"></div>
-                            <div class="absolute bottom-5 left-5">
-                                <span class="text-[9px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded uppercase font-bold">Video</span>
-                                <h4 class="text-white font-bold text-base mt-1">${item.title}</h4>
+                            <div class="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
+                            <div class="absolute bottom-5 left-5 right-5">
+                                <span class="text-[9px] bg-blue-500/20 text-blue-700 px-2 py-0.5 rounded uppercase font-bold">Video</span>
+                                <h4 class="text-gray-900 font-bold text-base mt-1">${item.title}</h4>
+                                <p class="text-gray-700 text-xs line-clamp-2">${item.desc || ''}</p>
                             </div>
                         </div>
                     `;
@@ -3727,13 +3745,18 @@ Title: Park Villas
             const category = document.getElementById('sb-form-category').value;
             const rooms = parseInt(document.getElementById('sb-rooms').value);
             const area = parseFloat(document.getElementById('sb-area').value);
+            const floorNumber = parseInt(document.getElementById('sb-floor-number').value);
             const floor = parseInt(document.getElementById('sb-floor').value);
             const land = document.getElementById('sb-land').value ? parseFloat(document.getElementById('sb-land').value) : null;
             const price = parseFloat(document.getElementById('sb-price').value);
             const desc = document.getElementById('sb-desc').value;
 
+            if (!floorNumber || floorNumber < 1) {
+                alert('Yerləşdiyi mərtəbə minimum 1 olmalıdır.');
+                return;
+            }
             if (!floor || floor < 1) {
-                alert('Mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
+                alert('Ümumi mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
                 return;
             }
             if (category === 'LandSale' && (!land || land <= 0)) {
@@ -3759,6 +3782,8 @@ Title: Park Villas
                 category,
                 rooms,
                 area,
+                floorNumber,
+                floorCount: floor,
                 floor,
                 land,
                 price,
@@ -3806,7 +3831,8 @@ Title: Park Villas
                 document.getElementById('sb-form-category').value = p.category || "Apartment";
                 document.getElementById('sb-rooms').value = p.rooms;
                 document.getElementById('sb-area').value = p.area;
-                document.getElementById('sb-floor').value = p.floor || 1;
+                document.getElementById('sb-floor-number').value = p.floorNumber || p.floor || 1;
+                document.getElementById('sb-floor').value = p.floorCount || p.floor || 1;
                 document.getElementById('sb-land').value = p.land || '';
                 document.getElementById('sb-price').value = p.price;
                 document.getElementById('sb-desc').value = p.desc;
@@ -3830,6 +3856,7 @@ Title: Park Villas
             document.getElementById('sb-form-category').value = 'Apartment';
             document.getElementById('sb-rooms').value = '2';
             document.getElementById('sb-area').value = '';
+            document.getElementById('sb-floor-number').value = '1';
             document.getElementById('sb-floor').value = '1';
             document.getElementById('sb-land').value = '';
             document.getElementById('sb-price').value = '';

@@ -9,7 +9,7 @@ const {
   ALLOWED_CV_MIME_TYPES,
   assertValidCvFile,
   uploadCareerCv,
-  createCareerCvSignedUrl,
+  createCareerCvSignedUrlDebug,
 } = require('../utils/supabaseStorage');
 
 const router = express.Router();
@@ -54,8 +54,42 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
   const application = await prisma.application.findUnique({ where: { id: Number(req.params.id) } });
   if (!application) return res.status(404).json({ message: 'Müraciət tapılmadı.' });
   if (!application.cvFile) return res.status(404).json({ message: 'Bu müraciətdə CV faylı yoxdur.' });
-  const signedUrl = await createCareerCvSignedUrl(application.cvFile, Number(req.body?.expiresIn || 60));
-  res.json({ signedUrl, filePath: application.cvFile, expiresIn: Number(req.body?.expiresIn || 60) });
+  try {
+    const result = await createCareerCvSignedUrlDebug(application.cvFile, Number(req.body?.expiresIn || 60));
+    console.info('[applications] createSignedUrl debug', {
+      applicationId: application.id,
+      finalPath: result.normalizedPath,
+      requestUrl: result.requestUrl,
+      supabaseResponse: result.supabaseResponse,
+      status: result.status,
+    });
+    return res.json({
+      signedUrl: result.signedUrl,
+      filePath: application.cvFile,
+      normalizedPath: result.normalizedPath,
+      createSignedUrlPath: result.normalizedPath,
+      supabaseResponse: result.supabaseResponse,
+      expiresIn: Number(req.body?.expiresIn || 60),
+    });
+  } catch (error) {
+    console.error('[applications] createSignedUrl error', {
+      applicationId: application.id,
+      filePath: application.cvFile,
+      message: error.message,
+      code: error.code,
+      meta: error.meta || error.debug,
+      stack: error.stack,
+    });
+    return res.status(error.status || 500).json({
+      message: error.message,
+      code: error.code,
+      filePath: application.cvFile,
+      normalizedPath: error.meta?.normalizedPath || error.debug?.normalizedPath,
+      createSignedUrlPath: error.meta?.normalizedPath || error.debug?.normalizedPath,
+      supabaseResponse: error.meta?.supabaseResponse,
+      status: error.meta?.status,
+    });
+  }
 }));
 
 router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {

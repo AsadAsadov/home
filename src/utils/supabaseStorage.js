@@ -92,6 +92,10 @@ function safeDecode(value = '') {
   }
 }
 
+function encodeStorageObjectPath(objectPath = '') {
+  return String(objectPath).split('/').map((segment) => encodeURIComponent(segment)).join('/');
+}
+
 function normalizeStorageObjectPath(filePath = '', bucket = CAREER_CV_BUCKET) {
   let value = String(filePath || '').trim().replace(/^\/+/, '');
   if (!value) return '';
@@ -113,7 +117,7 @@ function normalizeStorageObjectPath(filePath = '', bucket = CAREER_CV_BUCKET) {
 
 async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl = 'public, max-age=31536000', upsert = false }) {
   const { url, serviceKey } = getSupabaseConfig();
-  const uploadUrl = `${url}/storage/v1/object/${bucket}/${encodeURI(objectPath)}`;
+  const uploadUrl = `${url}/storage/v1/object/${bucket}/${encodeStorageObjectPath(objectPath)}`;
   const response = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
@@ -136,7 +140,7 @@ async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl =
 
 function buildPublicUrl(bucket, objectPath) {
   const { url } = getSupabaseConfig();
-  return `${url}/storage/v1/object/public/${bucket}/${encodeURI(objectPath)}`;
+  return `${url}/storage/v1/object/public/${bucket}/${encodeStorageObjectPath(objectPath)}`;
 }
 
 async function uploadCareerCv(file) {
@@ -158,15 +162,17 @@ async function uploadListingImage(file) {
   return buildPublicUrl(LISTINGS_BUCKET, objectPath);
 }
 
-async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
+async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
   const objectPath = normalizeStorageObjectPath(filePath, CAREER_CV_BUCKET);
   if (!objectPath) {
     const error = new Error('CV fayl yolu mövcud deyil.');
     error.status = 404;
+    error.debug = { originalPath: filePath, normalizedPath: objectPath };
     throw error;
   }
   const { url, serviceKey } = getSupabaseConfig();
-  const response = await fetch(`${url}/storage/v1/object/sign/${CAREER_CV_BUCKET}/${encodeURI(objectPath)}`, {
+  const requestUrl = `${url}/storage/v1/object/sign/${CAREER_CV_BUCKET}/${encodeStorageObjectPath(objectPath)}`;
+  const response = await fetch(requestUrl, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${serviceKey}`,
@@ -176,13 +182,28 @@ async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
     body: JSON.stringify({ expiresIn }),
   });
   const payload = await response.json().catch(() => ({}));
+  const debug = {
+    originalPath: filePath,
+    normalizedPath: objectPath,
+    requestUrl,
+    supabaseResponse: payload,
+    status: response.status,
+    ok: response.ok,
+  };
   if (!response.ok) {
-    const error = new Error(payload.message || 'CV üçün signed URL yaradılmadı.');
+    const error = new Error(payload.message || payload.error || 'CV üçün signed URL yaradılmadı.');
     error.status = response.status;
+    error.code = payload.error || payload.code;
+    error.meta = debug;
     throw error;
   }
   const signedURL = payload.signedURL || payload.signedUrl || payload.url;
-  return signedURL?.startsWith('http') ? signedURL : `${url}${signedURL}`;
+  return { signedUrl: signedURL?.startsWith('http') ? signedURL : `${url}${signedURL}`, ...debug };
+}
+
+async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
+  const result = await createCareerCvSignedUrlDebug(filePath, expiresIn);
+  return result.signedUrl;
 }
 
 module.exports = {
@@ -196,8 +217,10 @@ module.exports = {
   assertValidListingImage,
   buildCareerCvPath,
   buildStoragePath,
+  encodeStorageObjectPath,
   normalizeStorageObjectPath,
   uploadCareerCv,
   uploadListingImage,
   createCareerCvSignedUrl,
+  createCareerCvSignedUrlDebug,
 };
