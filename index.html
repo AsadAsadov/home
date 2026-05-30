@@ -560,6 +560,75 @@
                     </div>
                     <div id="admin-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
+
+                <div class="lg:col-span-12 glass-card p-6 rounded-2xl space-y-5 border border-white/5">
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                        <div>
+                            <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-import text-brand-500"></i>
+                                Bulk Project Import
+                            </h3>
+                            <p class="text-gray-400 text-xs mt-1">Çoxlu layihə mətnini yapışdırın, avtomatik bölünmüş layihələri yoxlayın, redaktə edin və hamısını mövcud Project CRUD API ilə bir əməliyyatda yadda saxlayın.</p>
+                        </div>
+                        <button type="button" onclick="clearBulkProjectImport()" class="self-start bg-white/5 hover:bg-white/10 text-gray-300 text-[10px] font-bold px-3 py-2 rounded-xl transition">Təmizlə</button>
+                    </div>
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                        <div class="xl:col-span-4 space-y-3">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə blokları</label>
+                            <textarea id="bulk-project-input" rows="16" placeholder="Məsələn:
+Title: Caspian Residence
+Description: Dənizə yaxın premium yaşayış layihəsi...
+Delivery Year: 2028
+Floor Count: 12 mərtəbə
+Area Range: 55-180 m²
+Apartment Count: 240 mənzil
+Townhouse Count: 12 taunhaus
+Renovation Status: Təmirsiz
+Features: Hovuz / Parking / Fitness
+
+---
+
+Title: Park Villas
+..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-brand-500 transition font-mono leading-relaxed"></textarea>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="parseBulkProjectImport()" class="bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-brand-500/20">
+                                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Parse & Preview
+                                </button>
+                                <span id="bulk-project-import-status" class="text-[11px] text-gray-400 flex items-center"></span>
+                            </div>
+                        </div>
+                        <div class="xl:col-span-8 space-y-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Preview table</h4>
+                                    <p class="text-[11px] text-gray-500">Saxlamadan əvvəl bütün xanaları birbaşa redaktə edə bilərsiniz.</p>
+                                </div>
+                                <button id="bulk-project-save-btn" type="button" onclick="saveBulkProjectImport()" disabled class="bg-emerald-500/20 text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-emerald-500 hover:enabled:text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
+                                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Save All Projects
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto rounded-2xl border border-white/10 bg-black/10">
+                                <table class="min-w-[1200px] w-full text-left text-xs">
+                                    <thead class="bg-white/[0.03] text-gray-400 uppercase text-[10px]">
+                                        <tr>
+                                            <th class="p-3">Title *</th>
+                                            <th class="p-3">Description</th>
+                                            <th class="p-3">Delivery Year</th>
+                                            <th class="p-3">Floor Count</th>
+                                            <th class="p-3">Area Range</th>
+                                            <th class="p-3">Apartment Count</th>
+                                            <th class="p-3">Townhouse Count</th>
+                                            <th class="p-3">Renovation Status</th>
+                                            <th class="p-3">Features</th>
+                                            <th class="p-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bulk-project-preview-body" class="divide-y divide-white/5"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- SUBTAB 2: CVS -->
@@ -1587,6 +1656,7 @@
         let uploadedEventImages = [];
         let uploadedEventImageFiles = [];
         let currentlyEditingGalleryItemId = null;
+        let bulkProjectImportRows = [];
 
         // SESSION CONTROL
         async function initializeAuth() {
@@ -2261,6 +2331,7 @@
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
+                renderBulkProjectPreview();
                 updateProjectImagePreview();
             }
         }
@@ -2432,6 +2503,218 @@
                     </div>
                 `;
             });
+        }
+
+        function getBulkProjectEmptyRow() {
+            return {
+                title: '', description: '', deliveryYear: '', floorCount: '', areaRange: '',
+                apartmentCount: '', townhouseCount: '', renovationStatus: '', features: '', category: 'Apartment'
+            };
+        }
+
+        function normalizeBulkProjectLabel(label) {
+            const key = String(label || '').toLowerCase().trim()
+                .replace(/[ə]/g, 'e')
+                .replace(/[ı]/g, 'i')
+                .replace(/[ö]/g, 'o')
+                .replace(/[ü]/g, 'u')
+                .replace(/[ğ]/g, 'g')
+                .replace(/[ç]/g, 'c')
+                .replace(/[ş]/g, 's')
+                .replace(/[^a-z0-9]+/g, '');
+            const map = {
+                title: 'title', name: 'title', projecttitle: 'title', projectname: 'title', layiheadi: 'title', layihəadi: 'title', ad: 'title',
+                description: 'description', desc: 'description', tesvir: 'description', təsvir: 'description', aciqlama: 'description', haqqinda: 'description',
+                deliveryyear: 'deliveryYear', deliverydate: 'deliveryYear', year: 'deliveryYear', tehvili: 'deliveryYear', tehviltarixi: 'deliveryYear', tehviliil: 'deliveryYear',
+                floorcount: 'floorCount', floors: 'floorCount', floor: 'floorCount', mertebesayi: 'floorCount', mertebe: 'floorCount', mərtəbəsayi: 'floorCount',
+                arearange: 'areaRange', area: 'areaRange', sahe: 'areaRange', sahə: 'areaRange', saheolcusu: 'areaRange',
+                apartmentcount: 'apartmentCount', apartments: 'apartmentCount', menzilsayi: 'apartmentCount', mənzilsayi: 'apartmentCount', menzil: 'apartmentCount',
+                townhousecount: 'townhouseCount', townhouses: 'townhouseCount', townhouse: 'townhouseCount', taunhaussayi: 'townhouseCount', taunhaus: 'townhouseCount',
+                renovationstatus: 'renovationStatus', repairstatus: 'renovationStatus', renovation: 'renovationStatus', repair: 'renovationStatus', temirstatusu: 'renovationStatus', təmirstatusu: 'renovationStatus', temir: 'renovationStatus',
+                features: 'features', feature: 'features', amenities: 'features', advantages: 'features', xususiyyetler: 'features', xüsusiyyətlər: 'features', ozellikler: 'features'
+            };
+            return map[key] || null;
+        }
+
+        function splitBulkProjectBlocks(input) {
+            const text = String(input || '').replace(/\r\n/g, '\n').trim();
+            if (!text) return [];
+            const separated = text.split(/\n\s*(?:-{3,}|={3,}|\*{3,})\s*\n/g).map(x => x.trim()).filter(Boolean);
+            if (separated.length > 1) return separated;
+            return text.split(/\n{2,}(?=\s*(?:title|project\s*name|layih[əe]\s*ad[ıi]|ad\s*:|[A-ZƏÖÜĞÇŞ0-9][^\n]{2,80}\n))/i)
+                .map(x => x.trim()).filter(Boolean);
+        }
+
+        function inferBulkProjectCategory(row) {
+            const joined = `${row.title} ${row.description} ${row.apartmentCount} ${row.townhouseCount}`.toLowerCase();
+            if (joined.includes('villa')) return 'Villa';
+            if (joined.includes('townhouse') || joined.includes('taunhaus')) return 'Townhouse';
+            return 'Apartment';
+        }
+
+        function parseBulkProjectBlock(block) {
+            const row = getBulkProjectEmptyRow();
+            const descriptionLines = [];
+            const featureLines = [];
+            const lines = String(block || '').split('\n').map(line => line.trim()).filter(Boolean);
+            let lastField = null;
+
+            lines.forEach((line, index) => {
+                const match = line.match(/^([^:：\-–—]{2,40})\s*[:：\-–—]\s*(.+)$/);
+                if (match) {
+                    const field = normalizeBulkProjectLabel(match[1]);
+                    const value = match[2].trim();
+                    if (field) {
+                        if (field === 'features') featureLines.push(value);
+                        else if (field === 'description') descriptionLines.push(value);
+                        else row[field] = row[field] ? `${row[field]} ${value}`.trim() : value;
+                        lastField = field;
+                        return;
+                    }
+                }
+
+                if (!row.title && index === 0 && line.length <= 120) {
+                    row.title = line.replace(/^#+\s*/, '');
+                    lastField = 'title';
+                    return;
+                }
+
+                if (lastField === 'features' || /^[•*-]\s+/.test(line)) {
+                    featureLines.push(line.replace(/^[•*-]\s+/, ''));
+                } else {
+                    descriptionLines.push(line);
+                    lastField = 'description';
+                }
+            });
+
+            if (!row.deliveryYear) row.deliveryYear = block.match(/\b(20\d{2}|19\d{2})\b/)?.[1] || '';
+            if (!row.areaRange) row.areaRange = block.match(/\b\d+\s*(?:[-–—]\s*\d+)?\s*(?:m2|m²|kv\.?\s*m)\b/i)?.[0] || '';
+            row.description = descriptionLines.join('\n').trim();
+            row.features = featureLines.join(' / ').replace(/\s*[,;]\s*/g, ' / ').trim();
+            row.category = inferBulkProjectCategory(row);
+            return row;
+        }
+
+        function parseBulkProjectImport() {
+            const input = document.getElementById('bulk-project-input');
+            const status = document.getElementById('bulk-project-import-status');
+            const blocks = splitBulkProjectBlocks(input?.value || '');
+            bulkProjectImportRows = blocks.map(parseBulkProjectBlock).filter(row => row.title || row.description);
+            renderBulkProjectPreview();
+            if (status) status.textContent = bulkProjectImportRows.length ? `${bulkProjectImportRows.length} layihə tapıldı.` : 'Layihə bloku tapılmadı.';
+        }
+
+        function updateBulkProjectRow(index, field, value) {
+            if (!bulkProjectImportRows[index]) return;
+            bulkProjectImportRows[index][field] = value;
+            if (['title', 'description', 'apartmentCount', 'townhouseCount'].includes(field)) {
+                bulkProjectImportRows[index].category = inferBulkProjectCategory(bulkProjectImportRows[index]);
+            }
+        }
+
+        function removeBulkProjectRow(index) {
+            bulkProjectImportRows.splice(index, 1);
+            renderBulkProjectPreview();
+        }
+
+        function bulkProjectInputCell(index, field, value, wide = false) {
+            const safeValue = String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (wide) {
+                return `<textarea rows="3" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-56 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">${safeValue}</textarea>`;
+            }
+            return `<input type="text" value="${safeValue}" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-36 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">`;
+        }
+
+        function renderBulkProjectPreview() {
+            const tbody = document.getElementById('bulk-project-preview-body');
+            const saveBtn = document.getElementById('bulk-project-save-btn');
+            if (!tbody) return;
+            if (!bulkProjectImportRows.length) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-500">Hələ preview yoxdur. Mətn yapışdırın və “Parse & Preview” düyməsini basın.</td></tr>`;
+                if (saveBtn) saveBtn.disabled = true;
+                return;
+            }
+            tbody.innerHTML = bulkProjectImportRows.map((row, index) => `
+                <tr class="align-top hover:bg-white/[0.02]">
+                    <td class="p-2">${bulkProjectInputCell(index, 'title', row.title)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'description', row.description, true)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'deliveryYear', row.deliveryYear)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'floorCount', row.floorCount)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'areaRange', row.areaRange)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'apartmentCount', row.apartmentCount)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'townhouseCount', row.townhouseCount)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'renovationStatus', row.renovationStatus)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'features', row.features, true)}</td>
+                    <td class="p-2 text-right"><button type="button" onclick="removeBulkProjectRow(${index})" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">Sil</button></td>
+                </tr>
+            `).join('');
+            if (saveBtn) saveBtn.disabled = !bulkProjectImportRows.some(row => row.title.trim());
+        }
+
+        function bulkProjectRowToUi(row) {
+            const countParts = [];
+            if (row.apartmentCount) countParts.push(row.apartmentCount);
+            if (row.townhouseCount) countParts.push(row.townhouseCount);
+            return {
+                category: row.category || inferBulkProjectCategory(row),
+                title: row.title.trim(),
+                year: row.deliveryYear.trim(),
+                img: '',
+                images: [],
+                desc: row.description.trim(),
+                floors: row.floorCount.trim(),
+                area: row.areaRange.trim(),
+                apartments: countParts.join(' / '),
+                repairStatus: row.renovationStatus.trim(),
+                features: row.features.trim()
+            };
+        }
+
+        async function saveBulkProjectImport() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const validRows = bulkProjectImportRows.filter(row => row.title.trim());
+            if (!validRows.length) {
+                alert('Yadda saxlamaq üçün ən azı bir layihə adı olmalıdır.');
+                return;
+            }
+            const saveBtn = document.getElementById('bulk-project-save-btn');
+            const status = document.getElementById('bulk-project-import-status');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving...';
+            }
+            try {
+                const created = [];
+                for (const row of validRows) {
+                    const saved = await apiRequest('/api/projects', { method: 'POST', body: JSON.stringify(uiProjectToApi(bulkProjectRowToUi(row))) });
+                    created.push(dbProjectToUi(saved));
+                }
+                saveOfficialProjects([...created, ...getOfficialProjects()]);
+                bulkProjectImportRows = [];
+                document.getElementById('bulk-project-input').value = '';
+                renderBulkProjectPreview();
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+                if (status) status.textContent = `${created.length} layihə uğurla yadda saxlandı.`;
+            } catch (error) {
+                alert('Bulk layihələr API-yə yazılmadı: ' + error.message);
+                if (status) status.textContent = 'Yadda saxlanma zamanı xəta baş verdi.';
+            } finally {
+                if (saveBtn) {
+                    saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Save All Projects';
+                    saveBtn.disabled = !bulkProjectImportRows.some(row => row.title.trim());
+                }
+            }
+        }
+
+        function clearBulkProjectImport() {
+            bulkProjectImportRows = [];
+            const input = document.getElementById('bulk-project-input');
+            const status = document.getElementById('bulk-project-import-status');
+            if (input) input.value = '';
+            if (status) status.textContent = '';
+            renderBulkProjectPreview();
         }
 
         async function handleSaveOfficialProject(e) {
