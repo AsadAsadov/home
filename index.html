@@ -2523,26 +2523,44 @@ Title: Park Villas
                 .replace(/[ş]/g, 's')
                 .replace(/[^a-z0-9]+/g, '');
             const map = {
-                title: 'title', name: 'title', projecttitle: 'title', projectname: 'title', layiheadi: 'title', layihəadi: 'title', ad: 'title',
-                description: 'description', desc: 'description', tesvir: 'description', təsvir: 'description', aciqlama: 'description', haqqinda: 'description',
+                title: 'title', name: 'title', projecttitle: 'title', projectname: 'title', layiheadi: 'title', ad: 'title',
+                description: 'description', desc: 'description', tesvir: 'description', aciqlama: 'description', haqqinda: 'description',
                 deliveryyear: 'deliveryYear', deliverydate: 'deliveryYear', year: 'deliveryYear', tehvili: 'deliveryYear', tehviltarixi: 'deliveryYear', tehviliil: 'deliveryYear',
-                floorcount: 'floorCount', floors: 'floorCount', floor: 'floorCount', mertebesayi: 'floorCount', mertebe: 'floorCount', mərtəbəsayi: 'floorCount',
-                arearange: 'areaRange', area: 'areaRange', sahe: 'areaRange', sahə: 'areaRange', saheolcusu: 'areaRange',
-                apartmentcount: 'apartmentCount', apartments: 'apartmentCount', menzilsayi: 'apartmentCount', mənzilsayi: 'apartmentCount', menzil: 'apartmentCount',
+                floorcount: 'floorCount', floors: 'floorCount', floor: 'floorCount', mertebesayi: 'floorCount', mertebe: 'floorCount',
+                arearange: 'areaRange', area: 'areaRange', sahe: 'areaRange', sahesi: 'areaRange', saheolcusu: 'areaRange',
+                apartmentcount: 'apartmentCount', apartments: 'apartmentCount', menzilsayi: 'apartmentCount', menzil: 'apartmentCount',
                 townhousecount: 'townhouseCount', townhouses: 'townhouseCount', townhouse: 'townhouseCount', taunhaussayi: 'townhouseCount', taunhaus: 'townhouseCount',
-                renovationstatus: 'renovationStatus', repairstatus: 'renovationStatus', renovation: 'renovationStatus', repair: 'renovationStatus', temirstatusu: 'renovationStatus', təmirstatusu: 'renovationStatus', temir: 'renovationStatus',
-                features: 'features', feature: 'features', amenities: 'features', advantages: 'features', xususiyyetler: 'features', xüsusiyyətlər: 'features', ozellikler: 'features'
+                renovationstatus: 'renovationStatus', repairstatus: 'renovationStatus', renovation: 'renovationStatus', repair: 'renovationStatus', temirstatusu: 'renovationStatus', temir: 'renovationStatus',
+                features: 'features', feature: 'features', amenities: 'features', advantages: 'features', xususiyyetler: 'features', xususiyyetleri: 'features', ozellikler: 'features'
             };
             return map[key] || null;
         }
 
+        function getBulkProjectTitleMatch(line) {
+            return String(line || '').match(/^\s*\d+\.\s+(.+)\s*$/);
+        }
+
+        function isBulkProjectSeparatorLine(line) {
+            return /^[\s\-_=*━─—]{3,}$/.test(String(line || ''));
+        }
+
         function splitBulkProjectBlocks(input) {
-            const text = String(input || '').replace(/\r\n/g, '\n').trim();
-            if (!text) return [];
-            const separated = text.split(/\n\s*(?:-{3,}|={3,}|\*{3,})\s*\n/g).map(x => x.trim()).filter(Boolean);
-            if (separated.length > 1) return separated;
-            return text.split(/\n{2,}(?=\s*(?:title|project\s*name|layih[əe]\s*ad[ıi]|ad\s*:|[A-ZƏÖÜĞÇŞ0-9][^\n]{2,80}\n))/i)
-                .map(x => x.trim()).filter(Boolean);
+            const lines = String(input || '').replace(/\r\n/g, '\n').split('\n');
+            const blocks = [];
+            let current = [];
+
+            lines.forEach(line => {
+                if (getBulkProjectTitleMatch(line)) {
+                    if (current.length) blocks.push(current.join('\n').trim());
+                    current = [line.trim()];
+                    return;
+                }
+
+                if (current.length) current.push(line);
+            });
+
+            if (current.length) blocks.push(current.join('\n').trim());
+            return blocks.filter(Boolean);
         }
 
         function inferBulkProjectCategory(row) {
@@ -2552,43 +2570,62 @@ Title: Park Villas
             return 'Apartment';
         }
 
+        function appendBulkProjectField(row, descriptionLines, featureLines, field, value) {
+            const cleaned = String(value || '').trim();
+            if (!field || !cleaned) return;
+            if (field === 'features') {
+                featureLines.push(cleaned.replace(/^[•*-]\s+/, ''));
+            } else if (field === 'description') {
+                descriptionLines.push(cleaned);
+            } else if (field !== 'title') {
+                row[field] = row[field] ? `${row[field]} ${cleaned}`.trim() : cleaned;
+            }
+        }
+
         function parseBulkProjectBlock(block) {
             const row = getBulkProjectEmptyRow();
             const descriptionLines = [];
             const featureLines = [];
             const lines = String(block || '').split('\n').map(line => line.trim()).filter(Boolean);
-            let lastField = null;
+            let activeField = null;
 
             lines.forEach((line, index) => {
-                const match = line.match(/^([^:：\-–—]{2,40})\s*[:：\-–—]\s*(.+)$/);
-                if (match) {
-                    const field = normalizeBulkProjectLabel(match[1]);
-                    const value = match[2].trim();
+                const titleMatch = getBulkProjectTitleMatch(line);
+                if (titleMatch && index === 0) {
+                    row.title = titleMatch[1].trim();
+                    activeField = 'title';
+                    return;
+                }
+
+                if (isBulkProjectSeparatorLine(line)) return;
+
+                const inlineMatch = line.match(/^([^:：]{2,60})\s*[:：]\s*(.*)$/);
+                if (inlineMatch) {
+                    const field = normalizeBulkProjectLabel(inlineMatch[1]);
                     if (field) {
-                        if (field === 'features') featureLines.push(value);
-                        else if (field === 'description') descriptionLines.push(value);
-                        else row[field] = row[field] ? `${row[field]} ${value}`.trim() : value;
-                        lastField = field;
+                        activeField = field;
+                        appendBulkProjectField(row, descriptionLines, featureLines, field, inlineMatch[2]);
+                        return;
+                    }
+
+                    const valueField = normalizeBulkProjectLabel(inlineMatch[2]);
+                    if (valueField) {
+                        activeField = valueField;
                         return;
                     }
                 }
 
-                if (!row.title && index === 0 && line.length <= 120) {
-                    row.title = line.replace(/^#+\s*/, '');
-                    lastField = 'title';
+                const fieldOnly = normalizeBulkProjectLabel(line);
+                if (fieldOnly) {
+                    activeField = fieldOnly;
                     return;
                 }
 
-                if (lastField === 'features' || /^[•*-]\s+/.test(line)) {
-                    featureLines.push(line.replace(/^[•*-]\s+/, ''));
-                } else {
-                    descriptionLines.push(line);
-                    lastField = 'description';
+                if (activeField && activeField !== 'title') {
+                    appendBulkProjectField(row, descriptionLines, featureLines, activeField, line);
                 }
             });
 
-            if (!row.deliveryYear) row.deliveryYear = block.match(/\b(20\d{2}|19\d{2})\b/)?.[1] || '';
-            if (!row.areaRange) row.areaRange = block.match(/\b\d+\s*(?:[-–—]\s*\d+)?\s*(?:m2|m²|kv\.?\s*m)\b/i)?.[0] || '';
             row.description = descriptionLines.join('\n').trim();
             row.features = featureLines.join(' / ').replace(/\s*[,;]\s*/g, ' / ').trim();
             row.category = inferBulkProjectCategory(row);
