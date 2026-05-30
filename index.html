@@ -505,6 +505,18 @@
             box-shadow: 0 14px 30px rgba(15, 23, 42, .12);
             min-width: 0;
         }
+        .listing-detail-action.is-disabled {
+            background: #e5e7eb !important;
+            color: #6b7280 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .listing-detail-action.is-disabled:hover {
+            background: #e5e7eb !important;
+            color: #6b7280 !important;
+            transform: none;
+            filter: none;
+        }
         .listing-detail-action i,
         .listing-detail-action span {
             flex-shrink: 0;
@@ -1370,14 +1382,13 @@ Title: Park Villas
                                     <i class="fa-solid fa-user-tie"></i>
                                 </div>
                                 <div>
-                                    <span class="text-[10px] text-gray-500 uppercase block font-black">Əlaqə</span>
                                     <strong id="p-modal-agent-name" class="text-gray-950 block text-sm"></strong>
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
                             <div class="listing-detail-contact-actions grid grid-cols-3 gap-3">
-                                <a id="p-modal-whatsapp-btn" href="" target="_blank" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
-                                <a id="p-modal-call-btn" href="" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
+                                <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
+                                <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
                                 <button id="p-modal-share-btn" type="button" class="listing-detail-action min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-slate-200 transition"><i class="fa-solid fa-share-nodes"></i><span>Paylaş</span></button>
                             </div>
                         </div>
@@ -1539,7 +1550,7 @@ Title: Park Villas
                 <div>
                     <h3 class="text-gray-900 font-extrabold mb-4">Əlaqə</h3>
                     <div class="space-y-3 text-sm font-semibold">
-                        <a href="#" class="flex items-center gap-3 text-gray-600 hover:text-brand-600 transition">
+                        <a href="tel:+994703152222" class="flex items-center gap-3 text-gray-600 hover:text-brand-600 transition">
                             <span class="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center"><i class="fa-solid fa-phone"></i></span>
                             <span>+994 (70) 315 22 22</span>
                         </a>
@@ -1589,15 +1600,15 @@ Title: Park Villas
                 <p class="cursor-pointer select-none hover:text-brand-600 transition" ondblclick="switchTab('admin-login')">
                     &copy; 2026 BestHome.az. Bütün hüquqlar qorunur.
                 </p>
-                <a href="#" class="text-gray-700 hover:text-brand-600 flex items-center space-x-2 bg-white/75 border border-brand-200/70 px-4 py-2 rounded-xl transition">
+                <a href="tel:+994703152222" class="text-gray-700 hover:text-brand-600 flex items-center space-x-2 bg-white/75 border border-brand-200/70 px-4 py-2 rounded-xl transition">
                     <i class="fa-solid fa-phone text-brand-500"></i>
-                    <span class="font-semibold">Əlaqə nömrəsi</span>
+                    <span class="font-semibold">+994 (70) 315 22 22</span>
                 </a>
             </div>
         </div>
     </footer>
 
-    <a href="#" target="_blank" rel="noopener noreferrer" class="whatsapp-floating-btn" aria-label="WhatsApp ilə əlaqə saxla">
+    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="whatsapp-floating-btn" aria-label="WhatsApp ilə əlaqə saxla">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
@@ -3130,14 +3141,25 @@ Title: Park Villas
 Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '—'}`;
             const whatsappBtn = document.getElementById('p-modal-whatsapp-btn');
             const callBtn = document.getElementById('p-modal-call-btn');
-            [whatsappBtn, callBtn].forEach((btn) => {
-                btn.classList.toggle('pointer-events-none', !phoneAvailable);
-                btn.classList.toggle('opacity-50', !phoneAvailable);
-                btn.setAttribute('aria-disabled', phoneAvailable ? 'false' : 'true');
-                btn.tabIndex = phoneAvailable ? 0 : -1;
-            });
-            whatsappBtn.href = phoneAvailable ? `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(messageText)}` : '#';
-            callBtn.href = phoneAvailable ? `tel:${normalizedPhone}` : '#';
+            const updateContactAction = (btn, isAvailable, enabledClasses, disabledLabel) => {
+                btn.classList.toggle('is-disabled', !isAvailable);
+                btn.classList.toggle('opacity-50', !isAvailable);
+                btn.classList.toggle('cursor-not-allowed', !isAvailable);
+                btn.classList.toggle('shadow-none', !isAvailable);
+                enabledClasses.forEach((className) => btn.classList.toggle(className, isAvailable));
+                btn.setAttribute('aria-disabled', isAvailable ? 'false' : 'true');
+                btn.setAttribute('aria-label', isAvailable ? btn.dataset.enabledLabel : disabledLabel);
+                btn.tabIndex = isAvailable ? 0 : -1;
+                if (!isAvailable) btn.removeAttribute('href');
+            };
+            whatsappBtn.dataset.enabledLabel = 'WhatsApp ilə əlaqə saxla';
+            callBtn.dataset.enabledLabel = 'Zəng et';
+            updateContactAction(whatsappBtn, phoneAvailable, ['bg-green-500', 'hover:bg-green-600', 'text-white'], 'WhatsApp nömrəsi mövcud deyil');
+            updateContactAction(callBtn, phoneAvailable, ['bg-blue-600', 'hover:bg-blue-700', 'text-white'], 'Zəng üçün nömrə mövcud deyil');
+            if (phoneAvailable) {
+                whatsappBtn.href = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(messageText)}`;
+                callBtn.href = `tel:${normalizedPhone}`;
+            }
             document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
 
             document.getElementById('property-detail-modal').classList.remove('hidden');
