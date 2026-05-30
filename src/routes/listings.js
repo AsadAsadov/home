@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
 const { assertValidListingImage, sanitizeText, uploadListingImage } = require('../utils/supabaseStorage');
 
@@ -16,7 +16,35 @@ const userSelect = {
   id: true,
   fullname: true,
   phone: true,
+  email: true,
 };
+
+function normalizeListingStatus(value, fallback = 'pending') {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['approved', 'təsdiqlənib', 'tesdiqlenib'].includes(normalized)) return 'approved';
+  if (['rejected', 'rədd edilib', 'redd edilib'].includes(normalized)) return 'rejected';
+  if (['pending', 'gözləmədə', 'gozlemede'].includes(normalized)) return 'pending';
+  return fallback;
+}
+
+function listingVisibilityWhere(req, baseWhere) {
+  const clauses = [];
+  if (baseWhere) clauses.push(baseWhere);
+  const requestedStatus = normalizeListingStatus(req.query.status, null);
+  if (req.auth?.role === 'admin') {
+    if (requestedStatus) clauses.push({ status: requestedStatus });
+  } else if (req.auth?.role === 'user') {
+    if (requestedStatus) {
+      clauses.push({ status: requestedStatus });
+      clauses.push({ OR: [{ status: 'approved' }, { userId: toBigIntId(req.auth.id) }] });
+    } else {
+      clauses.push({ OR: [{ status: 'approved' }, { userId: toBigIntId(req.auth.id) }] });
+    }
+  } else {
+    clauses.push({ status: 'approved' });
+  }
+  return clauses.length ? { AND: clauses } : undefined;
+}
 
 const LISTING_INPUT_LOG_FIELDS = [
   ['title', (body) => body.title],
@@ -316,13 +344,14 @@ function parseListingOrder(body) {
     .filter((item) => item.id !== undefined && Number.isInteger(item.displayOrder));
 }
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
-  const where = q ? { OR: [
+  const searchWhere = q ? { OR: [
     { title: { contains: q, mode: 'insensitive' } },
     { projectName: { contains: q, mode: 'insensitive' } },
     { description: { contains: q, mode: 'insensitive' } },
   ] } : undefined;
+  const where = listingVisibilityWhere(req, searchWhere);
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
     prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, skip, take }),
@@ -348,11 +377,56 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
   res.json({ ok: true, data: orderedListingRows(data) });
 }));
 
-router.get('/:id', asyncHandler(async (req, res) => {
+
+router.patch('/:id/approve', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const updated = await prisma.listing.update({
+    where: { id },
+    data: { status: 'approved', approvedAt: new Date(), approvedBy: toBigIntId(req.auth.id) },
+    include,
+  });
+  await attachListingUsers(updated);
+  res.json(updated);
+}));
+
+router.patch('/:id/reject', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const updated = await prisma.listing.update({
+    where: { id },
+    data: { status: 'rejected', approvedAt: null, approvedBy: null },
+    include,
+  });
+  await attachListingUsers(updated);
+  res.json(updated);
+}));
+
+router.post('/:id/view', optionalAuthenticate, asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const existing = await prisma.listing.findUnique({ where: { id } });
+  if (!existing || existing.status !== 'approved') return res.status(404).json({ message: 'Record not found.' });
+  const sessionKey = `viewed_listing_${id}`;
+  if (req.body?.sessionCounted || req.headers['x-besthome-view-session'] === sessionKey) {
+    return res.json({ counted: false, viewCount: existing.viewCount });
+  }
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || null;
+  const userAgent = req.headers['user-agent'] || null;
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.listingView.create({ data: { listingId: id, userId: toBigIntId(req.auth?.id), ipAddress: ip, userAgent } });
+    return tx.listing.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+  });
+  res.json({ counted: true, viewCount: updated.viewCount, sessionKey });
+}));
+
+router.get('/:id', optionalAuthenticate, asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
   const data = await prisma.listing.findUnique({ where: { id }, include });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
+  const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
+  if (!canSee) return res.status(404).json({ message: 'Record not found.' });
   await attachListingUsers(data);
   return res.json(data);
 }));
@@ -376,6 +450,11 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const imageUrls = sanitizeImageUrls(rawImageUrls);
     const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
     data.userId = toBigIntId(req.auth.id);
+    data.status = req.auth.role === 'admin' ? normalizeListingStatus(req.body.status, 'approved') : 'pending';
+    if (data.status === 'approved') {
+      data.approvedAt = new Date();
+      data.approvedBy = toBigIntId(req.auth.id);
+    }
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
     const listingImagesPayload = listingImageCreateMany(imageUrls);
@@ -452,7 +531,16 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
     : sanitizeImageUrls([...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean));
 
   const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
-  if (req.auth.role === 'user') data.userId = toBigIntId(req.auth.id);
+  if (req.auth.role === 'user') {
+    data.userId = toBigIntId(req.auth.id);
+    delete data.status;
+    delete data.approvedAt;
+    delete data.approvedBy;
+  } else if (Object.prototype.hasOwnProperty.call(req.body, 'status')) {
+    data.status = normalizeListingStatus(req.body.status, existing.status || 'pending');
+    data.approvedAt = data.status === 'approved' ? (existing.approvedAt || new Date()) : null;
+    data.approvedBy = data.status === 'approved' ? toBigIntId(req.auth.id) : null;
+  }
 
   const updated = await prisma.$transaction(async (tx) => {
     console.info('[listings] prisma.listing.update', { where: { id }, data });

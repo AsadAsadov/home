@@ -34,6 +34,11 @@ function parseJsonArray(value) {
   return null;
 }
 
+function cleanStatus(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return ['pending', 'approved', 'rejected'].includes(normalized) ? normalized : undefined;
+}
+
 function toBool(value) {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'boolean') return value;
@@ -80,6 +85,9 @@ const serializers = {
       description: cleanString(body.description),
       displayOrder: toInt(body.display_order ?? body.displayOrder),
       userId: toInt(body.user_id ?? body.userId),
+      status: cleanStatus(body.status),
+      featured: toBool(body.featured),
+      vip: toBool(body.vip),
     };
   },
   vacancy: (body) => ({

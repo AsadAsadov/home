@@ -42,6 +42,8 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthom
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
+app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/hero-sections', require('./routes/heroSections'));

@@ -17,6 +17,18 @@ function authenticate(req, res, next) {
   }
 }
 
+function optionalAuthenticate(req, _res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) return next();
+  try {
+    req.auth = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (_error) {
+    req.auth = null;
+  }
+  return next();
+}
+
 function authorize(...roles) {
   return (req, res, next) => {
     if (!req.auth) return res.status(401).json({ message: 'Authentication is required.' });
@@ -25,4 +37,4 @@ function authorize(...roles) {
   };
 }
 
-module.exports = { authenticate, authorize, signToken };
+module.exports = { authenticate, optionalAuthenticate, authorize, signToken };
