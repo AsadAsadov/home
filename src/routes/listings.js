@@ -57,6 +57,22 @@ function stringNullByteFields(payload) {
   return fields;
 }
 
+function inspectPayloadFields(payload) {
+  const fields = Object.entries(payload).map(([key, value]) => ({
+    key,
+    type: typeof value,
+    isBuffer: Buffer.isBuffer(value),
+    hasNullByte: typeof value === 'string' ? value.includes('\0') : undefined,
+  }));
+  const bufferOrObjectFields = fields.filter((field) => field.isBuffer || field.type === 'object');
+
+  for (const { key } of bufferOrObjectFields) {
+    console.log('[listings] payload Buffer/Object field', { key, value: payload[key] });
+  }
+
+  return { fields, bufferOrObjectFields };
+}
+
 function logListingInputSanitization(body, imageUrls = []) {
   const fieldLogs = LISTING_INPUT_LOG_FIELDS.map(([field, getter]) => {
     const originalValue = field === 'image_url' && imageUrls.length ? imageUrls : getter(body);
@@ -305,11 +321,21 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     console.log('image_url', payload.imageUrl);
     console.log('listing_images payload', listingImagesPayload);
     console.info('[listings] prisma payload', createArgs);
+    const payloadInspection = inspectPayloadFields(payload);
+    console.info('[listings] payload field inspection', payloadInspection);
 
-    const created = await prisma.listing.create(createArgs);
-    console.log('INSERTED RECORD', created);
+    // Temporarily disabled to inspect the exact payload that would be sent to Prisma.
+    // const created = await prisma.listing.create(createArgs);
+    // console.log('INSERTED RECORD', created);
 
-    return res.status(201).json(created);
+    return res.status(200).json({
+      body: req.body,
+      files: req.files,
+      payload,
+      payloadFields: payloadInspection.fields,
+      nullByteFields,
+      bufferOrObjectFields: payloadInspection.bufferOrObjectFields,
+    });
   } catch (error) {
     logListingApiError(error);
     return res.status(500).json({
