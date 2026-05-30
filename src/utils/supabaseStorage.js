@@ -235,6 +235,16 @@ async function checkCareerCvObjectLocations(filePath) {
   return debug;
 }
 
+
+function signedUrlFromSupabaseData(data, supabaseUrl) {
+  const signedUrl = data?.signedUrl || data?.signedURL || data?.url;
+  if (!signedUrl) return undefined;
+  if (signedUrl.startsWith('http')) return signedUrl;
+  if (signedUrl.startsWith('/storage/v1/')) return `${supabaseUrl}${signedUrl}`;
+  if (signedUrl.startsWith('/object/')) return `${supabaseUrl}/storage/v1${signedUrl}`;
+  return `${supabaseUrl}/storage/v1/${signedUrl.replace(/^\/+/, '')}`;
+}
+
 async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
   const objectPath = normalizeStorageObjectPath(filePath, CAREER_CV_BUCKET);
   console.log({
@@ -267,8 +277,10 @@ async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
     body: JSON.stringify({ expiresIn }),
   });
   const payload = await response.json().catch(() => ({}));
+  const data = response.ok ? { ...payload, signedUrl: signedUrlFromSupabaseData(payload, url) } : null;
+  console.log(data);
   const createSignedUrlResponse = {
-    data: response.ok ? payload : null,
+    data,
     error: response.ok ? null : payload,
     status: response.status,
     ok: response.ok,
@@ -292,8 +304,7 @@ async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
     error.meta = debug;
     throw error;
   }
-  const signedURL = payload.signedURL || payload.signedUrl || payload.url;
-  return { signedUrl: signedURL?.startsWith('http') ? signedURL : `${url}${signedURL}`, ...debug };
+  return { signedUrl: data.signedUrl, ...debug, createSignedUrlResponse };
 }
 
 async function createCareerCvSignedUrl(filePath, expiresIn = 60) {

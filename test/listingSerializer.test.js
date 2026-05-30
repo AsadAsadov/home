@@ -13,3 +13,30 @@ test('listing serializer includes floor_number separately from floor_count', () 
   assert.equal(data.floorNumber, 12);
   assert.equal(data.floorCount, '28');
 });
+
+
+test('listing serializer maps camelCase listing fields to Prisma field names', () => {
+  const data = compact(serializers.listing({
+    title: 'Camel case test',
+    listingType: 'Satış',
+    propertyCategory: 'Mənzil',
+    projectName: 'Sea Breeze',
+    roomCount: '3',
+    area: '120',
+    floorNumber: '7',
+    floorCount: '18',
+    price: '250000',
+    description: 'Tam məlumat',
+  }));
+
+  assert.equal(data.title, 'Camel case test');
+  assert.equal(data.listingType, 'Satış');
+  assert.equal(data.propertyCategory, 'Mənzil');
+  assert.equal(data.projectName, 'Sea Breeze');
+  assert.equal(data.roomCount, 3);
+  assert.equal(data.area, 120);
+  assert.equal(data.floorNumber, 7);
+  assert.equal(data.floorCount, '18');
+  assert.equal(data.price, 250000);
+  assert.equal(data.description, 'Tam məlumat');
+});

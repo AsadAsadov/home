@@ -89,7 +89,7 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
       },
       status: result.status,
     });
-    return res.json({
+    const responseBody = {
       signedUrl: result.signedUrl,
       bucket: result.bucket,
       originalPath: result.originalPath,
@@ -100,12 +100,14 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
       createSignedUrlResponse: result.createSignedUrlResponse,
       storageLocations,
       supabaseResponse: {
-        data: result.ok ? result.supabaseResponse : null,
-        error: result.ok ? null : result.supabaseResponse,
+        data: result.createSignedUrlResponse.data,
+        error: result.createSignedUrlResponse.error,
       },
       supabaseRawResponse: result.supabaseResponse,
       expiresIn: Number(req.body?.expiresIn || 60),
-    });
+    };
+    console.log('[applications] response', responseBody);
+    return res.json(responseBody);
   } catch (error) {
     console.error('[applications] createSignedUrl error', {
       applicationId: application.id,
