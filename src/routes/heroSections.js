@@ -5,12 +5,30 @@ const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
+function sanitizeColor(value, fallback) {
+  const color = String(value || '').trim();
+  return /^#[0-9A-Fa-f]{6}$/.test(color) ? color : fallback;
+}
+
+function sanitizeOpacity(value, fallback = 0.35) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, 0), 1);
+}
+
 function heroPayload(body = {}) {
   return {
     badgeText: body.badge_text ?? body.badgeText ?? '',
     title: body.title ?? '',
     description: body.description ?? '',
     heroImageUrl: body.hero_image_url ?? body.heroImageUrl ?? '',
+    badgeColor: sanitizeColor(body.badge_color ?? body.badgeColor, '#7F7FFF'),
+    titleColor: sanitizeColor(body.title_color ?? body.titleColor, '#111827'),
+    descriptionColor: sanitizeColor(body.description_color ?? body.descriptionColor, '#374151'),
+    overlayColor: sanitizeColor(body.overlay_color ?? body.overlayColor, '#000000'),
+    overlayOpacity: sanitizeOpacity(body.overlay_opacity ?? body.overlayOpacity),
+    buttonColor: sanitizeColor(body.button_color ?? body.buttonColor, '#7F7FFF'),
+    buttonTextColor: sanitizeColor(body.button_text_color ?? body.buttonTextColor, '#FFFFFF'),
     isActive: body.is_active ?? body.isActive ?? true,
   };
 }
@@ -21,6 +39,13 @@ function serializeHeroSection(hero) {
     page_key: hero.pageKey,
     badge_text: hero.badgeText,
     hero_image_url: hero.heroImageUrl,
+    badge_color: hero.badgeColor,
+    title_color: hero.titleColor,
+    description_color: hero.descriptionColor,
+    overlay_color: hero.overlayColor,
+    overlay_opacity: hero.overlayOpacity == null ? undefined : Number(hero.overlayOpacity),
+    button_color: hero.buttonColor,
+    button_text_color: hero.buttonTextColor,
     is_active: hero.isActive,
   };
 }

@@ -104,6 +104,13 @@ model HeroSection {
   title        String?
   description  String? @db.Text
   heroImageUrl String? @map("hero_image_url") @db.Text
+  badgeColor String? @default("#7F7FFF") @map("badge_color")
+  titleColor String? @default("#111827") @map("title_color")
+  descriptionColor String? @default("#374151") @map("description_color")
+  overlayColor String? @default("#000000") @map("overlay_color")
+  overlayOpacity Decimal? @default(0.35) @map("overlay_opacity") @db.Decimal(3, 2)
+  buttonColor String? @default("#7F7FFF") @map("button_color")
+  buttonTextColor String? @default("#FFFFFF") @map("button_text_color")
   isActive     Boolean @default(true) @map("is_active")
 
   @@map("hero_sections")
