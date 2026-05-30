@@ -19,6 +19,7 @@ function clean(value) {
 function data(body) {
   const role = clean(body.role);
   const out = { fullname: clean(body.fullname), email: clean(body.email), role: ['admin', 'user'].includes(role) ? role : undefined };
+  if (Object.prototype.hasOwnProperty.call(body, 'phone')) out.phone = clean(body.phone) ?? null;
   return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
 }
 

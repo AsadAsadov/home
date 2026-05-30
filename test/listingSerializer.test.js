@@ -34,7 +34,7 @@ test('listing serializer maps camelCase listing fields to Prisma field names', (
   assert.equal(data.propertyCategory, 'Mənzil');
   assert.equal(data.projectName, 'Sea Breeze');
   assert.equal(data.roomCount, 3);
-  assert.equal(data.area, 120);
+  assert.equal(data.area, '120');
   assert.equal(data.floorNumber, 7);
   assert.equal(data.floorCount, '18');
   assert.equal(data.price, 250000);

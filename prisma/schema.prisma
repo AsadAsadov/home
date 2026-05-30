@@ -107,6 +107,7 @@ model User {
   fullname     String
   email        String   @unique
   passwordHash String   @map("password_hash")
+  phone        String?  @db.Text
   role         Role     @default(user)
   createdAt    DateTime @default(now()) @map("created_at")
 

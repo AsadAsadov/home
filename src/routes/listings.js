@@ -12,6 +12,12 @@ const include = {
   images: { orderBy: { sortOrder: 'asc' } },
 };
 
+const userSelect = {
+  id: true,
+  fullname: true,
+  phone: true,
+};
+
 const LISTING_INPUT_LOG_FIELDS = [
   ['title', (body) => body.title],
   ['description', (body) => body.description],
@@ -282,6 +288,20 @@ function listingImageCreateMany(urls) {
   return urls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder }));
 }
 
+
+async function attachListingUsers(listings) {
+  const rows = Array.isArray(listings) ? listings : [listings].filter(Boolean);
+  rows.forEach((listing) => { listing.user = null; });
+  const ids = [...new Set(rows.map((listing) => Number(listing.userId)).filter((id) => Number.isInteger(id) && id > 0))];
+  if (!ids.length) return listings;
+  const users = await prisma.user.findMany({ where: { id: { in: ids } }, select: userSelect });
+  const byId = new Map(users.map((user) => [String(user.id), user]));
+  rows.forEach((listing) => {
+    listing.user = byId.get(String(listing.userId)) || null;
+  });
+  return listings;
+}
+
 function orderedListingRows(rows) {
   return [...rows].sort((a, b) => (listingSortValue(a.displayOrder, listingSortValue(a.id)) - listingSortValue(b.displayOrder, listingSortValue(b.id))) || (listingSortValue(a.id) - listingSortValue(b.id)));
 }
@@ -308,6 +328,7 @@ router.get('/', asyncHandler(async (req, res) => {
     prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, skip, take }),
     prisma.listing.count({ where }),
   ]);
+  await attachListingUsers(data);
   res.json({ data: orderedListingRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
 }));
 
@@ -323,6 +344,7 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
   )));
 
   const data = await prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include });
+  await attachListingUsers(data);
   res.json({ ok: true, data: orderedListingRows(data) });
 }));
 
@@ -331,6 +353,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
   if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
   const data = await prisma.listing.findUnique({ where: { id }, include });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
+  await attachListingUsers(data);
   return res.json(data);
 }));
 
@@ -352,7 +375,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     logListingInputSanitization(req.body, rawImageUrls);
     const imageUrls = sanitizeImageUrls(rawImageUrls);
     const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
-    if (req.auth.role === 'user') data.userId = toBigIntId(req.auth.id);
+    data.userId = toBigIntId(req.auth.id);
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
     const listingImagesPayload = listingImageCreateMany(imageUrls);
@@ -399,6 +422,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     }
 
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
+    await attachListingUsers(savedListing || listing);
     return res.status(201).json(savedListing || listing);
   } catch (error) {
     logListingApiError(error);
@@ -443,6 +467,7 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
     }
     return tx.listing.findUnique({ where: { id: listing.id }, include });
   });
+  await attachListingUsers(updated);
   res.json(updated);
 }));
 
