@@ -68,17 +68,30 @@ function assertValidListingImage(file) {
   }
 }
 
+function sanitizeText(value) {
+  return typeof value === 'string'
+    ? value.replace(/\0/g, '').trim()
+    : value;
+}
+
+function sanitizeFileName(originalName = 'file') {
+  const sanitized = sanitizeText(originalName);
+  return sanitized || 'file';
+}
+
 function buildStoragePath(originalName = 'file', folder = '', now = new Date()) {
-  const ext = path.extname(originalName).toLowerCase();
-  const base = slugify(path.basename(originalName, ext), { lower: true, strict: true }) || 'file';
+  const safeOriginalName = sanitizeFileName(originalName);
+  const ext = path.extname(safeOriginalName).toLowerCase();
+  const base = slugify(path.basename(safeOriginalName, ext), { lower: true, strict: true }) || 'file';
   const year = String(now.getUTCFullYear());
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   return [folder, year, month, `${crypto.randomUUID()}-${base}${ext || ''}`].filter(Boolean).join('/');
 }
 
 function buildCareerCvPath(originalName = 'cv.pdf', now = new Date()) {
-  const ext = path.extname(originalName).toLowerCase() || '.pdf';
-  const base = slugify(path.basename(originalName, ext), { lower: true, strict: true }) || 'cv';
+  const safeOriginalName = sanitizeFileName(originalName || 'cv.pdf');
+  const ext = path.extname(safeOriginalName).toLowerCase() || '.pdf';
+  const base = slugify(path.basename(safeOriginalName, ext), { lower: true, strict: true }) || 'cv';
   const year = String(now.getUTCFullYear());
   const month = String(now.getUTCMonth() + 1).padStart(2, '0');
   return `${year}/${month}/${crypto.randomUUID()}-${base}${ext}`;
@@ -145,7 +158,14 @@ function buildPublicUrl(bucket, objectPath) {
 
 async function uploadCareerCv(file) {
   assertValidCvFile(file);
-  const objectPath = buildCareerCvPath(file.originalname);
+  const originalName = file.originalname;
+  const sanitizedName = sanitizeFileName(originalName);
+  console.info('[supabaseStorage] CV filename sanitized', {
+    originalValue: originalName,
+    sanitizedValue: sanitizedName,
+    nullByteFound: typeof originalName === 'string' && originalName.includes('\0'),
+  });
+  const objectPath = buildCareerCvPath(sanitizedName);
   await uploadToSupabaseBucket({
     bucket: CAREER_CV_BUCKET,
     objectPath,
@@ -157,13 +177,25 @@ async function uploadCareerCv(file) {
 
 async function uploadListingImage(file) {
   assertValidListingImage(file);
-  const objectPath = buildStoragePath(file.originalname || 'elan.jpg', 'listings');
+  const originalName = file.originalname || 'elan.jpg';
+  const sanitizedName = sanitizeFileName(originalName);
+  console.info('[supabaseStorage] listing filename sanitized', {
+    originalValue: originalName,
+    sanitizedValue: sanitizedName,
+    nullByteFound: typeof originalName === 'string' && originalName.includes('\0'),
+  });
+  const objectPath = buildStoragePath(sanitizedName, 'listings');
   await uploadToSupabaseBucket({ bucket: LISTINGS_BUCKET, objectPath, file });
   return buildPublicUrl(LISTINGS_BUCKET, objectPath);
 }
 
 async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
   const objectPath = normalizeStorageObjectPath(filePath, CAREER_CV_BUCKET);
+  console.info('[supabaseStorage] createSignedUrl request path', {
+    bucket: CAREER_CV_BUCKET,
+    originalPath: filePath,
+    normalizedPath: objectPath,
+  });
   if (!objectPath) {
     const error = new Error('CV fayl yolu mövcud deyil.');
     error.status = 404;
@@ -182,7 +214,12 @@ async function createCareerCvSignedUrlDebug(filePath, expiresIn = 60) {
     body: JSON.stringify({ expiresIn }),
   });
   const payload = await response.json().catch(() => ({}));
+  console.info('[supabaseStorage] createSignedUrl response', {
+    data: response.ok ? payload : null,
+    error: response.ok ? null : payload,
+  });
   const debug = {
+    bucket: CAREER_CV_BUCKET,
     originalPath: filePath,
     normalizedPath: objectPath,
     requestUrl,
@@ -211,6 +248,8 @@ module.exports = {
   LISTINGS_BUCKET,
   MAX_CV_SIZE_BYTES,
   MAX_LISTING_IMAGE_SIZE_BYTES,
+  sanitizeText,
+  sanitizeFileName,
   ALLOWED_CV_MIME_TYPES,
   ALLOWED_IMAGE_MIME_TYPES,
   assertValidCvFile,

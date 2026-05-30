@@ -4,7 +4,7 @@ const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
-const { assertValidListingImage, uploadListingImage } = require('../utils/supabaseStorage');
+const { assertValidListingImage, sanitizeText, uploadListingImage } = require('../utils/supabaseStorage');
 
 const router = express.Router();
 
@@ -12,6 +12,94 @@ const include = {
   user: { select: { id: true, fullname: true, email: true, role: true } },
   images: { orderBy: { sortOrder: 'asc' } },
 };
+
+const LISTING_INPUT_LOG_FIELDS = [
+  ['title', (body) => body.title],
+  ['description', (body) => body.description],
+  ['project_name', (body) => body.project_name ?? body.projectName],
+  ['listing_type', (body) => body.listing_type ?? body.listingType],
+  ['property_category', (body) => body.property_category ?? body.propertyCategory],
+  ['image_url', (body) => body.image_url ?? body.imageUrl],
+  ['area', (body) => body.area],
+  ['floor_count', (body) => body.floor_count ?? body.floorCount],
+  ['floor_number', (body) => body.floor_number ?? body.floorNumber],
+];
+
+const LISTING_TEXT_PAYLOAD_FIELDS = [
+  'title',
+  'description',
+  'projectName',
+  'listingType',
+  'propertyCategory',
+  'imageUrl',
+  'floorCount',
+];
+
+function sanitizeLoggedValue(value) {
+  if (Array.isArray(value)) return value.map(sanitizeLoggedValue);
+  return sanitizeText(value);
+}
+
+function containsNullByte(value) {
+  if (Array.isArray(value)) return value.some(containsNullByte);
+  return typeof value === 'string' && value.includes('\0');
+}
+
+function logListingInputSanitization(body, imageUrls = []) {
+  const fieldLogs = LISTING_INPUT_LOG_FIELDS.map(([field, getter]) => {
+    const originalValue = field === 'image_url' && imageUrls.length ? imageUrls : getter(body);
+    const sanitizedValue = sanitizeLoggedValue(originalValue);
+    return {
+      field,
+      originalValue,
+      sanitizedValue,
+      nullByteFound: containsNullByte(originalValue),
+    };
+  });
+  const nullByteFields = fieldLogs.filter((item) => item.nullByteFound).map((item) => item.field);
+  console.info('[listings] input sanitization before prisma.listing.create', {
+    fields: fieldLogs,
+    nullByteFields,
+  });
+  return { fieldLogs, nullByteFields };
+}
+
+function sanitizeListingPayload(data) {
+  const sanitized = { ...data };
+  const fieldLogs = [];
+  for (const field of LISTING_TEXT_PAYLOAD_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(sanitized, field)) continue;
+    const originalValue = sanitized[field];
+    const sanitizedValue = sanitizeText(originalValue);
+    sanitized[field] = sanitizedValue;
+    fieldLogs.push({
+      field,
+      originalValue,
+      sanitizedValue,
+      nullByteFound: containsNullByte(originalValue),
+    });
+  }
+  console.info('[listings] prisma payload text sanitization', {
+    fields: fieldLogs,
+    nullByteFields: fieldLogs.filter((item) => item.nullByteFound).map((item) => item.field),
+  });
+  return sanitized;
+}
+
+function sanitizeImageUrls(imageUrls) {
+  const logs = imageUrls.map((originalValue, index) => ({
+    index,
+    originalValue,
+    sanitizedValue: sanitizeText(originalValue),
+    nullByteFound: containsNullByte(originalValue),
+  }));
+  console.info('[listings] image_url sanitization', {
+    fields: logs,
+    nullByteIndexes: logs.filter((item) => item.nullByteFound).map((item) => item.index),
+  });
+  return logs.map((item) => item.sanitizedValue).filter(Boolean);
+}
+
 
 const listingUpload = multer({
   storage: multer.memoryStorage(),
@@ -142,8 +230,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 ]), asyncHandler(async (req, res) => {
   try {
     const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
-    const imageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
-    const data = compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req));
+    const rawImageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
+    logListingInputSanitization(req.body, rawImageUrls);
+    const imageUrls = sanitizeImageUrls(rawImageUrls);
+    const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
     if (req.auth.role === 'user') data.userId = req.auth.id;
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
@@ -154,13 +244,17 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
       },
       include,
     };
+    console.info('[listings] prisma payload', createArgs);
     console.info('[listings] prisma.listing.create', createArgs);
 
     const created = await prisma.$transaction(async (tx) => {
       const listing = await tx.listing.create(createArgs);
       if (listing.displayOrder == null) {
-        return tx.listing.update({ where: { id: listing.id }, data: { displayOrder: listing.id }, include });
+        const updatedListing = await tx.listing.update({ where: { id: listing.id }, data: { displayOrder: listing.id }, include });
+        console.info('[listings] insert result after sanitization', updatedListing);
+        return updatedListing;
       }
+      console.info('[listings] insert result after sanitization', listing);
       return listing;
     });
     res.status(201).json(created);
@@ -186,10 +280,10 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
   const submittedExistingUrls = parseExistingImageUrls(req.body);
   const keepCurrentImages = !uploadedImageUrls.length && !submittedExistingUrls.length && !req.body.image_url && !req.body.imageUrl;
   const imageUrls = keepCurrentImages
-    ? existing.images.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.imageUrl)
-    : [...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean);
+    ? sanitizeImageUrls(existing.images.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.imageUrl))
+    : sanitizeImageUrls([...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean));
 
-  const data = compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req));
+  const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
   if (req.auth.role === 'user') data.userId = req.auth.id;
 
   const updated = await prisma.$transaction(async (tx) => {
