@@ -45,6 +45,18 @@ function containsNullByte(value) {
   return typeof value === 'string' && value.includes('\0');
 }
 
+function stringNullByteFields(payload) {
+  const fields = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (typeof value === 'string') {
+      const hasNull = value.includes('\0');
+      console.log(key, hasNull);
+      if (hasNull) fields.push(key);
+    }
+  }
+  return fields;
+}
+
 function logListingInputSanitization(body, imageUrls = []) {
   const fieldLogs = LISTING_INPUT_LOG_FIELDS.map(([field, getter]) => {
     const originalValue = field === 'image_url' && imageUrls.length ? imageUrls : getter(body);
@@ -147,6 +159,7 @@ async function uploadListingFiles(files) {
   console.info('[listings] upload start', { fileCount: files.length });
   for (const [index, file] of files.entries()) {
     assertValidListingImage(file);
+    console.log('file.originalname', file.originalname);
     console.info('[listings] upload start', {
       index,
       originalname: file.originalname,
@@ -229,7 +242,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
   { name: 'images', maxCount: Number(process.env.MAX_LISTING_IMAGES || 20) },
 ]), asyncHandler(async (req, res) => {
   try {
-    const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
+    const files = listingFiles(req);
+    const fileOriginalNames = files.map((file) => file.originalname);
+    fileOriginalNames.forEach((originalname) => console.log('file.originalname', originalname));
+    const uploadedImageUrls = await uploadListingFiles(files);
     const rawImageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
     logListingInputSanitization(req.body, rawImageUrls);
     const imageUrls = sanitizeImageUrls(rawImageUrls);
@@ -237,27 +253,27 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     if (req.auth.role === 'user') data.userId = req.auth.id;
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
-    const createArgs = {
-      data: {
-        ...data,
-        images: imageUrls.length ? { create: listingImageCreateMany(imageUrls) } : undefined,
-      },
-      include,
+    const listingImagesPayload = listingImageCreateMany(imageUrls);
+    const payload = {
+      ...data,
+      images: imageUrls.length ? { create: listingImagesPayload } : undefined,
     };
+    const createArgs = { data: payload, include };
+    console.log(JSON.stringify(payload, null, 2));
+    const nullByteFields = stringNullByteFields(payload);
+    console.log('image_url', payload.imageUrl);
+    console.log('listing_images payload', listingImagesPayload);
     console.info('[listings] prisma payload', createArgs);
-    console.info('[listings] prisma.listing.create', createArgs);
+    console.info('[listings] prisma.listing.create skipped for debug', createArgs);
 
-    const created = await prisma.$transaction(async (tx) => {
-      const listing = await tx.listing.create(createArgs);
-      if (listing.displayOrder == null) {
-        const updatedListing = await tx.listing.update({ where: { id: listing.id }, data: { displayOrder: listing.id }, include });
-        console.info('[listings] insert result after sanitization', updatedListing);
-        return updatedListing;
-      }
-      console.info('[listings] insert result after sanitization', listing);
-      return listing;
+    return res.json({
+      payload,
+      nullByteFields,
+      fileOriginalNames,
+      image_url: payload.imageUrl,
+      listing_images: listingImagesPayload,
+      createArgs,
     });
-    res.status(201).json(created);
   } catch (error) {
     logListingApiError(error);
     return res.status(500).json({
