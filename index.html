@@ -1966,7 +1966,7 @@ Title: Park Villas
             if (Number.isFinite(placed) && placed > 0 && Number.isFinite(total) && total > 0) return `${placed} / ${total}`;
             if (Number.isFinite(placed) && placed > 0) return String(placed);
             if (Number.isFinite(total) && total > 0) return String(total);
-            return '1';
+            return '—';
         }
 
         function firstDefined(...values) {
@@ -1976,13 +1976,18 @@ Title: Park Villas
         function numericValue(...values) {
             const value = firstDefined(...values);
             const parsed = Number(value);
-            return Number.isFinite(parsed) ? parsed : 0;
+            return Number.isFinite(parsed) ? parsed : null;
         }
 
         function integerValue(...values) {
             const value = firstDefined(...values);
             const parsed = Number.parseInt(value, 10);
-            return Number.isFinite(parsed) ? parsed : 0;
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+
+        function formatOptionalNumber(value, suffix = '') {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? `${parsed.toLocaleString('az-AZ')}${suffix}` : '—';
         }
 
         function normalizeListingImages(l = {}) {
@@ -1999,17 +2004,17 @@ Title: Park Villas
             const images = normalizeListingImages(l);
             return {
                 id: l.id,
-                title: firstDefined(l.title, 'Başlıqsız elan'),
-                project: firstDefined(l.projectName, l.project_name, l.project, 'Digər'),
-                listingType: firstDefined(l.listingType, l.listing_type, 'Satis'),
-                category: firstDefined(l.propertyCategory, l.property_category, l.category, 'Apartment'),
+                title: firstDefined(l.title, ''),
+                project: firstDefined(l.projectName, l.project_name, l.project, ''),
+                listingType: firstDefined(l.listingType, l.listing_type, ''),
+                category: firstDefined(l.propertyCategory, l.property_category, l.category, ''),
                 rooms: integerValue(l.roomCount, l.room_count, l.rooms),
                 area,
                 floorNumber,
                 floorCount,
                 floor: floorNumber || floorCount,
                 price,
-                pricePerM2: numericValue(l.pricePerM2, l.price_per_m2) || (area && price ? price / area : 0),
+                pricePerM2: numericValue(l.pricePerM2, l.price_per_m2) || (area && price ? price / area : null),
                 img: images[0] || '',
                 images,
                 desc: firstDefined(l.description, l.desc, ''),
@@ -2577,10 +2582,10 @@ Title: Park Villas
                     <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
                 `;
             } else {
-                const btn = `<button onclick="switchTab('admin-login')" class="bg-white/5 border border-white/10 text-gray-200 hover:text-white font-semibold px-4 py-2 rounded-xl text-xs"><i class="fa-solid fa-sign-in-alt mr-1"></i> Giriş</button>`;
+                const btn = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md px-4 py-2 text-xs transition"><i class="fa-solid fa-sign-in-alt mr-1"></i> Giriş</button>`;
                 container.innerHTML = btn;
-                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="text-gray-300"><i class="fa-solid fa-sign-in-alt text-xl"></i></button>`;
-                mobileActions.innerHTML = `<button onclick="switchTab('admin-login'); toggleMobileMenu()" class="w-full py-2.5 rounded-xl bg-brand-500 text-white text-xs font-bold">Daxil Ol</button>`;
+                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
+                mobileActions.innerHTML = `<button onclick="switchTab('admin-login'); toggleMobileMenu()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md text-xs transition">Daxil Ol</button>`;
             }
         }
 
@@ -2736,10 +2741,10 @@ Title: Park Villas
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
-                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${p.title}</h4>
+                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${p.title || '—'}</h4>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
-                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${p.desc}</p>
+                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${p.desc || ''}</p>
                             <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-gray-800 font-semibold mt-4 border-t border-brand-200 pt-3 overflow-hidden">
                                 <span title="${p.area}"><i class="fa-solid fa-expand"></i> ${p.area}</span>
                                 <span title="${p.floors}"><i class="fa-solid fa-building"></i> ${p.floors}</span>
@@ -2867,11 +2872,12 @@ Title: Park Villas
 
             paged.forEach(p => {
                 const isRent = p.listingType === 'Kiraye';
-                const formattedPrice = Number(p.price).toLocaleString('az-AZ');
+                const formattedPrice = formatOptionalNumber(p.price);
+                const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
                 const badgeColor = isRent ? 'bg-amber-500/90' : 'bg-emerald-600/90';
                 let sqPriceHtml = '';
                 if (!isRent && Number(p.area) > 0) {
-                    const sqPrice = Math.round(p.price / p.area);
+                    const sqPrice = Math.round(Number(p.price) / Number(p.area));
                     sqPriceHtml = `
                         <div class="text-right">
                             <span class="text-[9px] text-brand-500 uppercase font-semibold">1 m² Qiyməti</span>
@@ -2883,17 +2889,17 @@ Title: Park Villas
                 const cardHtml = `
                     <div onclick="openPropertyModal('${p.id}')" class="cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full">
                         <div class="h-44 md:h-48 overflow-hidden relative">
-                            <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
-                            <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase max-w-[65%] truncate">${p.project}</div>
+                            <img src="${mainImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                            <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase max-w-[65%] truncate">${p.project || '—'}</div>
                             <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${isRent ? 'Kirayə' : 'Satış'}</div>
                         </div>
                         <div class="p-4 space-y-2 flex-1">
-                            <h4 class="text-gray-900 font-extrabold text-base truncate">${p.title}</h4>
+                            <h4 class="text-gray-900 font-extrabold text-base truncate">${p.title || '—'}</h4>
                             <p class="text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)}</p>
-                            <p class="text-gray-700 text-xs line-clamp-2 font-medium">${p.desc}</p>
+                            <p class="text-gray-700 text-xs line-clamp-2 font-medium">${p.desc || ''}</p>
                             <div class="grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
-                                <span>Otaq: <strong class="text-gray-900">${p.rooms}</strong></span>
-                                <span>Sahə: <strong class="text-gray-900">${p.area} m²</strong></span>
+                                <span>Otaq: <strong class="text-gray-900">${p.rooms ?? '—'}</strong></span>
+                                <span>Sahə: <strong class="text-gray-900">${formatOptionalNumber(p.area, ' m²')}</strong></span>
                                 <span>Mərtəbə: <strong class="text-gray-900">${formatListingFloor(p.floorNumber ?? p.floor, p.floorCount)}</strong></span>
                                 ${p.land ? `<span>Torpaq: <strong class="text-gray-900">${p.land} Sot</strong></span>` : ''}
                             </div>
@@ -2901,7 +2907,7 @@ Title: Park Villas
                         <div class="p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5">
                             <div>
                                 <span class="text-[9px] text-gray-500 uppercase block">Qiymət</span>
-                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice} AZN${isRent ? ' /ay' : ''}</strong>
+                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${formattedPrice !== '—' ? ' AZN' : ''}${isRent && formattedPrice !== '—' ? ' /ay' : ''}</strong>
                             </div>
                             ${sqPriceHtml}
                         </div>
@@ -2971,19 +2977,19 @@ Title: Park Villas
 
             const isRent = p.listingType === 'Kiraye';
             const categoryLabel = p.category === 'Villa' ? 'Villa' : (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
-            const price = Number(p.price || 0);
-            const area = Number(p.area || 0);
+            const price = Number(p.price);
+            const area = Number(p.area);
             const pricePerM2 = Number(p.pricePerM2 || (area && price ? price / area : 0));
 
             document.getElementById('p-modal-type').textContent = isRent ? 'Kirayə' : 'Satış';
             document.getElementById('p-modal-category').textContent = categoryLabel;
-            document.getElementById('p-modal-project').textContent = p.project || 'Digər';
-            document.getElementById('p-modal-title').textContent = p.title || 'Başlıqsız elan';
+            document.getElementById('p-modal-project').textContent = p.project || '—';
+            document.getElementById('p-modal-title').textContent = p.title || '—';
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = p.desc || 'Təsvir əlavə edilməyib.';
-            document.getElementById('p-modal-price').textContent = `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}`;
-            document.getElementById('p-modal-rooms').textContent = p.rooms || '—';
-            document.getElementById('p-modal-area').textContent = area ? `${area.toLocaleString('az-AZ')} m²` : '—';
+            document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}` : '—';
+            document.getElementById('p-modal-rooms').textContent = p.rooms ?? '—';
+            document.getElementById('p-modal-area').textContent = Number.isFinite(area) ? `${area.toLocaleString('az-AZ')} m²` : '—';
             document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
             document.getElementById('p-modal-sqprice').textContent = pricePerM2 ? `1 m²: ${Math.round(pricePerM2).toLocaleString('az-AZ')} AZN` : '1 m²: —';
 
@@ -3004,7 +3010,7 @@ Title: Park Villas
 
             const messageText = `Salam, ${authorName}. besthome.az saytındakı bu elanla bağlı məlumat almaq istəyirəm:
 "${p.title}"
-Qiymət: ${price.toLocaleString('az-AZ')} AZN`;
+Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '—'}`;
             const cleanPhone = authorPhone.replace(/[^0-9]/g, '');
             document.getElementById('p-modal-whatsapp-btn').href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
             document.getElementById('p-modal-call-btn').href = `tel:${cleanPhone ? '+' + cleanPhone : authorPhone}`;
@@ -4040,15 +4046,16 @@ Qiymət: ${price.toLocaleString('az-AZ')} AZN`;
                 const isApproved = p.status === 'Approved';
                 const label = isApproved ? 'Təsdiqlənib' : 'Təsdiq Gözləyir';
                 const badge = isApproved ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500';
+                const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
 
                 pContainer.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
                         <div class="flex items-center space-x-3 truncate">
-                            <img src="${p.img}" class="w-12 h-12 rounded-lg object-cover">
+                            <img src="${mainImage}" class="w-12 h-12 rounded-lg object-cover">
                             <div class="truncate">
-                                <h4 class="text-xs font-bold text-white truncate">${p.title}</h4>
+                                <h4 class="text-xs font-bold text-white truncate">${p.title || '—'}</h4>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
-                                <span class="text-[10px] text-gray-400 ml-2">${p.price} AZN • ${p.rooms} ot</span>
+                                <span class="text-[10px] text-gray-400 ml-2">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot</span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">

@@ -62,7 +62,8 @@ const serializers = {
     displayOrder: toInt(body.display_order ?? body.displayOrder),
   }),
   listing: (body) => {
-    const area = toDecimal(body.area);
+    const area = cleanString(body.area);
+    const numericArea = toDecimal(area);
     const price = toDecimal(body.price);
     return {
       title: cleanString(body.title),
@@ -74,7 +75,7 @@ const serializers = {
       floorNumber: toInt(body.floor_number ?? body.floorNumber),
       floorCount: cleanString(body.floor_count ?? body.floorCount),
       price,
-      pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (area && price ? price / area : undefined),
+      pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (numericArea && price ? price / numericArea : undefined),
       imageUrl: cleanString(body.image_url ?? body.imageUrl),
       description: cleanString(body.description),
       displayOrder: toInt(body.display_order ?? body.displayOrder),
