@@ -45,16 +45,39 @@ function containsNullByte(value) {
   return typeof value === 'string' && value.includes('\0');
 }
 
-function stringNullByteFields(payload) {
-  const fields = [];
-  for (const [key, value] of Object.entries(payload)) {
-    if (typeof value === 'string') {
-      const hasNull = value.includes('\0');
-      console.log(key, hasNull);
-      if (hasNull) fields.push(key);
+function inspectStringFields(value, path = 'data', fields = []) {
+  if (typeof value === 'string') {
+    fields.push({
+      path,
+      hasNullByte: value.includes('\0'),
+      length: value.length,
+      sanitizedLength: sanitizeText(value).length,
+    });
+    return fields;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => inspectStringFields(item, `${path}[${index}]`, fields));
+    return fields;
+  }
+
+  if (value && typeof value === 'object' && !Buffer.isBuffer(value)) {
+    for (const [key, childValue] of Object.entries(value)) {
+      inspectStringFields(childValue, `${path}.${key}`, fields);
     }
   }
+
   return fields;
+}
+
+function logRecursiveStringFieldInspection(payload) {
+  const fields = inspectStringFields(payload);
+  const nullByteFields = fields.filter((field) => field.hasNullByte).map((field) => field.path);
+  console.info('[listings] recursive string field inspection', {
+    fields,
+    nullByteFields,
+  });
+  return { fields, nullByteFields };
 }
 
 function inspectPayloadFields(payload) {
@@ -310,24 +333,51 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
     const listingImagesPayload = listingImageCreateMany(imageUrls);
-    const payload = {
-      ...data,
-      images: imageUrls.length ? { create: listingImagesPayload } : undefined,
-    };
+    const payload = { ...data };
     const createArgs = { data: payload, include };
     console.log('PRISMA PAYLOAD', payload);
     console.log(JSON.stringify(payload, null, 2));
-    const nullByteFields = stringNullByteFields(payload);
     console.log('image_url', payload.imageUrl);
     console.log('listing_images payload', listingImagesPayload);
     console.info('[listings] prisma payload', createArgs);
     const payloadInspection = inspectPayloadFields(payload);
     console.info('[listings] payload field inspection', payloadInspection);
+    logRecursiveStringFieldInspection({ listing: payload, images: listingImagesPayload });
 
-    const listing = await prisma.listing.create(createArgs);
-    console.log("INSERTED RECORD", listing);
+    let listing;
+    try {
+      listing = await prisma.listing.create(createArgs);
+      console.log('LISTING INSERT OK', { id: listing.id });
+      console.log("INSERTED RECORD", listing);
+    } catch (error) {
+      console.error('[listings] prisma.listing.create error details', {
+        code: error.code,
+        meta: error.meta,
+        stack: error.stack,
+      });
+      throw error;
+    }
 
-    return res.status(201).json(listing);
+    if (listingImagesPayload.length) {
+      try {
+        await prisma.listingImage.createMany({
+          data: listingImagesPayload.map((image) => ({ ...image, listingId: listing.id })),
+        });
+        console.log('LISTING_IMAGES INSERT OK', { listingId: listing.id, count: listingImagesPayload.length });
+      } catch (error) {
+        console.error('[listings] prisma.listingImage.createMany error details', {
+          code: error.code,
+          meta: error.meta,
+          stack: error.stack,
+        });
+        throw error;
+      }
+    } else {
+      console.log('LISTING_IMAGES INSERT OK', { listingId: listing.id, count: 0 });
+    }
+
+    const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
+    return res.status(201).json(savedListing || listing);
   } catch (error) {
     logListingApiError(error);
     return res.status(500).json({
