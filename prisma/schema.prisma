@@ -41,8 +41,21 @@ model Listing {
   createdAt        DateTime @default(now()) @map("created_at")
   userId           Int?     @map("user_id")
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  images           ListingImage[]
 
   @@map("listings")
+}
+
+model ListingImage {
+  id        Int      @id @default(autoincrement())
+  listingId Int      @map("listing_id")
+  imageUrl  String   @map("image_url") @db.Text
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, sortOrder])
+  @@map("listing_images")
 }
 
 model Vacancy {

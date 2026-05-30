@@ -96,7 +96,7 @@ function appData(a) {
 router.get('/', asyncHandler(async (_req, res) => {
   const [projects, listings, vacancies, gallery, applications, users] = await Promise.all([
     prisma.project.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.listing.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.listing.findMany({ orderBy: { createdAt: 'desc' }, include: { images: { orderBy: { sortOrder: 'asc' } } } }),
     prisma.vacancy.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.gallery.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.application.findMany({ orderBy: { createdAt: 'desc' }, include: { vacancy: true } }),

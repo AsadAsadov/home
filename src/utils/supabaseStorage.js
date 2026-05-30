@@ -3,13 +3,22 @@ const path = require('path');
 const slugify = require('slugify');
 
 const CAREER_CV_BUCKET = process.env.SUPABASE_CV_BUCKET || 'career-cv';
+const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
 const MAX_CV_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_LISTING_IMAGE_SIZE_BYTES = Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024);
 const ALLOWED_CV_MIME_TYPES = new Set([
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]);
 const ALLOWED_CV_EXTENSIONS = new Set(['.pdf', '.doc', '.docx']);
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
 
 function getSupabaseConfig() {
   const url = (process.env.SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || '').replace(/\/$/, '');
@@ -41,6 +50,32 @@ function assertValidCvFile(file) {
   }
 }
 
+function assertValidListingImage(file) {
+  if (!file) {
+    const error = new Error('Elan şəkli tələb olunur.');
+    error.status = 400;
+    throw error;
+  }
+  if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+    const error = new Error('Elan üçün yalnız JPEG, PNG, WEBP, GIF və AVIF şəkilləri qəbul olunur.');
+    error.status = 400;
+    throw error;
+  }
+  if (file.size > MAX_LISTING_IMAGE_SIZE_BYTES) {
+    const error = new Error('Elan şəkli maksimum 15MB ola bilər.');
+    error.status = 413;
+    throw error;
+  }
+}
+
+function buildStoragePath(originalName = 'file', folder = '', now = new Date()) {
+  const ext = path.extname(originalName).toLowerCase();
+  const base = slugify(path.basename(originalName, ext), { lower: true, strict: true }) || 'file';
+  const year = String(now.getUTCFullYear());
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  return [folder, year, month, `${crypto.randomUUID()}-${base}${ext || ''}`].filter(Boolean).join('/');
+}
+
 function buildCareerCvPath(originalName = 'cv.pdf', now = new Date()) {
   const ext = path.extname(originalName).toLowerCase() || '.pdf';
   const base = slugify(path.basename(originalName, ext), { lower: true, strict: true }) || 'cv';
@@ -49,38 +84,82 @@ function buildCareerCvPath(originalName = 'cv.pdf', now = new Date()) {
   return `${year}/${month}/${crypto.randomUUID()}-${base}${ext}`;
 }
 
-function stripCareerCvBucket(filePath = '') {
-  const prefix = `${CAREER_CV_BUCKET}/`;
-  return String(filePath).startsWith(prefix) ? String(filePath).slice(prefix.length) : String(filePath);
+function safeDecode(value = '') {
+  try {
+    return decodeURIComponent(value);
+  } catch (_error) {
+    return value;
+  }
 }
 
-async function uploadCareerCv(file) {
-  assertValidCvFile(file);
+function normalizeStorageObjectPath(filePath = '', bucket = CAREER_CV_BUCKET) {
+  let value = String(filePath || '').trim().replace(/^\/+/, '');
+  if (!value) return '';
+
+  const marker = '/storage/v1/object/';
+  const markerIndex = value.indexOf(marker);
+  if (markerIndex !== -1) {
+    value = value.slice(markerIndex + marker.length);
+    value = value.replace(/^public\//, '').replace(/^sign\//, '');
+  }
+
+  value = value.split('?')[0].split('#')[0].replace(/^\/+/, '');
+  const bucketPrefix = `${bucket}/`;
+  while (value === bucket || value.startsWith(bucketPrefix)) {
+    value = value === bucket ? '' : value.slice(bucketPrefix.length);
+  }
+  return safeDecode(value).replace(/^\/+/, '');
+}
+
+async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl = 'public, max-age=31536000', upsert = false }) {
   const { url, serviceKey } = getSupabaseConfig();
-  const objectPath = buildCareerCvPath(file.originalname);
-  const uploadUrl = `${url}/storage/v1/object/${CAREER_CV_BUCKET}/${encodeURI(objectPath)}`;
+  const uploadUrl = `${url}/storage/v1/object/${bucket}/${encodeURI(objectPath)}`;
   const response = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${serviceKey}`,
       apikey: serviceKey,
       'Content-Type': file.mimetype,
-      'Cache-Control': 'private, max-age=31536000',
-      'x-upsert': 'false',
+      'Cache-Control': cacheControl,
+      'x-upsert': upsert ? 'true' : 'false',
     },
     body: file.buffer,
   });
   if (!response.ok) {
     const details = await response.text().catch(() => '');
-    const error = new Error(`CV Supabase Storage bucketinə yüklənmədi.${details ? ` ${details}` : ''}`);
+    const error = new Error(`Supabase Storage bucketinə yüklənmədi.${details ? ` ${details}` : ''}`);
     error.status = response.status;
     throw error;
   }
+  return { bucket, objectPath };
+}
+
+function buildPublicUrl(bucket, objectPath) {
+  const { url } = getSupabaseConfig();
+  return `${url}/storage/v1/object/public/${bucket}/${encodeURI(objectPath)}`;
+}
+
+async function uploadCareerCv(file) {
+  assertValidCvFile(file);
+  const objectPath = buildCareerCvPath(file.originalname);
+  await uploadToSupabaseBucket({
+    bucket: CAREER_CV_BUCKET,
+    objectPath,
+    file,
+    cacheControl: 'private, max-age=31536000',
+  });
   return `${CAREER_CV_BUCKET}/${objectPath}`;
 }
 
+async function uploadListingImage(file) {
+  assertValidListingImage(file);
+  const objectPath = buildStoragePath(file.originalname || 'elan.jpg', 'listings');
+  await uploadToSupabaseBucket({ bucket: LISTINGS_BUCKET, objectPath, file });
+  return buildPublicUrl(LISTINGS_BUCKET, objectPath);
+}
+
 async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
-  const objectPath = stripCareerCvBucket(filePath);
+  const objectPath = normalizeStorageObjectPath(filePath, CAREER_CV_BUCKET);
   if (!objectPath) {
     const error = new Error('CV fayl yolu mövcud deyil.');
     error.status = 404;
@@ -108,10 +187,17 @@ async function createCareerCvSignedUrl(filePath, expiresIn = 60) {
 
 module.exports = {
   CAREER_CV_BUCKET,
+  LISTINGS_BUCKET,
   MAX_CV_SIZE_BYTES,
+  MAX_LISTING_IMAGE_SIZE_BYTES,
   ALLOWED_CV_MIME_TYPES,
+  ALLOWED_IMAGE_MIME_TYPES,
   assertValidCvFile,
+  assertValidListingImage,
   buildCareerCvPath,
+  buildStoragePath,
+  normalizeStorageObjectPath,
   uploadCareerCv,
+  uploadListingImage,
   createCareerCvSignedUrl,
 };
