@@ -41,7 +41,8 @@ function projectData(p) {
 }
 
 function listingData(l) {
-  const area = num(l.area);
+  const area = l.area === '' || l.area == null ? null : String(l.area);
+  const numericArea = num(area);
   const price = num(l.price);
   return {
     title: l.title || 'Untitled listing',
@@ -53,7 +54,7 @@ function listingData(l) {
     floorNumber: int(l.floor_number || l.floorNumber || l.floor),
     floorCount: l.floor_count || l.floorCount || String(l.floorCount || ''),
     price,
-    pricePerM2: num(l.price_per_m2 || l.pricePerM2) || (area && price ? price / area : null),
+    pricePerM2: num(l.price_per_m2 || l.pricePerM2) || (numericArea && price ? price / numericArea : null),
     imageUrl: l.image_url || l.imageUrl || l.img || null,
     description: l.description || l.desc || null,
     displayOrder: int(l.display_order ?? l.displayOrder ?? l.order),

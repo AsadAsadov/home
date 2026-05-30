@@ -28,23 +28,22 @@ model Project {
 }
 
 model Listing {
-  id               Int      @id @default(autoincrement())
+  id               BigInt         @id @default(autoincrement())
   title            String
-  listingType      String?  @map("listing_type")
-  propertyCategory String?  @map("property_category")
-  projectName      String?  @map("project_name")
-  roomCount        Int?     @map("room_count")
-  area             Decimal? @db.Decimal(12, 2)
-  floorNumber      Int?     @map("floor_number")
-  floorCount       String?  @map("floor_count")
-  price            Decimal? @db.Decimal(14, 2)
-  pricePerM2       Decimal? @map("price_per_m2") @db.Decimal(12, 2)
-  imageUrl         String?  @map("image_url") @db.Text
-  description      String?  @db.Text
-  displayOrder     Int?     @map("display_order")
-  createdAt        DateTime @default(now()) @map("created_at")
-  userId           Int?     @map("user_id")
-  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  listingType      String?        @map("listing_type")
+  propertyCategory String?        @map("property_category")
+  projectName      String?        @map("project_name")
+  roomCount        Int?           @map("room_count")
+  area             String?
+  floorNumber      Int?           @map("floor_number")
+  floorCount       String?        @map("floor_count")
+  price            Decimal?       @db.Decimal(14, 2)
+  pricePerM2       Decimal?       @map("price_per_m2") @db.Decimal(12, 2)
+  imageUrl         String?        @map("image_url") @db.Text
+  description      String?        @db.Text
+  displayOrder     Int?           @map("display_order")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  userId           BigInt?        @map("user_id")
   images           ListingImage[]
 
   @@index([displayOrder, id])
@@ -52,8 +51,8 @@ model Listing {
 }
 
 model ListingImage {
-  id        Int      @id @default(autoincrement())
-  listingId Int      @map("listing_id")
+  id        BigInt   @id @default(autoincrement())
+  listingId BigInt   @map("listing_id")
   imageUrl  String   @map("image_url") @db.Text
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
@@ -104,32 +103,31 @@ model Gallery {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   fullname     String
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         Role      @default(user)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  listings     Listing[]
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(user)
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("users")
 }
 
 model HeroSection {
-  id           String  @id @default(uuid()) @db.Uuid
-  pageKey      String  @unique @map("page_key")
-  badgeText    String? @map("badge_text")
-  title        String?
-  description  String? @db.Text
-  heroImageUrl String? @map("hero_image_url") @db.Text
-  badgeColor String? @default("#7F7FFF") @map("badge_color")
-  titleColor String? @default("#111827") @map("title_color")
-  descriptionColor String? @default("#374151") @map("description_color")
-  overlayColor String? @default("#000000") @map("overlay_color")
-  overlayOpacity Decimal? @default(0.35) @map("overlay_opacity") @db.Decimal(3, 2)
-  buttonColor String? @default("#7F7FFF") @map("button_color")
-  buttonTextColor String? @default("#FFFFFF") @map("button_text_color")
-  isActive     Boolean @default(true) @map("is_active")
+  id               String   @id @default(uuid()) @db.Uuid
+  pageKey          String   @unique @map("page_key")
+  badgeText        String?  @map("badge_text")
+  title            String?
+  description      String?  @db.Text
+  heroImageUrl     String?  @map("hero_image_url") @db.Text
+  badgeColor       String?  @default("#7F7FFF") @map("badge_color")
+  titleColor       String?  @default("#111827") @map("title_color")
+  descriptionColor String?  @default("#374151") @map("description_color")
+  overlayColor     String?  @default("#000000") @map("overlay_color")
+  overlayOpacity   Decimal? @default(0.35) @map("overlay_opacity") @db.Decimal(3, 2)
+  buttonColor      String?  @default("#7F7FFF") @map("button_color")
+  buttonTextColor  String?  @default("#FFFFFF") @map("button_text_color")
+  isActive         Boolean  @default(true) @map("is_active")
 
   @@map("hero_sections")
 }

@@ -8,7 +8,8 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "db:audit:listings": "node scripts/audit-listings-db.js"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

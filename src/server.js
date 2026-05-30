@@ -12,6 +12,10 @@ const bcrypt = require('bcryptjs');
 const prisma = require('./lib/prisma');
 
 const app = express();
+app.set('json replacer', (_key, value) => {
+  if (typeof value !== 'bigint') return value;
+  return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
+});
 const port = process.env.PORT || 3000;
 const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
 const uploadsStaticDir = path.join(__dirname, '../uploads');

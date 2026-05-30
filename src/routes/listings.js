@@ -9,7 +9,6 @@ const { assertValidListingImage, sanitizeText, uploadListingImage } = require('.
 const router = express.Router();
 
 const include = {
-  user: { select: { id: true, fullname: true, email: true, role: true } },
   images: { orderBy: { sortOrder: 'asc' } },
 };
 
@@ -32,6 +31,7 @@ const LISTING_TEXT_PAYLOAD_FIELDS = [
   'listingType',
   'propertyCategory',
   'imageUrl',
+  'area',
   'floorCount',
 ];
 
@@ -43,6 +43,27 @@ function sanitizeLoggedValue(value) {
 function containsNullByte(value) {
   if (Array.isArray(value)) return value.some(containsNullByte);
   return typeof value === 'string' && value.includes('\0');
+}
+
+function toBigIntId(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  try {
+    const id = BigInt(value);
+    return id > 0n ? id : undefined;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+function sameId(a, b) {
+  if (a === undefined || a === null || b === undefined || b === null) return false;
+  return String(a) === String(b);
+}
+
+function listingSortValue(value, fallback = 0) {
+  if (value === undefined || value === null) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function inspectStringFields(value, path = 'data', fields = []) {
@@ -262,17 +283,17 @@ function listingImageCreateMany(urls) {
 }
 
 function orderedListingRows(rows) {
-  return [...rows].sort((a, b) => (a.displayOrder ?? a.id) - (b.displayOrder ?? b.id) || a.id - b.id);
+  return [...rows].sort((a, b) => (listingSortValue(a.displayOrder, listingSortValue(a.id)) - listingSortValue(b.displayOrder, listingSortValue(b.id))) || (listingSortValue(a.id) - listingSortValue(b.id)));
 }
 
 function parseListingOrder(body) {
   const raw = Array.isArray(body?.order) ? body.order : (Array.isArray(body?.listings) ? body.listings : []);
   return raw
     .map((item, index) => ({
-      id: Number.parseInt(typeof item === 'object' ? item.id : item, 10),
+      id: toBigIntId(typeof item === 'object' ? item.id : item),
       displayOrder: Number.parseInt(typeof item === 'object' && item.displayOrder != null ? item.displayOrder : index + 1, 10),
     }))
-    .filter((item) => Number.isInteger(item.id) && item.id > 0 && Number.isInteger(item.displayOrder));
+    .filter((item) => item.id !== undefined && Number.isInteger(item.displayOrder));
 }
 
 router.get('/', asyncHandler(async (req, res) => {
@@ -306,7 +327,9 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const data = await prisma.listing.findUnique({ where: { id: Number(req.params.id) }, include });
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const data = await prisma.listing.findUnique({ where: { id }, include });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
   return res.json(data);
 }));
@@ -329,14 +352,14 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     logListingInputSanitization(req.body, rawImageUrls);
     const imageUrls = sanitizeImageUrls(rawImageUrls);
     const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
-    if (req.auth.role === 'user') data.userId = req.auth.id;
+    if (req.auth.role === 'user') data.userId = toBigIntId(req.auth.id);
     if (!data.title) return res.status(400).json({ message: 'Listing title is required.' });
 
     const listingImagesPayload = listingImageCreateMany(imageUrls);
     const payload = { ...data };
     const createArgs = { data: payload, include };
     console.log('PRISMA PAYLOAD', payload);
-    console.log(JSON.stringify(payload, null, 2));
+    console.log(JSON.stringify(payload, (_key, value) => (typeof value === 'bigint' ? value.toString() : value), 2));
     console.log('image_url', payload.imageUrl);
     console.log('listing_images payload', listingImagesPayload);
     console.info('[listings] prisma payload', createArgs);
@@ -347,8 +370,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     let listing;
     try {
       listing = await prisma.listing.create(createArgs);
-      console.log('LISTING INSERT OK', { id: listing.id });
-      console.log("INSERTED RECORD", listing);
+      console.log('LISTING INSERT OK', listing);
     } catch (error) {
       console.error('[listings] prisma.listing.create error details', {
         code: error.code,
@@ -360,10 +382,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     if (listingImagesPayload.length) {
       try {
-        await prisma.listingImage.createMany({
+        const result = await prisma.listingImage.createMany({
           data: listingImagesPayload.map((image) => ({ ...image, listingId: listing.id })),
         });
-        console.log('LISTING_IMAGES INSERT OK', { listingId: listing.id, count: listingImagesPayload.length });
+        console.log('LISTING_IMAGES INSERT OK', result);
       } catch (error) {
         console.error('[listings] prisma.listingImage.createMany error details', {
           code: error.code,
@@ -373,7 +395,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
         throw error;
       }
     } else {
-      console.log('LISTING_IMAGES INSERT OK', { listingId: listing.id, count: 0 });
+      console.log('LISTING_IMAGES INSERT OK', { count: 0 });
     }
 
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
@@ -392,9 +414,11 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
   { name: 'image', maxCount: 1 },
   { name: 'images', maxCount: Number(process.env.MAX_LISTING_IMAGES || 20) },
 ]), asyncHandler(async (req, res) => {
-  const existing = await prisma.listing.findUnique({ where: { id: Number(req.params.id) }, include: { images: true } });
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const existing = await prisma.listing.findUnique({ where: { id }, include: { images: true } });
   if (!existing) return res.status(404).json({ message: 'Record not found.' });
-  if (req.auth.role === 'user' && existing.userId !== req.auth.id) return res.status(403).json({ message: 'You do not have permission for this action.' });
+  if (req.auth.role === 'user' && !sameId(existing.userId, req.auth.id)) return res.status(403).json({ message: 'You do not have permission for this action.' });
 
   const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
   const submittedExistingUrls = parseExistingImageUrls(req.body);
@@ -404,11 +428,11 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
     : sanitizeImageUrls([...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean));
 
   const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
-  if (req.auth.role === 'user') data.userId = req.auth.id;
+  if (req.auth.role === 'user') data.userId = toBigIntId(req.auth.id);
 
   const updated = await prisma.$transaction(async (tx) => {
-    console.info('[listings] prisma.listing.update', { where: { id: Number(req.params.id) }, data });
-    const listing = await tx.listing.update({ where: { id: Number(req.params.id) }, data });
+    console.info('[listings] prisma.listing.update', { where: { id }, data });
+    const listing = await tx.listing.update({ where: { id }, data });
     if (!keepCurrentImages) {
       await tx.listingImage.deleteMany({ where: { listingId: listing.id } });
       if (imageUrls.length) {
@@ -423,10 +447,12 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
 }));
 
 router.delete('/:id', authenticate, authorize('admin', 'user'), asyncHandler(async (req, res) => {
-  const existing = await prisma.listing.findUnique({ where: { id: Number(req.params.id) } });
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const existing = await prisma.listing.findUnique({ where: { id } });
   if (!existing) return res.status(404).json({ message: 'Record not found.' });
-  if (req.auth.role === 'user' && existing.userId !== req.auth.id) return res.status(403).json({ message: 'You do not have permission for this action.' });
-  await prisma.listing.delete({ where: { id: Number(req.params.id) } });
+  if (req.auth.role === 'user' && !sameId(existing.userId, req.auth.id)) return res.status(403).json({ message: 'You do not have permission for this action.' });
+  await prisma.listing.delete({ where: { id } });
   res.status(204).send();
 }));
 
