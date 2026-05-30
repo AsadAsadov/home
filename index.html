@@ -691,7 +691,7 @@
                     </div>
                 </div>
 
-                <div id="seabreeze-properties-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6">
+                <div id="seabreeze-properties-grid" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 md:gap-6">
                     <!-- Loaded dynamically -->
                 </div>
                 <div id="listings-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
@@ -858,6 +858,8 @@
                 <button onclick="logoutAdmin()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">Çıxış</button>
             </div>
 
+            <div id="admin-dashboard-cards" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 admin-only-element"></div>
+
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
             <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
@@ -989,7 +991,14 @@
                 </div>
 
                 <div class="lg:col-span-7 space-y-4">
-                    <h3 class="text-lg font-bold text-white">Əlaqəli Elanlar</h3>
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold text-white">Mənim / Bütün Elanlar</h3>
+                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending Listings</span>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved Listings</span>
+                            <span class="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">Rejected Listings</span>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
                 </div>
             </div>
@@ -2056,6 +2065,25 @@ Title: Park Villas
             return canonicalListingType(type) === 'Satis';
         }
 
+        function normalizeListingStatus(status) {
+            const value = String(status || '').trim().toLowerCase();
+            if (['approved', 'təsdiqlənib', 'tesdiqlenib'].includes(value)) return 'approved';
+            if (['rejected', 'rədd edilib', 'redd edilib'].includes(value)) return 'rejected';
+            return 'pending';
+        }
+
+        function listingStatusLabel(status) {
+            return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[normalizeListingStatus(status)] || 'Pending';
+        }
+
+        function listingStatusBadgeClass(status) {
+            return {
+                pending: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+                approved: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                rejected: 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }[normalizeListingStatus(status)];
+        }
+
         function listingTypeBadgeClass(type) {
             const canonical = canonicalListingType(type);
             if (canonical === 'Kiraye') return 'bg-amber-500/90';
@@ -2118,9 +2146,14 @@ Title: Park Villas
                 images,
                 desc: firstDefined(l.description, l.desc, ''),
                 authorId: firstDefined(l.userId, l.user_id, l.user?.id, 'admin'),
-                status: firstDefined(l.status, 'Approved'),
+                status: normalizeListingStatus(firstDefined(l.status, 'approved')),
                 displayOrder: Number(l.displayOrder ?? l.display_order ?? l.id),
-                createdAt: firstDefined(l.createdAt, l.created_at, new Date().toISOString())
+                createdAt: firstDefined(l.createdAt, l.created_at, new Date().toISOString()),
+                approvedAt: firstDefined(l.approvedAt, l.approved_at, ''),
+                viewCount: numericValue(l.viewCount, l.view_count) || 0,
+                favoritesCount: numericValue(l.favoritesCount, l.favorites_count) || 0,
+                featured: Boolean(l.featured),
+                vip: Boolean(l.vip)
             };
         }
 
@@ -2163,10 +2196,12 @@ Title: Park Villas
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********' };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, listingsCount: u.listingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, totalListingViews: u.totalListingViews || 0 };
         }
 
         const appData = {
+            dashboardStats: null,
+            favoriteListingIds: new Set(),
             projects: officialSeaBreezeProjects,
             listings: defaultSeaBreezeListings,
             vacancies: defaultVacancies,
@@ -2474,14 +2509,16 @@ Title: Park Villas
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             try {
-                const [projects, listings, vacancies, gallery, heroSection, applications, users] = await Promise.all([
+                const [projects, listings, vacancies, gallery, heroSection, applications, users, dashboardStats, favorites] = await Promise.all([
                     apiRequest('/api/projects?page=1&limit=100'),
                     apiRequest('/api/listings?page=1&limit=100'),
                     apiRequest('/api/vacancies'),
                     apiRequest('/api/gallery?page=1&limit=18'),
                     apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`).catch(() => defaultSeaBreezeHero),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
-                    getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([])
+                    getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([]),
+                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : Promise.resolve(null),
+                    getAuthToken() ? apiRequest('/api/favorites').catch(() => []) : Promise.resolve([])
                 ]);
                 const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
@@ -2494,6 +2531,8 @@ Title: Park Villas
                 cacheData('heroSection', normalizeHeroSection(heroSection));
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
+                appData.dashboardStats = dashboardStats;
+                appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
@@ -2974,7 +3013,7 @@ Title: Park Villas
             const typeFilter = document.getElementById('filter-sb-type').value;
 
             const filtered = properties.filter(p => {
-                if (p.status !== 'Approved') return false;
+                if (normalizeListingStatus(p.status) !== 'approved') return false;
                 if (projectFilter !== 'all' && p.project !== projectFilter) return false;
                 if (typeFilter !== 'all' && canonicalListingType(p.listingType) !== typeFilter) return false;
                 return true;
@@ -2996,6 +3035,7 @@ Title: Park Villas
                 const formattedPrice = formatOptionalNumber(p.price);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
                 const badgeColor = listingTypeBadgeClass(p.listingType);
+                const isFavorite = appData.favoriteListingIds?.has(String(p.id));
                 let sqPriceHtml = '';
                 if (isSaleListing(p.listingType) && Number(p.area) > 0) {
                     const sqPrice = Math.round(Number(p.price) / Number(p.area));
@@ -3013,10 +3053,13 @@ Title: Park Villas
                             <img src="${mainImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             <div class="absolute top-4 left-4 bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase max-w-[65%] truncate">${p.project || '—'}</div>
                             <div class="absolute top-4 right-4 ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${listingLabel}</div>
+                            ${p.vip ? '<div class="absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
+                            ${p.featured ? '<div class="absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
+                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="p-4 space-y-2 flex-1">
                             <h4 class="text-gray-900 font-extrabold text-base truncate">${p.title || '—'}</h4>
-                            <p class="text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)}</p>
+                            <p class="text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
                             <p class="text-gray-700 text-xs line-clamp-2 font-medium">${p.desc || ''}</p>
                             <div class="grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
                                 <span>Otaq: <strong class="text-gray-900">${p.rooms ?? '—'}</strong></span>
@@ -3037,6 +3080,46 @@ Title: Park Villas
                 grid.insertAdjacentHTML('beforeend', cardHtml);
             });
             renderPagination('listings-pagination', listingPage, totalPages, 'setListingPage');
+        }
+
+
+        async function toggleFavorite(event, listingId) {
+            event?.stopPropagation();
+            if (!getAuthToken()) {
+                switchTab('admin-login');
+                return;
+            }
+            const key = String(listingId);
+            const isFavorite = appData.favoriteListingIds?.has(key);
+            try {
+                if (isFavorite) {
+                    await apiRequest(`/api/favorites/${listingId}`, { method: 'DELETE' });
+                    appData.favoriteListingIds.delete(key);
+                } else {
+                    await apiRequest('/api/favorites', { method: 'POST', body: JSON.stringify({ listingId }) });
+                    appData.favoriteListingIds.add(key);
+                }
+                const idx = appData.listings.findIndex(item => String(item.id) === key);
+                if (idx > -1) appData.listings[idx].favoritesCount = Math.max(0, (appData.listings[idx].favoritesCount || 0) + (isFavorite ? -1 : 1));
+                renderSeaBreeze();
+            } catch (error) {
+                alert('Favorit əməliyyatı alınmadı: ' + error.message);
+            }
+        }
+
+        async function trackListingView(listingId) {
+            const key = `besthome-viewed-listing-${listingId}`;
+            if (sessionStorage.getItem(key)) return;
+            try {
+                const result = await apiRequest(`/api/listings/${listingId}/view`, { method: 'POST', body: JSON.stringify({}) });
+                sessionStorage.setItem(key, '1');
+                if (result?.counted) {
+                    const idx = appData.listings.findIndex(item => String(item.id) === String(listingId));
+                    if (idx > -1) appData.listings[idx].viewCount = result.viewCount;
+                }
+            } catch (error) {
+                console.warn('Listing view tracking failed:', error.message);
+            }
         }
 
         // OPEN PROPERTY DETAILS MODAL (WITH PREMIUM GALLERY + WHATSAPP ŞABLON)
@@ -3084,7 +3167,7 @@ Title: Park Villas
             alert('Elan linki kopyalandı.');
         }
 
-        function openPropertyModal(id) {
+        async function openPropertyModal(id) {
             const list = appData.listings;
             const p = list.find(item => String(item.id) === String(id));
             if (!p) return;
@@ -3163,6 +3246,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
 
             document.getElementById('property-detail-modal').classList.remove('hidden');
+            await trackListingView(id);
         }
 
         function closePropertyModal() {
@@ -3896,7 +3980,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         }
 
         function getBulkProjectTitleMatch(line) {
-            return String(line || '').match(/^\s*\d+\.\s+(.+)\s*$/);
+            const match = String(line || '').match(/^\s*\d+\.\s+(.+)\s*$/);
+            if (!match) return null;
+            const forbidden = /^(Mərtəbə sayı|Mertebe sayi|Təhvil tarixi|Tehvil tarixi|\d{4}-cu il|Sahəsi|Sahesi|Mənzil sayı|Menzil sayi|Təmir statusu|Temir statusu)$/i;
+            return forbidden.test(match[1].trim()) ? null : match;
         }
 
         function isBulkProjectSeparatorLine(line) {
@@ -4232,11 +4319,95 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         }
 
         // RENDER ADMIN CABINET (Realtime Data Mapping)
+
+        function getDashboardStats() {
+            const listings = appData.listings || [];
+            return appData.dashboardStats || {
+                totalUsers: (appData.agents || []).length,
+                totalListings: listings.length,
+                pendingListings: listings.filter(item => normalizeListingStatus(item.status) === 'pending').length,
+                approvedListings: listings.filter(item => normalizeListingStatus(item.status) === 'approved').length,
+                rejectedListings: listings.filter(item => normalizeListingStatus(item.status) === 'rejected').length,
+                projectsCount: (appData.projects || []).length,
+                vacanciesCount: (appData.vacancies || []).length,
+                applicationsCount: (appData.applications || []).length,
+            };
+        }
+
+        function renderDashboardCards() {
+            const container = document.getElementById('admin-dashboard-cards');
+            if (!container || !activeUser || activeUser.role !== 'admin') return;
+            const stats = getDashboardStats();
+            const cards = [
+                ['Total Users', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
+                ['Total Listings', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
+                ['Pending Listings', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                ['Approved Listings', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                ['Rejected Listings', stats.rejectedListings, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
+                ['Projects Count', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
+                ['Vacancies Count', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
+                ['Applications Count', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+            ];
+            container.innerHTML = cards.map(([label, value, icon, classes]) => `
+                <div class="rounded-2xl border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-[10px] uppercase tracking-wide font-black text-gray-300">${label}</span>
+                        <i class="fa-solid ${icon}"></i>
+                    </div>
+                    <div class="mt-3 text-2xl font-black text-white">${Number(value || 0).toLocaleString('az-AZ')}</div>
+                </div>
+            `).join('');
+        }
+
+        async function openUserListingsModal(userId) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            try {
+                const rows = await apiRequest(`/api/users/${userId}/listings`);
+                const listings = rows.map(dbListingToUi);
+                const body = listings.length ? listings.map(item => `
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div>
+                            <div class="text-[10px] text-gray-400">${formatAzDate(item.createdAt)} • Views: ${item.viewCount} • Favorites: ${item.favoritesCount}</div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span>
+                    </div>
+                `).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
+                showInlineModal('İstifadəçi elanları', body);
+            } catch (error) {
+                alert('İstifadəçi elanları oxunmadı: ' + error.message);
+            }
+        }
+
+        function showInlineModal(title, bodyHtml) {
+            let modal = document.getElementById('inline-info-modal');
+            if (!modal) {
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div id="inline-info-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 p-4">
+                        <div class="max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-3xl bg-[#0f172a] border border-white/10 p-6 shadow-2xl">
+                            <div class="flex items-center justify-between gap-3 mb-4">
+                                <h3 id="inline-info-modal-title" class="text-xl font-black text-white"></h3>
+                                <button onclick="document.getElementById('inline-info-modal').classList.add('hidden')" class="w-9 h-9 rounded-xl bg-white/10 text-white">×</button>
+                            </div>
+                            <div id="inline-info-modal-body" class="space-y-3"></div>
+                        </div>
+                    </div>
+                `);
+                modal = document.getElementById('inline-info-modal');
+            }
+            document.getElementById('inline-info-modal-title').textContent = title;
+            document.getElementById('inline-info-modal-body').innerHTML = bodyHtml;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
         function renderAdminDashboard() {
             if (!activeUser) {
                 switchTab('admin-login');
                 return;
             }
+
+            renderDashboardCards();
 
             // Hide/Show restriction tags
             const adminTags = document.querySelectorAll('.admin-only-element');
@@ -4260,9 +4431,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 // Agent restriction filter
                 if (activeUser.role === 'user' && p.authorId !== activeUser.id) return;
 
-                const isApproved = p.status === 'Approved';
-                const label = isApproved ? 'Təsdiqlənib' : 'Təsdiq Gözləyir';
-                const badge = isApproved ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500';
+                const normalizedStatus = normalizeListingStatus(p.status);
+                const isApproved = normalizedStatus === 'approved';
+                const label = listingStatusLabel(normalizedStatus);
+                const badge = listingStatusBadgeClass(normalizedStatus);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
 
                 pContainer.innerHTML += `
@@ -4272,12 +4444,17 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                             <div class="truncate">
                                 <h4 class="text-xs font-bold text-white truncate">${p.title || '—'}</h4>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
-                                <span class="text-[10px] text-gray-400 ml-2">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot</span>
+                                ${p.vip ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">VIP</span>' : ''}
+                                ${p.featured ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Featured</span>' : ''}
+                                <span class="text-[10px] text-gray-400 ml-2">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
                             ${activeUser.role === 'admin' && !isApproved ? `
-                                <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Təsdiqlə</button>
+                                <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Approve</button>
+                            ` : ''}
+                            ${activeUser.role === 'admin' && normalizedStatus !== 'rejected' ? `
+                                <button onclick="rejectListing(${p.id})" class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Reject</button>
                             ` : ''}
                             <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
                             <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
@@ -4322,7 +4499,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                     const fullname = a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || 'Adsız istifadəçi';
                     const initials = fullname.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
                     agentsContainer.innerHTML += `
-                        <div class="glass-card p-3 rounded-2xl border border-white/5 text-xs flex items-center gap-3 hover:border-brand-500/30 transition">
+                        <div onclick="openUserListingsModal('${a.id}')" class="glass-card p-3 rounded-2xl border border-white/5 text-xs flex items-center gap-3 hover:border-brand-500/30 transition cursor-pointer">
                             <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0">${initials}</div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2 min-w-0">
@@ -4330,11 +4507,12 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                                     <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10 shrink-0">${roleLabel(a.role)}</span>
                                 </div>
                                 <span class="text-[10px] text-gray-400 truncate block">${a.email || 'E-poçt yoxdur'}</span>
-                                <span class="text-[10px] text-gray-500 truncate block">${a.phone || 'Nömrə qeyd edilməyib'}</span>
+                                <span class="text-[10px] text-gray-500 truncate block">${a.phone || 'Nömrə qeyd edilməyib'} • ${formatAzDate(a.createdAt || a.created_at)}</span>
+                                <span class="text-[10px] text-gray-400 truncate block">Listings: ${a.listingsCount || 0} • Approved: ${a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0}</span>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
-                                <button onclick="openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteAgent('${a.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     `;
@@ -4526,13 +4704,32 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         }
 
         async function approveListing(id) {
-            const list = [...appData.listings];
-            const idx = list.findIndex(x => String(x.id) === String(id));
-            if (idx > -1) {
-                list[idx].status = 'Approved';
+            try {
+                const saved = await apiRequest(`/api/listings/${id}/approve`, { method: 'PATCH' });
+                const list = [...appData.listings];
+                const idx = list.findIndex(x => String(x.id) === String(id));
+                if (idx > -1) list[idx] = dbListingToUi(saved);
                 cacheData('listings', list);
+                appData.dashboardStats = null;
                 renderAdminDashboard();
                 renderSeaBreeze();
+            } catch (error) {
+                alert('Approve alınmadı: ' + error.message);
+            }
+        }
+
+        async function rejectListing(id) {
+            try {
+                const saved = await apiRequest(`/api/listings/${id}/reject`, { method: 'PATCH' });
+                const list = [...appData.listings];
+                const idx = list.findIndex(x => String(x.id) === String(id));
+                if (idx > -1) list[idx] = dbListingToUi(saved);
+                cacheData('listings', list);
+                appData.dashboardStats = null;
+                renderAdminDashboard();
+                renderSeaBreeze();
+            } catch (error) {
+                alert('Reject alınmadı: ' + error.message);
             }
         }
 
