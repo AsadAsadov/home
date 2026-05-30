@@ -86,6 +86,20 @@ function listingImageCreateMany(urls) {
   return urls.map((imageUrl, sortOrder) => ({ imageUrl, sortOrder }));
 }
 
+function orderedListingRows(rows) {
+  return [...rows].sort((a, b) => (a.displayOrder ?? a.id) - (b.displayOrder ?? b.id) || a.id - b.id);
+}
+
+function parseListingOrder(body) {
+  const raw = Array.isArray(body?.order) ? body.order : (Array.isArray(body?.listings) ? body.listings : []);
+  return raw
+    .map((item, index) => ({
+      id: Number.parseInt(typeof item === 'object' ? item.id : item, 10),
+      displayOrder: Number.parseInt(typeof item === 'object' && item.displayOrder != null ? item.displayOrder : index + 1, 10),
+    }))
+    .filter((item) => Number.isInteger(item.id) && item.id > 0 && Number.isInteger(item.displayOrder));
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
   const where = q ? { OR: [
@@ -95,10 +109,25 @@ router.get('/', asyncHandler(async (req, res) => {
   ] } : undefined;
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
-    prisma.listing.findMany({ where, orderBy: { createdAt: 'desc' }, include, skip, take }),
+    prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, skip, take }),
     prisma.listing.count({ where }),
   ]);
-  res.json({ data, total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
+  res.json({ data: orderedListingRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
+}));
+
+router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const items = parseListingOrder(req.body);
+  if (!items.length) return res.status(400).json({ message: 'Listing order array is required.' });
+
+  const uniqueIds = new Set(items.map((item) => item.id));
+  if (uniqueIds.size !== items.length) return res.status(400).json({ message: 'Listing IDs must be unique.' });
+
+  await prisma.$transaction(items.map((item) => (
+    prisma.listing.update({ where: { id: item.id }, data: { displayOrder: item.displayOrder } })
+  )));
+
+  const data = await prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include });
+  res.json({ ok: true, data: orderedListingRows(data) });
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
@@ -127,7 +156,13 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     };
     console.info('[listings] prisma.listing.create', createArgs);
 
-    const created = await prisma.listing.create(createArgs);
+    const created = await prisma.$transaction(async (tx) => {
+      const listing = await tx.listing.create(createArgs);
+      if (listing.displayOrder == null) {
+        return tx.listing.update({ where: { id: listing.id }, data: { displayOrder: listing.id }, include });
+      }
+      return listing;
+    });
     res.status(201).json(created);
   } catch (error) {
     logListingApiError(error);

@@ -121,6 +121,37 @@
         .sea-breeze-project-card__meta i {
             flex: 0 0 auto;
         }
+
+        .admin-project-card {
+            transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .admin-project-card.is-dragging {
+            opacity: 0.45;
+            transform: scale(0.98);
+            border-color: var(--color-primary);
+            box-shadow: 0 18px 45px rgba(127, 127, 255, 0.22);
+        }
+        .admin-project-card.is-drop-target {
+            border-color: var(--color-primary);
+            transform: translateY(4px);
+        }
+        .admin-project-card.is-drop-target::before {
+            content: '';
+            display: block;
+            height: 3px;
+            margin: 0 0 10px;
+            border-radius: 999px;
+            background: var(--color-primary);
+            box-shadow: 0 0 18px rgba(127, 127, 255, 0.55);
+        }
+        .admin-project-drag-handle {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+        }
+        .admin-project-drag-handle:active {
+            cursor: grabbing;
+        }
         @media (max-width: 767px) {
             #sea-breeze-projects-list {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -881,8 +912,14 @@
                             <h3 class="text-xl font-extrabold text-white">Layihələrin idarə edilməsi</h3>
                             <p class="text-gray-400 text-xs">Layihələr backend API və Supabase üzərindən redaktə edilir.</p>
                         </div>
-                        <button onclick="restoreDefaultOfficialProjects()" class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Default bərpa et</button>
+                        <div class="flex flex-wrap justify-end gap-2">
+                            <button id="save-project-order-btn" onclick="saveProjectOrder()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                                <i class="fa-solid fa-floppy-disk mr-1"></i>Yadda Saxla
+                            </button>
+                            <button onclick="restoreDefaultOfficialProjects()" class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Default bərpa et</button>
+                        </div>
                     </div>
+                    <div id="admin-project-order-status" class="hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-[11px] text-emerald-300">Sıra dəyişdi. Dəyişikliyi DB-yə yazmaq üçün “Yadda Saxla” düyməsinə basın.</div>
                     <div id="admin-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
 
@@ -1729,7 +1766,8 @@ Title: Park Villas
                 id: String(p.id), title: p.title, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
                 repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
-                desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img)
+                desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
+                displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id)
             };
         }
 
@@ -1754,7 +1792,7 @@ Title: Park Villas
                 category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
                 area, floorNumber: parseInt(l.floorNumber || l.floor_number || l.floor || 1), floorCount: parseInt(l.floorCount || l.floor_count || 1),
                 floor: parseInt(l.floorNumber || l.floor_number || l.floor || l.floorCount || l.floor_count || 1), price, img: images[0] || '', images,
-                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', createdAt: l.createdAt || l.created_at || new Date().toISOString()
+                desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', displayOrder: Number(l.displayOrder ?? l.display_order ?? l.id), createdAt: l.createdAt || l.created_at || new Date().toISOString()
             };
         }
 
@@ -2011,7 +2049,8 @@ Title: Park Villas
                 features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
                 description: p.desc,
                 image_url: p.img,
-                images: normalizeProjectImages(p.images, p.img)
+                images: normalizeProjectImages(p.images, p.img),
+                display_order: p.displayOrder ?? p.display_order
             };
         }
 
@@ -2119,8 +2158,14 @@ Title: Park Villas
             }
         }
 
+        function getDisplayOrderValue(item, fallbackIndex = 0) {
+            const parsed = Number(item?.displayOrder ?? item?.display_order);
+            return Number.isFinite(parsed) ? parsed : fallbackIndex + 1;
+        }
+
         function getOfficialProjects() {
-            return appData.projects || officialSeaBreezeProjects;
+            const projects = appData.projects || officialSeaBreezeProjects;
+            return [...projects].sort((a, b) => getDisplayOrderValue(a, projects.indexOf(a)) - getDisplayOrderValue(b, projects.indexOf(b)));
         }
 
         function saveOfficialProjects(projects) {
@@ -2249,6 +2294,8 @@ Title: Park Villas
         let uploadedListingImageFiles = [];
         let currentlyEditingGalleryItemId = null;
         let bulkProjectImportRows = [];
+        let projectOrderDirty = false;
+        let draggedProjectId = null;
 
         // SESSION CONTROL
         async function initializeAuth() {
@@ -2571,7 +2618,7 @@ Title: Park Villas
 
         // RENDER PROPERTIES ELAN GRID
         function renderSeaBreeze() {
-            const properties = appData.listings;
+            const properties = [...appData.listings].sort((a, b) => getDisplayOrderValue(a, appData.listings.indexOf(a)) - getDisplayOrderValue(b, appData.listings.indexOf(b)));
             const grid = document.getElementById('seabreeze-properties-grid');
             grid.innerHTML = '';
 
@@ -3184,20 +3231,120 @@ Title: Park Villas
             updateProjectImagePreview();
         }
 
+        function setProjectOrderDirty(isDirty) {
+            projectOrderDirty = Boolean(isDirty);
+            const saveBtn = document.getElementById('save-project-order-btn');
+            const status = document.getElementById('admin-project-order-status');
+            if (saveBtn) saveBtn.classList.toggle('hidden', !projectOrderDirty);
+            if (status) status.classList.toggle('hidden', !projectOrderDirty);
+        }
+
+        function getAdminProjectOrderFromDom() {
+            return Array.from(document.querySelectorAll('#admin-projects-grid .admin-project-card'))
+                .map(card => String(card.dataset.projectId || ''))
+                .filter(Boolean);
+        }
+
+        function applyAdminProjectDomOrder() {
+            const ids = getAdminProjectOrderFromDom();
+            if (!ids.length) return;
+            const byId = new Map(getOfficialProjects().map(project => [String(project.id), project]));
+            const ordered = ids.map((id, index) => ({ ...byId.get(id), displayOrder: index + 1 })).filter(Boolean);
+            saveOfficialProjects(ordered);
+            renderOfficialProjectOptions();
+            renderOfficialProjects();
+        }
+
+        function clearProjectDropTargets() {
+            document.querySelectorAll('#admin-projects-grid .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
+        }
+
+        function startProjectDrag(event, projectId) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const card = event.target.closest('.admin-project-card');
+            const grid = document.getElementById('admin-projects-grid');
+            if (!card || !grid) return;
+            event.preventDefault();
+            draggedProjectId = String(projectId);
+            card.classList.add('is-dragging');
+            card.setPointerCapture?.(event.pointerId);
+
+            const onPointerMove = (moveEvent) => {
+                const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.('.admin-project-card');
+                if (!target || target === card || !grid.contains(target)) return;
+                clearProjectDropTargets();
+                target.classList.add('is-drop-target');
+                const rect = target.getBoundingClientRect();
+                const insertAfter = moveEvent.clientY > rect.top + rect.height / 2;
+                grid.insertBefore(card, insertAfter ? target.nextSibling : target);
+            };
+
+            const onPointerUp = () => {
+                card.classList.remove('is-dragging');
+                clearProjectDropTargets();
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('pointercancel', onPointerUp);
+                draggedProjectId = null;
+                applyAdminProjectDomOrder();
+                setProjectOrderDirty(true);
+            };
+
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            window.addEventListener('pointerup', onPointerUp, { once: true });
+            window.addEventListener('pointercancel', onPointerUp, { once: true });
+        }
+
+        async function saveProjectOrder() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const projects = getOfficialProjects().map((project, index) => ({ ...project, displayOrder: index + 1 }));
+            const order = projects
+                .filter(project => Number.isInteger(Number(project.id)))
+                .map((project, index) => ({ id: Number(project.id), displayOrder: index + 1 }));
+            if (!order.length) {
+                alert('Yadda saxlamaq üçün API-də mövcud layihə tapılmadı. Əvvəlcə layihələri backend-ə əlavə edin.');
+                return;
+            }
+
+            const saveBtn = document.getElementById('save-project-order-btn');
+            const originalText = saveBtn?.innerHTML;
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Yazılır...';
+            }
+            try {
+                const response = await apiRequest('/api/projects/reorder', { method: 'PUT', body: JSON.stringify({ order }) });
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                cacheData('projects', rows.length ? rows.map(dbProjectToUi) : projects);
+                setProjectOrderDirty(false);
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+            } catch (error) {
+                alert('Layihə sırası yadda saxlanılmadı: ' + error.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText || '<i class="fa-solid fa-floppy-disk mr-1"></i>Yadda Saxla';
+                }
+            }
+        }
+
         function renderAdminProjects() {
             const grid = document.getElementById('admin-projects-grid');
             if (!grid) return;
             const projects = getOfficialProjects();
             grid.innerHTML = '';
+            setProjectOrderDirty(projectOrderDirty);
 
             if (projects.length === 0) {
                 grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Layihə tapılmadı.</div>`;
                 return;
             }
 
-            projects.forEach(project => {
+            projects.forEach((project, index) => {
                 grid.innerHTML += `
-                    <div class="glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+                    <div class="admin-project-card glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col" data-project-id="${project.id}">
                         <div class="h-40 relative overflow-hidden">
                             ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -3213,9 +3360,14 @@ Title: Park Villas
                                 </div>
                                 <p class="text-[11px] text-gray-400 line-clamp-2">${project.desc}</p>
                             </div>
-                            <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
-                                <button onclick="editOfficialProject('${project.id}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                                <button onclick="deleteOfficialProject('${project.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                            <div class="flex items-center justify-between gap-2 pt-3 border-t border-white/5">
+                                <button type="button" class="admin-project-drag-handle bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white text-sm font-bold px-3 py-2 rounded-lg transition" onpointerdown="startProjectDrag(event, '${project.id}')" aria-label="Layihə sırasını dəyiş">
+                                    ☰ <span class="text-[10px] ml-1">${index + 1}</span>
+                                </button>
+                                <div class="flex items-center justify-end gap-2">
+                                    <button onclick="editOfficialProject('${project.id}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                    <button onclick="deleteOfficialProject('${project.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                                </div>
                             </div>
                         </div>
                     </div>
