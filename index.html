@@ -63,14 +63,14 @@
             box-shadow: 0 12px 30px rgba(127, 127, 255, 0.10);
         }
         .site-logo {
-            height: 56px;
+            height: 60px;
             width: auto;
             max-height: 100%;
             object-fit: contain;
             image-rendering: auto;
         }
         .site-footer-logo {
-            height: 56px;
+            height: 60px;
             width: auto;
             object-fit: contain;
             image-rendering: auto;
@@ -80,7 +80,7 @@
                 height: 80px;
             }
             .site-footer-logo {
-                height: 72px;
+                height: 80px;
             }
         }
 
@@ -754,16 +754,21 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkil (Fayl yüklə və ya URL)*</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" id="sb-img-file" accept="image/*" onchange="convertImageToBase64(this, 'sb-img-preview-val')" class="hidden">
-                                <button type="button" onclick="document.getElementById('sb-img-file').click()" class="bg-white/5 border border-white/10 text-xs px-3 py-2 rounded-xl text-white">Seç</button>
-                                <input type="url" id="sb-img-url" placeholder="Yaxud şəkil URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkillər (ilk şəkil cover olacaq)*</label>
+                            <div id="sb-listing-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handleListingImagesDrop(event)" class="border-2 border-dashed border-white/10 rounded-2xl p-4 bg-white/5 transition">
+                                <input type="file" id="sb-img-file" accept="image/*" multiple onchange="handleListingImageSelection(this.files)" class="hidden">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <button type="button" onclick="document.getElementById('sb-img-file').click()" class="bg-white/5 border border-white/10 text-xs px-3 py-2 rounded-xl text-white">Şəkilləri seç</button>
+                                    <span class="text-xs text-gray-400" id="sb-images-count">0 şəkil seçildi</span>
+                                    <input type="url" id="sb-img-url" placeholder="Yaxud cover şəkil URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-2">Drag/drop dəstəklənir. Soldan sağa düzülüş sort_order kimi saxlanılır.</p>
+                                <div id="sb-images-preview" class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-3"></div>
                             </div>
                             <input type="hidden" id="sb-img-preview-val" value="">
                             <div id="sb-file-name-badge" class="hidden bg-brand-500/10 text-[10px] p-2 rounded-xl flex items-center justify-between">
                                 <span class="truncate" id="sb-file-name-text">fayl.jpg</span>
-                                <button type="button" onclick="clearSelectedFile('sb-img-file','sb-img-preview-val','sb-file-name-badge')" class="text-red-400"><i class="fa-solid fa-xmark"></i></button>
+                                <button type="button" onclick="clearListingImages()" class="text-red-400"><i class="fa-solid fa-xmark"></i></button>
                             </div>
                         </div>
 
@@ -1727,10 +1732,14 @@ Title: Park Villas
         function dbListingToUi(l) {
             const area = Number(l.area || 0);
             const price = Number(l.price || 0);
+            const images = Array.isArray(l.images)
+                ? l.images.map(item => typeof item === 'string' ? item : item.imageUrl || item.image_url).filter(Boolean)
+                : [];
+            if (!images.length && (l.imageUrl || l.image_url)) images.push(l.imageUrl || l.image_url);
             return {
                 id: l.id, title: l.title, project: l.projectName || l.project_name || 'Digər', listingType: l.listingType || l.listing_type || 'Satis',
                 category: l.propertyCategory || l.property_category || 'Apartment', rooms: l.roomCount || l.room_count || 1,
-                area, floor: parseInt(l.floorCount || l.floor_count || 1), price, img: l.imageUrl || l.image_url || '',
+                area, floor: parseInt(l.floorCount || l.floor_count || 1), price, img: images[0] || '', images,
                 desc: l.description || '', authorId: l.userId || l.user_id || 'admin', status: 'Approved', createdAt: l.createdAt || l.created_at || new Date().toISOString()
             };
         }
@@ -2013,6 +2022,7 @@ Title: Park Villas
                 price,
                 pricePerM2: area && price ? price / area : undefined,
                 imageUrl: l.img || '',
+                images: Array.isArray(l.images) ? l.images : (l.img ? [l.img] : []),
                 description: l.desc || '',
                 userId: activeUser?.role === 'user' ? activeUser.id : undefined
             };
@@ -2219,6 +2229,8 @@ Title: Park Villas
         let officialProjectImageIndex = 0;
         let uploadedEventImages = [];
         let uploadedEventImageFiles = [];
+        let uploadedListingImages = [];
+        let uploadedListingImageFiles = [];
         let currentlyEditingGalleryItemId = null;
         let bulkProjectImportRows = [];
 
@@ -2619,9 +2631,10 @@ Title: Park Villas
             const p = list.find(item => item.id === parseInt(id));
             if (!p) return;
 
+            const propertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img].filter(Boolean);
             const propertyImage = document.getElementById('p-modal-img');
-            propertyImage.src = p.img;
-            propertyImage.onclick = () => openEventLightbox(encodeURIComponent(JSON.stringify([p.img])), p.title);
+            propertyImage.src = propertyImages[0] || p.img;
+            propertyImage.onclick = () => openEventLightbox(encodeURIComponent(JSON.stringify(propertyImages)), p.title);
             document.getElementById('p-modal-project').textContent = p.project;
             document.getElementById('p-modal-title').textContent = p.title;
             document.getElementById('p-modal-desc').textContent = p.desc;
@@ -3008,6 +3021,78 @@ Title: Park Villas
             document.getElementById(fileInputId).value = '';
             document.getElementById(hiddenInputId).value = '';
             document.getElementById(badgeId).classList.add('hidden');
+        }
+
+
+        function handleListingImageSelection(fileList) {
+            const files = Array.from(fileList || []).filter(file => file.type && file.type.startsWith('image/'));
+            files.forEach(file => {
+                uploadedListingImageFiles.push(file);
+                uploadedListingImages.push(URL.createObjectURL(file));
+            });
+            const input = document.getElementById('sb-img-file');
+            if (input) input.value = '';
+            renderListingImagesPreview();
+        }
+
+        function renderListingImagesPreview() {
+            const container = document.getElementById('sb-images-preview');
+            const count = document.getElementById('sb-images-count');
+            if (!container || !count) return;
+            count.textContent = `${uploadedListingImages.length} şəkil seçildi`;
+            document.getElementById('sb-file-name-badge')?.classList.toggle('hidden', uploadedListingImages.length === 0);
+            const firstName = uploadedListingImageFiles[0]?.name || (uploadedListingImages[0] ? 'Yaddaşdakı şəkillər' : '');
+            const fileNameText = document.getElementById('sb-file-name-text');
+            if (fileNameText && firstName) fileNameText.textContent = firstName;
+            container.innerHTML = uploadedListingImages.map((img, idx) => `
+                <div class="relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5">
+                    <img src="${img}" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">
+                    ${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>' : ''}
+                    <button type="button" onclick="deleteListingPhotoTemp(${idx})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] z-10"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-0 group-hover:opacity-100 transition">
+                        <button type="button" onclick="moveListingPhotoTemp(${idx}, -1)" aria-label="Sola çək"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" onclick="moveListingPhotoTemp(${idx}, 1)" aria-label="Sağa çək"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteListingPhotoTemp(index) {
+            uploadedListingImages.splice(index, 1);
+            uploadedListingImageFiles.splice(index, 1);
+            renderListingImagesPreview();
+        }
+
+        function moveListingPhotoTemp(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= uploadedListingImages.length) return;
+            [uploadedListingImages[index], uploadedListingImages[newIndex]] = [uploadedListingImages[newIndex], uploadedListingImages[index]];
+            [uploadedListingImageFiles[index], uploadedListingImageFiles[newIndex]] = [uploadedListingImageFiles[newIndex], uploadedListingImageFiles[index]];
+            renderListingImagesPreview();
+        }
+
+        function clearListingImages() {
+            uploadedListingImages = [];
+            uploadedListingImageFiles = [];
+            const input = document.getElementById('sb-img-file');
+            if (input) input.value = '';
+            document.getElementById('sb-img-preview-val').value = '';
+            renderListingImagesPreview();
+        }
+
+        function handleListingImagesDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('border-brand-500', 'bg-brand-500/10');
+        }
+
+        function handleListingImagesDragLeave(event) {
+            event.currentTarget.classList.remove('border-brand-500', 'bg-brand-500/10');
+        }
+
+        function handleListingImagesDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-brand-500', 'bg-brand-500/10');
+            handleListingImageSelection(event.dataTransfer?.files);
         }
 
         // CONVERT & REORDER IMAGES IN GALLERY
@@ -3656,10 +3741,14 @@ Title: Park Villas
                 return;
             }
 
-            const base64Img = document.getElementById('sb-img-preview-val').value;
-            const urlImg = document.getElementById('sb-img-url').value;
+            const urlImg = document.getElementById('sb-img-url').value.trim();
             const officialProjectImage = getOfficialProjects().find(item => item.title === project)?.img;
-            const img = base64Img || urlImg || officialProjectImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80";
+            const existingImageUrls = uploadedListingImages.filter(src => !String(src).startsWith('blob:'));
+            const fallbackImage = urlImg || officialProjectImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80";
+            if (!uploadedListingImageFiles.length && !existingImageUrls.length && !urlImg && !editId) {
+                existingImageUrls.push(fallbackImage);
+            }
+            const coverImg = existingImageUrls[0] || urlImg || fallbackImage;
 
             const list = [...appData.listings];
             const itemPayload = {
@@ -3673,16 +3762,26 @@ Title: Park Villas
                 floor,
                 land,
                 price,
-                img,
+                img: coverImg,
+                images: [coverImg, ...existingImageUrls.filter(url => url !== coverImg)],
                 desc,
                 authorId: activeUser.id,
                 status: 'Approved'
             };
 
+            const formData = new FormData();
+            const apiPayload = uiListingToApi(itemPayload);
+            Object.entries(apiPayload).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && key !== 'images') formData.append(key, value);
+            });
+            uploadedListingImageFiles.forEach(file => formData.append('images', file));
+            if (existingImageUrls.length) formData.append('existing_images', JSON.stringify(existingImageUrls));
+            if (urlImg) formData.append('image_url', urlImg);
+
             try {
                 const saved = editId
-                    ? await apiRequest(`/api/listings/${editId}`, { method: 'PUT', body: JSON.stringify(uiListingToApi(itemPayload)) })
-                    : await apiRequest('/api/listings', { method: 'POST', body: JSON.stringify(uiListingToApi(itemPayload)) });
+                    ? await apiRequest(`/api/listings/${editId}`, 'PUT', formData)
+                    : await apiRequest('/api/listings', 'POST', formData);
                 const savedUi = dbListingToUi(saved);
                 const idx = list.findIndex(x => String(x.id) === String(editId));
                 if (idx > -1) list[idx] = savedUi;
@@ -3712,16 +3811,11 @@ Title: Park Villas
                 document.getElementById('sb-price').value = p.price;
                 document.getElementById('sb-desc').value = p.desc;
 
-                if (p.img && p.img.startsWith('data:')) {
-                    document.getElementById('sb-img-preview-val').value = p.img;
-                    document.getElementById('sb-img-url').value = '';
-                    document.getElementById('sb-file-name-badge').classList.remove('hidden');
-                    document.getElementById('sb-file-name-text').textContent = "Yüklənmiş Şəkil";
-                } else {
-                    document.getElementById('sb-img-url').value = p.img;
-                    document.getElementById('sb-img-preview-val').value = '';
-                    document.getElementById('sb-file-name-badge').classList.add('hidden');
-                }
+                uploadedListingImageFiles = [];
+                uploadedListingImages = Array.isArray(p.images) && p.images.length ? [...p.images] : (p.img ? [p.img] : []);
+                document.getElementById('sb-img-url').value = '';
+                document.getElementById('sb-img-preview-val').value = '';
+                renderListingImagesPreview();
 
                 document.getElementById('sb-form-action-title').textContent = "Elanı Redaktə Et";
                 toggleFormFieldsBasedOnCategory();
@@ -3741,6 +3835,9 @@ Title: Park Villas
             document.getElementById('sb-price').value = '';
             document.getElementById('sb-img-url').value = '';
             document.getElementById('sb-img-preview-val').value = '';
+            uploadedListingImages = [];
+            uploadedListingImageFiles = [];
+            renderListingImagesPreview();
             document.getElementById('sb-desc').value = '';
             document.getElementById('sb-file-name-badge').classList.add('hidden');
             document.getElementById('sb-form-action-title').textContent = "Yeni Elan Əlavə Et";
