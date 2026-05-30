@@ -330,6 +330,20 @@
             background-color: var(--color-secondary-background) !important;
             border-top-color: var(--color-primary-border) !important;
         }
+        .premium-lightbox-image {
+            transition: transform 220ms ease, opacity 220ms ease;
+            transform-origin: center center;
+            animation: premiumZoomIn 220ms ease-out;
+            touch-action: none;
+            cursor: zoom-in;
+        }
+        .premium-lightbox-image.is-zoomed {
+            cursor: zoom-out;
+        }
+        @keyframes premiumZoomIn {
+            from { opacity: 0; transform: scale(0.94); }
+            to { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -348,6 +362,7 @@
                     <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Sea Breeze Layihələri</button>
                     <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya & Video</button>
                     <button onclick="switchTab('career')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-career">Karyera</button>
+                    <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka Kalkulyatoru</button>
                     <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
                 </div>
 
@@ -371,6 +386,7 @@
             <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Sea Breeze Layihələri</button>
             <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Qalereya & Video</button>
             <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Karyera</button>
+            <button onclick="switchTab('mortgage'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">İpoteka Kalkulyatoru</button>
             <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Haqqımızda</button>
             <div id="mobile-user-status-actions" class="pt-2 border-t border-white/5 space-y-2"></div>
         </div>
@@ -384,17 +400,21 @@
             <!-- Hero banner -->
             <div class="sea-breeze-hero relative rounded-3xl overflow-hidden glass-card min-h-[60vh] md:min-h-[70vh] flex items-center">
                 <div id="sea-breeze-hero-bg" class="absolute inset-0 w-full h-full bg-cover bg-center" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
-                <div class="absolute inset-0 bg-gradient-to-br from-white/70 via-brand-50/45 to-brand-500/20"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-brand-900/35 via-white/10 to-transparent"></div>
+                <div id="sea-breeze-hero-color-overlay" class="absolute inset-0"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-white/65 via-brand-50/35 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-white/45 via-transparent to-transparent"></div>
 
                 <div class="relative z-10 max-w-3xl space-y-5 px-6 py-8 sm:px-10 md:px-14 md:py-12 lg:py-14 text-left">
                     <span id="sea-breeze-hero-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
                     <h1 id="sea-breeze-hero-title" class="text-3xl md:text-5xl lg:text-6xl font-black text-gray-950 leading-[1.02] drop-shadow-xl">
-                        Sea Breeze-də <br><span class="bg-gradient-to-r from-gray-950 via-brand-900 to-gray-900 bg-clip-text text-transparent">Premium Həyat Tərzi!</span>
+                        Sea Breeze-də <br><span class="font-black text-gray-900">Premium Həyat Tərzi!</span>
                     </h1>
                     <p id="sea-breeze-hero-description" class="max-w-2xl text-gray-800 text-lg md:text-2xl font-semibold leading-snug md:leading-relaxed drop-shadow-md">
                         BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.
                     </p>
+                    <button id="sea-breeze-hero-button" onclick="document.getElementById('sea-breeze-projects-list').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black shadow-xl transition hover:scale-[1.02]">
+                        Layihələrə bax <i class="fa-solid fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
 
@@ -588,7 +608,35 @@
             </div>
         </section>
 
-        <!-- 5. LOGIN -->
+
+        <!-- 5. IPOTEKA KALKULYATORU -->
+        <section id="tab-mortgage" class="tab-content hidden space-y-8">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Maliyyə planlaması</span>
+                <h2 class="text-3xl md:text-5xl font-black text-gray-900">İpoteka Kalkulyatoru</h2>
+                <p class="text-gray-700 font-medium text-sm md:text-base leading-relaxed">Mənzil büdcənizi, ilkin ödənişi və kredit müddətini daxil edin — nəticələr real vaxtda yenilənir.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <form id="mortgage-form" oninput="calculateMortgage()" class="lg:col-span-5 glass-card p-6 rounded-3xl space-y-4">
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Mənzil qiyməti (AZN)</span><input id="mortgage-price" type="number" min="0" step="1000" value="250000" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">İlkin ödəniş (AZN)</span><input id="mortgage-down" type="number" min="0" step="1000" value="50000" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Faiz dərəcəsi (%)</span><input id="mortgage-rate" type="number" min="0" step="0.1" value="8" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Müddət (il)</span><input id="mortgage-years" type="number" min="1" step="1" value="25" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <button type="button" onclick="downloadMortgagePdf()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-black py-3 rounded-2xl transition"><i class="fa-solid fa-file-pdf mr-2"></i>PDF kimi yüklə</button>
+                </form>
+                <div class="lg:col-span-7 glass-card p-6 rounded-3xl space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="mortgage-results">
+                        <div class="rounded-2xl bg-brand-50 border border-brand-200 p-5"><span class="text-xs uppercase text-gray-600 font-bold">Kredit məbləği</span><strong id="mortgage-loan" class="block text-2xl font-black text-gray-900 mt-2">0 AZN</strong></div>
+                        <div class="rounded-2xl bg-brand-500 text-white p-5 shadow-xl"><span class="text-xs uppercase font-bold opacity-90">Aylıq ödəniş</span><strong id="mortgage-monthly" class="block text-2xl font-black mt-2">0 AZN</strong></div>
+                        <div class="rounded-2xl bg-white border border-brand-200 p-5"><span class="text-xs uppercase text-gray-600 font-bold">Ümumi ödəniş</span><strong id="mortgage-total" class="block text-2xl font-black text-gray-900 mt-2">0 AZN</strong></div>
+                        <div class="rounded-2xl bg-white border border-brand-200 p-5"><span class="text-xs uppercase text-gray-600 font-bold">Ümumi faiz</span><strong id="mortgage-interest" class="block text-2xl font-black text-gray-900 mt-2">0 AZN</strong></div>
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">Qeyd: Kalkulyator məlumat xarakterlidir. Bank komissiyaları, sığorta və digər xərclər nəticələrə daxil edilməyib.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. LOGIN -->
         <section id="tab-admin-login" class="tab-content hidden max-w-md mx-auto py-12">
             <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
                 <h2 class="text-2xl font-bold text-white">Sistemə Giriş</h2>
@@ -601,7 +649,7 @@
             </div>
         </section>
 
-        <!-- 6. COMPREHENSIVE DASHBOARD PANEL -->
+        <!-- 7. COMPREHENSIVE DASHBOARD PANEL -->
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
                 <div>
@@ -926,17 +974,32 @@ Title: Park Villas
                             <input type="url" id="hero-image-url-input" placeholder="https://..." oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
                             <p class="text-[10px] text-gray-500">Boş saxlanılarsa mövcud default şəkil göstəriləcək.</p>
                         </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge rəngi</span><input type="color" id="hero-badge-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Başlıq rəngi</span><input type="color" id="hero-title-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama rəngi</span><input type="color" id="hero-description-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Overlay rəngi</span><input type="color" id="hero-overlay-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Düymə rəngi</span><input type="color" id="hero-button-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Düymə mətn rəngi</span><input type="color" id="hero-button-text-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                        </div>
+                        <label class="space-y-1 block">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Overlay opacity: <strong id="hero-overlay-opacity-label">0.35</strong></span>
+                            <input type="range" id="hero-overlay-opacity" min="0" max="1" step="0.01" oninput="updateHeroAdminPreview()" class="w-full">
+                        </label>
                         <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
                     </form>
                 </div>
                 <div class="lg:col-span-7 glass-card p-5 rounded-2xl border border-white/5">
                     <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden min-h-[360px] flex items-end bg-cover bg-center">
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/70 via-brand-50/45 to-brand-500/20"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-brand-900/35 via-white/10 to-transparent"></div>
+                        <div id="hero-preview-overlay" class="absolute inset-0"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/60 via-brand-50/30 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-white/35 via-transparent to-transparent"></div>
                         <div class="relative z-10 p-8 space-y-4">
                             <span id="hero-preview-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em]">Etibarlı seçim</span>
                             <h4 id="hero-preview-title" class="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl"></h4>
-                            <p id="hero-preview-description" class="max-w-xl text-gray-100 text-sm md:text-base font-light leading-relaxed drop-shadow-lg"></p>
+                            <p id="hero-preview-description" class="max-w-xl text-gray-100 text-sm md:text-base font-semibold leading-relaxed drop-shadow-lg"></p>
+                            <span id="hero-preview-button" class="inline-flex rounded-2xl px-5 py-2.5 text-xs font-black shadow-lg">Layihələrə bax</span>
                         </div>
                     </div>
                 </div>
@@ -951,8 +1014,8 @@ Title: Park Villas
                                 <th class="p-4">Namizəd</th>
                                 <th class="p-4">Əlaqə</th>
                                 <th class="p-4">Vakansiya</th>
-                                <th class="p-4">CV faylı</th>
-                                <th class="p-4 text-right">Əməliyyat</th>
+                                <th class="p-4">Tarix</th>
+                                <th class="p-4 text-right">CV Yüklə</th>
                             </tr>
                         </thead>
                         <tbody id="admin-cv-tbody" class="divide-y divide-white/5 text-sm"></tbody>
@@ -1055,7 +1118,7 @@ Title: Park Villas
             </button>
             
             <div class="overflow-y-auto">
-                <img id="p-modal-img" class="w-full h-64 object-cover" src="" alt="">
+                <img id="p-modal-img" class="w-full h-64 object-cover cursor-zoom-in" src="" alt="">
                 <div class="p-6 md:p-8 space-y-6">
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
@@ -1137,7 +1200,7 @@ Title: Park Villas
                     <picture class="block w-full h-full imageMove">
                         <source id="op-modal-source-desktop" media="(min-width: 1024px)" srcset="">
                         <source id="op-modal-source-tablet" media="(min-width: 640px)" srcset="">
-                        <img id="op-modal-img" class="w-full h-full object-cover lazyload" loading="lazy" data-parallax="true" src="" alt="">
+                        <img id="op-modal-img" onclick="openProjectLightboxFromModal()" class="w-full h-full object-cover lazyload cursor-zoom-in" loading="lazy" data-parallax="true" src="" alt="">
                     </picture>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
                     <div id="op-modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none z-10">
@@ -1256,6 +1319,13 @@ Title: Park Villas
             title: 'Sea Breeze-də\nPremium Həyat Tərzi!',
             description: 'BestHome ilə Sea Breeze sahilində seçilmiş layihələri və aktual satış/kirayə elanlarını rahat şəkildə araşdırın.',
             hero_image_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
+            badge_color: '#7F7FFF',
+            title_color: '#111827',
+            description_color: '#374151',
+            overlay_color: '#000000',
+            overlay_opacity: 0.35,
+            button_color: '#7F7FFF',
+            button_text_color: '#FFFFFF',
             is_active: true
         };
 
@@ -1749,6 +1819,13 @@ Title: Park Villas
                 title: hero.title ?? defaultSeaBreezeHero.title,
                 description: hero.description ?? defaultSeaBreezeHero.description,
                 hero_image_url: hero.hero_image_url ?? hero.heroImageUrl ?? defaultSeaBreezeHero.hero_image_url,
+                badge_color: hero.badge_color ?? hero.badgeColor ?? defaultSeaBreezeHero.badge_color,
+                title_color: hero.title_color ?? hero.titleColor ?? defaultSeaBreezeHero.title_color,
+                description_color: hero.description_color ?? hero.descriptionColor ?? defaultSeaBreezeHero.description_color,
+                overlay_color: hero.overlay_color ?? hero.overlayColor ?? defaultSeaBreezeHero.overlay_color,
+                overlay_opacity: Number(hero.overlay_opacity ?? hero.overlayOpacity ?? defaultSeaBreezeHero.overlay_opacity),
+                button_color: hero.button_color ?? hero.buttonColor ?? defaultSeaBreezeHero.button_color,
+                button_text_color: hero.button_text_color ?? hero.buttonTextColor ?? defaultSeaBreezeHero.button_text_color,
                 is_active: hero.is_active ?? hero.isActive ?? true
             };
         }
@@ -1762,7 +1839,7 @@ Title: Park Villas
             if (lines.length <= 1) return escapeHtml(lines[0] || defaultSeaBreezeHero.title);
             const firstLines = lines.slice(0, -1).map(escapeHtml).join('<br>');
             const lastLine = escapeHtml(lines[lines.length - 1]);
-            return `${firstLines}<br><span class="bg-gradient-to-r from-brand-600 via-brand-500 to-white bg-clip-text text-transparent">${lastLine}</span>`;
+            return `${firstLines}<br><span class="font-black text-gray-900">${lastLine}</span>`;
         }
 
         function getHeroImageUrl(hero = appData.heroSection) {
@@ -1776,10 +1853,32 @@ Title: Park Villas
             const badge = document.getElementById('sea-breeze-hero-badge');
             const title = document.getElementById('sea-breeze-hero-title');
             const description = document.getElementById('sea-breeze-hero-description');
+            const overlay = document.getElementById('sea-breeze-hero-color-overlay');
+            const button = document.getElementById('sea-breeze-hero-button');
             if (bg) bg.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
-            if (badge) badge.textContent = hero.badge_text || defaultSeaBreezeHero.badge_text;
-            if (title) title.innerHTML = formatHeroTitle(hero.title);
-            if (description) description.textContent = hero.description || defaultSeaBreezeHero.description;
+            if (overlay) {
+                overlay.style.backgroundColor = hero.overlay_color;
+                overlay.style.opacity = String(hero.overlay_opacity);
+            }
+            if (badge) {
+                badge.textContent = hero.badge_text || defaultSeaBreezeHero.badge_text;
+                badge.style.color = hero.badge_color;
+                badge.style.borderColor = `${hero.badge_color}88`;
+                badge.style.backgroundColor = `${hero.badge_color}22`;
+            }
+            if (title) {
+                title.innerHTML = formatHeroTitle(hero.title);
+                title.style.color = hero.title_color;
+                title.querySelectorAll('span').forEach(span => { span.style.color = hero.title_color; });
+            }
+            if (description) {
+                description.textContent = hero.description || defaultSeaBreezeHero.description;
+                description.style.color = hero.description_color;
+            }
+            if (button) {
+                button.style.backgroundColor = hero.button_color;
+                button.style.color = hero.button_text_color;
+            }
         }
 
         function fillHeroAdminForm() {
@@ -1792,6 +1891,17 @@ Title: Park Villas
             if (title) title.value = hero.title || '';
             if (description) description.value = hero.description || '';
             if (image) image.value = hero.hero_image_url || '';
+            const colorMap = {
+                'hero-badge-color': hero.badge_color,
+                'hero-title-color': hero.title_color,
+                'hero-description-color': hero.description_color,
+                'hero-overlay-color': hero.overlay_color,
+                'hero-button-color': hero.button_color,
+                'hero-button-text-color': hero.button_text_color,
+            };
+            Object.entries(colorMap).forEach(([id, value]) => { const input = document.getElementById(id); if (input) input.value = value; });
+            const opacity = document.getElementById('hero-overlay-opacity');
+            if (opacity) opacity.value = hero.overlay_opacity;
             updateHeroAdminPreview();
         }
 
@@ -1800,16 +1910,38 @@ Title: Park Villas
                 badge_text: document.getElementById('hero-badge-text')?.value || defaultSeaBreezeHero.badge_text,
                 title: document.getElementById('hero-title-input')?.value || defaultSeaBreezeHero.title,
                 description: document.getElementById('hero-description-input')?.value || defaultSeaBreezeHero.description,
-                hero_image_url: document.getElementById('hero-image-url-input')?.value || DEFAULT_SEA_BREEZE_HERO_IMAGE
+                hero_image_url: document.getElementById('hero-image-url-input')?.value || DEFAULT_SEA_BREEZE_HERO_IMAGE,
+                badge_color: document.getElementById('hero-badge-color')?.value || defaultSeaBreezeHero.badge_color,
+                title_color: document.getElementById('hero-title-color')?.value || defaultSeaBreezeHero.title_color,
+                description_color: document.getElementById('hero-description-color')?.value || defaultSeaBreezeHero.description_color,
+                overlay_color: document.getElementById('hero-overlay-color')?.value || defaultSeaBreezeHero.overlay_color,
+                overlay_opacity: Number(document.getElementById('hero-overlay-opacity')?.value ?? defaultSeaBreezeHero.overlay_opacity),
+                button_color: document.getElementById('hero-button-color')?.value || defaultSeaBreezeHero.button_color,
+                button_text_color: document.getElementById('hero-button-text-color')?.value || defaultSeaBreezeHero.button_text_color
             };
             const preview = document.getElementById('hero-admin-preview');
             if (preview) preview.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
             const badge = document.getElementById('hero-preview-badge');
             const title = document.getElementById('hero-preview-title');
             const description = document.getElementById('hero-preview-description');
-            if (badge) badge.textContent = hero.badge_text;
-            if (title) title.innerHTML = formatHeroTitle(hero.title);
-            if (description) description.textContent = hero.description;
+            const overlay = document.getElementById('hero-preview-overlay');
+            const button = document.getElementById('hero-preview-button');
+            const opacityLabel = document.getElementById('hero-overlay-opacity-label');
+            if (overlay) { overlay.style.backgroundColor = hero.overlay_color; overlay.style.opacity = String(hero.overlay_opacity); }
+            if (opacityLabel) opacityLabel.textContent = hero.overlay_opacity.toFixed(2);
+            if (badge) {
+                badge.textContent = hero.badge_text;
+                badge.style.color = hero.badge_color;
+                badge.style.borderColor = `${hero.badge_color}88`;
+                badge.style.backgroundColor = `${hero.badge_color}22`;
+            }
+            if (title) {
+                title.innerHTML = formatHeroTitle(hero.title);
+                title.style.color = hero.title_color;
+                title.querySelectorAll('span').forEach(span => { span.style.color = hero.title_color; });
+            }
+            if (description) { description.textContent = hero.description; description.style.color = hero.description_color; }
+            if (button) { button.style.backgroundColor = hero.button_color; button.style.color = hero.button_text_color; }
         }
 
         async function handleSaveHeroSection(e) {
@@ -1820,6 +1952,13 @@ Title: Park Villas
                 title: document.getElementById('hero-title-input').value.trim(),
                 description: document.getElementById('hero-description-input').value.trim(),
                 hero_image_url: document.getElementById('hero-image-url-input').value.trim(),
+                badge_color: document.getElementById('hero-badge-color').value,
+                title_color: document.getElementById('hero-title-color').value,
+                description_color: document.getElementById('hero-description-color').value,
+                overlay_color: document.getElementById('hero-overlay-color').value,
+                overlay_opacity: Number(document.getElementById('hero-overlay-opacity').value),
+                button_color: document.getElementById('hero-button-color').value,
+                button_text_color: document.getElementById('hero-button-text-color').value,
                 is_active: true
             };
             try {
@@ -2174,10 +2313,16 @@ Title: Park Villas
                 renderPortfolio();
             } else if (tabId === 'career') {
                 renderCareerSection();
+            } else if (tabId === 'mortgage') {
+                calculateMortgage();
             } else if (tabId === 'admin-dashboard') {
                 renderAdminDashboard();
             }
 
+            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : '/';
+            if (window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
+                history.pushState({ tabId }, '', routePath);
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2474,7 +2619,9 @@ Title: Park Villas
             const p = list.find(item => item.id === parseInt(id));
             if (!p) return;
 
-            document.getElementById('p-modal-img').src = p.img;
+            const propertyImage = document.getElementById('p-modal-img');
+            propertyImage.src = p.img;
+            propertyImage.onclick = () => openEventLightbox(encodeURIComponent(JSON.stringify([p.img])), p.title);
             document.getElementById('p-modal-project').textContent = p.project;
             document.getElementById('p-modal-title').textContent = p.title;
             document.getElementById('p-modal-desc').textContent = p.desc;
@@ -2696,6 +2843,45 @@ Title: Park Villas
             const alertBox = document.getElementById('form-success-alert');
             alertBox.classList.remove('hidden');
             setTimeout(() => alertBox.classList.add('hidden'), 5000);
+        }
+
+
+        function formatCurrency(value) {
+            return `${Math.max(0, Number(value) || 0).toLocaleString('az-AZ', { maximumFractionDigits: 2 })} AZN`;
+        }
+
+        function getMortgageCalculation() {
+            const price = Math.max(0, Number(document.getElementById('mortgage-price')?.value) || 0);
+            const down = Math.min(Math.max(0, Number(document.getElementById('mortgage-down')?.value) || 0), price);
+            const rate = Math.max(0, Number(document.getElementById('mortgage-rate')?.value) || 0);
+            const years = Math.max(1, Number(document.getElementById('mortgage-years')?.value) || 1);
+            const loan = Math.max(price - down, 0);
+            const months = years * 12;
+            const monthlyRate = rate / 100 / 12;
+            const monthly = loan === 0 ? 0 : monthlyRate === 0 ? loan / months : loan * (monthlyRate * ((1 + monthlyRate) ** months)) / (((1 + monthlyRate) ** months) - 1);
+            const total = monthly * months;
+            const interest = Math.max(total - loan, 0);
+            return { price, down, rate, years, loan, monthly, total, interest };
+        }
+
+        function calculateMortgage() {
+            const result = getMortgageCalculation();
+            const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = formatCurrency(value); };
+            setText('mortgage-loan', result.loan);
+            setText('mortgage-monthly', result.monthly);
+            setText('mortgage-total', result.total);
+            setText('mortgage-interest', result.interest);
+            return result;
+        }
+
+        function downloadMortgagePdf() {
+            const r = calculateMortgage();
+            const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+            if (!printWindow) return alert('PDF pəncərəsi bloklandı. Brauzer popup icazəsini aktiv edin.');
+            printWindow.document.write(`<!doctype html><html lang="az"><head><meta charset="utf-8"><title>İpoteka Kalkulyatoru</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#111827}h1{color:#111827}.card{border:1px solid #CFCFFF;border-radius:16px;padding:16px;margin:12px 0}.value{font-size:24px;font-weight:900}</style></head><body><h1>BestHome.az — İpoteka Kalkulyatoru</h1><p>Mənzil qiyməti: <strong>${formatCurrency(r.price)}</strong></p><p>İlkin ödəniş: <strong>${formatCurrency(r.down)}</strong></p><p>Faiz dərəcəsi: <strong>${r.rate}%</strong> • Müddət: <strong>${r.years} il</strong></p><div class="card">Kredit məbləği<div class="value">${formatCurrency(r.loan)}</div></div><div class="card">Aylıq ödəniş<div class="value">${formatCurrency(r.monthly)}</div></div><div class="card">Ümumi ödəniş<div class="value">${formatCurrency(r.total)}</div></div><div class="card">Ümumi faiz<div class="value">${formatCurrency(r.interest)}</div></div></body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => printWindow.print(), 250);
         }
 
         // LOGIN ENGINE
@@ -3368,12 +3554,11 @@ Title: Park Villas
                             <tr class="border-b border-white/5 text-xs text-gray-300">
                                 <td class="p-4 font-bold text-white">${c.name} ${c.surname}</td>
                                 <td class="p-4">${c.phone} <br> <span class="text-[10px] text-gray-500">${c.email}</span></td>
-                                <td class="p-4 text-brand-500 font-semibold">${c.vacancy}</td>
-                                <td class="p-4 text-gray-300"><i class="fa-solid fa-file-lines mr-1 text-blue-400"></i> ${getCvDisplayName(c.fileName)}</td>
+                                <td class="p-4 text-brand-500 font-semibold">${c.vacancy || 'Ümumi müraciət'}</td>
+                                <td class="p-4 text-gray-700 font-semibold">${c.date}</td>
                                 <td class="p-4 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <button onclick="previewCvFile('${c.fileName}', '${c.name} ${c.surname}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Preview</button>
-                                        <a href="${getCvUrl(c.fileName)}" download target="_blank" class="text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded">Download</a>
+                                        <button onclick="downloadCvFile(${c.id})" class="text-emerald-600 px-3 py-1.5 bg-emerald-500/10 rounded-lg font-bold"><i class="fa-solid fa-download mr-1"></i>CV Yüklə</button>
                                         <button onclick="deleteApp(${c.id})" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
                                     </div>
                                 </td>
@@ -3890,25 +4075,45 @@ Title: Park Villas
         // LIGHTBOX GENERAL PREVIEW
         let lightboxImages = [];
         let lightboxIndex = 0;
+        let lightboxScale = 1;
+        let lastLightboxTapAt = 0;
+        let pinchStartDistance = 0;
+        let pinchStartScale = 1;
 
         function openEventLightbox(encoded, title) {
             const arr = JSON.parse(decodeURIComponent(encoded));
             if (arr.length === 0) return;
             lightboxImages = arr;
             lightboxIndex = 0;
+            lightboxScale = 1;
 
-            document.getElementById('modal-slider-controls').className = arr.length > 1 ? "absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none" : "hidden";
+            document.getElementById('modal-slider-controls').className = arr.length > 1 ? "hidden md:flex absolute inset-x-0 top-1/2 -translate-y-1/2 justify-between px-4 pointer-events-none" : "hidden";
             document.getElementById('modal-title').textContent = title;
             updateLightboxUI();
             document.getElementById('media-modal').classList.remove('hidden');
         }
 
         function updateLightboxUI() {
-            document.getElementById('modal-content').innerHTML = `<img src="${lightboxImages[lightboxIndex]}" class="max-w-full max-h-[72vh] object-contain rounded-xl shadow-2xl">`;
+            lightboxScale = Math.max(1, Math.min(lightboxScale, 3));
+            document.getElementById('modal-content').innerHTML = `<img id="premium-lightbox-img" src="${lightboxImages[lightboxIndex]}" class="premium-lightbox-image max-w-full max-h-[78vh] object-contain rounded-xl shadow-2xl ${lightboxScale > 1 ? 'is-zoomed' : ''}" style="transform: scale(${lightboxScale})" alt="Gallery image">`;
             document.getElementById('modal-counter').textContent = `${lightboxIndex + 1} / ${lightboxImages.length}`;
         }
 
+        function toggleLightboxZoom() {
+            if (!lightboxImages.length) return;
+            lightboxScale = lightboxScale > 1 ? 1 : 2;
+            updateLightboxUI();
+        }
+
+        function openProjectLightboxFromModal() {
+            if (!officialProjectImages.length) return;
+            openEventLightbox(encodeURIComponent(JSON.stringify(officialProjectImages)), activeOfficialProject?.title || 'Layihə şəkilləri');
+            lightboxIndex = officialProjectImageIndex;
+            updateLightboxUI();
+        }
+
         function changeModalImage(dir) {
+            lightboxScale = 1;
             lightboxIndex += dir;
             if (lightboxIndex < 0) lightboxIndex = lightboxImages.length - 1;
             if (lightboxIndex >= lightboxImages.length) lightboxIndex = 0;
@@ -3932,59 +4137,76 @@ Title: Park Villas
             document.getElementById('modal-content').innerHTML = '';
         }
 
-        function getCvUrl(fileName = '') {
-            if (!fileName) return '#';
-            return fileName.startsWith('http') ? fileName : `${API_BASE}${fileName.startsWith('/') ? fileName : '/uploads/' + fileName}`;
-        }
-
         function getCvDisplayName(fileName = '') {
             return decodeURIComponent(String(fileName).split('/').pop() || 'CV faylı');
         }
 
-        function getFileExtension(fileName = '') {
-            return String(fileName).split('?')[0].split('.').pop().toLowerCase();
-        }
-
-        function forceDownload(url) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = getCvDisplayName(url);
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        }
-
-        function previewCvFile(fileName, title = 'CV faylı') {
-            const url = getCvUrl(fileName);
-            const ext = getFileExtension(fileName);
-            if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'].includes(ext)) {
-                openEventLightbox(encodeURIComponent(JSON.stringify([url])), `${title} — CV Preview`);
-                return;
+        async function downloadCvFile(applicationId) {
+            const app = appData.applications.find(item => String(item.id) === String(applicationId));
+            const displayName = getCvDisplayName(app?.fileName || app?.cvFile || 'CV faylı');
+            try {
+                const result = await apiRequest(`/api/applications/${applicationId}/cv-signed-url`, {
+                    method: 'POST',
+                    body: JSON.stringify({ expiresIn: 60 })
+                });
+                const a = document.createElement('a');
+                a.href = result.signedUrl;
+                a.download = displayName;
+                a.rel = 'noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (error) {
+                alert('CV üçün signed URL yaradılmadı: ' + error.message);
             }
-            if (ext === 'pdf') {
-                window.open(url, '_blank', 'noopener,noreferrer');
-                return;
-            }
-            if (ext === 'mp4') {
-                openMediaModal('video', url, `${title} — Video Preview`);
-                return;
-            }
-            forceDownload(url);
         }
 
 
         let touchStartX = 0;
         let touchStartY = 0;
 
+        function getTouchDistance(touches) {
+            if (!touches || touches.length < 2) return 0;
+            const [a, b] = touches;
+            return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        }
+
         function handleModalTouchStart(event) {
+            if (event.touches?.length === 2 && !document.getElementById('media-modal').classList.contains('hidden')) {
+                pinchStartDistance = getTouchDistance(event.touches);
+                pinchStartScale = lightboxScale;
+                return;
+            }
             const touch = event.changedTouches?.[0];
             if (!touch) return;
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
         }
 
+        function handleModalTouchMove(event) {
+            if (event.touches?.length === 2 && pinchStartDistance > 0 && !document.getElementById('media-modal').classList.contains('hidden')) {
+                event.preventDefault();
+                lightboxScale = Math.max(1, Math.min(3, pinchStartScale * (getTouchDistance(event.touches) / pinchStartDistance)));
+                const img = document.getElementById('premium-lightbox-img');
+                if (img) {
+                    img.style.transform = `scale(${lightboxScale})`;
+                    img.classList.toggle('is-zoomed', lightboxScale > 1);
+                }
+            }
+        }
+
         function handleModalTouchEnd(event) {
+            if (pinchStartDistance > 0) {
+                pinchStartDistance = 0;
+                return;
+            }
+            const now = Date.now();
+            if (!document.getElementById('media-modal').classList.contains('hidden') && now - lastLightboxTapAt < 280) {
+                lastLightboxTapAt = 0;
+                toggleLightboxZoom();
+                return;
+            }
+            lastLightboxTapAt = now;
             const touch = event.changedTouches?.[0];
             if (!touch) return;
             const deltaX = touch.clientX - touchStartX;
@@ -4021,10 +4243,13 @@ Title: Park Villas
             }
         });
 
+        document.getElementById('modal-content')?.addEventListener('dblclick', toggleLightboxZoom);
+
         ['media-modal', 'project-detail-modal-official'].forEach((id) => {
             const modal = document.getElementById(id);
             if (modal) {
                 modal.addEventListener('touchstart', handleModalTouchStart, { passive: true });
+                modal.addEventListener('touchmove', handleModalTouchMove, { passive: false });
                 modal.addEventListener('touchend', handleModalTouchEnd, { passive: true });
             }
         });
@@ -4034,7 +4259,11 @@ Title: Park Villas
             renderProjectImageInputs(['']);
             await initializeAuth();
             await hydrateFromDatabase();
-            switchTab('seabreeze');
+            switchTab(window.location.pathname === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze');
+        });
+
+        window.addEventListener('popstate', () => {
+            switchTab(window.location.pathname === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze');
         });
     </script>
 </body>
