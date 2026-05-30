@@ -5,10 +5,12 @@ const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
 const {
+  CAREER_CV_BUCKET,
   MAX_CV_SIZE_BYTES,
   ALLOWED_CV_MIME_TYPES,
   assertValidCvFile,
   uploadCareerCv,
+  normalizeStorageObjectPath,
   createCareerCvSignedUrlDebug,
 } = require('../utils/supabaseStorage');
 
@@ -55,20 +57,45 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
   if (!application) return res.status(404).json({ message: 'Müraciət tapılmadı.' });
   if (!application.cvFile) return res.status(404).json({ message: 'Bu müraciətdə CV faylı yoxdur.' });
   try {
-    const result = await createCareerCvSignedUrlDebug(application.cvFile, Number(req.body?.expiresIn || 60));
+    const originalPath = application.cvFile;
+    const normalizedPath = normalizeStorageObjectPath(originalPath, CAREER_CV_BUCKET);
+    console.info('[applications] createSignedUrl path normalization', {
+      applicationId: application.id,
+      bucket: CAREER_CV_BUCKET,
+      originalPath,
+      normalizedPath,
+      expectedSample: {
+        originalPath: `${CAREER_CV_BUCKET}/2026/05/file.pdf`,
+        bucket: CAREER_CV_BUCKET,
+        path: '2026/05/file.pdf',
+      },
+    });
+    const result = await createCareerCvSignedUrlDebug(originalPath, Number(req.body?.expiresIn || 60));
     console.info('[applications] createSignedUrl debug', {
       applicationId: application.id,
-      finalPath: result.normalizedPath,
+      bucket: result.bucket,
+      originalPath: result.originalPath,
+      normalizedPath: result.normalizedPath,
+      finalSignedUrl: result.signedUrl,
       requestUrl: result.requestUrl,
-      supabaseResponse: result.supabaseResponse,
+      supabaseResponse: {
+        data: result.ok ? result.supabaseResponse : null,
+        error: result.ok ? null : result.supabaseResponse,
+      },
       status: result.status,
     });
     return res.json({
       signedUrl: result.signedUrl,
+      bucket: result.bucket,
+      originalPath: result.originalPath,
       filePath: application.cvFile,
       normalizedPath: result.normalizedPath,
       createSignedUrlPath: result.normalizedPath,
-      supabaseResponse: result.supabaseResponse,
+      supabaseResponse: {
+        data: result.ok ? result.supabaseResponse : null,
+        error: result.ok ? null : result.supabaseResponse,
+      },
+      supabaseRawResponse: result.supabaseResponse,
       expiresIn: Number(req.body?.expiresIn || 60),
     });
   } catch (error) {
@@ -86,7 +113,11 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
       filePath: application.cvFile,
       normalizedPath: error.meta?.normalizedPath || error.debug?.normalizedPath,
       createSignedUrlPath: error.meta?.normalizedPath || error.debug?.normalizedPath,
-      supabaseResponse: error.meta?.supabaseResponse,
+      supabaseResponse: {
+        data: null,
+        error: error.meta?.supabaseResponse,
+      },
+      supabaseRawResponse: error.meta?.supabaseResponse,
       status: error.meta?.status,
     });
   }

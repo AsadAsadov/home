@@ -104,3 +104,28 @@ test('career-cv debug signed URL normalizes second requested sample path', async
 test('storage object paths encode each path segment for Supabase requests', () => {
   assert.equal(storage.encodeStorageObjectPath('2026/05/my receipt #1.pdf'), '2026/05/my%20receipt%20%231.pdf');
 });
+
+test('sanitizeText and generated storage paths remove null bytes from names', () => {
+  const originalRandomUUID = cryptoRandomUuidForTest();
+  try {
+    assert.equal(storage.sanitizeText('  villa\0 description  '), 'villa description');
+    assert.equal(storage.sanitizeFileName('  cv\0 file.pdf  '), 'cv file.pdf');
+    assert.equal(
+      storage.buildCareerCvPath('my\0 cv.pdf', new Date(Date.UTC(2026, 4, 30))),
+      '2026/05/00000000-0000-4000-8000-000000000000-my-cv.pdf',
+    );
+    assert.equal(
+      storage.buildStoragePath('elan\0 image.png', 'listings', new Date(Date.UTC(2026, 4, 30))),
+      'listings/2026/05/00000000-0000-4000-8000-000000000000-elan-image.png',
+    );
+  } finally {
+    originalRandomUUID.restore();
+  }
+});
+
+function cryptoRandomUuidForTest() {
+  const crypto = require('crypto');
+  const original = crypto.randomUUID;
+  crypto.randomUUID = () => '00000000-0000-4000-8000-000000000000';
+  return { restore: () => { crypto.randomUUID = original; } };
+}

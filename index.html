@@ -1061,7 +1061,7 @@ Title: Park Villas
                                 <th class="p-4">Əlaqə</th>
                                 <th class="p-4">Vakansiya</th>
                                 <th class="p-4">Tarix</th>
-                                <th class="p-4 text-right">CV Yüklə</th>
+                                <th class="p-4 text-right">CV Bax</th>
                             </tr>
                         </thead>
                         <tbody id="admin-cv-tbody" class="divide-y divide-white/5 text-sm"></tbody>
@@ -3813,7 +3813,7 @@ Title: Park Villas
                                 <td class="p-4 text-gray-700 font-semibold">${c.date}</td>
                                 <td class="p-4 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <button onclick="downloadCvFile(${c.id})" class="text-emerald-600 px-3 py-1.5 bg-emerald-500/10 rounded-lg font-bold"><i class="fa-solid fa-download mr-1"></i>CV Yüklə</button>
+                                        <button onclick="previewCvFile(${c.id})" class="text-emerald-600 px-3 py-1.5 bg-emerald-500/10 rounded-lg font-bold"><i class="fa-solid fa-eye mr-1"></i>CV Bax</button>
                                         <button onclick="deleteApp(${c.id})" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
                                     </div>
                                 </td>
@@ -4417,7 +4417,7 @@ Title: Park Villas
             return decodeURIComponent(String(fileName).split('/').pop() || 'CV faylı');
         }
 
-        async function downloadCvFile(applicationId) {
+        async function previewCvFile(applicationId) {
             const app = appData.applications.find(item => String(item.id) === String(applicationId));
             const displayName = getCvDisplayName(app?.fileName || app?.cvFile || 'CV faylı');
             try {
@@ -4425,13 +4425,15 @@ Title: Park Villas
                     method: 'POST',
                     body: JSON.stringify({ expiresIn: 60 })
                 });
-                const a = document.createElement('a');
-                a.href = result.signedUrl;
-                a.download = displayName;
-                a.rel = 'noopener noreferrer';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
+                console.info('[admin] CV preview signed URL', {
+                    originalPath: result.originalPath || result.filePath,
+                    normalizedPath: result.normalizedPath || result.createSignedUrlPath,
+                    bucket: result.bucket,
+                    supabaseResponse: result.supabaseResponse,
+                    finalSignedUrl: result.signedUrl,
+                    displayName
+                });
+                window.open(result.signedUrl, '_blank');
             } catch (error) {
                 alert('CV üçün signed URL yaradılmadı: ' + error.message);
             }
