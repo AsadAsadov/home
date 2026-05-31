@@ -103,8 +103,8 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
 router.put('/me', authenticate, asyncHandler(async (req, res) => {
   const data = {
     fullname: clean(req.body.fullname),
-    email: clean(req.body.email)?.toLowerCase(),
     avatarUrl: clean(req.body.avatar_url ?? req.body.avatarUrl),
+    bio: clean(req.body.bio),
   };
   if (Object.prototype.hasOwnProperty.call(req.body, 'phone')) data.phone = clean(req.body.phone) ?? null;
   const compactData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));

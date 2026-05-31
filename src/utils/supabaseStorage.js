@@ -6,6 +6,7 @@ const CAREER_CV_BUCKET = process.env.SUPABASE_CV_BUCKET || 'career-cv';
 const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
 const GALLERY_BUCKET = process.env.SUPABASE_GALLERY_BUCKET || 'gallery';
 const ADS_BUCKET = process.env.SUPABASE_ADS_BUCKET || 'reklamlar';
+const AVATARS_BUCKET = process.env.SUPABASE_AVATARS_BUCKET || 'avatars';
 const MAX_CV_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_LISTING_IMAGE_SIZE_BYTES = Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024);
 const ALLOWED_CV_MIME_TYPES = new Set([
@@ -233,6 +234,15 @@ async function uploadToGalleryBucket(file) {
   return buildPublicUrl(GALLERY_BUCKET, objectPath);
 }
 
+async function uploadAvatarImage(file, userId = 'user') {
+  assertValidListingImage(file);
+  const originalName = file.originalname || 'avatar.jpg';
+  const sanitizedName = sanitizeFileName(originalName);
+  const objectPath = buildStoragePath(sanitizedName, `users/${String(userId || 'user').replace(/[^a-zA-Z0-9_-]/g, '') || 'user'}`);
+  await uploadToSupabaseBucket({ bucket: AVATARS_BUCKET, objectPath, file, upsert: true });
+  return buildPublicUrl(AVATARS_BUCKET, objectPath);
+}
+
 async function uploadListingImage(file) {
   assertValidListingImage(file);
   const originalName = file.originalname || 'elan.jpg';
@@ -375,6 +385,7 @@ module.exports = {
   LISTINGS_BUCKET,
   GALLERY_BUCKET,
   ADS_BUCKET,
+  AVATARS_BUCKET,
   MAX_CV_SIZE_BYTES,
   MAX_LISTING_IMAGE_SIZE_BYTES,
   sanitizeText,
@@ -390,6 +401,7 @@ module.exports = {
   encodeStorageObjectPath,
   normalizeStorageObjectPath,
   uploadCareerCv,
+  uploadAvatarImage,
   uploadListingImage,
   uploadToGalleryBucket,
   uploadToAdBucket,
