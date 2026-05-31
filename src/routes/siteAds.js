@@ -7,7 +7,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 const { uploadToAdBucket } = require('../utils/supabaseStorage');
 
 const router = express.Router();
-const POSITIONS = new Set(['left', 'right']);
+const POSITIONS = new Set(['left', 'right', 'both']);
 const MEDIA_TYPES = new Set(['image', 'gif', 'video']);
 const OBJECT_FITS = new Set(['cover', 'contain', 'fill']);
 const DEFAULT_AD_WIDTH = 180;
@@ -16,6 +16,13 @@ const MIN_AD_WIDTH = 80;
 const MIN_AD_HEIGHT = 80;
 const MAX_AD_WIDTH = 1000;
 const MAX_AD_HEIGHT = 1200;
+const DEFAULT_REPEAT_COUNT = 3;
+const DEFAULT_ROTATION_ORDER = 0;
+const DEFAULT_DISPLAY_DURATION = 30;
+const MIN_REPEAT_COUNT = 1;
+const MAX_REPEAT_COUNT = 100;
+const MIN_DISPLAY_DURATION = 1;
+const MAX_DISPLAY_DURATION = 86400;
 
 function asDate(value) {
   if (!value) return null;
@@ -37,7 +44,7 @@ function parseIntValue(value, fallback = 0) {
 function parseDimension(value, fallback, min, max, label) {
   const parsed = parseIntValue(value, fallback);
   if (parsed < min || parsed > max) {
-    const error = new Error(`${label} ${min}-${max}px aralığında olmalıdır.`);
+    const error = new Error(`${label} ${min}-${max} aralığında olmalıdır.`);
     error.status = 400;
     throw error;
   }
@@ -54,7 +61,7 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
     throw error;
   }
   if (!POSITIONS.has(position)) {
-    const error = new Error('position left və ya right olmalıdır.');
+    const error = new Error('position left, right və ya both olmalıdır.');
     error.status = 400;
     throw error;
   }
@@ -69,6 +76,8 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
 
   const mediaUrl = uploadedUrl || body.media_url || body.mediaUrl || body.image_url || body.imageUrl || existing.mediaUrl || existing.imageUrl || null;
   const clickUrl = body.click_url ?? body.clickUrl ?? body.target_url ?? body.targetUrl ?? existing.clickUrl ?? existing.targetUrl ?? null;
+  const repeatCount = parseDimension(body.repeat_count ?? body.repeatCount, existing.repeatCount ?? DEFAULT_REPEAT_COUNT, MIN_REPEAT_COUNT, MAX_REPEAT_COUNT, 'repeat_count');
+  const displayDuration = parseDimension(body.display_duration ?? body.displayDuration, existing.displayDuration ?? DEFAULT_DISPLAY_DURATION, MIN_DISPLAY_DURATION, MAX_DISPLAY_DURATION, 'display_duration');
 
   return {
     title: String(body.title ?? existing.title ?? '').trim(),
@@ -79,6 +88,9 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
     targetUrl: clickUrl,
     position,
     displayOrder: parseIntValue(body.display_order ?? body.displayOrder, existing.displayOrder ?? 0),
+    repeatCount,
+    rotationOrder: parseIntValue(body.rotation_order ?? body.rotationOrder, existing.rotationOrder ?? DEFAULT_ROTATION_ORDER),
+    displayDuration,
     widthPx,
     heightPx,
     objectFit,
@@ -94,11 +106,20 @@ function serializeSiteAd(ad) {
   const widthPx = ad.widthPx ?? DEFAULT_AD_WIDTH;
   const heightPx = ad.heightPx ?? DEFAULT_AD_HEIGHT;
   const objectFit = ad.objectFit ?? 'cover';
+  const repeatCount = ad.repeatCount ?? DEFAULT_REPEAT_COUNT;
+  const rotationOrder = ad.rotationOrder ?? DEFAULT_ROTATION_ORDER;
+  const displayDuration = ad.displayDuration ?? DEFAULT_DISPLAY_DURATION;
   return {
     ...ad,
     widthPx,
     heightPx,
     objectFit,
+    repeatCount,
+    rotationOrder,
+    displayDuration,
+    repeat_count: repeatCount,
+    rotation_order: rotationOrder,
+    display_duration: displayDuration,
     width_px: widthPx,
     height_px: heightPx,
     object_fit: objectFit,
@@ -134,7 +155,7 @@ router.get('/', asyncHandler(async (req, res) => {
   const admin = req.query.admin === '1' || req.query.admin === 'true';
   const items = await prisma.siteAd.findMany({
     where: admin ? undefined : activeDateWhere(),
-    orderBy: [{ position: 'asc' }, { displayOrder: 'asc' }, { id: 'asc' }],
+    orderBy: admin ? [{ position: 'asc' }, { displayOrder: 'asc' }, { rotationOrder: 'asc' }, { createdAt: 'asc' }] : [{ rotationOrder: 'asc' }, { createdAt: 'asc' }],
   });
   res.json(items.map(serializeSiteAd));
 }));
