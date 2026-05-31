@@ -184,6 +184,9 @@ model SiteAd {
   mediaUrl     String?   @map("media_url") @db.Text
   clickUrl     String?   @map("click_url") @db.Text
   displayOrder Int       @default(0) @map("display_order")
+  widthPx      Int       @default(180) @map("width_px")
+  heightPx     Int       @default(320) @map("height_px")
+  objectFit    String    @default("cover") @map("object_fit")
   clickCount   Int       @default(0) @map("click_count")
   viewCount    Int       @default(0) @map("view_count")
   createdAt    DateTime  @default(now()) @map("created_at")

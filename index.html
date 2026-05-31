@@ -228,7 +228,7 @@
         @media (min-width: 1200px) {
             .desktop-ad-layout {
                 display: grid;
-                grid-template-columns: 180px minmax(0, 1fr) 180px;
+                grid-template-columns: max-content minmax(0, 1fr) max-content;
                 gap: 1.5rem;
                 align-items: start;
                 max-width: 1720px;
@@ -245,14 +245,13 @@
                 display: flex;
                 position: sticky;
                 top: 7rem;
-                width: 180px;
+                max-width: 1000px;
                 flex-direction: column;
                 gap: 1rem;
                 z-index: 10;
             }
         }
         .desktop-ad-card {
-            width: 180px;
             overflow: hidden;
             border-radius: 1rem;
             border: 1px solid rgba(207, 207, 255, 0.75);
@@ -268,9 +267,6 @@
         .desktop-ad-card img,
         .desktop-ad-card video {
             display: block;
-            width: 100%;
-            height: auto;
-            object-fit: cover;
         }
         .desktop-ad-label {
             padding: .55rem .65rem;
@@ -280,8 +276,6 @@
             line-height: 1.2;
         }
         .ad-preview-box {
-            width: 180px;
-            max-width: 100%;
             overflow: hidden;
             border-radius: 1rem;
             border: 1px solid rgba(207, 207, 255, 0.75);
@@ -289,8 +283,6 @@
         }
         .ad-preview-box img,
         .ad-preview-box video {
-            width: 100%;
-            height: auto;
             display: block;
         }
 
@@ -565,6 +557,13 @@
         #seabreeze-properties-grid > * {
             min-width: 0;
             max-width: 100%;
+        }
+        @media (min-width: 1200px) {
+            #seabreeze-properties-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 24px;
+                align-items: stretch;
+            }
         }
         .sea-breeze-listing-card,
         .sea-breeze-listing-card * {
@@ -1625,12 +1624,21 @@ Title: Park Villas
                             <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Active Status</label>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Width (px)<input type="number" id="ad-width-px" min="80" max="1000" value="180" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Height (px)<input type="number" id="ad-height-px" min="80" max="1200" value="320" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                        </div>
+                        <select id="ad-object-fit" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <option value="cover">Object Fit: cover</option>
+                            <option value="contain">Object Fit: contain</option>
+                            <option value="fill">Object Fit: fill</option>
+                        </select>
+                        <div class="grid grid-cols-2 gap-3">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Start Date<input type="date" id="ad-start-date" class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
                             <label class="text-[10px] text-gray-400 font-bold uppercase">End Date<input type="date" id="ad-end-date" class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
                         </div>
                         <div class="space-y-2">
                             <span class="text-[10px] text-gray-400 font-bold uppercase">Preview</span>
-                            <div id="ad-admin-preview" class="ad-preview-box min-h-[120px] flex items-center justify-center text-xs text-gray-400">Media URL daxil edin</div>
+                            <div id="ad-admin-preview" class="ad-preview-box flex items-center justify-center text-xs text-gray-400">Media URL daxil edin</div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <button type="submit" class="bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
@@ -2501,7 +2509,31 @@ Title: Park Villas
                 : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt };
         }
 
+        const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
+        const AD_DIMENSION_LIMITS = { minWidth: 80, maxWidth: 1000, minHeight: 80, maxHeight: 1200 };
+        const AD_OBJECT_FITS = new Set(['cover', 'contain', 'fill']);
+
+        function adDimension(value, fallback, min, max) {
+            const parsed = Number.parseInt(value, 10);
+            if (!Number.isFinite(parsed)) return fallback;
+            return Math.min(max, Math.max(min, parsed));
+        }
+
+        function normalizeObjectFit(value) {
+            const fit = String(value || AD_DIMENSION_DEFAULTS.objectFit).toLowerCase();
+            return AD_OBJECT_FITS.has(fit) ? fit : AD_DIMENSION_DEFAULTS.objectFit;
+        }
+
+        function getAdDimensions(ad = {}) {
+            return {
+                width: adDimension(ad.widthPx ?? ad.width_px, AD_DIMENSION_DEFAULTS.width, AD_DIMENSION_LIMITS.minWidth, AD_DIMENSION_LIMITS.maxWidth),
+                height: adDimension(ad.heightPx ?? ad.height_px, AD_DIMENSION_DEFAULTS.height, AD_DIMENSION_LIMITS.minHeight, AD_DIMENSION_LIMITS.maxHeight),
+                objectFit: normalizeObjectFit(ad.objectFit ?? ad.object_fit)
+            };
+        }
+
         function dbAdToUi(ad = {}) {
+            const dimensions = getAdDimensions(ad);
             return {
                 id: ad.id,
                 title: ad.title || '',
@@ -2510,6 +2542,12 @@ Title: Park Villas
                 clickUrl: ad.clickUrl || ad.click_url || ad.targetUrl || ad.target_url || '',
                 position: ad.position || 'left',
                 displayOrder: Number(ad.displayOrder ?? ad.display_order ?? 0),
+                widthPx: dimensions.width,
+                width_px: dimensions.width,
+                heightPx: dimensions.height,
+                height_px: dimensions.height,
+                objectFit: dimensions.objectFit,
+                object_fit: dimensions.objectFit,
                 isActive: Boolean(ad.isActive ?? ad.is_active),
                 startDate: (ad.startDate || ad.start_date || '').slice(0, 10),
                 endDate: (ad.endDate || ad.end_date || '').slice(0, 10),
@@ -2522,11 +2560,13 @@ Title: Park Villas
         function renderAdMedia(ad, classes = '') {
             const url = escapeHtml(ad.mediaUrl || '');
             const title = escapeHtml(ad.title || 'Advertisement');
-            if (!url) return '<div class="p-4 text-xs text-gray-400">Media yoxdur</div>';
+            const dimensions = getAdDimensions(ad);
+            const style = `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
+            if (!url) return `<div class="p-4 text-xs text-gray-400" style="width:${dimensions.width}px;height:${dimensions.height}px;">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
-                return `<video class="${classes}" src="${url}" muted autoplay loop playsinline preload="metadata" title="${title}"></video>`;
+                return `<video class="${classes}" style="${style}" src="${url}" muted autoplay loop playsinline preload="metadata" title="${title}"></video>`;
             }
-            return `<img class="${classes}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
+            return `<img class="${classes}" style="${style}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
         }
 
         function adIsWithinDates(ad) {
@@ -2570,7 +2610,8 @@ Title: Park Villas
             const renderSide = (position) => visibleAdsByPosition(position).map(ad => {
                 trackAdView(ad);
                 const encodedUrl = encodeURIComponent(ad.clickUrl || '');
-                return `<article class="desktop-ad-card" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
+                const dimensions = getAdDimensions(ad);
+                return `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
                     ${renderAdMedia(ad)}
                     <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
                 </article>`;
@@ -4858,10 +4899,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             list.innerHTML = ads.length ? ads.map(ad => `
                 <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia(ad, 'w-full h-full object-cover')}</div>
+                        <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia({ ...ad, widthPx: 72, heightPx: 72, objectFit: 'cover' }, 'w-full h-full')}</div>
                         <div class="min-w-0">
                             <h4 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h4>
-                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • sıra ${ad.displayOrder}</div>
+                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • ${ad.widthPx}×${ad.heightPx}px • ${ad.objectFit} • sıra ${ad.displayOrder}</div>
                             <div class="text-gray-500">${ad.startDate || 'başlanğıc yoxdur'} → ${ad.endDate || 'son yoxdur'} • ${ad.viewCount} views • ${ad.clickCount} clicks</div>
                         </div>
                     </div>
@@ -4878,14 +4919,41 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             return file ? URL.createObjectURL(file) : (document.getElementById('ad-media-url')?.value.trim() || '');
         }
 
+        function getAdFormDimensions() {
+            return {
+                widthPx: adDimension(document.getElementById('ad-width-px')?.value, AD_DIMENSION_DEFAULTS.width, AD_DIMENSION_LIMITS.minWidth, AD_DIMENSION_LIMITS.maxWidth),
+                heightPx: adDimension(document.getElementById('ad-height-px')?.value, AD_DIMENSION_DEFAULTS.height, AD_DIMENSION_LIMITS.minHeight, AD_DIMENSION_LIMITS.maxHeight),
+                objectFit: normalizeObjectFit(document.getElementById('ad-object-fit')?.value)
+            };
+        }
+
+        function validateAdFormDimensions() {
+            const width = Number.parseInt(document.getElementById('ad-width-px')?.value, 10);
+            const height = Number.parseInt(document.getElementById('ad-height-px')?.value, 10);
+            if (!Number.isFinite(width) || width < AD_DIMENSION_LIMITS.minWidth || width > AD_DIMENSION_LIMITS.maxWidth) {
+                alert(`Width ${AD_DIMENSION_LIMITS.minWidth}-${AD_DIMENSION_LIMITS.maxWidth}px aralığında olmalıdır.`);
+                return false;
+            }
+            if (!Number.isFinite(height) || height < AD_DIMENSION_LIMITS.minHeight || height > AD_DIMENSION_LIMITS.maxHeight) {
+                alert(`Height ${AD_DIMENSION_LIMITS.minHeight}-${AD_DIMENSION_LIMITS.maxHeight}px aralığında olmalıdır.`);
+                return false;
+            }
+            return true;
+        }
+
         function updateAdPreview() {
             const box = document.getElementById('ad-admin-preview');
             if (!box) return;
+            const dimensions = getAdFormDimensions();
             const ad = {
                 title: document.getElementById('ad-title')?.value || 'Advertisement',
                 mediaType: document.getElementById('ad-media-type')?.value || 'image',
-                mediaUrl: getAdPreviewUrl()
+                mediaUrl: getAdPreviewUrl(),
+                ...dimensions
             };
+            box.style.width = `${dimensions.widthPx}px`;
+            box.style.height = `${dimensions.heightPx}px`;
+            box.style.maxWidth = '100%';
             box.innerHTML = ad.mediaUrl ? renderAdMedia(ad) : 'Media URL daxil edin';
         }
 
@@ -4899,6 +4967,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('ad-click-url').value = '';
             document.getElementById('ad-position').value = 'left';
             document.getElementById('ad-display-order').value = '0';
+            document.getElementById('ad-width-px').value = String(AD_DIMENSION_DEFAULTS.width);
+            document.getElementById('ad-height-px').value = String(AD_DIMENSION_DEFAULTS.height);
+            document.getElementById('ad-object-fit').value = AD_DIMENSION_DEFAULTS.objectFit;
             document.getElementById('ad-start-date').value = '';
             document.getElementById('ad-end-date').value = '';
             document.getElementById('ad-is-active').checked = true;
@@ -4908,6 +4979,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         async function handleSaveAd(event) {
             event.preventDefault();
             const id = document.getElementById('edit-ad-id').value;
+            if (!validateAdFormDimensions()) return;
+            const dimensions = getAdFormDimensions();
             const formData = new FormData();
             formData.append('title', document.getElementById('ad-title').value.trim());
             formData.append('media_type', document.getElementById('ad-media-type').value);
@@ -4915,6 +4988,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             formData.append('click_url', document.getElementById('ad-click-url').value.trim());
             formData.append('position', document.getElementById('ad-position').value);
             formData.append('display_order', document.getElementById('ad-display-order').value || '0');
+            formData.append('width_px', String(dimensions.widthPx));
+            formData.append('height_px', String(dimensions.heightPx));
+            formData.append('object_fit', dimensions.objectFit);
             formData.append('start_date', document.getElementById('ad-start-date').value);
             formData.append('end_date', document.getElementById('ad-end-date').value);
             formData.append('is_active', document.getElementById('ad-is-active').checked ? 'true' : 'false');
@@ -4941,6 +5017,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('ad-click-url').value = ad.clickUrl;
             document.getElementById('ad-position').value = ad.position;
             document.getElementById('ad-display-order').value = ad.displayOrder;
+            document.getElementById('ad-width-px').value = String(ad.widthPx ?? AD_DIMENSION_DEFAULTS.width);
+            document.getElementById('ad-height-px').value = String(ad.heightPx ?? AD_DIMENSION_DEFAULTS.height);
+            document.getElementById('ad-object-fit').value = normalizeObjectFit(ad.objectFit);
             document.getElementById('ad-start-date').value = ad.startDate;
             document.getElementById('ad-end-date').value = ad.endDate;
             document.getElementById('ad-is-active').checked = ad.isActive;
