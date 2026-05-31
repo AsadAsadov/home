@@ -9,6 +9,13 @@ const { uploadToAdBucket } = require('../utils/supabaseStorage');
 const router = express.Router();
 const POSITIONS = new Set(['left', 'right']);
 const MEDIA_TYPES = new Set(['image', 'gif', 'video']);
+const OBJECT_FITS = new Set(['cover', 'contain', 'fill']);
+const DEFAULT_AD_WIDTH = 180;
+const DEFAULT_AD_HEIGHT = 320;
+const MIN_AD_WIDTH = 80;
+const MIN_AD_HEIGHT = 80;
+const MAX_AD_WIDTH = 1000;
+const MAX_AD_HEIGHT = 1200;
 
 function asDate(value) {
   if (!value) return null;
@@ -27,9 +34,20 @@ function parseIntValue(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function parseDimension(value, fallback, min, max, label) {
+  const parsed = parseIntValue(value, fallback);
+  if (parsed < min || parsed > max) {
+    const error = new Error(`${label} ${min}-${max}px aralığında olmalıdır.`);
+    error.status = 400;
+    throw error;
+  }
+  return parsed;
+}
+
 function normalizePayload(body, uploadedUrl = null, existing = {}) {
   const mediaType = String(body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image').toLowerCase();
   const position = String(body.position ?? existing.position ?? 'left').toLowerCase();
+  const objectFit = String(body.object_fit ?? body.objectFit ?? existing.objectFit ?? 'cover').toLowerCase();
   if (!MEDIA_TYPES.has(mediaType)) {
     const error = new Error('media_type image, gif və ya video olmalıdır.');
     error.status = 400;
@@ -40,6 +58,14 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
     error.status = 400;
     throw error;
   }
+  if (!OBJECT_FITS.has(objectFit)) {
+    const error = new Error('object_fit cover, contain və ya fill olmalıdır.');
+    error.status = 400;
+    throw error;
+  }
+
+  const widthPx = parseDimension(body.width_px ?? body.widthPx, existing.widthPx ?? DEFAULT_AD_WIDTH, MIN_AD_WIDTH, MAX_AD_WIDTH, 'width_px');
+  const heightPx = parseDimension(body.height_px ?? body.heightPx, existing.heightPx ?? DEFAULT_AD_HEIGHT, MIN_AD_HEIGHT, MAX_AD_HEIGHT, 'height_px');
 
   const mediaUrl = uploadedUrl || body.media_url || body.mediaUrl || body.image_url || body.imageUrl || existing.mediaUrl || existing.imageUrl || null;
   const clickUrl = body.click_url ?? body.clickUrl ?? body.target_url ?? body.targetUrl ?? existing.clickUrl ?? existing.targetUrl ?? null;
@@ -53,9 +79,29 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
     targetUrl: clickUrl,
     position,
     displayOrder: parseIntValue(body.display_order ?? body.displayOrder, existing.displayOrder ?? 0),
+    widthPx,
+    heightPx,
+    objectFit,
     isActive: parseBool(body.is_active ?? body.isActive, existing.isActive ?? true),
     startDate: asDate(body.start_date ?? body.startDate) ?? null,
     endDate: asDate(body.end_date ?? body.endDate) ?? null,
+  };
+}
+
+
+function serializeSiteAd(ad) {
+  if (!ad) return ad;
+  const widthPx = ad.widthPx ?? DEFAULT_AD_WIDTH;
+  const heightPx = ad.heightPx ?? DEFAULT_AD_HEIGHT;
+  const objectFit = ad.objectFit ?? 'cover';
+  return {
+    ...ad,
+    widthPx,
+    heightPx,
+    objectFit,
+    width_px: widthPx,
+    height_px: heightPx,
+    object_fit: objectFit,
   };
 }
 
@@ -90,7 +136,7 @@ router.get('/', asyncHandler(async (req, res) => {
     where: admin ? undefined : activeDateWhere(),
     orderBy: [{ position: 'asc' }, { displayOrder: 'asc' }, { id: 'asc' }],
   });
-  res.json(items);
+  res.json(items.map(serializeSiteAd));
 }));
 
 router.get('/stats', authenticate, authorize('admin'), asyncHandler(async (_req, res) => {
@@ -115,7 +161,7 @@ router.post('/', authenticate, authorize('admin'), upload.single('media'), async
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
   if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL is required.' });
   const created = await prisma.siteAd.create({ data });
-  res.status(201).json(created);
+  res.status(201).json(serializeSiteAd(created));
 }));
 
 router.put('/:id', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
@@ -126,14 +172,14 @@ router.put('/:id', authenticate, authorize('admin'), upload.single('media'), asy
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
   if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL is required.' });
   const updated = await prisma.siteAd.update({ where: { id: existing.id }, data });
-  res.json(updated);
+  res.json(serializeSiteAd(updated));
 }));
 
 router.patch('/:id/toggle', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const existing = await prisma.siteAd.findUnique({ where: { id: Number(req.params.id) } });
   if (!existing) return res.status(404).json({ message: 'Advertisement not found.' });
   const updated = await prisma.siteAd.update({ where: { id: existing.id }, data: { isActive: parseBool(req.body?.is_active ?? req.body?.isActive, !existing.isActive) } });
-  res.json(updated);
+  res.json(serializeSiteAd(updated));
 }));
 
 router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
