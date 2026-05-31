@@ -1,9 +1,19 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
+const { uploadAvatarImage, assertValidListingImage } = require('../utils/supabaseStorage');
 const router = express.Router();
+
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: Number(process.env.MAX_AVATAR_IMAGE_SIZE_BYTES || 5 * 1024 * 1024), files: 1 },
+  fileFilter: (_req, file, cb) => {
+    try { assertValidListingImage({ ...file, size: file.size || 0 }); cb(null, true); } catch (error) { cb(error); }
+  },
+});
 
 function publicUser(user) {
   const { passwordHash, ...safe } = user;
@@ -64,6 +74,7 @@ function data(body) {
     email: clean(body.email)?.toLowerCase(),
     role: ['admin', 'user'].includes(role) ? role : undefined,
     avatarUrl: clean(body.avatar_url ?? body.avatarUrl),
+    bio: clean(body.bio),
   };
   if (Object.prototype.hasOwnProperty.call(body, 'phone')) out.phone = clean(body.phone) ?? null;
   if (Object.prototype.hasOwnProperty.call(body, 'is_active') || Object.prototype.hasOwnProperty.call(body, 'isActive')) out.isActive = Boolean(body.is_active ?? body.isActive);
@@ -72,18 +83,88 @@ function data(body) {
   return Object.fromEntries(Object.entries(out).filter(([, v]) => v !== undefined));
 }
 
+
+function profileCompletion(user) {
+  let score = 0;
+  if (user.avatarUrl) score += 25;
+  if (user.phone) score += 25;
+  if (user.bio) score += 25;
+  if (user.fullname && user.email) score += 25;
+  return score;
+}
+
+async function publicProfilePayload(userId, { page = 1, limit = 12, includeAllListings = false } = {}) {
+  const numericId = Number(userId);
+  if (!Number.isInteger(numericId) || numericId < 1) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: numericId },
+    select: { id: true, fullname: true, email: true, phone: true, avatarUrl: true, bio: true, role: true, isActive: true, createdAt: true, updatedAt: true, lastLogin: true },
+  });
+  if (!user || user.isActive === false) return null;
+  const safe = { ...user, email: undefined, phone: undefined, lastLogin: undefined };
+  await attachUserStats(safe);
+  safe.profileCompletion = profileCompletion(user);
+  const userIdBig = toBigIntId(numericId);
+  const take = Math.min(Math.max(Number.parseInt(limit, 10) || 12, 1), 48);
+  const currentPage = Math.max(Number.parseInt(page, 10) || 1, 1);
+  const where = { userId: userIdBig, status: 'approved' };
+  const [listings, total] = await Promise.all([
+    prisma.listing.findMany({ where, orderBy: { createdAt: 'desc' }, include: { images: { orderBy: { sortOrder: 'asc' } } }, skip: (currentPage - 1) * take, take }),
+    prisma.listing.count({ where }),
+  ]);
+  listings.forEach((listing) => { listing.user = safe; });
+  return {
+    user: safe,
+    listings: includeAllListings ? listings : listings,
+    pagination: { page: currentPage, limit: take, total, totalPages: Math.max(Math.ceil(total / take), 1) },
+    seo: { title: `${safe.fullname} - BestHome`, description: `Approved listings published by ${safe.fullname}` },
+  };
+}
+
+router.get('/public/:id', asyncHandler(async (req, res) => {
+  const payload = await publicProfilePayload(req.params.id, { page: 1, limit: req.query.limit || 12 });
+  if (!payload) return res.status(404).json({ message: 'User not found.' });
+  res.json(payload);
+}));
+
+router.get('/public/:id/listings', asyncHandler(async (req, res) => {
+  const payload = await publicProfilePayload(req.params.id, { page: req.query.page, limit: req.query.limit || 12, includeAllListings: true });
+  if (!payload) return res.status(404).json({ message: 'User not found.' });
+  res.json(payload);
+}));
+
+router.post('/me/avatar', authenticate, avatarUpload.single('avatar'), asyncHandler(async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Avatar file is required.' });
+  const avatarUrl = await uploadAvatarImage(req.file, req.auth.id);
+  const user = await prisma.user.update({ where: { id: Number(req.auth.id) }, data: { avatarUrl } });
+  res.json({ avatarUrl, user: publicUser(user) });
+}));
+
+router.delete('/me/avatar', authenticate, asyncHandler(async (req, res) => {
+  const user = await prisma.user.update({ where: { id: Number(req.auth.id) }, data: { avatarUrl: null } });
+  res.json({ user: publicUser(user) });
+}));
+
 router.get('/', authenticate, authorize('admin'), asyncHandler(async (_req, res) => {
   const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
   const safeUsers = users.map(publicUser);
   await attachUserStats(safeUsers);
+  safeUsers.forEach((user) => { user.profileCompletion = profileCompletion(user); });
   res.json(safeUsers);
 }));
 
 router.get('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: Number(req.params.id) } });
   if (!user) return res.status(404).json({ message: 'User not found.' });
+  const [recentListings, recentActivity] = await Promise.all([
+    prisma.listing.findMany({ where: { userId: toBigIntId(user.id) }, orderBy: { createdAt: 'desc' }, take: 6, include: { images: { orderBy: { sortOrder: 'asc' } } } }),
+    prisma.userActivityLog.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 10 }).catch(() => []),
+  ]);
   const safe = publicUser(user);
   await attachUserStats(safe);
+  safe.profileCompletion = profileCompletion(user);
+  safe.recentListings = recentListings;
+  safe.recentActivity = recentActivity;
   res.json(safe);
 }));
 

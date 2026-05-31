@@ -18,6 +18,9 @@ const userSelect = {
   fullname: true,
   phone: true,
   email: true,
+  avatarUrl: true,
+  bio: true,
+  createdAt: true,
 };
 
 function normalizeListingStatus(value, fallback = 'pending') {

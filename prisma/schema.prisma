@@ -154,12 +154,14 @@ model User {
   passwordHash  String            @map("password_hash")
   phone         String?           @db.Text
   avatarUrl     String?           @map("avatar_url") @db.Text
+  bio           String?           @db.Text
   isActive      Boolean           @default(true) @map("is_active")
   emailVerified Boolean           @default(false) @map("email_verified")
   phoneVerified Boolean           @default(false) @map("phone_verified")
   lastLogin     DateTime?         @map("last_login")
   role          Role              @default(user)
   createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @default(now()) @updatedAt @map("updated_at")
   sessions      UserSession[]
   activityLogs  UserActivityLog[]
 

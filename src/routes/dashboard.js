@@ -22,17 +22,24 @@ function toBigIntId(value) {
 
 router.get('/me', authenticate, asyncHandler(async (req, res) => {
   const userId = toBigIntId(req.auth.id);
-  const [activeListings, pendingListings, listingsAgg, favoriteCount] = await Promise.all([
+  const [totalListings, activeListings, pendingListings, rejectedListings, listingsAgg, favoriteCount] = await Promise.all([
+    prisma.listing.count({ where: { userId } }),
     prisma.listing.count({ where: { userId, status: 'approved' } }),
     prisma.listing.count({ where: { userId, status: 'pending' } }),
+    prisma.listing.count({ where: { userId, status: 'rejected' } }),
     prisma.listing.aggregate({ where: { userId }, _sum: { viewCount: true, favoritesCount: true } }),
     prisma.favorite.count({ where: { userId } }),
   ]);
   res.json({
+    totalListings,
     activeListings,
+    approvedListings: activeListings,
     pendingListings,
+    rejectedListings,
     views: listingsAgg._sum.viewCount || 0,
     favorites: listingsAgg._sum.favoritesCount || favoriteCount || 0,
+    totalViews: listingsAgg._sum.viewCount || 0,
+    totalFavorites: listingsAgg._sum.favoritesCount || favoriteCount || 0,
     savedFavorites: favoriteCount,
   });
 }));

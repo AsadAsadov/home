@@ -1310,11 +1310,23 @@
             <div id="admin-subtab-user-profile" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="glass-card p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i>Profil</h3>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
+                        <div class="flex items-center gap-4">
+                            <img id="profile-avatar-preview" src="" onclick="openAvatarModal(this.src)" class="w-20 h-20 rounded-full object-cover border-2 border-brand-500/40 cursor-zoom-in bg-white/10" onerror="this.src='https://ui-avatars.com/api/?name=BestHome&background=7F7FFF&color=fff'">
+                            <div class="space-y-2 flex-1">
+                                <h4 class="text-sm font-black text-white">Profile Photo</h4>
+                                <input id="profile-avatar-file" type="file" accept="image/*" onchange="previewProfileAvatar(this.files?.[0])" class="block w-full text-xs text-gray-300 file:mr-3 file:rounded-xl file:border-0 file:bg-brand-500 file:px-3 file:py-2 file:text-white">
+                                <div class="flex flex-wrap gap-2"><button type="button" onclick="uploadProfileAvatar()" class="bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-3 py-2 rounded-xl">Upload / Replace</button><button type="button" onclick="deleteProfileAvatar()" class="bg-red-500/10 text-red-300 text-xs font-bold px-3 py-2 rounded-xl">Delete photo</button></div>
+                            </div>
+                        </div>
+                    </div>
                     <form onsubmit="handleProfileUpdate(event)" class="space-y-3">
                         <input id="profile-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <input id="profile-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <input id="profile-email" type="email" required placeholder="Email" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <input id="profile-avatar" type="url" placeholder="Avatar URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input id="profile-email" type="email" readonly placeholder="Email" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+                        <input id="profile-avatar" type="hidden">
+                        <textarea id="profile-bio" rows="4" placeholder="Bio" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></textarea>
+                        <div><div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase"><span>Profile Completion</span><span id="profile-completion-label">0%</span></div><div class="h-2 rounded-full bg-white/10 mt-1 overflow-hidden"><div id="profile-completion-bar" class="h-full bg-brand-500" style="width:0%"></div></div></div>
                         <button class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl">Profili yenilə</button>
                     </form>
                 </div>
@@ -2649,7 +2661,10 @@ Title: Park Villas
                 favoritesCount: numericValue(l.favoritesCount, l.favorites_count) || 0,
                 featured: Boolean(l.featured),
                 vip: Boolean(l.vip),
-                listingCode: firstDefined(l.listingCode, l.listing_code, l.code, '')
+                listingCode: firstDefined(l.listingCode, l.listing_code, l.code, ''),
+                ownerName: firstDefined(l.user?.fullname, l.ownerName, l.agentName, ''),
+                ownerAvatar: firstDefined(l.user?.avatarUrl, l.user?.avatar_url, ''),
+                ownerId: firstDefined(l.user?.id, l.userId, l.user_id, '')
             };
         }
 
@@ -2900,7 +2915,27 @@ Title: Park Villas
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0 };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0 };
+        }
+
+
+
+        function agentNameById(id) {
+            const user = (appData.agents || []).find(a => String(a.id) === String(id));
+            return user ? (user.fullname || `${user.name || ''} ${user.surname || ''}`.trim()) : '';
+        }
+
+        function profileCompletionFor(user = {}) {
+            let score = 0;
+            if (user.avatarUrl || user.avatar_url) score += 25;
+            if (user.phone) score += 25;
+            if (user.bio) score += 25;
+            if ((user.fullname || user.name) && user.email) score += 25;
+            return score;
+        }
+
+        function avatarFallback(name = 'BestHome') {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'BestHome')}&background=7F7FFF&color=fff`;
         }
 
         const appData = {
@@ -3231,7 +3266,7 @@ Title: Park Villas
                     apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`).catch(() => defaultSeaBreezeHero),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
                     getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([]),
-                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : Promise.resolve(null),
+                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null)),
                     getAuthToken() ? apiRequest('/api/favorites').catch(() => []) : Promise.resolve([]),
                     apiRequest('/api/site-ads').catch(() => []),
                     activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
@@ -3462,7 +3497,7 @@ Title: Park Villas
             if (cachedUser) {
                 try {
                     const user = JSON.parse(cachedUser);
-                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email, phone: user.phone || '' };
+                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
                 } catch (_error) {
                     activeUser = null;
                 }
@@ -3478,7 +3513,7 @@ Title: Park Villas
                 const result = await apiRequest('/api/auth/me');
                 const user = result.user || result;
                 const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
-                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '' };
+                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (_error) {
                 clearAuthSession();
@@ -3850,6 +3885,7 @@ Title: Park Villas
                         <div class="sea-breeze-listing-card__body p-4 space-y-2 flex-1 min-w-0 max-w-full">
                             <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${p.title || '—'}</h4>
                             <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
+                            <p class="text-[11px] font-bold text-brand-700">By: <a href="/user/${p.ownerId || p.authorId}" onclick="event.stopPropagation()" class="hover:underline">${escapeHtml(p.ownerName || agentNameById(p.authorId) || 'BestHome Agent')}</a></p>
                             <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${p.desc || ''}</p>
                             <p class="sea-breeze-listing-card__mobile-facts">${roomFact} • ${areaFact} • ${floorFact}</p>
                             <div class="sea-breeze-listing-card__stats grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
@@ -4354,7 +4390,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
                 error.classList.add('hidden');
                 setAuthSession(result.token, result.user);
-                activeUser = { role: 'user', name: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
+                activeUser = { role: 'user', name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
                 await hydrateFromDatabase();
                 switchTab('admin-dashboard');
@@ -4375,10 +4411,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         async function handleProfileUpdate(e) {
             e.preventDefault();
             try {
-                const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ fullname: document.getElementById('profile-fullname').value, phone: document.getElementById('profile-phone').value, email: document.getElementById('profile-email').value, avatar_url: document.getElementById('profile-avatar').value }) });
+                const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ fullname: document.getElementById('profile-fullname').value, phone: document.getElementById('profile-phone').value, avatar_url: document.getElementById('profile-avatar').value, bio: document.getElementById('profile-bio').value }) });
                 setAuthSession(result.token, result.user);
-                activeUser = { ...activeUser, name: result.user.fullname, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
+                activeUser = { ...activeUser, name: result.user.fullname, fullname: result.user.fullname, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
+                populateProfileForm(result.user);
                 alert('Profil yeniləndi.');
             } catch (error) { alert('Profil yenilənmədi: ' + error.message); }
         }
@@ -4393,13 +4430,56 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             } catch (error) { alert('Şifrə yenilənmədi: ' + error.message); }
         }
 
-        function fillProfileForm() {
-            if (!activeUser) return;
-            const stored = JSON.parse(sessionStorage.getItem('besthome_user_data') || '{}');
-            if (document.getElementById('profile-fullname')) document.getElementById('profile-fullname').value = stored.fullname || activeUser.name || '';
-            if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = stored.phone || activeUser.phone || '';
-            if (document.getElementById('profile-email')) document.getElementById('profile-email').value = stored.email || activeUser.email || '';
-            if (document.getElementById('profile-avatar')) document.getElementById('profile-avatar').value = stored.avatarUrl || stored.avatar_url || activeUser.avatarUrl || '';
+        function populateProfileForm(user = null) {
+            if (!activeUser && !user) return;
+            const stored = user || JSON.parse(sessionStorage.getItem('besthome_user_data') || '{}');
+            const merged = { ...activeUser, ...stored };
+            const avatar = merged.avatarUrl || merged.avatar_url || '';
+            if (document.getElementById('profile-fullname')) document.getElementById('profile-fullname').value = merged.fullname || merged.name || '';
+            if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = merged.phone || '';
+            if (document.getElementById('profile-email')) document.getElementById('profile-email').value = merged.email || '';
+            if (document.getElementById('profile-avatar')) document.getElementById('profile-avatar').value = avatar;
+            if (document.getElementById('profile-bio')) document.getElementById('profile-bio').value = merged.bio || '';
+            if (document.getElementById('profile-avatar-preview')) document.getElementById('profile-avatar-preview').src = avatar || avatarFallback(merged.fullname || merged.name || 'BestHome');
+            const completion = profileCompletionFor({ ...merged, avatarUrl: avatar });
+            if (document.getElementById('profile-completion-label')) document.getElementById('profile-completion-label').textContent = `${completion}%`;
+            if (document.getElementById('profile-completion-bar')) document.getElementById('profile-completion-bar').style.width = `${completion}%`;
+        }
+
+        function fillProfileForm() { populateProfileForm(); }
+
+        function previewProfileAvatar(file) {
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            document.getElementById('profile-avatar-preview').src = url;
+        }
+
+        async function uploadProfileAvatar() {
+            const file = document.getElementById('profile-avatar-file')?.files?.[0];
+            if (!file) return alert('Şəkil seçin.');
+            const formData = new FormData();
+            formData.append('avatar', file);
+            try {
+                const result = await apiRequest('/api/users/me/avatar', 'POST', formData);
+                setAuthSession(getAuthToken(), result.user);
+                activeUser = { ...activeUser, avatarUrl: result.avatarUrl };
+                populateProfileForm(result.user);
+                alert('Profil şəkli yeniləndi.');
+            } catch (error) { alert('Şəkil yüklənmədi: ' + error.message); }
+        }
+
+        async function deleteProfileAvatar() {
+            try {
+                const result = await apiRequest('/api/users/me/avatar', { method: 'DELETE' });
+                setAuthSession(getAuthToken(), result.user);
+                activeUser = { ...activeUser, avatarUrl: '' };
+                populateProfileForm(result.user);
+            } catch (error) { alert('Şəkil silinmədi: ' + error.message); }
+        }
+
+        function openAvatarModal(src) {
+            if (!src) return;
+            showInlineModal('Avatar', `<img src="${src}" class="max-h-[70vh] mx-auto rounded-3xl object-contain">`);
         }
 
         async function handleGeneralLogin(e) {
@@ -4416,7 +4496,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 error.classList.add('hidden');
                 sessionStorage.setItem('token', result.token);
                 setAuthSession(result.token, result.user);
-                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
+                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
                 await hydrateFromDatabase();
                 switchTab('admin-dashboard');
@@ -5214,7 +5294,21 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         function renderDashboardCards() {
             const container = document.getElementById('admin-dashboard-cards');
-            if (!container || !activeUser || activeUser.role !== 'admin') return;
+            if (!container || !activeUser) return;
+            if (activeUser.role === 'user') {
+                const mine = appData.listings.filter(item => String(item.authorId) === String(activeUser.id));
+                const stats = appData.dashboardStats || {};
+                const cards = [
+                    ['Total Listings', stats.totalListings ?? mine.length, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
+                    ['Approved Listings', stats.approvedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'approved').length, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                    ['Pending Listings', stats.pendingListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'pending').length, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                    ['Rejected Listings', stats.rejectedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'rejected').length, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
+                    ['Total Views', stats.totalViews ?? stats.views ?? mine.reduce((sum, x) => sum + (x.viewCount || 0), 0), 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                    ['Total Favorites', stats.totalFavorites ?? stats.favorites ?? mine.reduce((sum, x) => sum + (x.favoritesCount || 0), 0), 'fa-heart', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                ];
+                container.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="rounded-2xl border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-center justify-between gap-3"><span class="text-[10px] uppercase tracking-wide font-black text-gray-300">${label}</span><i class="fa-solid ${icon}"></i></div><div class="mt-3 text-2xl font-black text-white">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
+                return;
+            }
             const stats = { ...getDashboardStats(), ...(appData.adStats || {}) };
             const cards = [
                 ['Total Users', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
@@ -5244,20 +5338,19 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         async function openUserListingsModal(userId) {
             if (!activeUser || activeUser.role !== 'admin') return;
             try {
-                const rows = await apiRequest(`/api/users/${userId}/listings`);
+                const [user, rows] = await Promise.all([
+                    apiRequest(`/api/users/${userId}`),
+                    apiRequest(`/api/users/${userId}/listings`),
+                ]);
+                const uiUser = userToUi(user);
                 const listings = rows.map(dbListingToUi);
-                const body = listings.length ? listings.map(item => `
-                    <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3">
-                        <div>
-                            <div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div>
-                            <div class="text-[10px] text-gray-400">${formatAzDate(item.createdAt)} • Views: ${item.viewCount} • Favorites: ${item.favoritesCount}</div>
-                        </div>
-                        <span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span>
-                    </div>
-                `).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
-                showInlineModal('İstifadəçi elanları', body);
+                const recent = (user.recentListings || []).map(dbListingToUi).slice(0, 4);
+                const activity = user.recentActivity || [];
+                const listingHtml = listings.length ? listings.slice(0, 8).map(item => `<button onclick="openPropertyModal('${item.id}', true)" class="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"><div><div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div><div class="text-[10px] text-gray-400">Kod: ${item.listingCode || '—'} • ${formatAzDate(item.createdAt)} • Views: ${item.viewCount} • Favorites: ${item.favoritesCount}</div></div><span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span></button>`).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
+                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h4 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h4><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Blocked' : 'Active'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Listings', uiUser.listingsCount], ['Approved', uiUser.approvedListingsCount], ['Pending', uiUser.pendingListingsCount], ['Views', uiUser.totalListingViews], ['Favorites', uiUser.totalFavorites], ['Completion', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Phone:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Registered:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Last login:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h4 class="pt-3 text-sm font-black text-white">Recent listings</h4><div class="space-y-2">${listingHtml}</div><h4 class="pt-3 text-sm font-black text-white">Recent activity</h4><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
+                showInlineModal('User profile', body);
             } catch (error) {
-                alert('İstifadəçi elanları oxunmadı: ' + error.message);
+                alert('İstifadəçi məlumatları oxunmadı: ' + error.message);
             }
         }
 
@@ -5603,9 +5696,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 agents.forEach(a => {
                     const fullname = a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || 'Adsız istifadəçi';
                     const initials = fullname.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
+                    const avatar = a.avatarUrl || avatarFallback(fullname);
                     agentsContainer.innerHTML += `
                         <div onclick="openUserListingsModal('${a.id}')" class="glass-card p-3 rounded-2xl border border-white/5 text-xs flex items-center gap-3 hover:border-brand-500/30 transition cursor-pointer">
-                            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0">${initials}</div>
+                            <img src="${avatar}" onclick="event.stopPropagation(); openAvatarModal(this.src)" class="w-12 h-12 rounded-full object-cover bg-brand-500/10 shrink-0 cursor-zoom-in" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0&quot;>${initials}</div>'">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <h4 class="font-bold text-white truncate">${fullname}</h4>
@@ -5614,7 +5708,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                                 </div>
                                 <span class="text-[10px] text-gray-400 truncate block">${a.email || 'E-poçt yoxdur'}</span>
                                 <span class="text-[10px] text-gray-500 truncate block">${a.phone || 'Nömrə qeyd edilməyib'} • ${formatAzDate(a.createdAt || a.created_at)}</span>
-                                <span class="text-[10px] text-gray-400 truncate block">Aktiv: ${a.activeListingsCount || a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0} • Favori: ${a.totalFavorites || a.favoritesCount || 0}</span>
+                                <span class="text-[10px] text-gray-400 truncate block">Listings: ${a.listingsCount || 0} • Approved: ${a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0} • Favori: ${a.totalFavorites || a.favoritesCount || 0}</span><span class="text-[10px] text-gray-500 truncate block">Last login: ${formatAzDate(a.lastLogin)} • Completion: ${a.profileCompletion || profileCompletionFor(a)}%</span>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
@@ -6461,8 +6555,57 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             }
         });
 
+
+        function ensurePublicProfilePage() {
+            let page = document.getElementById('tab-public-profile');
+            if (!page) {
+                document.querySelector('main')?.insertAdjacentHTML('beforeend', `<section id="tab-public-profile" class="tab-content hidden pt-28 pb-20 bg-gray-50 min-h-screen"><div id="public-profile-root" class="max-w-7xl mx-auto px-4"></div></section>`);
+                page = document.getElementById('tab-public-profile');
+            }
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            page.classList.remove('hidden');
+            return document.getElementById('public-profile-root');
+        }
+
+        function publicListingCard(p) {
+            const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
+            const ownerId = p.ownerId || p.authorId;
+            return `<a href="${listingPath(p)}" class="sea-breeze-listing-card rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
+                <div class="h-48 overflow-hidden relative"><img src="${mainImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500"><span class="absolute top-3 left-3 bg-brand-700/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${listingTypeLabel(p.listingType)}</span></div>
+                <div class="p-4 space-y-2 flex-1"><h4 class="text-gray-900 font-extrabold text-base truncate">${escapeHtml(p.title || '—')}</h4><p class="text-[10px] text-gray-500">${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye"></i> ${p.viewCount || 0} • <i class="fa-regular fa-heart"></i> ${p.favoritesCount || 0}</p><p class="text-[11px] font-bold text-brand-700">By: <span>${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span></p><p class="text-gray-700 text-xs line-clamp-2">${escapeHtml(p.desc || '')}</p></div>
+                <div class="p-4 pt-3 border-t border-gray-100 flex items-center justify-between"><strong class="text-base font-extrabold text-gray-900">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''}</strong><span class="text-[10px] font-black text-brand-700">Kod: ${p.listingCode || '—'}</span></div>
+            </a>`;
+        }
+
+        async function renderPublicProfile(userId, listingsOnly = false) {
+            const root = ensurePublicProfilePage();
+            root.innerHTML = '<div class="py-20 text-center text-gray-500 font-bold">Profil yüklənir...</div>';
+            try {
+                const page = Number(new URLSearchParams(window.location.search).get('page') || '1');
+                const payload = await apiRequest(`/api/users/public/${encodeURIComponent(userId)}${listingsOnly ? '/listings' : ''}?page=${page}&limit=12`);
+                const user = userToUi(payload.user);
+                const listings = (payload.listings || []).map(dbListingToUi);
+                listings.forEach(item => { item.ownerName = user.fullname; item.ownerId = user.id; });
+                updateSeo({ title: payload.seo?.title || `${user.fullname} - BestHome`, description: payload.seo?.description || `Approved listings published by ${user.fullname}`, path: window.location.pathname });
+                const completion = payload.user.profileCompletion ?? profileCompletionFor(user);
+                const stats = payload.user;
+                const pagination = payload.pagination || { page, totalPages: 1 };
+                const pager = pagination.totalPages > 1 ? `<div class="flex justify-center gap-2 mt-8">${Array.from({ length: pagination.totalPages }, (_, idx) => idx + 1).map(n => `<a href="/user/${user.id}/listings?page=${n}" class="px-4 py-2 rounded-xl text-sm font-bold ${n === pagination.page ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border border-gray-200'}">${n}</a>`).join('')}</div>` : '';
+                root.innerHTML = `<div class="rounded-[2rem] bg-white shadow-xl border border-gray-100 p-6 md:p-8 mb-8">
+                    <div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><img src="${user.avatarUrl || avatarFallback(user.fullname)}" onclick="openAvatarModal(this.src)" class="w-32 h-32 rounded-full object-cover border-4 border-brand-100 shadow cursor-zoom-in"><div class="flex-1 text-center md:text-left"><h1 class="text-3xl font-black text-gray-950">${escapeHtml(user.fullname)}</h1><p class="mt-2 text-gray-600 max-w-2xl">${escapeHtml(user.bio || 'Bio əlavə edilməyib.')}</p><p class="mt-3 text-sm text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Registration date: ${formatAzDate(user.createdAt)}</p><div class="mt-4"><div class="flex justify-between text-xs font-black text-gray-500"><span>Profile Completion</span><span>${completion}%</span></div><div class="h-2 bg-gray-100 rounded-full overflow-hidden mt-1"><div class="h-full bg-brand-500" style="width:${completion}%"></div></div></div></div></div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 text-center">${[['Total listings', stats.listingsCount], ['Approved', stats.approvedListingsCount], ['Pending', stats.pendingListingsCount], ['Total views', stats.totalListingViews], ['Total favorites', stats.totalFavorites]].map(([l,v]) => `<div class="rounded-2xl bg-gray-50 p-4"><div class="text-2xl font-black text-gray-950">${Number(v||0).toLocaleString('az-AZ')}</div><div class="text-[10px] uppercase font-bold text-gray-500">${l}</div></div>`).join('')}</div>
+                </div><div class="flex items-center justify-between mb-4"><h2 class="text-2xl font-black text-gray-950">Approved listings</h2><a href="/user/${user.id}/listings" class="text-brand-700 font-bold text-sm hover:underline">All listings</a></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${listings.length ? listings.map(publicListingCard).join('') : '<div class="col-span-full p-12 text-center bg-white rounded-3xl text-gray-500">Approved listing yoxdur.</div>'}</div>${pager}`;
+            } catch (error) {
+                root.innerHTML = `<div class="py-20 text-center text-red-500 font-bold">Profil açılmadı: ${escapeHtml(error.message)}</div>`;
+            }
+        }
+
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
+            const userListingsMatch = path.match(/^\/user\/(\d+)\/listings\/?$/);
+            if (userListingsMatch) { await renderPublicProfile(userListingsMatch[1], true); return; }
+            const userMatch = path.match(/^\/user\/(\d+)\/?$/);
+            if (userMatch) { await renderPublicProfile(userMatch[1], false); return; }
             if (path === '/projects') {
                 switchTab('seabreeze', { skipPush: true });
                 document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
