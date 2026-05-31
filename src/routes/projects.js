@@ -23,6 +23,13 @@ function orderedProjectRows(rows) {
   return [...rows].sort((a, b) => (a.displayOrder ?? a.id) - (b.displayOrder ?? b.id) || a.id - b.id);
 }
 
+
+function parseBool(value, fallback = false) {
+  if (value === undefined || value === null || value === '') return fallback;
+  if (typeof value === 'boolean') return value;
+  return ['true', '1', 'yes', 'on'].includes(String(value).toLowerCase());
+}
+
 function parseProjectOrder(body) {
   const raw = Array.isArray(body?.order) ? body.order : (Array.isArray(body?.projects) ? body.projects : []);
   return raw
@@ -61,6 +68,15 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 
   const data = await prisma.project.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] });
   res.json({ ok: true, data: orderedProjectRows(data) });
+}));
+
+
+router.patch('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const updated = await prisma.project.update({
+    where: { id: Number(req.params.id) },
+    data: { featuredInHero: parseBool(req.body?.featured_in_hero ?? req.body?.featuredInHero) },
+  });
+  res.json(updated);
 }));
 
 router.get('/slug/:slug', asyncHandler(async (req, res) => {

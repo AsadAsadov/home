@@ -66,6 +66,43 @@ function projectLink(project) {
   return `/project/${project.slug || project.id}`;
 }
 
+function projectToHeroSlide(project, index = 0) {
+  const mediaUrl = firstProjectImage(project);
+  return {
+    id: `project-${project.id}`,
+    title: String(project.title || '').trim(),
+    description: '',
+    slideType: 'project',
+    projectId: project.id,
+    mediaType: inferMediaType(null, 'image', mediaUrl),
+    mediaUrl,
+    badgeText: '',
+    badgeColor: '#C8A96A',
+    badgeBackground: '#111827',
+    titleColor: '#FFFFFF',
+    titleFontSize: 34,
+    descriptionColor: '#F8FAFC',
+    descriptionFontSize: 14,
+    buttonBackground: '#FFFFFF',
+    buttonTextColor: '#111827',
+    panelBackground: '#111827',
+    panelBlur: 10,
+    panelOpacity: 35,
+    panelPosition: 'bottom-left',
+    heroHeightDesktop: 520,
+    heroHeightTablet: 420,
+    heroHeightMobile: 280,
+    buttonText: 'Layihəyə Bax',
+    buttonLink: projectLink(project),
+    displayOrder: project.displayOrder ?? index + 1,
+    slideDuration: DEFAULT_SLIDE_DURATION,
+    isActive: true,
+    createdAt: project.createdAt,
+    project,
+    generatedFromProject: true,
+  };
+}
+
 async function resolveProject(projectId) {
   const id = Number.parseInt(projectId, 10);
   if (!Number.isInteger(id) || id <= 0) return null;
@@ -163,7 +200,19 @@ router.get('/', asyncHandler(async (req, res) => {
     include: { project: true },
     orderBy: slideOrderBy(),
   });
-  res.json(slides.map(serializeHeroSlide));
+
+  if (adminView || slides.length) {
+    return res.json(slides.map(serializeHeroSlide));
+  }
+
+  const featuredProjects = await prisma.project.findMany({
+    where: { featuredInHero: true },
+    orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
+  });
+  return res.json(featuredProjects
+    .map(projectToHeroSlide)
+    .filter((slide) => slide.title && slide.mediaUrl)
+    .map(serializeHeroSlide));
 }));
 
 router.post('/', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
