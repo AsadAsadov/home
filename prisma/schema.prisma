@@ -21,6 +21,7 @@ model Project {
   imageUrl       String?  @map("image_url") @db.Text
   images         Json?
   displayOrder   Int?     @map("display_order")
+  slug           String?  @unique
   createdAt      DateTime @default(now()) @map("created_at")
 
   @@index([displayOrder, id])
@@ -42,6 +43,7 @@ model Listing {
   imageUrl         String?        @map("image_url") @db.Text
   description      String?        @db.Text
   displayOrder     Int?           @map("display_order")
+  listingCode      Int?           @unique @map("listing_code")
   createdAt        DateTime       @default(now()) @map("created_at")
   userId           BigInt?        @map("user_id")
   status           String         @default("pending")
@@ -107,6 +109,7 @@ model Vacancy {
   city           String?
   description    String?       @db.Text
   isActive       Boolean       @default(true) @map("is_active")
+  slug           String?       @unique
   createdAt      DateTime      @default(now()) @map("created_at")
   applications   Application[]
 

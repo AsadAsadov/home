@@ -334,6 +334,17 @@ function orderedListingRows(rows) {
   return [...rows].sort((a, b) => (listingSortValue(a.displayOrder, listingSortValue(a.id)) - listingSortValue(b.displayOrder, listingSortValue(b.id))) || (listingSortValue(a.id) - listingSortValue(b.id)));
 }
 
+
+async function nextListingCode(tx) {
+  const result = await tx.listing.aggregate({ _max: { listingCode: true } });
+  return Math.max(Number(result._max.listingCode || 999), 999) + 1;
+}
+
+async function ensureListingCodeForData(tx, data) {
+  if (data.listingCode != null) return;
+  data.listingCode = await nextListingCode(tx);
+}
+
 function parseListingOrder(body) {
   const raw = Array.isArray(body?.order) ? body.order : (Array.isArray(body?.listings) ? body.listings : []);
   return raw
@@ -346,10 +357,14 @@ function parseListingOrder(body) {
 
 router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
-  const searchWhere = q ? { OR: [
-    { title: { contains: q, mode: 'insensitive' } },
-    { projectName: { contains: q, mode: 'insensitive' } },
-    { description: { contains: q, mode: 'insensitive' } },
+  const code = Number.parseInt(req.query.listingCode || req.query.code || ( /^\d+$/.test(q) ? q : ''), 10);
+  const searchWhere = q || Number.isInteger(code) ? { OR: [
+    ...(q ? [
+      { title: { contains: q, mode: 'insensitive' } },
+      { projectName: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+    ] : []),
+    ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
   ] } : undefined;
   const where = listingVisibilityWhere(req, searchWhere);
   const { page, limit, skip, take } = pagination(req.query);
@@ -402,6 +417,18 @@ router.patch('/:id/reject', authenticate, authorize('admin'), asyncHandler(async
   res.json(updated);
 }));
 
+router.patch('/:id/deactivate', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const updated = await prisma.listing.update({
+    where: { id },
+    data: { status: 'pending', approvedAt: null, approvedBy: null },
+    include,
+  });
+  await attachListingUsers(updated);
+  res.json(updated);
+}));
+
 router.post('/:id/view', optionalAuthenticate, asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
@@ -418,6 +445,17 @@ router.post('/:id/view', optionalAuthenticate, asyncHandler(async (req, res) => 
     return tx.listing.update({ where: { id }, data: { viewCount: { increment: 1 } } });
   });
   res.json({ counted: true, viewCount: updated.viewCount, sessionKey });
+}));
+
+router.get('/code/:listingCode', optionalAuthenticate, asyncHandler(async (req, res) => {
+  const listingCode = Number.parseInt(req.params.listingCode, 10);
+  if (!Number.isInteger(listingCode) || listingCode < 1000) return res.status(400).json({ message: 'Invalid listing code.' });
+  const data = await prisma.listing.findUnique({ where: { listingCode }, include });
+  if (!data) return res.status(404).json({ message: 'Record not found.' });
+  const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
+  if (!canSee) return res.status(404).json({ message: 'Record not found.' });
+  await attachListingUsers(data);
+  return res.json(data);
 }));
 
 router.get('/:id', optionalAuthenticate, asyncHandler(async (req, res) => {
@@ -471,7 +509,12 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     let listing;
     try {
-      listing = await prisma.listing.create(createArgs);
+      listing = await prisma.$transaction(async (tx) => {
+        const txPayload = { ...payload };
+        await ensureListingCodeForData(tx, txPayload);
+        return tx.listing.create({ data: txPayload, include });
+      });
+      createArgs.data = { ...payload, listingCode: listing.listingCode };
       console.log('LISTING INSERT OK', listing);
     } catch (error) {
       console.error('[listings] prisma.listing.create error details', {
