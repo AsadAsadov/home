@@ -50,6 +50,8 @@ const LISTING_INPUT_LOG_FIELDS = [
   ['title', (body) => body.title],
   ['description', (body) => body.description],
   ['project_name', (body) => body.project_name ?? body.projectName],
+  ['region_type', (body) => body.region_type ?? body.regionType],
+  ['district', (body) => body.district],
   ['listing_type', (body) => body.listing_type ?? body.listingType],
   ['property_category', (body) => body.property_category ?? body.propertyCategory],
   ['image_url', (body) => body.image_url ?? body.imageUrl],
@@ -62,6 +64,8 @@ const LISTING_TEXT_PAYLOAD_FIELDS = [
   'title',
   'description',
   'projectName',
+  'regionType',
+  'district',
   'listingType',
   'propertyCategory',
   'imageUrl',
@@ -293,6 +297,8 @@ function compareListingFieldNames(body) {
     ['listing_type', 'listingType'],
     ['property_category', 'propertyCategory'],
     ['project_name', 'projectName'],
+    ['region_type', 'regionType'],
+    ['district', 'district'],
     ['room_count', 'roomCount'],
     ['area', 'area'],
     ['floor_number', 'floorNumber'],
@@ -345,6 +351,53 @@ async function ensureListingCodeForData(tx, data) {
   data.listingCode = await nextListingCode(tx);
 }
 
+
+const REGION_TYPES = new Set(['seabreeze', 'baki', 'absheron', 'sumqayit']);
+const REGION_LABELS = { seabreeze: 'Sea Breeze', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
+
+function normalizeRegionType(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['sea breeze', 'sea-breeze', 'seabreeze'].includes(normalized)) return 'seabreeze';
+  if (['baki', 'bakı'].includes(normalized)) return 'baki';
+  if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
+  if (['sumqayit', 'sumqayıt'].includes(normalized)) return 'sumqayit';
+  return REGION_TYPES.has(normalized) ? normalized : undefined;
+}
+
+function normalizeListingRegionData(data, body = {}, existing = {}) {
+  const rawRegion = body.region_type ?? body.regionType ?? data.regionType ?? existing.regionType;
+  const regionType = normalizeRegionType(rawRegion) || (!rawRegion && (data.projectName || existing.projectName) ? 'seabreeze' : undefined);
+  if (regionType) data.regionType = regionType;
+  if (regionType === 'sumqayit') {
+    data.district = REGION_LABELS.sumqayit;
+    return data;
+  }
+  const rawDistrict = body.district ?? data.district ?? existing.district;
+  if (rawDistrict !== undefined && rawDistrict !== null && String(rawDistrict).trim() !== '') {
+    data.district = sanitizeText(rawDistrict);
+  } else if (regionType === 'seabreeze') {
+    data.district = data.projectName || existing.projectName || undefined;
+  }
+  return data;
+}
+
+function listingRegionFilterWhere(query) {
+  const regionType = normalizeRegionType(query.region_type ?? query.regionType ?? query.region);
+  const district = sanitizeText(query.district ?? '');
+  const clauses = [];
+  if (regionType === 'seabreeze') {
+    clauses.push({ OR: [{ regionType: 'seabreeze' }, { AND: [{ regionType: null }, { projectName: { not: null } }] }] });
+  } else if (regionType) {
+    clauses.push({ regionType });
+  }
+  if (district) {
+    clauses.push(regionType === 'seabreeze'
+      ? { OR: [{ district }, { AND: [{ district: null }, { projectName: district }] }] }
+      : { district });
+  }
+  return clauses.length ? { AND: clauses } : undefined;
+}
+
 function parseListingOrder(body) {
   const raw = Array.isArray(body?.order) ? body.order : (Array.isArray(body?.listings) ? body.listings : []);
   return raw
@@ -366,7 +419,9 @@ router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
     ] : []),
     ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
   ] } : undefined;
-  const where = listingVisibilityWhere(req, searchWhere);
+  const regionWhere = listingRegionFilterWhere(req.query);
+  const baseWhere = searchWhere && regionWhere ? { AND: [searchWhere, regionWhere] } : (searchWhere || regionWhere);
+  const where = listingVisibilityWhere(req, baseWhere);
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
     prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, skip, take }),
@@ -486,7 +541,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const rawImageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
     logListingInputSanitization(req.body, rawImageUrls);
     const imageUrls = sanitizeImageUrls(rawImageUrls);
-    const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
+    const data = normalizeListingRegionData(sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req))), req.body);
     data.userId = toBigIntId(req.auth.id);
     data.status = req.auth.role === 'admin' ? normalizeListingStatus(req.body.status, 'approved') : 'pending';
     if (data.status === 'approved') {
@@ -573,7 +628,7 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
     ? sanitizeImageUrls(existing.images.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.imageUrl))
     : sanitizeImageUrls([...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean));
 
-  const data = sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req)));
+  const data = normalizeListingRegionData(sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req))), req.body, existing);
   if (req.auth.role === 'user') {
     data.userId = toBigIntId(req.auth.id);
     delete data.status;
