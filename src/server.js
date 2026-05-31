@@ -37,7 +37,6 @@ app.use(express.urlencoded({
 
 app.use('/uploads', express.static(uploadDir));
 if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir));
-app.use(express.static(process.cwd()));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
 app.use('/api/auth', require('./routes/auth'));
@@ -54,7 +53,14 @@ app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/site-ads', require('./routes/siteAds'));
 app.use('/api/sync', require('./routes/sync'));
 
-app.get('*', (_req, res) => res.sendFile(path.join(process.cwd(), 'index.html')));
+app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found.' }));
+
+app.use(express.static(process.cwd(), { index: false }));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  return res.sendFile(path.join(process.cwd(), 'index.html'));
+});
 
 app.use((err, _req, res, _next) => {
   console.error(err);
