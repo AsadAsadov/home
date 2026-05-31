@@ -2339,6 +2339,15 @@ Title: Park Villas
         function listingPath(listing) { return `/listing/${listing.listingCode || listing.listing_code || listing.code || listing.id}`; }
         function vacancyPath(vacancy) { return `/vacancy/${vacancy.slug || localSlug(vacancy.title) || vacancy.id}`; }
         function galleryPath(item) { return item?.type === 'video' ? `/video/${item.id}` : `/gallery/${item.id}`; }
+        function currentRouteValue() { return decodeURIComponent(window.location.pathname.split('/').filter(Boolean).pop() || ''); }
+        function matchesSlugOrId(item, value) {
+            const routeValue = String(value || '');
+            return String(item?.id || '') === routeValue || String(item?.slug || '') === routeValue || localSlug(item?.title) === routeValue;
+        }
+        function upsertCachedItem(name, item) {
+            if (!item) return;
+            cacheData(name, [item, ...(appData[name] || []).filter(existing => String(existing.id) !== String(item.id))]);
+        }
 
         let isHydratingFromApi = false;
         let syncTimer = null;
@@ -6089,26 +6098,34 @@ QiymÉ™t: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : 'â€
             }
             if (path.startsWith('/project/')) {
                 switchTab('seabreeze', { skipPush: true });
-                const slug = decodeURIComponent(path.split('/').pop() || '');
-                let project = getOfficialProjects().find(item => item.slug === slug);
+                const slug = currentRouteValue();
+                let project = getOfficialProjects().find(item => matchesSlugOrId(item, slug));
                 if (!project) {
                     try {
                         project = dbProjectToUi(await apiRequest(`/api/projects/slug/${encodeURIComponent(slug)}`));
-                        cacheData('projects', [project, ...getOfficialProjects().filter(item => String(item.id) !== String(project.id))]);
-                    } catch (_error) { /* fallback to list */ }
+                    } catch (_slugError) {
+                        if (/^\d+$/.test(slug)) {
+                            try { project = dbProjectToUi(await apiRequest(`/api/projects/${encodeURIComponent(slug)}`)); } catch (_idError) { /* fallback to list */ }
+                        }
+                    }
+                    if (project) upsertCachedItem('projects', project);
                 }
                 if (project) openOfficialProjectModal(project.id, false);
                 return;
             }
             if (path.startsWith('/listing/')) {
                 switchTab('seabreeze', { skipPush: true });
-                const code = decodeURIComponent(path.split('/').pop() || '');
-                let listing = appData.listings.find(item => String(item.listingCode) === String(code));
+                const code = currentRouteValue();
+                let listing = appData.listings.find(item => String(item.listingCode || item.id) === String(code));
                 if (!listing) {
                     try {
                         listing = dbListingToUi(await apiRequest(`/api/listings/code/${encodeURIComponent(code)}`));
-                        cacheData('listings', [listing, ...appData.listings.filter(item => String(item.id) !== String(listing.id))]);
-                    } catch (_error) { /* fallback to list */ }
+                    } catch (_codeError) {
+                        if (/^\d+$/.test(code)) {
+                            try { listing = dbListingToUi(await apiRequest(`/api/listings/${encodeURIComponent(code)}`)); } catch (_idError) { /* fallback to list */ }
+                        }
+                    }
+                    if (listing) upsertCachedItem('listings', listing);
                 }
                 if (listing) openPropertyModal(listing.id, false);
                 return;
@@ -6120,14 +6137,20 @@ QiymÉ™t: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : 'â€
             }
             if (path.startsWith('/vacancy/')) {
                 switchTab('career', { skipPush: true });
-                const slug = decodeURIComponent(path.split('/').pop() || '');
-                let vacancy = appData.vacancies.find(item => item.slug === slug);
+                const slug = currentRouteValue();
+                let vacancy = appData.vacancies.find(item => matchesSlugOrId(item, slug));
                 if (!vacancy) {
                     try {
                         vacancy = dbVacancyToUi(await apiRequest(`/api/vacancies/slug/${encodeURIComponent(slug)}`));
-                        cacheData('vacancies', [vacancy, ...appData.vacancies.filter(item => String(item.id) !== String(vacancy.id))]);
+                    } catch (_slugError) {
+                        if (/^\d+$/.test(slug)) {
+                            try { vacancy = dbVacancyToUi(await apiRequest(`/api/vacancies/${encodeURIComponent(slug)}`)); } catch (_idError) { /* fallback to list */ }
+                        }
+                    }
+                    if (vacancy) {
+                        upsertCachedItem('vacancies', vacancy);
                         renderCareerSection();
-                    } catch (_error) { /* fallback to list */ }
+                    }
                 }
                 if (vacancy) {
                     updateSeo({ title: `${vacancy.title} VakansiyasÄ±`, description: vacancy.desc || DEFAULT_SEO_DESCRIPTION, path });
@@ -6144,9 +6167,18 @@ QiymÉ™t: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : 'â€
             }
             if (path.startsWith('/gallery/') || path.startsWith('/video/')) {
                 switchTab('portfolio', { skipPush: true });
-                const id = decodeURIComponent(path.split('/').pop() || '');
-                const item = appData.gallery.find(g => String(g.id) === String(id));
-                if (item) openGalleryDetailModal(appData.gallery.findIndex(g => String(g.id) === String(id)), false);
+                currentFilter = path.startsWith('/video/') ? 'video' : 'all';
+                const id = currentRouteValue();
+                let item = appData.gallery.find(g => String(g.id) === String(id));
+                if (!item && /^\d+$/.test(id)) {
+                    try {
+                        item = dbGalleryToUi(await apiRequest(`/api/gallery/${encodeURIComponent(id)}`));
+                        upsertCachedItem('gallery', item);
+                        renderPortfolio();
+                    } catch (_error) { /* fallback to list */ }
+                }
+                const index = appData.gallery.findIndex(g => String(g.id) === String(id));
+                if (index > -1) openGalleryDetailModal(index, false);
                 return;
             }
             switchTab(path === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze', { skipPush: true });
