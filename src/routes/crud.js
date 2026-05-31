@@ -65,6 +65,7 @@ const serializers = {
     imageUrl: cleanString(body.image_url ?? body.imageUrl),
     images: parseJsonArray(body.images),
     displayOrder: toInt(body.display_order ?? body.displayOrder),
+    slug: cleanString(body.slug),
   }),
   listing: (body) => {
     const area = cleanString(body.area);
@@ -84,6 +85,7 @@ const serializers = {
       imageUrl: cleanString(body.image_url ?? body.imageUrl),
       description: cleanString(body.description),
       displayOrder: toInt(body.display_order ?? body.displayOrder),
+      listingCode: toInt(body.listing_code ?? body.listingCode),
       userId: toInt(body.user_id ?? body.userId),
       status: cleanStatus(body.status),
       featured: toBool(body.featured),
@@ -97,6 +99,7 @@ const serializers = {
     city: cleanString(body.city),
     description: cleanString(body.description),
     isActive: toBool(body.is_active ?? body.isActive),
+    slug: cleanString(body.slug),
   }),
   application: (body) => ({
     fullname: cleanString(body.fullname),

@@ -10,6 +10,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://besthome.onrender.com/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
+    <link rel="canonical" href="https://besthome.onrender.com/">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az">
     <meta name="twitter:description" content="Daşınmaz Əmlak Elanları">
@@ -1261,6 +1262,9 @@
                             <span class="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">Rejected Listings</span>
                         </div>
                     </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="search" id="admin-listing-code-search" oninput="renderAdminDashboard()" placeholder="Kod ilə axtar (məs: 1001)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    </div>
                     <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
                 </div>
             </div>
@@ -1280,6 +1284,11 @@
                         <div class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə adı *</label>
                             <input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">SEO slug</label>
+                            <input type="text" id="project-slug" placeholder="Avtomatik yaradılır (məs: miami-residence)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <p class="text-[10px] text-gray-500">Boş saxlasanız yeni layihə üçün başlıqdan avtomatik yaradılır. Redaktədə yalnız lazım olarsa dəyişin.</p>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -1549,6 +1558,7 @@ Title: Park Villas
                         <form onsubmit="handleSaveVacancy(event)" class="space-y-2">
                             <input type="hidden" id="edit-vac-id">
                             <input type="text" id="vac-title" required placeholder="Vakansiya Adı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
+                            <input type="text" id="vac-slug" placeholder="SEO slug (avtomatik yaradılır)" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
                             <input type="text" id="vac-type" required placeholder="Ştat (məs: Tam ştat)" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
                             <input type="text" id="vac-salary" required placeholder="Əmək haqqı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
                             <input type="text" id="vac-location" required placeholder="Şəhər" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
@@ -1684,6 +1694,7 @@ Title: Park Villas
                                 <span id="p-modal-project" class="bg-slate-100 text-slate-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200"></span>
                             </div>
                             <h3 id="p-modal-title" class="text-2xl md:text-4xl font-black text-gray-950 leading-tight"></h3>
+                            <span id="p-modal-code" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <p id="p-modal-date" class="text-xs text-gray-500 font-semibold"><i class="fa-regular fa-calendar mr-1"></i></p>
                         </div>
 
@@ -2276,6 +2287,59 @@ Title: Park Villas
 
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
         const API_BASE = window.location.origin;
+        const SITE_NAME = 'BestHome';
+        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Elanları';
+
+        function absoluteUrl(path = window.location.pathname) {
+            return `${window.location.origin}${path.startsWith('/') ? path : '/' + path}`;
+        }
+
+        function setMeta(nameOrProperty, value, isProperty = false) {
+            const attr = isProperty ? 'property' : 'name';
+            let el = document.head.querySelector(`meta[${attr}="${nameOrProperty}"]`);
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute(attr, nameOrProperty);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', value || '');
+        }
+
+        function updateSeo({ title = SITE_NAME, description = DEFAULT_SEO_DESCRIPTION, path = window.location.pathname, image = '', type = 'website' } = {}) {
+            const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+            const canonical = absoluteUrl(path);
+            document.title = fullTitle;
+            let link = document.head.querySelector('link[rel="canonical"]');
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'canonical';
+                document.head.appendChild(link);
+            }
+            link.href = canonical;
+            setMeta('description', description);
+            setMeta('og:title', fullTitle, true);
+            setMeta('og:description', description, true);
+            setMeta('og:type', type, true);
+            setMeta('og:url', canonical, true);
+            if (image) setMeta('og:image', image, true);
+            setMeta('twitter:title', fullTitle);
+            setMeta('twitter:description', description);
+            if (image) setMeta('twitter:image', image);
+        }
+
+        function localSlug(value) {
+            return String(value || '')
+                .replace(/[əƏ]/g, 'e').replace(/[ıİI]/g, 'i').replace(/[öÖ]/g, 'o').replace(/[üÜ]/g, 'u')
+                .replace(/[ğĞ]/g, 'g').replace(/[çÇ]/g, 'c').replace(/[şŞ]/g, 's')
+                .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').replace(/-{2,}/g, '-');
+        }
+
+        function projectPath(project) { return `/project/${project.slug || localSlug(project.title) || project.id}`; }
+        function listingPath(listing) { return `/listing/${listing.listingCode || listing.listing_code || listing.code || listing.id}`; }
+        function vacancyPath(vacancy) { return `/vacancy/${vacancy.slug || localSlug(vacancy.title) || vacancy.id}`; }
+        function galleryPath(item) { return item?.type === 'video' ? `/video/${item.id}` : `/gallery/${item.id}`; }
+
         let isHydratingFromApi = false;
         let syncTimer = null;
 
@@ -2354,7 +2418,8 @@ Title: Park Villas
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
                 repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
                 desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
-                displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id)
+                displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
+                slug: p.slug || localSlug(p.title)
             };
         }
 
@@ -2474,13 +2539,14 @@ Title: Park Villas
                 viewCount: numericValue(l.viewCount, l.view_count) || 0,
                 favoritesCount: numericValue(l.favoritesCount, l.favorites_count) || 0,
                 featured: Boolean(l.featured),
-                vip: Boolean(l.vip)
+                vip: Boolean(l.vip),
+                listingCode: firstDefined(l.listingCode, l.listing_code, l.code, '')
             };
         }
 
         function dbVacancyToUi(v) {
             const isActive = v.isActive ?? v.is_active ?? true;
-            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', isActive, status: isActive ? 'Aktiv' : 'Bloklanıb' };
+            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', isActive, status: isActive ? 'Aktiv' : 'Bloklanıb', slug: v.slug || localSlug(v.title) };
         }
 
         function normalizeJsonArray(value) {
@@ -2867,7 +2933,8 @@ Title: Park Villas
                 description: p.desc,
                 image_url: p.img,
                 images: normalizeProjectImages(p.images, p.img),
-                display_order: p.displayOrder ?? p.display_order
+                display_order: p.displayOrder ?? p.display_order,
+                slug: p.slug
             };
         }
 
@@ -2907,7 +2974,8 @@ Title: Park Villas
                 salary: v.salary,
                 city: v.location,
                 description: v.desc,
-                is_active: v.isActive ?? v.status !== 'Bloklanıb'
+                is_active: v.isActive ?? v.status !== 'Bloklanıb',
+                slug: v.slug
             };
         }
 
@@ -3197,7 +3265,7 @@ Title: Park Villas
         }
 
         // TABS SWITCHER
-        function switchTab(tabId) {
+        function switchTab(tabId, options = {}) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             const target = document.getElementById('tab-' + tabId);
             if (target) target.classList.remove('hidden');
@@ -3223,8 +3291,9 @@ Title: Park Villas
                 renderAdminDashboard();
             }
 
-            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : '/';
-            if (window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
+            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : '/'));
+            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : SITE_NAME)), path: routePath });
+            if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3336,7 +3405,7 @@ Title: Park Villas
 
             paged.forEach(p => {
                 const cardHtml = `
-                    <div onclick="openOfficialProjectModal('${p.id}')" class="sea-breeze-project-card group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
+                    <div onclick="openOfficialProjectModal('${p.id}', true)" class="sea-breeze-project-card group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -3361,10 +3430,12 @@ Title: Park Villas
         let activeOfficialModalTab = 'details';
         let activeOfficialProject = null;
 
-        function openOfficialProjectModal(id) {
-            const p = getOfficialProjects().find(item => item.id === id);
+        function openOfficialProjectModal(id, pushRoute = false) {
+            const p = getOfficialProjects().find(item => String(item.id) === String(id) || item.slug === id);
             if (!p) return;
             activeOfficialProject = p;
+            if (pushRoute) history.pushState({ route: 'project', id: p.id }, '', projectPath(p));
+            updateSeo({ title: p.title, description: p.desc || DEFAULT_SEO_DESCRIPTION, path: projectPath(p), image: p.img, type: 'article' });
 
             officialProjectImages = getProjectImages(p);
             officialProjectImageIndex = 0;
@@ -3423,6 +3494,10 @@ Title: Park Villas
 
         function closeOfficialProjectModal() {
             document.getElementById('project-detail-modal-official').classList.add('hidden');
+            if (window.location.pathname.startsWith('/project/')) {
+                history.pushState({ tabId: 'seabreeze' }, '', '/projects');
+                updateSeo({ title: 'Layihələr', path: '/projects' });
+            }
         }
 
         function switchOfficialModalTab(tab) {
@@ -3495,10 +3570,11 @@ Title: Park Villas
                 }
 
                 const cardHtml = `
-                    <div onclick="openPropertyModal('${p.id}')" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full">
+                    <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full">
                         <div class="sea-breeze-listing-card__media h-44 md:h-48 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             <div class="sea-breeze-listing-card__badges">
+                                <div class="sea-breeze-listing-card__badge bg-white/95 text-gray-900 text-[10px] font-black rounded-full uppercase shadow">Kod: ${p.listingCode || '—'}</div>
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase">${p.project || '—'}</div>
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${cardListingLabel}</div>
                             </div>
@@ -3603,11 +3679,12 @@ Title: Park Villas
             if (!activePropertyImages.length) return;
             openEventLightbox(encodeURIComponent(JSON.stringify(activePropertyImages)), document.getElementById('p-modal-title').textContent || 'Elan şəkilləri');
             lightboxIndex = index;
-            updateLightboxUI();
+            activeModalMediaIndex = index;
+            renderModalMedia();
         }
 
         async function shareListing(p) {
-            const shareUrl = `${window.location.origin}${window.location.pathname}#listing-${p.id}`;
+            const shareUrl = absoluteUrl(listingPath(p));
             const shareData = { title: p.title, text: `${p.title} - ${Number(p.price).toLocaleString('az-AZ')} AZN`, url: shareUrl };
             if (navigator.share) {
                 await navigator.share(shareData).catch(() => {});
@@ -3617,10 +3694,13 @@ Title: Park Villas
             alert('Elan linki kopyalandı.');
         }
 
-        async function openPropertyModal(id) {
+        async function openPropertyModal(id, pushRoute = false) {
             const list = appData.listings;
-            const p = list.find(item => String(item.id) === String(id));
+            const p = list.find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
             if (!p) return;
+
+            if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
+            updateSeo({ title: `Kod ${p.listingCode || p.id}`, description: p.title || DEFAULT_SEO_DESCRIPTION, path: listingPath(p), image: p.img, type: 'article' });
 
             const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
             activePropertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
@@ -3643,6 +3723,7 @@ Title: Park Villas
             document.getElementById('p-modal-category').textContent = categoryLabel;
             document.getElementById('p-modal-project').textContent = p.project || '—';
             document.getElementById('p-modal-title').textContent = p.title || '—';
+            document.getElementById('p-modal-code').textContent = `Kod: ${p.listingCode || '—'}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = p.desc || 'Təsvir əlavə edilməyib.';
             document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
@@ -3701,6 +3782,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         function closePropertyModal() {
             document.getElementById('property-detail-modal').classList.add('hidden');
+            if (window.location.pathname.startsWith('/listing/')) {
+                history.pushState({ tabId: 'seabreeze' }, '', '/');
+                updateSeo({ title: SITE_NAME, path: '/' });
+            }
         }
 
         // PORTFOLIO AND LIGHTBOX ENGINE
@@ -3805,7 +3890,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 if (item.type === 'event') {
                     const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex})" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
@@ -3819,7 +3904,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 } else {
                     const thumb = item.thumbnail || getYouTubeThumbnail(item.url) || getVimeoThumbnail(item.url) || 'https://placehold.co/600x400/f3f4f6/6b7280?text=Video';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex})" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden relative">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
@@ -3860,18 +3945,18 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             activeOnes.forEach(v => {
                 container.innerHTML += `
                     <div class="glass-card rounded-2xl overflow-hidden border-l-4 border-brand-500">
-                        <div onclick="toggleVacancyAccordion(${v.id})" class="p-4 flex justify-between items-center cursor-pointer hover:bg-brand-50/70 transition">
+                        <div onclick="openVacancyRoute('${v.id}')" class="p-4 flex justify-between items-center cursor-pointer hover:bg-brand-50/70 transition">
                             <div>
-                                <h4 class="text-sm md:text-base font-bold text-gray-900">${v.title}</h4>
+                                <h4 class="text-sm md:text-base font-bold text-gray-900">${escapeHtml(v.title)}</h4>
                                 <div class="flex flex-wrap gap-2 text-[11px] md:text-xs text-gray-700 mt-1">
-                                    <span><i class="fa-solid fa-location-dot mr-1"></i> ${v.location}</span>
-                                    <span><i class="fa-solid fa-money-bill mr-1"></i> ${v.salary}</span>
+                                    <span><i class="fa-solid fa-location-dot mr-1"></i> ${escapeHtml(v.location)}</span>
+                                    <span><i class="fa-solid fa-money-bill mr-1"></i> ${escapeHtml(v.salary)}</span>
                                 </div>
                             </div>
                             <i id="vac-arrow-${v.id}" class="fa-solid fa-chevron-down text-gray-500"></i>
                         </div>
                         <div id="vac-detail-${v.id}" class="hidden p-4 bg-brand-50/80 border-t border-brand-200 text-xs text-gray-700 space-y-3 whitespace-pre-line">
-                            ${v.desc}
+                            ${escapeHtml(v.desc)}
                             <div class="pt-2 flex justify-end">
                                 <button onclick="selectVacancy('${v.title}')" class="bg-brand-500 text-white text-[10px] font-bold px-4 py-2 rounded-xl">Müraciət et</button>
                             </div>
@@ -3881,6 +3966,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 dropdown.innerHTML += `<option value="${v.title}">${v.title}</option>`;
             });
             dropdown.innerHTML += `<option value="Ümumi Müraciət">Ümumi Müraciət</option>`;
+        }
+
+
+        function openVacancyRoute(id) {
+            const vacancy = appData.vacancies.find(item => String(item.id) === String(id));
+            if (!vacancy) return;
+            history.pushState({ route: 'vacancy', id: vacancy.id }, '', vacancyPath(vacancy));
+            updateSeo({ title: `${vacancy.title} Vakansiyası`, description: vacancy.desc || DEFAULT_SEO_DESCRIPTION, path: vacancyPath(vacancy) });
+            toggleVacancyAccordion(vacancy.id);
         }
 
         function toggleVacancyAccordion(id) {
@@ -4250,6 +4344,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         function resetOfficialProjectForm() {
             document.getElementById('edit-project-id').value = '';
+            document.getElementById('project-slug').value = '';
             document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
             document.querySelector('#admin-subtab-projects-manager form').reset();
             renderProjectImageInputs(['']);
@@ -4384,6 +4479,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                                     <span><i class="fa-solid fa-expand mr-1 text-brand-500"></i>${project.area}</span>
                                 </div>
                                 <p class="text-[11px] text-gray-400 line-clamp-2">${project.desc}</p>
+                                <span class="inline-flex w-fit items-center rounded-full bg-white/5 border border-white/10 px-2 py-1 text-[10px] text-gray-300">Slug: ${project.slug || '—'}</span>
                             </div>
                             <div class="flex items-center justify-between gap-2 pt-3 border-t border-white/5">
                                 <button type="button" class="admin-project-drag-handle bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white text-sm font-bold px-3 py-2 rounded-lg transition" onpointerdown="startProjectDrag(event, '${project.id}')" aria-label="Layihə sırasını dəyiş">
@@ -4675,7 +4771,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 area: document.getElementById('project-area').value.trim(),
                 apartments: document.getElementById('project-apartments').value.trim(),
                 repairStatus: document.getElementById('project-repair').value.trim(),
-                features: document.getElementById('project-features').value.trim()
+                features: document.getElementById('project-features').value.trim(),
+                slug: document.getElementById('project-slug').value.trim()
             };
 
             try {
@@ -4707,6 +4804,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('edit-project-id').value = project.id;
             document.getElementById('project-form-action-title').textContent = 'Layihəni Redaktə Et';
             document.getElementById('project-title').value = project.title;
+            document.getElementById('project-slug').value = project.slug || '';
             document.getElementById('project-category').value = project.category;
             document.getElementById('project-year').value = project.year;
             document.getElementById('project-floors').value = project.floors;
@@ -5068,7 +5166,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             }
 
             // 1. Listings Grid
-            const properties = appData.listings;
+            const codeSearch = document.getElementById('admin-listing-code-search')?.value.trim() || '';
+            const properties = appData.listings.filter(item => !codeSearch || String(item.listingCode || '').includes(codeSearch));
             const pContainer = document.getElementById('admin-seabreeze-list');
             pContainer.innerHTML = '';
 
@@ -5088,6 +5187,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                             <img src="${mainImage}" class="w-12 h-12 rounded-lg object-cover">
                             <div class="truncate">
                                 <h4 class="text-xs font-bold text-white truncate">${p.title || '—'}</h4>
+                                <span class="inline-flex w-fit text-[9px] font-black px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">Kod: ${p.listingCode || '—'}</span>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
                                 ${p.vip ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">VIP</span>' : ''}
                                 ${p.featured ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Featured</span>' : ''}
@@ -5098,9 +5198,13 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                             ${activeUser.role === 'admin' && !isApproved ? `
                                 <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Approve</button>
                             ` : ''}
+                            ${activeUser.role === 'admin' && isApproved ? `
+                                <button onclick="deactivateListing(${p.id})" class="bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Deactivate</button>
+                            ` : ''}
                             ${activeUser.role === 'admin' && normalizedStatus !== 'rejected' ? `
                                 <button onclick="rejectListing(${p.id})" class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Reject</button>
                             ` : ''}
+                            <button onclick="openPropertyModal('${p.id}', true)" class="bg-white/5 text-gray-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Aç</button>
                             <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
                             <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
@@ -5172,7 +5276,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                         <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs transition ${(v.isActive ?? v.status === 'Aktiv') ? '' : 'opacity-50 grayscale'}">
                             <div>
                                 <h4 class="font-bold text-white">${v.title} (${(v.isActive ?? v.status === 'Aktiv') ? 'Aktiv' : 'Bloklanıb'})</h4>
-                                <span class="text-gray-400">${v.location} • ${v.salary}</span>
+                                <span class="text-gray-400">${v.location} • ${v.salary}</span><br><span class="text-[10px] text-gray-500">Slug: ${v.slug || '—'}</span>
                             </div>
                             <div class="flex space-x-2">
                                 <button onclick="editVacancy(${v.id})" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
@@ -5380,6 +5484,22 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             }
         }
 
+
+        async function deactivateListing(id) {
+            try {
+                const saved = await apiRequest(`/api/listings/${id}/deactivate`, { method: 'PATCH' });
+                const list = [...appData.listings];
+                const idx = list.findIndex(x => String(x.id) === String(id));
+                if (idx > -1) list[idx] = dbListingToUi(saved);
+                cacheData('listings', list);
+                appData.dashboardStats = null;
+                renderAdminDashboard();
+                renderSeaBreeze();
+            } catch (error) {
+                alert('Deactivate alınmadı: ' + error.message);
+            }
+        }
+
         // USER REGISTRATION / EDITING
         function roleLabel(role) {
             return role === 'admin' ? 'Admin' : 'İstifadəçi';
@@ -5477,6 +5597,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 salary: document.getElementById('vac-salary').value,
                 location: document.getElementById('vac-location').value,
                 desc: document.getElementById('vac-desc').value,
+                slug: document.getElementById('vac-slug').value.trim(),
                 status: existingActive ? "Aktiv" : "Bloklanıb",
                 isActive: existingActive
             };
@@ -5492,6 +5613,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 cacheData('vacancies', list);
                 document.getElementById('edit-vac-id').value = '';
                 document.getElementById('vac-title').value = '';
+                document.getElementById('vac-slug').value = '';
                 document.getElementById('vac-type').value = '';
                 document.getElementById('vac-salary').value = '';
                 document.getElementById('vac-location').value = '';
@@ -5510,6 +5632,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             if (v) {
                 document.getElementById('edit-vac-id').value = v.id;
                 document.getElementById('vac-title').value = v.title;
+                document.getElementById('vac-slug').value = v.slug || '';
                 document.getElementById('vac-type').value = v.type;
                 document.getElementById('vac-salary').value = v.salary;
                 document.getElementById('vac-location').value = v.location;
@@ -5757,12 +5880,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('modal-slider-controls').className = (activeModalGalleryItems.length > 1 || media.length > 1) ? 'absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 md:px-5 pointer-events-none' : 'hidden';
         }
 
-        function openGalleryDetailModal(index = 0) {
+        function openGalleryDetailModal(index = 0, pushRoute = false) {
             activeModalGalleryItems = appData.gallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
             const clicked = appData.gallery[index];
             activeModalGalleryIndex = Math.max(0, activeModalGalleryItems.findIndex(item => String(item.id) === String(clicked?.id)));
             activeModalMediaIndex = 0;
             lightboxScale = 1;
+            const selected = activeModalGalleryItems[activeModalGalleryIndex];
+            if (pushRoute && selected) history.pushState({ route: selected.type === 'video' ? 'video' : 'gallery', id: selected.id }, '', galleryPath(selected));
+            if (selected) updateSeo({ title: selected.title || (selected.type === 'video' ? 'Video' : 'Qalereya'), description: selected.desc || DEFAULT_SEO_DESCRIPTION, path: galleryPath(selected), image: selected.thumbnail || selected.images?.[0] || '', type: 'article' });
             renderModalMedia();
             document.getElementById('media-modal').classList.remove('hidden');
         }
@@ -5825,6 +5951,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         function closeModal() {
             document.getElementById('media-modal').classList.add('hidden');
+            if (window.location.pathname.startsWith('/gallery/') || window.location.pathname.startsWith('/video/')) {
+                history.pushState({ tabId: 'portfolio' }, '', window.location.pathname.startsWith('/video/') ? '/videos' : '/gallery');
+                updateSeo({ title: window.location.pathname === '/videos' ? 'Videolar' : 'Qalereya', path: window.location.pathname });
+            }
             document.getElementById('modal-content').innerHTML = '';
             document.getElementById('modal-thumbnails').innerHTML = '';
         }
@@ -5949,16 +6079,90 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             }
         });
 
+        async function routeToCurrentPath({ replace = false } = {}) {
+            const path = window.location.pathname;
+            if (path === '/projects') {
+                switchTab('seabreeze', { skipPush: true });
+                document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                updateSeo({ title: 'Layihələr', path });
+                return;
+            }
+            if (path.startsWith('/project/')) {
+                switchTab('seabreeze', { skipPush: true });
+                const slug = decodeURIComponent(path.split('/').pop() || '');
+                let project = getOfficialProjects().find(item => item.slug === slug);
+                if (!project) {
+                    try {
+                        project = dbProjectToUi(await apiRequest(`/api/projects/slug/${encodeURIComponent(slug)}`));
+                        cacheData('projects', [project, ...getOfficialProjects().filter(item => String(item.id) !== String(project.id))]);
+                    } catch (_error) { /* fallback to list */ }
+                }
+                if (project) openOfficialProjectModal(project.id, false);
+                return;
+            }
+            if (path.startsWith('/listing/')) {
+                switchTab('seabreeze', { skipPush: true });
+                const code = decodeURIComponent(path.split('/').pop() || '');
+                let listing = appData.listings.find(item => String(item.listingCode) === String(code));
+                if (!listing) {
+                    try {
+                        listing = dbListingToUi(await apiRequest(`/api/listings/code/${encodeURIComponent(code)}`));
+                        cacheData('listings', [listing, ...appData.listings.filter(item => String(item.id) !== String(listing.id))]);
+                    } catch (_error) { /* fallback to list */ }
+                }
+                if (listing) openPropertyModal(listing.id, false);
+                return;
+            }
+            if (path === '/vacancies') {
+                switchTab('career', { skipPush: true });
+                updateSeo({ title: 'Vakansiyalar', path });
+                return;
+            }
+            if (path.startsWith('/vacancy/')) {
+                switchTab('career', { skipPush: true });
+                const slug = decodeURIComponent(path.split('/').pop() || '');
+                let vacancy = appData.vacancies.find(item => item.slug === slug);
+                if (!vacancy) {
+                    try {
+                        vacancy = dbVacancyToUi(await apiRequest(`/api/vacancies/slug/${encodeURIComponent(slug)}`));
+                        cacheData('vacancies', [vacancy, ...appData.vacancies.filter(item => String(item.id) !== String(vacancy.id))]);
+                        renderCareerSection();
+                    } catch (_error) { /* fallback to list */ }
+                }
+                if (vacancy) {
+                    updateSeo({ title: `${vacancy.title} Vakansiyası`, description: vacancy.desc || DEFAULT_SEO_DESCRIPTION, path });
+                    setTimeout(() => toggleVacancyAccordion(vacancy.id), 50);
+                }
+                return;
+            }
+            if (path === '/gallery' || path === '/videos') {
+                switchTab('portfolio', { skipPush: true });
+                currentFilter = path === '/videos' ? 'video' : 'all';
+                renderPortfolio();
+                updateSeo({ title: path === '/videos' ? 'Videolar' : 'Qalereya', path });
+                return;
+            }
+            if (path.startsWith('/gallery/') || path.startsWith('/video/')) {
+                switchTab('portfolio', { skipPush: true });
+                const id = decodeURIComponent(path.split('/').pop() || '');
+                const item = appData.gallery.find(g => String(g.id) === String(id));
+                if (item) openGalleryDetailModal(appData.gallery.findIndex(g => String(g.id) === String(id)), false);
+                return;
+            }
+            switchTab(path === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze', { skipPush: true });
+            updateSeo({ title: path === '/ipoteka-kalkulyatoru' ? 'İpoteka Kalkulyatoru' : SITE_NAME, path });
+        }
+
         // MAIN SETUP AND BOOTSTRAP
         window.addEventListener('load', async () => {
             renderProjectImageInputs(['']);
             await initializeAuth();
             await hydrateFromDatabase();
-            switchTab(window.location.pathname === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze');
+            await routeToCurrentPath();
         });
 
         window.addEventListener('popstate', () => {
-            switchTab(window.location.pathname === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze');
+            routeToCurrentPath();
         });
     </script>
 </body>

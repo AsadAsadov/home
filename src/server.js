@@ -10,6 +10,7 @@ const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const prisma = require('./lib/prisma');
+const { makeUniqueSlug } = require('./utils/seo');
 
 const app = express();
 app.set('json replacer', (_key, value) => {
@@ -71,6 +72,40 @@ app.use((err, _req, res, _next) => {
   });
 });
 
+
+async function ensureSeoIdentifiers() {
+  try {
+    const projects = await prisma.project.findMany({ where: { slug: null }, orderBy: { id: 'asc' } });
+    for (const project of projects) {
+      await prisma.$transaction(async (tx) => {
+        const slug = await makeUniqueSlug({ model: 'project', title: project.title, currentId: project.id, tx, fallback: 'project' });
+        await tx.project.update({ where: { id: project.id }, data: { slug } });
+      });
+    }
+
+    const vacancies = await prisma.vacancy.findMany({ where: { slug: null }, orderBy: { id: 'asc' } });
+    for (const vacancy of vacancies) {
+      await prisma.$transaction(async (tx) => {
+        const slug = await makeUniqueSlug({ model: 'vacancy', title: vacancy.title, currentId: vacancy.id, tx, fallback: 'vacancy' });
+        await tx.vacancy.update({ where: { id: vacancy.id }, data: { slug } });
+      });
+    }
+
+    const listings = await prisma.listing.findMany({ where: { listingCode: null }, orderBy: { id: 'asc' } });
+    let maxCode = Math.max(999, Number((await prisma.listing.aggregate({ _max: { listingCode: true } }))._max.listingCode || 999));
+    for (const listing of listings) {
+      maxCode += 1;
+      await prisma.listing.update({ where: { id: listing.id }, data: { listingCode: maxCode } });
+    }
+  } catch (error) {
+    if (['P2022', 'P2021'].includes(error.code)) {
+      console.warn('SEO identifier bootstrap skipped until database migrations are applied:', error.message);
+      return;
+    }
+    throw error;
+  }
+}
+
 async function ensureDefaultAdmin() {
   const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@besthome.az';
   const password = process.env.DEFAULT_ADMIN_PASSWORD || 'Admin12345';
@@ -83,7 +118,7 @@ async function ensureDefaultAdmin() {
   });
 }
 
-ensureDefaultAdmin()
+Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()])
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
   })

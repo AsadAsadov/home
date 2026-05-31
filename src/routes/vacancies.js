@@ -4,6 +4,7 @@ const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
+const { makeUniqueSlug, normalizeManualSlug } = require('../utils/seo');
 const router = express.Router();
 
 function optionalAuth(req, _res, next) {
@@ -27,6 +28,14 @@ router.get('/', optionalAuth, asyncHandler(async (req, res) => {
   res.json(data);
 }));
 
+router.get('/slug/:slug', optionalAuth, asyncHandler(async (req, res) => {
+  const data = await prisma.vacancy.findFirst({
+    where: { slug: String(req.params.slug || '').trim(), ...(canManage(req) ? {} : { isActive: true }) },
+  });
+  if (!data) return res.status(404).json({ message: 'Record not found.' });
+  return res.json(data);
+}));
+
 router.get('/:id', optionalAuth, asyncHandler(async (req, res) => {
   const data = await prisma.vacancy.findFirst({
     where: { id: Number(req.params.id), ...(canManage(req) ? {} : { isActive: true }) },
@@ -36,7 +45,15 @@ router.get('/:id', optionalAuth, asyncHandler(async (req, res) => {
 }));
 
 router.post('/', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
-  const created = await prisma.vacancy.create({ data: compact(serializers.vacancy(req.body)) });
+  const data = compact(serializers.vacancy(req.body));
+  if (!data.title) return res.status(400).json({ message: 'Vacancy title is required.' });
+  const created = await prisma.$transaction(async (tx) => {
+    const manualSlug = normalizeManualSlug(data.slug);
+    data.slug = manualSlug
+      ? await makeUniqueSlug({ model: 'vacancy', title: manualSlug, tx, fallback: 'vacancy' })
+      : await makeUniqueSlug({ model: 'vacancy', title: data.title, tx, fallback: 'vacancy' });
+    return tx.vacancy.create({ data });
+  });
   res.status(201).json(created);
 }));
 
@@ -48,7 +65,13 @@ router.patch('/:id/toggle', authenticate, authorize('admin'), asyncHandler(async
 }));
 
 router.put('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
-  const updated = await prisma.vacancy.update({ where: { id: Number(req.params.id) }, data: compact(serializers.vacancy(req.body)) });
+  const data = compact(serializers.vacancy(req.body));
+  if (Object.prototype.hasOwnProperty.call(data, 'slug')) {
+    const slug = normalizeManualSlug(data.slug);
+    if (!slug) delete data.slug;
+    else data.slug = await makeUniqueSlug({ model: 'vacancy', title: slug, currentId: Number(req.params.id), tx: prisma, fallback: 'vacancy' });
+  }
+  const updated = await prisma.vacancy.update({ where: { id: Number(req.params.id) }, data });
   res.json(updated);
 }));
 
