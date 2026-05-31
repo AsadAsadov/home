@@ -5,6 +5,7 @@ const slugify = require('slugify');
 const CAREER_CV_BUCKET = process.env.SUPABASE_CV_BUCKET || 'career-cv';
 const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
 const GALLERY_BUCKET = process.env.SUPABASE_GALLERY_BUCKET || 'gallery';
+const ADS_BUCKET = process.env.SUPABASE_ADS_BUCKET || 'reklamlar';
 const MAX_CV_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_LISTING_IMAGE_SIZE_BYTES = Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024);
 const ALLOWED_CV_MIME_TYPES = new Set([
@@ -197,6 +198,31 @@ function assertValidGalleryFile(file) {
   }
 }
 
+function assertValidAdFile(file) {
+  if (!file) {
+    const error = new Error('Reklam faylı tələb olunur.');
+    error.status = 400;
+    throw error;
+  }
+  const isImage = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
+  const isVideo = ['video/mp4', 'video/webm', 'video/quicktime'].includes(file.mimetype);
+  if (!isImage && !isVideo) {
+    const error = new Error('Reklam üçün yalnız şəkil/GIF və MP4/WebM/MOV video faylları qəbul olunur.');
+    error.status = 400;
+    throw error;
+  }
+}
+
+async function uploadToAdBucket(file) {
+  assertValidAdFile(file);
+  const originalName = file.originalname || 'advertisement-file';
+  const sanitizedName = sanitizeFileName(originalName);
+  const folder = file.mimetype?.startsWith('video/') ? 'videos' : 'media';
+  const objectPath = buildStoragePath(sanitizedName, folder);
+  await uploadToSupabaseBucket({ bucket: ADS_BUCKET, objectPath, file });
+  return buildPublicUrl(ADS_BUCKET, objectPath);
+}
+
 async function uploadToGalleryBucket(file) {
   assertValidGalleryFile(file);
   const originalName = file.originalname || 'gallery-file';
@@ -348,6 +374,7 @@ module.exports = {
   CAREER_CV_BUCKET,
   LISTINGS_BUCKET,
   GALLERY_BUCKET,
+  ADS_BUCKET,
   MAX_CV_SIZE_BYTES,
   MAX_LISTING_IMAGE_SIZE_BYTES,
   sanitizeText,
@@ -357,6 +384,7 @@ module.exports = {
   assertValidCvFile,
   assertValidListingImage,
   assertValidGalleryFile,
+  assertValidAdFile,
   buildCareerCvPath,
   buildStoragePath,
   encodeStorageObjectPath,
@@ -364,6 +392,7 @@ module.exports = {
   uploadCareerCv,
   uploadListingImage,
   uploadToGalleryBucket,
+  uploadToAdBucket,
   checkSupabaseStorageObjectExists,
   checkCareerCvObjectLocations,
   createCareerCvSignedUrl,

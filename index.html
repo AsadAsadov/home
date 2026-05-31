@@ -218,6 +218,82 @@
         .admin-project-drag-handle:active {
             cursor: grabbing;
         }
+
+        .desktop-ad-layout {
+            width: 100%;
+        }
+        .desktop-ad-rail {
+            display: none;
+        }
+        @media (min-width: 1200px) {
+            .desktop-ad-layout {
+                display: grid;
+                grid-template-columns: 180px minmax(0, 1fr) 180px;
+                gap: 1.5rem;
+                align-items: start;
+                max-width: 1720px;
+                margin: 0 auto;
+                padding: 0 1rem;
+            }
+            .desktop-ad-layout > main {
+                min-width: 0;
+                max-width: 1280px;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .desktop-ad-rail {
+                display: flex;
+                position: sticky;
+                top: 7rem;
+                width: 180px;
+                flex-direction: column;
+                gap: 1rem;
+                z-index: 10;
+            }
+        }
+        .desktop-ad-card {
+            width: 180px;
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 1px solid rgba(207, 207, 255, 0.75);
+            background: #fff;
+            box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .desktop-ad-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 45px rgba(127, 127, 255, 0.18);
+        }
+        .desktop-ad-card img,
+        .desktop-ad-card video {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .desktop-ad-label {
+            padding: .55rem .65rem;
+            font-size: .65rem;
+            font-weight: 800;
+            color: #475569;
+            line-height: 1.2;
+        }
+        .ad-preview-box {
+            width: 180px;
+            max-width: 100%;
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 1px solid rgba(207, 207, 255, 0.75);
+            background: #fff;
+        }
+        .ad-preview-box img,
+        .ad-preview-box video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         @media (max-width: 767px) {
             #sea-breeze-projects-list {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -774,6 +850,8 @@
     </nav>
 
     <!-- MAIN CONTAINER -->
+    <div id="desktop-ad-layout" class="desktop-ad-layout">
+        <aside id="desktop-left-ads" class="desktop-ad-rail" aria-label="Sol reklamlar"></aside>
     <main class="flex-grow pt-28 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
@@ -1053,6 +1131,7 @@
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
                 <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
+                <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Advertisement Management</button>
             </div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
@@ -1516,9 +1595,59 @@ Title: Park Villas
                 </div>
                 <div class="lg:col-span-7 space-y-4" id="admin-gallery-list"></div>
             </div>
+
+            <!-- SUBTAB 6: ADVERTISEMENT MANAGEMENT -->
+            <div id="admin-subtab-ads-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="ad-form-title">Yeni Reklam</h3>
+                        <p class="text-[11px] text-gray-400 mt-1">Desktop reklamlar 1200px-dən kiçik ekranlarda gizlədilir.</p>
+                    </div>
+                    <form onsubmit="handleSaveAd(event)" oninput="updateAdPreview()" class="space-y-3">
+                        <input type="hidden" id="edit-ad-id">
+                        <input type="text" id="ad-title" required placeholder="Title" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="ad-media-type" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                                <option value="image">Image</option>
+                                <option value="gif">GIF</option>
+                                <option value="video">Video</option>
+                            </select>
+                            <select id="ad-position" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                        <input type="url" id="ad-media-url" placeholder="Media URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input type="file" id="ad-media-file" accept="image/*,video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300" onchange="updateAdPreview()">
+                        <input type="url" id="ad-click-url" placeholder="Click URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="ad-display-order" min="0" value="0" placeholder="Display Order" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Active Status</label>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Start Date<input type="date" id="ad-start-date" class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">End Date<input type="date" id="ad-end-date" class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                        </div>
+                        <div class="space-y-2">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Preview</span>
+                            <div id="ad-admin-preview" class="ad-preview-box min-h-[120px] flex items-center justify-center text-xs text-gray-400">Media URL daxil edin</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="submit" class="bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
+                            <button type="button" onclick="resetAdForm()" class="bg-white/5 border border-white/10 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Təmizlə</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 space-y-4">
+                    <div id="admin-ad-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                    <div id="admin-ads-list" class="space-y-3"></div>
+                </div>
+            </div>
         </section>
 
     </main>
+        <aside id="desktop-right-ads" class="desktop-ad-rail" aria-label="Sağ reklamlar"></aside>
+    </div>
 
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
     <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
@@ -2372,6 +2501,84 @@ Title: Park Villas
                 : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt };
         }
 
+        function dbAdToUi(ad = {}) {
+            return {
+                id: ad.id,
+                title: ad.title || '',
+                mediaType: ad.mediaType || ad.media_type || 'image',
+                mediaUrl: ad.mediaUrl || ad.media_url || ad.imageUrl || ad.image_url || '',
+                clickUrl: ad.clickUrl || ad.click_url || ad.targetUrl || ad.target_url || '',
+                position: ad.position || 'left',
+                displayOrder: Number(ad.displayOrder ?? ad.display_order ?? 0),
+                isActive: Boolean(ad.isActive ?? ad.is_active),
+                startDate: (ad.startDate || ad.start_date || '').slice(0, 10),
+                endDate: (ad.endDate || ad.end_date || '').slice(0, 10),
+                clickCount: Number(ad.clickCount ?? ad.click_count ?? 0),
+                viewCount: Number(ad.viewCount ?? ad.view_count ?? 0),
+                createdAt: ad.createdAt || ad.created_at || ''
+            };
+        }
+
+        function renderAdMedia(ad, classes = '') {
+            const url = escapeHtml(ad.mediaUrl || '');
+            const title = escapeHtml(ad.title || 'Advertisement');
+            if (!url) return '<div class="p-4 text-xs text-gray-400">Media yoxdur</div>';
+            if (ad.mediaType === 'video') {
+                return `<video class="${classes}" src="${url}" muted autoplay loop playsinline preload="metadata" title="${title}"></video>`;
+            }
+            return `<img class="${classes}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
+        }
+
+        function adIsWithinDates(ad) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (ad.startDate) {
+                const start = new Date(ad.startDate);
+                start.setHours(0, 0, 0, 0);
+                if (start > today) return false;
+            }
+            if (ad.endDate) {
+                const end = new Date(ad.endDate);
+                end.setHours(23, 59, 59, 999);
+                if (end < new Date()) return false;
+            }
+            return true;
+        }
+
+        function visibleAdsByPosition(position) {
+            return (appData.ads || [])
+                .filter(ad => ad.isActive && ad.position === position && adIsWithinDates(ad))
+                .sort((a, b) => (a.displayOrder - b.displayOrder) || (Number(a.id) - Number(b.id)));
+        }
+
+        async function trackAdView(ad) {
+            const sessionKey = `besthome_ad_viewed_${ad.id}`;
+            if (sessionStorage.getItem(sessionKey)) return;
+            sessionStorage.setItem(sessionKey, '1');
+            try { await apiRequest(`/api/site-ads/${ad.id}/view`, { method: 'POST' }); } catch (_error) {}
+        }
+
+        async function handleAdClick(id, clickUrl) {
+            try { await apiRequest(`/api/site-ads/${id}/click`, { method: 'POST' }); } catch (_error) {}
+            if (clickUrl) window.open(clickUrl, '_blank', 'noopener,noreferrer');
+        }
+
+        function renderDesktopAds() {
+            const left = document.getElementById('desktop-left-ads');
+            const right = document.getElementById('desktop-right-ads');
+            if (!left || !right) return;
+            const renderSide = (position) => visibleAdsByPosition(position).map(ad => {
+                trackAdView(ad);
+                const encodedUrl = encodeURIComponent(ad.clickUrl || '');
+                return `<article class="desktop-ad-card" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
+                    ${renderAdMedia(ad)}
+                    <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
+                </article>`;
+            }).join('');
+            left.innerHTML = renderSide('left');
+            right.innerHTML = renderSide('right');
+        }
+
         function dbAppToUi(a) {
             const [name, ...surnameParts] = String(a.fullname || '').split(' ');
             return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', cvFile: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
@@ -2393,6 +2600,8 @@ Title: Park Villas
             applications: [],
             agents: defaultAgents,
             heroSection: defaultSeaBreezeHero,
+            ads: [],
+            adStats: null,
             careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
         };
 
@@ -2404,7 +2613,8 @@ Title: Park Villas
             applications: 'besthome_applications',
             agents: 'besthome_agents',
             heroSection: 'besthome_hero_sea_breeze',
-            careerText: 'besthome_career_text'
+            careerText: 'besthome_career_text',
+            ads: 'besthome_site_ads'
         };
 
         function readCache(key, fallback) {
@@ -2435,6 +2645,7 @@ Title: Park Villas
             appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
             appData.heroSection = normalizeHeroSection(readCache(CACHE_KEYS.heroSection, defaultSeaBreezeHero));
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
+            appData.ads = readCache(CACHE_KEYS.ads, []);
         }
 
         function normalizeHeroSection(hero = {}) {
@@ -2693,7 +2904,7 @@ Title: Park Villas
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             try {
-                const [projects, listings, vacancies, gallery, heroSection, applications, users, dashboardStats, favorites] = await Promise.all([
+                const [projects, listings, vacancies, gallery, heroSection, applications, users, dashboardStats, favorites, ads, adStats] = await Promise.all([
                     apiRequest('/api/projects?page=1&limit=100'),
                     apiRequest('/api/listings?page=1&limit=100'),
                     apiRequest('/api/vacancies'),
@@ -2702,7 +2913,9 @@ Title: Park Villas
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
                     getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([]),
                     activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : Promise.resolve(null),
-                    getAuthToken() ? apiRequest('/api/favorites').catch(() => []) : Promise.resolve([])
+                    getAuthToken() ? apiRequest('/api/favorites').catch(() => []) : Promise.resolve([]),
+                    apiRequest('/api/site-ads').catch(() => []),
+                    activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
                 ]);
                 const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
@@ -2717,15 +2930,19 @@ Title: Park Villas
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
                 appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
+                cacheData('ads', (ads || []).map(dbAdToUi));
+                appData.adStats = adStats;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
                 renderSeaBreeze();
                 renderPortfolio();
                 renderCareerSection();
+                renderDesktopAds();
             } catch (error) {
                 console.warn('API məlumatları oxunmadı, yalnız lokal cache göstərilir:', error.message);
                 renderSeaBreezeHero();
+                renderDesktopAds();
             }
         }
 
@@ -3758,7 +3975,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -3770,6 +3987,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
 
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
                 const restrictedClass = btn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
@@ -3777,7 +3995,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -3789,6 +4007,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderBulkProjectPreview();
                 updateProjectImagePreview();
             }
+            if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'hero-sections') {
                 fillHeroAdminForm();
             }
@@ -4523,13 +4742,17 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 projectsCount: (appData.projects || []).length,
                 vacanciesCount: (appData.vacancies || []).length,
                 applicationsCount: (appData.applications || []).length,
+                totalAds: (appData.ads || []).length,
+                activeAds: (appData.ads || []).filter(ad => ad.isActive && adIsWithinDates(ad)).length,
+                totalViews: (appData.ads || []).reduce((sum, ad) => sum + (ad.viewCount || 0), 0),
+                totalClicks: (appData.ads || []).reduce((sum, ad) => sum + (ad.clickCount || 0), 0),
             };
         }
 
         function renderDashboardCards() {
             const container = document.getElementById('admin-dashboard-cards');
             if (!container || !activeUser || activeUser.role !== 'admin') return;
-            const stats = getDashboardStats();
+            const stats = { ...getDashboardStats(), ...(appData.adStats || {}) };
             const cards = [
                 ['Total Users', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
                 ['Total Listings', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
@@ -4539,6 +4762,10 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 ['Projects Count', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
                 ['Vacancies Count', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
                 ['Applications Count', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                ['Total Ads', stats.totalAds, 'fa-rectangle-ad', 'from-cyan-500/20 to-cyan-500/5 text-cyan-300'],
+                ['Active Ads', stats.activeAds, 'fa-toggle-on', 'from-lime-500/20 to-lime-500/5 text-lime-300'],
+                ['Total Views', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                ['Total Clicks', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
             ];
             container.innerHTML = cards.map(([label, value, icon, classes]) => `
                 <div class="rounded-2xl border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
@@ -4591,6 +4818,153 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('inline-info-modal-body').innerHTML = bodyHtml;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+
+        async function loadAdminAds() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            try {
+                const [ads, stats] = await Promise.all([
+                    apiRequest('/api/site-ads?admin=1'),
+                    apiRequest('/api/site-ads/stats')
+                ]);
+                cacheData('ads', (ads || []).map(dbAdToUi));
+                appData.adStats = stats;
+            } catch (error) {
+                console.warn('Reklamlar oxunmadı:', error.message);
+            }
+            renderAdminAds();
+            renderDashboardCards();
+            renderDesktopAds();
+        }
+
+        function renderAdminAdStats() {
+            const container = document.getElementById('admin-ad-stats');
+            if (!container) return;
+            const stats = { totalAds: 0, activeAds: 0, totalViews: 0, totalClicks: 0, ...(appData.adStats || {}) };
+            container.innerHTML = [
+                ['Total Ads', stats.totalAds],
+                ['Active Ads', stats.activeAds],
+                ['Total Views', stats.totalViews],
+                ['Total Clicks', stats.totalClicks]
+            ].map(([label, value]) => `<div class="rounded-2xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase font-black text-gray-400">${label}</div><div class="text-xl font-black text-white mt-1">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
+        }
+
+        function renderAdminAds() {
+            renderAdminAdStats();
+            const list = document.getElementById('admin-ads-list');
+            if (!list) return;
+            const ads = [...(appData.ads || [])].sort((a, b) => (a.position || '').localeCompare(b.position || '') || a.displayOrder - b.displayOrder || Number(a.id) - Number(b.id));
+            list.innerHTML = ads.length ? ads.map(ad => `
+                <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia(ad, 'w-full h-full object-cover')}</div>
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h4>
+                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • sıra ${ad.displayOrder}</div>
+                            <div class="text-gray-500">${ad.startDate || 'başlanğıc yoxdur'} → ${ad.endDate || 'son yoxdur'} • ${ad.viewCount} views • ${ad.clickCount} clicks</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="editAd('${ad.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
+                        <button onclick="toggleAd('${ad.id}', ${!ad.isActive})" class="${ad.isActive ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${ad.isActive ? 'Aktiv' : 'Deaktiv'}</button>
+                        <button onclick="deleteAd('${ad.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Reklam yoxdur.</div>';
+        }
+
+        function getAdPreviewUrl() {
+            const file = document.getElementById('ad-media-file')?.files?.[0];
+            return file ? URL.createObjectURL(file) : (document.getElementById('ad-media-url')?.value.trim() || '');
+        }
+
+        function updateAdPreview() {
+            const box = document.getElementById('ad-admin-preview');
+            if (!box) return;
+            const ad = {
+                title: document.getElementById('ad-title')?.value || 'Advertisement',
+                mediaType: document.getElementById('ad-media-type')?.value || 'image',
+                mediaUrl: getAdPreviewUrl()
+            };
+            box.innerHTML = ad.mediaUrl ? renderAdMedia(ad) : 'Media URL daxil edin';
+        }
+
+        function resetAdForm() {
+            document.getElementById('edit-ad-id').value = '';
+            document.getElementById('ad-form-title').textContent = 'Yeni Reklam';
+            document.getElementById('ad-title').value = '';
+            document.getElementById('ad-media-type').value = 'image';
+            document.getElementById('ad-media-url').value = '';
+            document.getElementById('ad-media-file').value = '';
+            document.getElementById('ad-click-url').value = '';
+            document.getElementById('ad-position').value = 'left';
+            document.getElementById('ad-display-order').value = '0';
+            document.getElementById('ad-start-date').value = '';
+            document.getElementById('ad-end-date').value = '';
+            document.getElementById('ad-is-active').checked = true;
+            updateAdPreview();
+        }
+
+        async function handleSaveAd(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-ad-id').value;
+            const formData = new FormData();
+            formData.append('title', document.getElementById('ad-title').value.trim());
+            formData.append('media_type', document.getElementById('ad-media-type').value);
+            formData.append('media_url', document.getElementById('ad-media-url').value.trim());
+            formData.append('click_url', document.getElementById('ad-click-url').value.trim());
+            formData.append('position', document.getElementById('ad-position').value);
+            formData.append('display_order', document.getElementById('ad-display-order').value || '0');
+            formData.append('start_date', document.getElementById('ad-start-date').value);
+            formData.append('end_date', document.getElementById('ad-end-date').value);
+            formData.append('is_active', document.getElementById('ad-is-active').checked ? 'true' : 'false');
+            const file = document.getElementById('ad-media-file').files[0];
+            if (file) formData.append('media', file);
+            try {
+                await apiRequest(id ? `/api/site-ads/${id}` : '/api/site-ads', id ? 'PUT' : 'POST', formData);
+                resetAdForm();
+                await loadAdminAds();
+            } catch (error) {
+                alert('Reklam yadda saxlanılmadı: ' + error.message);
+            }
+        }
+
+        function editAd(id) {
+            const ad = (appData.ads || []).find(item => String(item.id) === String(id));
+            if (!ad) return;
+            document.getElementById('edit-ad-id').value = ad.id;
+            document.getElementById('ad-form-title').textContent = 'Reklamı Redaktə Et';
+            document.getElementById('ad-title').value = ad.title;
+            document.getElementById('ad-media-type').value = ad.mediaType;
+            document.getElementById('ad-media-url').value = ad.mediaUrl;
+            document.getElementById('ad-media-file').value = '';
+            document.getElementById('ad-click-url').value = ad.clickUrl;
+            document.getElementById('ad-position').value = ad.position;
+            document.getElementById('ad-display-order').value = ad.displayOrder;
+            document.getElementById('ad-start-date').value = ad.startDate;
+            document.getElementById('ad-end-date').value = ad.endDate;
+            document.getElementById('ad-is-active').checked = ad.isActive;
+            updateAdPreview();
+            document.getElementById('admin-subtab-ads-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function toggleAd(id, isActive) {
+            try {
+                await apiRequest(`/api/site-ads/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: isActive }) });
+                await loadAdminAds();
+            } catch (error) {
+                alert('Reklam statusu dəyişmədi: ' + error.message);
+            }
+        }
+
+        async function deleteAd(id) {
+            if (!confirm('Bu reklamı silmək istədiyinizə əminsiniz?')) return;
+            try {
+                await apiRequest(`/api/site-ads/${id}`, { method: 'DELETE' });
+                await loadAdminAds();
+            } catch (error) {
+                alert('Reklam silinmədi: ' + error.message);
+            }
         }
 
         function renderAdminDashboard() {
@@ -4745,6 +5119,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                         </div>
                     `;
                 });
+
+                renderAdminAds();
             }
         }
 

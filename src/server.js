@@ -50,6 +50,7 @@ app.use('/api/hero-sections', require('./routes/heroSections'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/uploads', require('./routes/uploads'));
+app.use('/api/site-ads', require('./routes/siteAds'));
 app.use('/api/sync', require('./routes/sync'));
 
 app.get('*', (_req, res) => res.sendFile(path.join(process.cwd(), 'index.html')));
