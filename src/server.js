@@ -18,6 +18,14 @@ app.set('json replacer', (_key, value) => {
   return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
 });
 const port = process.env.PORT || 3000;
+
+function warnMissingRequiredEnv() {
+  for (const name of ['JWT_SECRET', 'DATABASE_URL']) {
+    if (!process.env[name]) console.warn(`WARNING: ${name} is missing`);
+  }
+}
+
+warnMissingRequiredEnv();
 const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
 const uploadsStaticDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -63,18 +71,27 @@ app.get('*', (req, res, next) => {
 });
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  console.error('API ERROR', {
+    message: err.message,
+    name: err.name,
+    code: err.code,
+    meta: err.meta,
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+  });
   if (err instanceof multer.MulterError) {
-    return res.status(413).json({ message: err.code === 'LIMIT_FILE_SIZE' ? 'Uploaded file is too large.' : err.message });
+    const message = err.code === 'LIMIT_FILE_SIZE' ? 'Uploaded file is too large.' : err.message;
+    return res.status(413).json({ success: false, error: message, message });
   }
   if (err.type === 'entity.too.large') {
-    return res.status(413).json({ message: 'Request entity too large.' });
+    return res.status(413).json({ success: false, error: 'Request entity too large.', message: 'Request entity too large.' });
   }
   const status = err.status || (err.code === 'P2025' ? 404 : 500);
-  const isProduction = process.env.NODE_ENV === 'production';
+  const message = err.message || 'Unexpected server error.';
   return res.status(status).json({
-    message: status === 500 && isProduction ? 'Internal server error.' : err.message,
-    details: isProduction ? undefined : { name: err.name, code: err.code, meta: err.meta },
+    success: false,
+    error: message,
+    message,
+    details: { name: err.name, code: err.code, meta: err.meta },
   });
 });
 

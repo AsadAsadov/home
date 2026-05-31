@@ -2,7 +2,12 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 
 function jwtSecret() {
-  return process.env.JWT_SECRET || 'besthome-dev-secret-change-me';
+  if (!process.env.JWT_SECRET) {
+    const error = new Error('JWT_SECRET is missing');
+    error.status = 500;
+    throw error;
+  }
+  return process.env.JWT_SECRET;
 }
 
 function signToken(payload) {
@@ -40,7 +45,9 @@ async function authenticate(req, res, next) {
     if (!valid) return res.status(401).json({ message: 'Invalid or expired session.' });
     return next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token.' });
+    const message = error.message || 'Invalid or expired token.';
+    const status = error.status || 401;
+    return res.status(status).json({ success: false, error: message, message });
   }
 }
 
