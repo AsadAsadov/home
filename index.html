@@ -535,10 +535,18 @@
             flex: 0 1 auto;
         }
         .sea-breeze-listing-card__badge--project {
-            flex: 1 1 auto;
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            max-width: 70%;
+            padding: 8px 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .sea-breeze-listing-card__badge--type {
-            flex: 0 1 auto;
+            flex: 0 0 auto;
+            margin-left: auto;
         }
         .sea-breeze-listing-card__body,
         .sea-breeze-listing-card__footer {
@@ -3233,7 +3241,7 @@ Title: Park Villas
                         <div class="sea-breeze-listing-card__media h-44 md:h-48 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             <div class="sea-breeze-listing-card__badges">
-                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase truncate">${p.project || '—'}</div>
+                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase">${p.project || '—'}</div>
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${cardListingLabel}</div>
                             </div>
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
