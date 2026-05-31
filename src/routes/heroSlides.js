@@ -8,9 +8,7 @@ const { uploadToHeroBucket } = require('../utils/supabaseStorage');
 
 const router = express.Router();
 const MEDIA_TYPES = new Set(['image', 'video']);
-const MEDIA_SOURCES = new Set(['upload', 'url']);
 const SLIDE_TYPES = new Set(['custom', 'project']);
-const PANEL_POSITIONS = new Set(['bottom-center', 'bottom-left', 'bottom-right', 'center', 'center-left', 'center-right']);
 const DEFAULT_SLIDE_DURATION = 10;
 const MIN_SLIDE_DURATION = 1;
 const MAX_SLIDE_DURATION = 3600;
@@ -39,16 +37,12 @@ function normalizeChoice(value, allowed, fallback) {
   return allowed.has(normalized) ? normalized : fallback;
 }
 
-function inferMediaType(file, requested = 'image') {
+function inferMediaType(file, requested = 'image', mediaUrl = '') {
   if (file?.mimetype?.startsWith('video/')) return 'video';
   if (file?.mimetype?.startsWith('image/')) return 'image';
-  const mediaType = String(requested || 'image').toLowerCase();
-  if (!MEDIA_TYPES.has(mediaType)) {
-    const error = new Error('media_type image və ya video olmalıdır.');
-    error.status = 400;
-    throw error;
-  }
-  return mediaType;
+  const mediaType = String(requested || '').toLowerCase();
+  if (MEDIA_TYPES.has(mediaType)) return mediaType;
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(mediaUrl || '')) ? 'video' : 'image';
 }
 
 async function uploadHeroFileWithFallback(file) {
@@ -62,8 +56,9 @@ async function uploadHeroFileWithFallback(file) {
 
 function firstProjectImage(project) {
   if (!project) return '';
+  if (project.imageUrl) return String(project.imageUrl || '').trim();
   if (Array.isArray(project.images) && project.images.length) return String(project.images[0] || '').trim();
-  return String(project.imageUrl || '').trim();
+  return '';
 }
 
 function projectLink(project) {
@@ -81,38 +76,43 @@ async function normalizePayload(body = {}, uploadedUrl = null, file = null, exis
   const slideType = normalizeChoice(body.slide_type ?? body.slideType ?? existing.slideType, SLIDE_TYPES, 'custom');
   const projectId = parseInteger(body.project_id ?? body.projectId, existing.projectId ?? 0) || null;
   const project = slideType === 'project' ? await resolveProject(projectId) : null;
-  const mediaSource = normalizeChoice(body.media_source ?? body.mediaSource ?? existing.mediaSource, MEDIA_SOURCES, file ? 'upload' : 'url');
-  const mediaType = inferMediaType(file, body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image');
   const pastedMediaUrl = String(body.media_url ?? body.mediaUrl ?? '').trim();
-  const mediaUrl = uploadedUrl || (mediaSource === 'url' ? pastedMediaUrl : '') || existing.mediaUrl || firstProjectImage(project) || '';
-  const title = String(body.title ?? '').trim() || (slideType === 'project' ? project?.title : '') || existing.title || '';
-  const description = String(body.description ?? '').trim() || existing.description || (slideType === 'project' ? project?.description : '') || '';
+  const mediaUrl = slideType === 'project'
+    ? firstProjectImage(project)
+    : (uploadedUrl || pastedMediaUrl || existing.mediaUrl || '');
+  const title = slideType === 'project'
+    ? String(project?.title || '').trim()
+    : String(body.title ?? existing.title ?? '').trim();
+  const buttonText = String(body.button_text ?? body.buttonText ?? existing.buttonText ?? (slideType === 'project' ? 'Layihəyə Bax' : '')).trim();
+  const buttonLink = slideType === 'project'
+    ? projectLink(project)
+    : String(body.button_link ?? body.buttonLink ?? existing.buttonLink ?? '').trim();
+
   return {
-    title: String(title).trim(),
-    description: String(description).trim(),
+    title,
+    description: slideType === 'project' ? '' : String(body.description ?? existing.description ?? '').trim(),
     slideType,
     projectId: slideType === 'project' ? projectId : null,
-    mediaType,
-    mediaSource: uploadedUrl ? 'upload' : mediaSource,
+    mediaType: inferMediaType(file, body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image', mediaUrl),
     mediaUrl,
     badgeText: String(body.badge_text ?? body.badgeText ?? existing.badgeText ?? '').trim(),
-    badgeColor: String(body.badge_color ?? body.badgeColor ?? existing.badgeColor ?? '#FFFFFF').trim(),
-    badgeBackground: String(body.badge_background ?? body.badgeBackground ?? existing.badgeBackground ?? 'rgba(127,127,255,0.92)').trim(),
+    badgeColor: String(body.badge_color ?? body.badgeColor ?? existing.badgeColor ?? '#C8A96A').trim(),
+    badgeBackground: String(body.badge_background ?? body.badgeBackground ?? existing.badgeBackground ?? '#111827').trim(),
     titleColor: String(body.title_color ?? body.titleColor ?? existing.titleColor ?? '#FFFFFF').trim(),
-    titleFontSize: parseRangeInteger(body.title_font_size ?? body.titleFontSize, existing.titleFontSize ?? 48, 12, 96),
-    descriptionColor: String(body.description_color ?? body.descriptionColor ?? existing.descriptionColor ?? '#F8FAFC').trim(),
-    descriptionFontSize: parseRangeInteger(body.description_font_size ?? body.descriptionFontSize, existing.descriptionFontSize ?? 18, 10, 40),
-    buttonBackground: String(body.button_background ?? body.buttonBackground ?? existing.buttonBackground ?? '#7F7FFF').trim(),
-    buttonTextColor: String(body.button_text_color ?? body.buttonTextColor ?? existing.buttonTextColor ?? '#FFFFFF').trim(),
-    panelBackground: String(body.panel_background ?? body.panelBackground ?? existing.panelBackground ?? '#111827').trim(),
-    panelBlur: parseRangeInteger(body.panel_blur ?? body.panelBlur, existing.panelBlur ?? 18, 0, 60),
-    panelOpacity: parseRangeInteger(body.panel_opacity ?? body.panelOpacity, existing.panelOpacity ?? 72, 0, 100),
-    panelPosition: normalizeChoice(body.panel_position ?? body.panelPosition ?? existing.panelPosition, PANEL_POSITIONS, 'bottom-center'),
-    heroHeightDesktop: parseRangeInteger(body.hero_height_desktop ?? body.heroHeightDesktop, existing.heroHeightDesktop ?? 560, 160, 1200),
-    heroHeightTablet: parseRangeInteger(body.hero_height_tablet ?? body.heroHeightTablet, existing.heroHeightTablet ?? 420, 140, 1000),
-    heroHeightMobile: parseRangeInteger(body.hero_height_mobile ?? body.heroHeightMobile, existing.heroHeightMobile ?? 320, 120, 900),
-    buttonText: String(body.button_text ?? body.buttonText ?? existing.buttonText ?? '').trim(),
-    buttonLink: String(body.button_link ?? body.buttonLink ?? existing.buttonLink ?? projectLink(project)).trim(),
+    titleFontSize: 34,
+    descriptionColor: '#F8FAFC',
+    descriptionFontSize: 14,
+    buttonBackground: String(body.button_background ?? body.buttonBackground ?? existing.buttonBackground ?? '#FFFFFF').trim(),
+    buttonTextColor: String(body.button_text_color ?? body.buttonTextColor ?? existing.buttonTextColor ?? '#111827').trim(),
+    panelBackground: '#111827',
+    panelBlur: 0,
+    panelOpacity: 0,
+    panelPosition: 'bottom-left',
+    heroHeightDesktop: 520,
+    heroHeightTablet: 420,
+    heroHeightMobile: 280,
+    buttonText,
+    buttonLink,
     displayOrder: parseInteger(body.display_order ?? body.displayOrder, existing.displayOrder ?? 0),
     slideDuration: parseDuration(body.slide_duration ?? body.slideDuration, existing.slideDuration ?? DEFAULT_SLIDE_DURATION),
     isActive: parseBool(body.is_active ?? body.isActive, existing.isActive ?? true),
@@ -126,7 +126,6 @@ function serializeHeroSlide(slide) {
     slide_type: slide.slideType,
     project_id: slide.projectId,
     media_type: slide.mediaType,
-    media_source: slide.mediaSource,
     media_url: slide.mediaUrl,
     badge_text: slide.badgeText,
     badge_color: slide.badgeColor,
@@ -170,8 +169,9 @@ router.get('/', asyncHandler(async (req, res) => {
 router.post('/', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
   const uploadedUrl = await uploadHeroFileWithFallback(req.file);
   const data = await normalizePayload(req.body, uploadedUrl, req.file);
+  if (data.slideType === 'project' && !data.projectId) return res.status(400).json({ message: 'Project slide requires a project.' });
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
-  if (!data.mediaUrl) return res.status(400).json({ message: 'Media upload, media URL, or project image is required.' });
+  if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL, upload, or project image is required.' });
   const created = await prisma.heroSlide.create({ data, include: { project: true } });
   res.status(201).json(serializeHeroSlide(created));
 }));
@@ -181,8 +181,9 @@ router.put('/:id', authenticate, authorize('admin'), upload.single('media'), asy
   if (!existing) return res.status(404).json({ message: 'Hero slide not found.' });
   const uploadedUrl = await uploadHeroFileWithFallback(req.file);
   const data = await normalizePayload(req.body, uploadedUrl, req.file, existing);
+  if (data.slideType === 'project' && !data.projectId) return res.status(400).json({ message: 'Project slide requires a project.' });
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
-  if (!data.mediaUrl) return res.status(400).json({ message: 'Media upload, media URL, or project image is required.' });
+  if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL, upload, or project image is required.' });
   const updated = await prisma.heroSlide.update({ where: { id: existing.id }, data, include: { project: true } });
   res.json(serializeHeroSlide(updated));
 }));
