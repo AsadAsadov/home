@@ -572,74 +572,84 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        @media (max-width: 768px) {
+        .sea-breeze-listing-card__mobile-facts {
+            display: none;
+        }
+        @media (max-width: 767.98px) {
             #seabreeze-properties-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: .75rem;
+                grid-template-columns: 1fr;
+                gap: .85rem;
             }
             .sea-breeze-listing-card {
-                border-radius: 1rem;
+                border-radius: 1.1rem;
+                height: auto;
+                box-shadow: 0 16px 42px rgba(15, 23, 42, .12);
             }
             .sea-breeze-listing-card__media {
-                height: auto;
-                aspect-ratio: 4 / 3;
+                height: 200px !important;
+                aspect-ratio: auto;
             }
             .sea-breeze-listing-card__image {
-                width: 100%;
-                height: auto;
+                width: 100% !important;
+                height: 200px !important;
                 object-fit: cover;
             }
             .sea-breeze-listing-card__badges {
-                top: .5rem;
-                left: .5rem;
-                right: .5rem;
-                gap: .25rem;
-                max-width: calc(100% - 1rem);
+                top: .7rem;
+                left: .7rem;
+                right: .7rem;
+                gap: .4rem;
+                max-width: calc(100% - 1.4rem);
             }
             .sea-breeze-listing-card__badge {
-                padding: .2rem .45rem;
+                padding: .3rem .62rem;
                 font-size: 9px;
-                line-height: 1.2;
+                line-height: 1.15;
+                box-shadow: 0 8px 20px rgba(15, 23, 42, .16);
             }
             .sea-breeze-listing-card__body {
-                padding: .75rem;
+                padding: .78rem .9rem .35rem;
+                gap: .32rem;
+            }
+            .sea-breeze-listing-card__body > :not([hidden]) ~ :not([hidden]) {
+                margin-top: .28rem !important;
             }
             .sea-breeze-listing-card__title {
-                font-size: 18px;
-                line-height: 1.15;
+                font-size: 16px;
+                line-height: 1.2;
+                letter-spacing: -.01em;
             }
-            .sea-breeze-listing-card__meta {
-                font-size: 12px;
-                line-height: 1.3;
-                white-space: nowrap;
-                text-overflow: ellipsis;
+            .sea-breeze-listing-card__meta,
+            .sea-breeze-listing-card__description,
+            .sea-breeze-listing-card__stats,
+            .sea-breeze-listing-card__price-per-m2,
+            .sea-breeze-listing-card__favorite,
+            .sea-breeze-listing-card__promo-badge,
+            .sea-breeze-listing-card__price-label,
+            .sea-breeze-listing-card__price-period {
+                display: none !important;
             }
-            .sea-breeze-listing-card__description {
+            .sea-breeze-listing-card__mobile-facts {
+                display: block;
+                color: #64748b;
                 font-size: 12px;
+                font-weight: 700;
                 line-height: 1.35;
-            }
-            .sea-breeze-listing-card__stats {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: .4rem;
-                padding: .6rem;
-                font-size: 12px;
-                line-height: 1.25;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             .sea-breeze-listing-card__footer {
-                flex-direction: column;
-                align-items: flex-start;
-                justify-content: flex-start;
-                gap: .45rem;
-                padding: .75rem;
-                padding-top: .65rem;
+                border-top: 0;
+                padding: .18rem .9rem .9rem;
+                margin-top: 0;
             }
             .sea-breeze-listing-card__price strong {
+                display: block;
+                color: #0f172a;
                 font-size: 20px;
-                line-height: 1.15;
-            }
-            .sea-breeze-listing-card__price-per-m2 {
-                width: 100%;
-                text-align: left;
+                line-height: 1.1;
+                letter-spacing: -.02em;
             }
         }
 
@@ -3195,13 +3205,18 @@ Title: Park Villas
             }
 
             paged.forEach(p => {
+                const canonicalType = canonicalListingType(p.listingType);
                 const listingLabel = listingTypeLabel(p.listingType);
-                const isRent = canonicalListingType(p.listingType) === 'Kiraye';
-                const isDailyRent = canonicalListingType(p.listingType) === 'GunlukKiraye';
+                const cardListingLabel = canonicalType === 'GunlukKiraye' ? 'Günlük' : listingLabel;
+                const isRent = canonicalType === 'Kiraye';
+                const isDailyRent = canonicalType === 'GunlukKiraye';
                 const formattedPrice = formatOptionalNumber(p.price);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
                 const badgeColor = listingTypeBadgeClass(p.listingType);
                 const isFavorite = appData.favoriteListingIds?.has(String(p.id));
+                const roomFact = p.rooms != null && p.rooms !== '' ? `${p.rooms} otaq` : '— otaq';
+                const areaFact = formatOptionalNumber(p.area, ' m²');
+                const floorFact = `${formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/')} mərtəbə`;
                 let sqPriceHtml = '';
                 if (isSaleListing(p.listingType) && Number(p.area) > 0) {
                     const sqPrice = Math.round(Number(p.price) / Number(p.area));
@@ -3219,16 +3234,17 @@ Title: Park Villas
                             <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             <div class="sea-breeze-listing-card__badges">
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase truncate">${p.project || '—'}</div>
-                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${listingLabel}</div>
+                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${cardListingLabel}</div>
                             </div>
-                            ${p.vip ? '<div class="absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
-                            ${p.featured ? '<div class="absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
-                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                            ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
+                            ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
+                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 space-y-2 flex-1 min-w-0 max-w-full">
                             <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${p.title || '—'}</h4>
                             <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
                             <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${p.desc || ''}</p>
+                            <p class="sea-breeze-listing-card__mobile-facts">${roomFact} • ${areaFact} • ${floorFact}</p>
                             <div class="sea-breeze-listing-card__stats grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
                                 <span>Otaq: <strong class="text-gray-900">${p.rooms ?? '—'}</strong></span>
                                 <span>Sahə: <strong class="text-gray-900">${formatOptionalNumber(p.area, ' m²')}</strong></span>
@@ -3238,8 +3254,8 @@ Title: Park Villas
                         </div>
                         <div class="sea-breeze-listing-card__footer p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5 min-w-0 max-w-full">
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
-                                <span class="text-[9px] text-gray-500 uppercase block">Qiymət</span>
-                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${formattedPrice !== '—' ? ' AZN' : ''}${isRent && formattedPrice !== '—' ? ' /ay' : ''}${isDailyRent && formattedPrice !== '—' ? ' /gün' : ''}</strong>
+                                <span class="sea-breeze-listing-card__price-label text-[9px] text-gray-500 uppercase block">Qiymət</span>
+                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${formattedPrice !== '—' ? ' AZN' : ''}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
                             </div>
                             ${sqPriceHtml}
                         </div>
