@@ -1,28 +1,58 @@
 const jwt = require('jsonwebtoken');
+const prisma = require('../lib/prisma');
 
-function signToken(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
+function jwtSecret() {
+  return process.env.JWT_SECRET || 'besthome-dev-secret-change-me';
 }
 
-function authenticate(req, res, next) {
+function signToken(payload) {
+  return jwt.sign(payload, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
+}
+
+function tokenExpiresAt(token) {
+  const decoded = jwt.decode(token);
+  if (decoded?.exp) return new Date(decoded.exp * 1000);
+  const fallbackDays = Number(process.env.JWT_FALLBACK_DAYS || 7);
+  return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000);
+}
+
+async function isSessionValid(token, auth) {
+  try {
+    const session = await prisma.userSession.findUnique({ where: { token } });
+    if (!session || session.expiresAt <= new Date()) return false;
+    if (String(session.userId) !== String(auth.id)) return false;
+    return true;
+  } catch (error) {
+    if (['P2021', 'P2022'].includes(error.code)) return true;
+    throw error;
+  }
+}
+
+async function authenticate(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ message: 'Authentication token is required.' });
 
   try {
-    req.auth = jwt.verify(token, process.env.JWT_SECRET);
+    req.auth = jwt.verify(token, jwtSecret());
+    req.authToken = token;
+    const valid = await isSessionValid(token, req.auth);
+    if (!valid) return res.status(401).json({ message: 'Invalid or expired session.' });
     return next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 }
 
-function optionalAuthenticate(req, _res, next) {
+async function optionalAuthenticate(req, _res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return next();
   try {
-    req.auth = jwt.verify(token, process.env.JWT_SECRET);
+    req.auth = jwt.verify(token, jwtSecret());
+    req.authToken = token;
+    const valid = await isSessionValid(token, req.auth);
+    if (!valid) req.auth = null;
   } catch (_error) {
     req.auth = null;
   }
@@ -37,4 +67,4 @@ function authorize(...roles) {
   };
 }
 
-module.exports = { authenticate, optionalAuthenticate, authorize, signToken };
+module.exports = { authenticate, optionalAuthenticate, authorize, signToken, tokenExpiresAt };

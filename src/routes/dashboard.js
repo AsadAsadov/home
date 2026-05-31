@@ -13,6 +13,30 @@ function activeAdWhere(now = new Date()) {
   };
 }
 
+
+
+function toBigIntId(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  try { return BigInt(value); } catch (_error) { return undefined; }
+}
+
+router.get('/me', authenticate, asyncHandler(async (req, res) => {
+  const userId = toBigIntId(req.auth.id);
+  const [activeListings, pendingListings, listingsAgg, favoriteCount] = await Promise.all([
+    prisma.listing.count({ where: { userId, status: 'approved' } }),
+    prisma.listing.count({ where: { userId, status: 'pending' } }),
+    prisma.listing.aggregate({ where: { userId }, _sum: { viewCount: true, favoritesCount: true } }),
+    prisma.favorite.count({ where: { userId } }),
+  ]);
+  res.json({
+    activeListings,
+    pendingListings,
+    views: listingsAgg._sum.viewCount || 0,
+    favorites: listingsAgg._sum.favoritesCount || favoriteCount || 0,
+    savedFavorites: favoriteCount,
+  });
+}));
+
 router.get('/stats', authenticate, authorize('admin'), asyncHandler(async (_req, res) => {
   const [totalUsers, totalListings, pendingListings, approvedListings, rejectedListings, projectsCount, vacanciesCount, applicationsCount, adsAggregate, activeAds] = await Promise.all([
     prisma.user.count(),

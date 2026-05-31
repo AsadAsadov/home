@@ -2,6 +2,7 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate } = require('../middleware/auth');
+const { logUserActivity } = require('../utils/activity');
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ router.post('/', authenticate, asyncHandler(async (req, res) => {
     await tx.listing.update({ where: { id: listingId }, data: { favoritesCount: count } });
     return created;
   });
+  await logUserActivity(prisma, req.auth.id, 'add_favorite');
   res.status(201).json(favorite);
 }));
 

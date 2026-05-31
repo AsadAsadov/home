@@ -35,7 +35,9 @@ model Listing {
   propertyCategory String?        @map("property_category")
   projectName      String?        @map("project_name")
   regionType       String?        @map("region_type")
+  city             String?
   district         String?
+  neighborhood     String?
   roomCount        Int?           @map("room_count")
   area             String?
   floorNumber      Int?           @map("floor_number")
@@ -146,15 +148,50 @@ model Gallery {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  fullname     String
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  phone        String?  @db.Text
-  role         Role     @default(user)
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            Int               @id @default(autoincrement())
+  fullname      String
+  email         String            @unique
+  passwordHash  String            @map("password_hash")
+  phone         String?           @db.Text
+  avatarUrl     String?           @map("avatar_url") @db.Text
+  isActive      Boolean           @default(true) @map("is_active")
+  emailVerified Boolean           @default(false) @map("email_verified")
+  phoneVerified Boolean           @default(false) @map("phone_verified")
+  lastLogin     DateTime?         @map("last_login")
+  role          Role              @default(user)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  sessions      UserSession[]
+  activityLogs  UserActivityLog[]
 
   @@map("users")
+}
+
+model UserSession {
+  id        BigInt   @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  token     String   @unique @db.Text
+  ipAddress String?  @map("ip_address") @db.Text
+  userAgent String?  @map("user_agent") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_sessions_user_id")
+  @@index([expiresAt], map: "idx_user_sessions_expires_at")
+  @@map("user_sessions")
+}
+
+model UserActivityLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  action    String
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_user_activity_logs_user_id")
+  @@index([action], map: "idx_user_activity_logs_action")
+  @@index([createdAt], map: "idx_user_activity_logs_created_at")
+  @@map("user_activity_logs")
 }
 
 model HeroSection {
