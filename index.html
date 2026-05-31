@@ -1683,6 +1683,7 @@ Title: Park Villas
                             <select id="ad-position" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                                 <option value="left">Left</option>
                                 <option value="right">Right</option>
+                                <option value="both">Both</option>
                             </select>
                         </div>
                         <input type="url" id="ad-media-url" placeholder="Media URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
@@ -1690,8 +1691,13 @@ Title: Park Villas
                         <input type="url" id="ad-click-url" placeholder="Click URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <div class="grid grid-cols-2 gap-3">
                             <input type="number" id="ad-display-order" min="0" value="0" placeholder="Display Order" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                            <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Active Status</label>
+                            <input type="number" id="ad-rotation-order" min="0" value="0" placeholder="Rotation Order" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="ad-repeat-count" min="1" max="100" value="3" placeholder="Repeat Count" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <input type="number" id="ad-display-duration" min="1" max="86400" value="30" placeholder="Display Duration (seconds)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        </div>
+                        <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Active Status</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Width (px)<input type="number" id="ad-width-px" min="80" max="1000" value="180" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Height (px)<input type="number" id="ad-height-px" min="80" max="1200" value="320" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
@@ -2037,8 +2043,14 @@ Title: Park Villas
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
         const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Mehdiabad', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan'];
         const GENERAL_CITIES = ['Bakı', 'Abşeron', 'Sumqayıt'];
-        const AD_ROTATION_INTERVAL_MS = 30000;
-        const adRotationState = { left: 0, right: 0, timers: {} };
+        const AD_DEFAULT_DISPLAY_DURATION_SECONDS = 30;
+        const AD_MIN_DISPLAY_DURATION_SECONDS = 1;
+        const AD_MAX_DISPLAY_DURATION_SECONDS = 86400;
+        const AD_DEFAULT_REPEAT_COUNT = 3;
+        const AD_MIN_REPEAT_COUNT = 1;
+        const AD_MAX_REPEAT_COUNT = 100;
+        const AD_DESKTOP_MIN_WIDTH = 1200;
+        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
@@ -2703,8 +2715,11 @@ Title: Park Villas
                 mediaType: ad.mediaType || ad.media_type || 'image',
                 mediaUrl: ad.mediaUrl || ad.media_url || ad.imageUrl || ad.image_url || '',
                 clickUrl: ad.clickUrl || ad.click_url || ad.targetUrl || ad.target_url || '',
-                position: ad.position || 'left',
+                position: ['left', 'right', 'both'].includes(String(ad.position || '').toLowerCase()) ? String(ad.position).toLowerCase() : 'left',
                 displayOrder: Number(ad.displayOrder ?? ad.display_order ?? 0),
+                rotationOrder: Number(ad.rotationOrder ?? ad.rotation_order ?? 0),
+                repeatCount: adDimension(ad.repeatCount ?? ad.repeat_count, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT),
+                displayDuration: adDimension(ad.displayDuration ?? ad.display_duration, AD_DEFAULT_DISPLAY_DURATION_SECONDS, AD_MIN_DISPLAY_DURATION_SECONDS, AD_MAX_DISPLAY_DURATION_SECONDS),
                 widthPx: dimensions.width,
                 width_px: dimensions.width,
                 heightPx: dimensions.height,
@@ -2720,14 +2735,16 @@ Title: Park Villas
             };
         }
 
-        function renderAdMedia(ad, classes = '') {
+        function renderAdMedia(ad, classes = '', options = {}) {
             const url = escapeHtml(ad.mediaUrl || '');
             const title = escapeHtml(ad.title || 'Advertisement');
             const dimensions = getAdDimensions(ad);
             const style = `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
             if (!url) return `<div class="p-4 text-xs text-gray-400" style="width:${dimensions.width}px;height:${dimensions.height}px;">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
-                return `<video class="${classes}" style="${style}" src="${url}" muted autoplay loop playsinline preload="metadata" title="${title}"></video>`;
+                const loopAttr = options.loop === false ? '' : ' loop';
+                const dataRole = options.rotation ? ' data-ad-rotation-video="true"' : '';
+                return `<video class="${classes}" style="${style}" src="${url}" muted autoplay${loopAttr} playsinline preload="metadata" title="${title}"${dataRole}></video>`;
             }
             return `<img class="${classes}" style="${style}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
         }
@@ -2748,10 +2765,30 @@ Title: Park Villas
             return true;
         }
 
-        function visibleAdsByPosition(position) {
+        function visibleRotationAds() {
             return (appData.ads || [])
-                .filter(ad => ad.isActive && ad.position === position && adIsWithinDates(ad))
-                .sort((a, b) => (a.displayOrder - b.displayOrder) || (Number(a.id) - Number(b.id)));
+                .filter(ad => ad.isActive && ['left', 'right', 'both'].includes(ad.position) && adIsWithinDates(ad))
+                .sort((a, b) => (a.rotationOrder - b.rotationOrder) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || Number(a.id) - Number(b.id));
+        }
+
+        function clearAdRotationTimer() {
+            if (adRotationState.timer) {
+                clearTimeout(adRotationState.timer);
+                adRotationState.timer = null;
+            }
+        }
+
+        function finishAdRotationRepeat() {
+            const ads = visibleRotationAds();
+            if (!ads.length) return renderDesktopAds();
+            const currentAd = ads[adRotationState.index] || ads[0];
+            const repeatCount = adDimension(currentAd.repeatCount, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT);
+            adRotationState.repeat += 1;
+            if (adRotationState.repeat >= repeatCount) {
+                adRotationState.index = (adRotationState.index + 1) % ads.length;
+                adRotationState.repeat = 0;
+            }
+            renderDesktopAds();
         }
 
         async function trackAdView(ad) {
@@ -2770,33 +2807,46 @@ Title: Park Villas
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
-            const renderSide = (position, container) => {
-                const ads = visibleAdsByPosition(position);
-                if (adRotationState[position] >= ads.length) adRotationState[position] = 0;
-                const ad = ads[adRotationState[position]];
-                if (!ad) {
-                    container.innerHTML = '';
-                    clearInterval(adRotationState.timers[position]);
-                    adRotationState.timers[position] = null;
-                    return;
-                }
-                trackAdView(ad);
-                const encodedUrl = encodeURIComponent(ad.clickUrl || '');
-                const dimensions = getAdDimensions(ad);
-                container.innerHTML = `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
-                    ${renderAdMedia(ad)}
-                    <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
-                </article>`;
-                if (ads.length > 1 && !adRotationState.timers[position]) {
-                    adRotationState.timers[position] = setInterval(() => {
-                        const currentAds = visibleAdsByPosition(position);
-                        adRotationState[position] = currentAds.length ? (adRotationState[position] + 1) % currentAds.length : 0;
-                        renderDesktopAds();
-                    }, AD_ROTATION_INTERVAL_MS);
-                }
-            };
-            renderSide('left', left);
-            renderSide('right', right);
+            clearAdRotationTimer();
+            if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
+                left.innerHTML = '';
+                right.innerHTML = '';
+                return;
+            }
+            const ads = visibleRotationAds();
+            if (!ads.length) {
+                left.innerHTML = '';
+                right.innerHTML = '';
+                adRotationState.index = 0;
+                adRotationState.repeat = 0;
+                adRotationState.activeAdId = null;
+                return;
+            }
+            if (adRotationState.index >= ads.length) adRotationState.index = 0;
+            const ad = ads[adRotationState.index];
+            if (String(adRotationState.activeAdId) !== String(ad.id)) {
+                adRotationState.activeAdId = ad.id;
+                adRotationState.repeat = 0;
+            }
+            trackAdView(ad);
+            const encodedUrl = encodeURIComponent(ad.clickUrl || '');
+            const dimensions = getAdDimensions(ad);
+            const cardHtml = `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
+                ${renderAdMedia(ad, '', { loop: false, rotation: true })}
+                <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
+            </article>`;
+            left.innerHTML = (ad.position === 'left' || ad.position === 'both') ? cardHtml : '';
+            right.innerHTML = (ad.position === 'right' || ad.position === 'both') ? cardHtml : '';
+            if (ad.mediaType === 'video') {
+                document.querySelectorAll('[data-ad-rotation-video="true"]').forEach((video, index) => {
+                    video.onended = index === 0 ? finishAdRotationRepeat : null;
+                    video.currentTime = 0;
+                    video.play().catch(() => {});
+                });
+            } else {
+                const durationSeconds = adDimension(ad.displayDuration, AD_DEFAULT_DISPLAY_DURATION_SECONDS, AD_MIN_DISPLAY_DURATION_SECONDS, AD_MAX_DISPLAY_DURATION_SECONDS);
+                adRotationState.timer = setTimeout(finishAdRotationRepeat, durationSeconds * 1000);
+            }
         }
 
         function dbAppToUi(a) {
@@ -5224,14 +5274,14 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             renderAdminAdStats();
             const list = document.getElementById('admin-ads-list');
             if (!list) return;
-            const ads = [...(appData.ads || [])].sort((a, b) => (a.position || '').localeCompare(b.position || '') || a.displayOrder - b.displayOrder || Number(a.id) - Number(b.id));
+            const ads = [...(appData.ads || [])].sort((a, b) => (a.rotationOrder - b.rotationOrder) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || (a.position || '').localeCompare(b.position || '') || a.displayOrder - b.displayOrder || Number(a.id) - Number(b.id));
             list.innerHTML = ads.length ? ads.map(ad => `
                 <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia({ ...ad, widthPx: 72, heightPx: 72, objectFit: 'cover' }, 'w-full h-full')}</div>
                         <div class="min-w-0">
                             <h4 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h4>
-                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • ${ad.widthPx}×${ad.heightPx}px • ${ad.objectFit} • sıra ${ad.displayOrder}</div>
+                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • ${ad.widthPx}×${ad.heightPx}px • ${ad.objectFit} • display ${ad.displayOrder} • rotation ${ad.rotationOrder} • repeat ${ad.repeatCount}× • ${ad.displayDuration}s</div>
                             <div class="text-gray-500">${ad.startDate || 'başlanğıc yoxdur'} → ${ad.endDate || 'son yoxdur'} • ${ad.viewCount} views • ${ad.clickCount} clicks</div>
                         </div>
                     </div>
@@ -5259,12 +5309,22 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         function validateAdFormDimensions() {
             const width = Number.parseInt(document.getElementById('ad-width-px')?.value, 10);
             const height = Number.parseInt(document.getElementById('ad-height-px')?.value, 10);
+            const repeatCount = Number.parseInt(document.getElementById('ad-repeat-count')?.value, 10);
+            const displayDuration = Number.parseInt(document.getElementById('ad-display-duration')?.value, 10);
             if (!Number.isFinite(width) || width < AD_DIMENSION_LIMITS.minWidth || width > AD_DIMENSION_LIMITS.maxWidth) {
                 alert(`Width ${AD_DIMENSION_LIMITS.minWidth}-${AD_DIMENSION_LIMITS.maxWidth}px aralığında olmalıdır.`);
                 return false;
             }
             if (!Number.isFinite(height) || height < AD_DIMENSION_LIMITS.minHeight || height > AD_DIMENSION_LIMITS.maxHeight) {
                 alert(`Height ${AD_DIMENSION_LIMITS.minHeight}-${AD_DIMENSION_LIMITS.maxHeight}px aralığında olmalıdır.`);
+                return false;
+            }
+            if (!Number.isFinite(repeatCount) || repeatCount < AD_MIN_REPEAT_COUNT || repeatCount > AD_MAX_REPEAT_COUNT) {
+                alert(`Repeat Count ${AD_MIN_REPEAT_COUNT}-${AD_MAX_REPEAT_COUNT} aralığında olmalıdır.`);
+                return false;
+            }
+            if (!Number.isFinite(displayDuration) || displayDuration < AD_MIN_DISPLAY_DURATION_SECONDS || displayDuration > AD_MAX_DISPLAY_DURATION_SECONDS) {
+                alert(`Display Duration ${AD_MIN_DISPLAY_DURATION_SECONDS}-${AD_MAX_DISPLAY_DURATION_SECONDS} saniyə aralığında olmalıdır.`);
                 return false;
             }
             return true;
@@ -5296,6 +5356,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('ad-click-url').value = '';
             document.getElementById('ad-position').value = 'left';
             document.getElementById('ad-display-order').value = '0';
+            document.getElementById('ad-rotation-order').value = '0';
+            document.getElementById('ad-repeat-count').value = String(AD_DEFAULT_REPEAT_COUNT);
+            document.getElementById('ad-display-duration').value = String(AD_DEFAULT_DISPLAY_DURATION_SECONDS);
             document.getElementById('ad-width-px').value = String(AD_DIMENSION_DEFAULTS.width);
             document.getElementById('ad-height-px').value = String(AD_DIMENSION_DEFAULTS.height);
             document.getElementById('ad-object-fit').value = AD_DIMENSION_DEFAULTS.objectFit;
@@ -5317,6 +5380,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             formData.append('click_url', document.getElementById('ad-click-url').value.trim());
             formData.append('position', document.getElementById('ad-position').value);
             formData.append('display_order', document.getElementById('ad-display-order').value || '0');
+            formData.append('rotation_order', document.getElementById('ad-rotation-order').value || '0');
+            formData.append('repeat_count', document.getElementById('ad-repeat-count').value || String(AD_DEFAULT_REPEAT_COUNT));
+            formData.append('display_duration', document.getElementById('ad-display-duration').value || String(AD_DEFAULT_DISPLAY_DURATION_SECONDS));
             formData.append('width_px', String(dimensions.widthPx));
             formData.append('height_px', String(dimensions.heightPx));
             formData.append('object_fit', dimensions.objectFit);
@@ -5346,6 +5412,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('ad-click-url').value = ad.clickUrl;
             document.getElementById('ad-position').value = ad.position;
             document.getElementById('ad-display-order').value = ad.displayOrder;
+            document.getElementById('ad-rotation-order').value = ad.rotationOrder;
+            document.getElementById('ad-repeat-count').value = ad.repeatCount;
+            document.getElementById('ad-display-duration').value = ad.displayDuration;
             document.getElementById('ad-width-px').value = String(ad.widthPx ?? AD_DIMENSION_DEFAULTS.width);
             document.getElementById('ad-height-px').value = String(ad.heightPx ?? AD_DIMENSION_DEFAULTS.height);
             document.getElementById('ad-object-fit').value = normalizeObjectFit(ad.objectFit);
@@ -6447,6 +6516,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         }
 
         // MAIN SETUP AND BOOTSTRAP
+        window.addEventListener('resize', renderDesktopAds);
+
         window.addEventListener('load', async () => {
             renderProjectImageInputs(['']);
             await initializeAuth();
