@@ -7,6 +7,7 @@ const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
 const GALLERY_BUCKET = process.env.SUPABASE_GALLERY_BUCKET || 'gallery';
 const ADS_BUCKET = process.env.SUPABASE_ADS_BUCKET || 'reklamlar';
 const AVATARS_BUCKET = process.env.SUPABASE_AVATARS_BUCKET || 'avatars';
+const HERO_BUCKET = process.env.SUPABASE_HERO_BUCKET || 'siteimage';
 const MAX_CV_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_LISTING_IMAGE_SIZE_BYTES = Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024);
 const ALLOWED_CV_MIME_TYPES = new Set([
@@ -199,6 +200,20 @@ function assertValidGalleryFile(file) {
   }
 }
 
+function assertValidHeroFile(file) {
+  if (!file) {
+    const error = new Error('Hero media faylı tələb olunur.');
+    error.status = 400;
+    throw error;
+  }
+  const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']);
+  if (!allowedMimeTypes.has(file.mimetype)) {
+    const error = new Error('Hero üçün yalnız JPG, PNG, WEBP, GIF, MP4 və WEBM faylları qəbul olunur.');
+    error.status = 400;
+    throw error;
+  }
+}
+
 function assertValidAdFile(file) {
   if (!file) {
     const error = new Error('Reklam faylı tələb olunur.');
@@ -212,6 +227,16 @@ function assertValidAdFile(file) {
     error.status = 400;
     throw error;
   }
+}
+
+async function uploadToHeroBucket(file) {
+  assertValidHeroFile(file);
+  const originalName = file.originalname || 'hero-media';
+  const sanitizedName = sanitizeFileName(originalName);
+  const folder = file.mimetype?.startsWith('video/') ? 'hero/videos' : 'hero/images';
+  const objectPath = buildStoragePath(sanitizedName, folder);
+  await uploadToSupabaseBucket({ bucket: HERO_BUCKET, objectPath, file });
+  return buildPublicUrl(HERO_BUCKET, objectPath);
 }
 
 async function uploadToAdBucket(file) {
@@ -386,6 +411,7 @@ module.exports = {
   GALLERY_BUCKET,
   ADS_BUCKET,
   AVATARS_BUCKET,
+  HERO_BUCKET,
   MAX_CV_SIZE_BYTES,
   MAX_LISTING_IMAGE_SIZE_BYTES,
   sanitizeText,
@@ -396,6 +422,7 @@ module.exports = {
   assertValidListingImage,
   assertValidGalleryFile,
   assertValidAdFile,
+  assertValidHeroFile,
   buildCareerCvPath,
   buildStoragePath,
   encodeStorageObjectPath,
@@ -405,6 +432,7 @@ module.exports = {
   uploadListingImage,
   uploadToGalleryBucket,
   uploadToAdBucket,
+  uploadToHeroBucket,
   checkSupabaseStorageObjectExists,
   checkCareerCvObjectLocations,
   createCareerCvSignedUrl,
