@@ -440,9 +440,19 @@
             color: #FFFFFF !important;
         }
         .sea-breeze-hero.glass-card {
+            width: 100%;
+            height: var(--hero-height-desktop, 560px);
+            min-height: 0;
+            border-radius: 28px;
             background: rgba(255, 255, 255, 0.10);
-            border-color: rgba(207, 207, 255, 0.45);
-            box-shadow: 0 24px 60px rgba(127, 127, 255, 0.18);
+            border-color: rgba(207, 207, 255, 0.35);
+            box-shadow: 0 30px 90px rgba(15, 23, 42, 0.24), 0 18px 45px rgba(127, 127, 255, 0.18);
+        }
+        @media (max-width: 1023px) {
+            .sea-breeze-hero.glass-card { height: var(--hero-height-tablet, 420px); }
+        }
+        @media (max-width: 640px) {
+            .sea-breeze-hero.glass-card { height: var(--hero-height-mobile, 320px); }
         }
         .hero-slide-media {
             opacity: 0;
@@ -451,22 +461,20 @@
         .hero-slide-media.is-active {
             opacity: 1;
         }
-        .hero-glass-panel {
-            width: min(90%, 700px);
-            margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.52);
-            box-shadow: 0 26px 70px rgba(15, 23, 42, 0.22);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-        }
+        .hero-glass-panel,
         .hero-preview-panel {
             width: min(90%, 700px);
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.52);
-            box-shadow: 0 22px 55px rgba(15, 23, 42, 0.20);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            background: var(--hero-panel-background, rgba(17, 24, 39, 0.72));
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 26px 70px rgba(15, 23, 42, 0.26);
+            backdrop-filter: blur(var(--hero-panel-blur, 18px));
+            -webkit-backdrop-filter: blur(var(--hero-panel-blur, 18px));
+            animation: hero-panel-slide-up 500ms ease both;
+        }
+        .hero-button-animated:hover { transform: scale(1.05); }
+        @keyframes hero-panel-slide-up {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .bg-brand-500 {
             background-color: var(--color-primary) !important;
@@ -515,18 +523,12 @@
             color: var(--color-text-secondary) !important;
         }
         #sea-breeze-hero-badge {
-            background-color: rgba(234, 234, 255, 0.86) !important;
-            border-color: rgba(127, 127, 255, 0.46) !important;
-            color: var(--color-primary) !important;
+            background-color: var(--hero-badge-background, rgba(127,127,255,0.92)) !important;
+            border-color: rgba(255, 255, 255, 0.24) !important;
+            color: var(--hero-badge-color, #FFFFFF) !important;
         }
-        #sea-breeze-hero-title {
-            color: #111827 !important;
-            text-shadow: 0 2px 14px rgba(255, 255, 255, 0.86), 0 1px 2px rgba(15, 23, 42, 0.28);
-        }
-        #sea-breeze-hero-description {
-            color: #1F2937 !important;
-            text-shadow: 0 2px 12px rgba(255, 255, 255, 0.82), 0 1px 1px rgba(15, 23, 42, 0.18);
-        }
+        #sea-breeze-hero-title { color: var(--hero-title-color, #FFFFFF) !important; }
+        #sea-breeze-hero-description { color: var(--hero-description-color, #F8FAFC) !important; }
         .absolute.text-white,
         .absolute .text-white,
         .fixed .bg-black .text-white,
@@ -881,19 +883,20 @@
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
         <section id="tab-seabreeze" class="tab-content space-y-12">
             <!-- Hero banner -->
-            <div id="sea-breeze-hero-slider" class="sea-breeze-hero relative rounded-3xl overflow-hidden glass-card min-h-[60vh] md:min-h-[70vh] flex items-end justify-center">
+            <div id="sea-breeze-hero-slider" class="sea-breeze-hero relative overflow-hidden glass-card flex items-end justify-center">
                 <div id="sea-breeze-hero-media" class="absolute inset-0" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
-                <div id="sea-breeze-hero-color-overlay" class="absolute inset-0 bg-black/25"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
+                <div id="sea-breeze-hero-color-overlay" class="absolute inset-0 pointer-events-none"></div>
+                <div id="sea-breeze-hero-gradient-overlay" class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55));"></div>
 
                 <div id="sea-breeze-hero-panel" class="hero-glass-panel relative z-10 rounded-3xl p-5 sm:p-7 md:p-8 text-center space-y-4">
-                    <h1 id="sea-breeze-hero-title" class="text-2xl md:text-4xl lg:text-5xl font-black text-gray-950 leading-[1.05] drop-shadow-xl">
-                        Sea Breeze-də <br><span class="font-black text-gray-900">Premium Həyat Tərzi!</span>
+                    <span id="sea-breeze-hero-badge" class="hidden inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]"></span>
+                    <h1 id="sea-breeze-hero-title" class="text-2xl md:text-4xl lg:text-5xl font-black leading-[1.05] drop-shadow-xl">
+                        Sea Breeze-də <br><span class="font-black">Premium Həyat Tərzi!</span>
                     </h1>
-                    <p id="sea-breeze-hero-description" class="mx-auto max-w-2xl text-gray-800 text-sm md:text-lg font-semibold leading-snug md:leading-relaxed drop-shadow-md">
+                    <p id="sea-breeze-hero-description" class="mx-auto max-w-2xl text-sm md:text-lg font-semibold leading-snug md:leading-relaxed drop-shadow-md">
                         Arzuladığınız evi tapın. Seçilmiş layihələr və aktual elanlar sizi gözləyir.
                     </p>
-                    <a id="sea-breeze-hero-button" href="#sea-breeze-projects-list" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3 text-sm font-black text-white shadow-xl transition hover:scale-[1.02]">
+                    <a id="sea-breeze-hero-button" href="#sea-breeze-projects-list" class="hero-button-animated inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black shadow-xl transition duration-300">
                         Layihələrə bax <i class="fa-solid fa-arrow-down"></i>
                     </a>
                 </div>
@@ -1545,26 +1548,61 @@ Title: Park Villas
                     <div id="hero-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Hero slayd uğurla saxlanıldı.</div>
                     <form onsubmit="handleSaveHeroSlide(event)" class="space-y-3">
                         <input type="hidden" id="hero-slide-id">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</label>
-                            <textarea id="hero-title-input" rows="3" required placeholder="Hero başlığı" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama</label>
-                            <textarea id="hero-description-input" rows="4" placeholder="Hero açıqlaması" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
-                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Slide Type</span><select id="hero-slide-type-input" onchange="handleHeroSlideTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="custom">Custom</option><option value="project">Project Auto</option></select></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Project</span><select id="hero-project-id-input" onchange="handleHeroProjectChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="">Layihə seçin</option></select></label>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Başlıq / Override</label>
+                            <textarea id="hero-title-input" rows="3" placeholder="Project mode-da boş saxlasanız layihə başlığı gələcək" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama / Override</label>
+                            <textarea id="hero-description-input" rows="4" placeholder="Project mode-da istəyə bağlı override" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Media Source</span><select id="hero-media-source-input" onchange="handleHeroMediaSourceChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="upload">Upload File</option><option value="url">Paste URL</option></select></label>
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Media Type</span><select id="hero-media-type-input" onchange="updateHeroAdminPreview()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="image">Image</option><option value="video">Video</option></select></label>
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Duration Seconds</span><input type="number" id="hero-duration-input" min="1" value="10" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         </div>
-                        <div class="space-y-1">
+                        <div id="hero-upload-panel" class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Media Upload</label>
                             <input type="file" id="hero-media-file-input" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-                            <p id="hero-existing-media-label" class="text-[10px] text-gray-500">Yeni slayd üçün media faylı seçin. Redaktə zamanı fayl seçməsəniz mövcud media qalacaq.</p>
                         </div>
+                        <div id="hero-url-panel" class="space-y-1 hidden">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Media URL</label>
+                            <input type="url" id="hero-media-url-input" placeholder="https://... image və ya MP4 URL" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                        </div>
+                        <p id="hero-existing-media-label" class="text-[10px] text-gray-500">Upload, URL və ya Project Auto media istifadə edin.</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Text</span><input type="text" id="hero-button-text-input" placeholder="Layihələrə bax" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Link</span><input type="text" id="hero-button-link-input" placeholder="#sea-breeze-projects-list" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Link</span><input type="text" id="hero-button-link-input" placeholder="/project/slug və ya #sea-breeze-projects-list" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge</span><input type="text" id="hero-badge-text-input" placeholder="NEW / PREMIUM / 2027" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge Text</span><input type="text" id="hero-badge-color-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge BG</span><input type="text" id="hero-badge-background-input" value="rgba(127,127,255,0.92)" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Title Color</span><input type="text" id="hero-title-color-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Title Size PX</span><input type="number" id="hero-title-font-size-input" min="12" max="96" value="48" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Description Color</span><input type="text" id="hero-description-color-input" value="#F8FAFC" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Description Size PX</span><input type="number" id="hero-description-font-size-input" min="10" max="40" value="18" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button BG</span><input type="text" id="hero-button-background-input" value="#7F7FFF" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Text Color</span><input type="text" id="hero-button-text-color-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Panel BG</span><input type="text" id="hero-panel-background-input" value="#111827" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Blur PX</span><input type="number" id="hero-panel-blur-input" min="0" max="60" value="18" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Opacity %</span><input type="number" id="hero-panel-opacity-input" min="0" max="100" value="72" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Panel Position</span><select id="hero-panel-position-input" onchange="updateHeroAdminPreview()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="bottom-center">bottom-center</option><option value="bottom-left">bottom-left</option><option value="bottom-right">bottom-right</option><option value="center">center</option><option value="center-left">center-left</option><option value="center-right">center-right</option></select></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Desktop Height</span><input type="number" id="hero-height-desktop-input" value="560" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Tablet Height</span><input type="number" id="hero-height-tablet-input" value="420" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Mobile Height</span><input type="number" id="hero-height-mobile-input" value="320" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Display Order</span><input type="number" id="hero-display-order-input" value="0" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
@@ -1578,14 +1616,15 @@ Title: Park Villas
                 </div>
                 <div class="lg:col-span-7 space-y-4">
                     <div class="glass-card p-5 rounded-2xl border border-white/5">
-                        <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden min-h-[360px] flex items-end justify-center bg-cover bg-center">
+                        <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden flex items-end justify-center bg-cover bg-center" style="height: 360px;">
                             <div id="hero-preview-media" class="absolute inset-0 bg-cover bg-center"></div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
-                            <div class="hero-preview-panel relative z-10 rounded-3xl p-5 sm:p-7 text-center space-y-3 mb-4">
-                                <h4 id="hero-preview-title" class="text-2xl md:text-4xl font-extrabold text-gray-950 leading-tight drop-shadow-2xl"></h4>
-                                <p id="hero-preview-description" class="max-w-xl mx-auto text-gray-800 text-sm md:text-base font-semibold leading-relaxed drop-shadow-lg"></p>
-                                <span id="hero-preview-button" class="inline-flex rounded-2xl bg-brand-500 px-5 py-2.5 text-xs font-black text-white shadow-lg">Layihələrə bax</span>
-                                <p id="hero-preview-duration" class="text-[10px] font-bold uppercase tracking-wide text-gray-500">10 saniyə</p>
+                            <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55));"></div>
+                            <div id="hero-preview-panel" class="hero-preview-panel relative z-10 rounded-3xl p-5 sm:p-7 text-center space-y-3">
+                                <span id="hero-preview-badge" class="hidden inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]"></span>
+                                <h4 id="hero-preview-title" class="text-2xl md:text-4xl font-extrabold leading-tight drop-shadow-2xl"></h4>
+                                <p id="hero-preview-description" class="max-w-xl mx-auto text-sm md:text-base font-semibold leading-relaxed drop-shadow-lg"></p>
+                                <span id="hero-preview-button" class="hero-button-animated inline-flex rounded-2xl px-5 py-2.5 text-xs font-black shadow-lg transition duration-300">Layihələrə bax</span>
+                                <p id="hero-preview-duration" class="text-[10px] font-bold uppercase tracking-wide text-white/70">10 saniyə</p>
                             </div>
                         </div>
                     </div>
@@ -2065,6 +2104,25 @@ Title: Park Villas
             media_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
             button_text: 'Layihələrə bax',
             button_link: '#sea-breeze-projects-list',
+            slide_type: 'custom',
+            project_id: '',
+            media_source: 'upload',
+            badge_text: 'PREMIUM',
+            badge_color: '#FFFFFF',
+            badge_background: 'rgba(127,127,255,0.92)',
+            title_color: '#FFFFFF',
+            title_font_size: 48,
+            description_color: '#F8FAFC',
+            description_font_size: 18,
+            button_background: '#7F7FFF',
+            button_text_color: '#FFFFFF',
+            panel_background: '#111827',
+            panel_blur: 18,
+            panel_opacity: 72,
+            panel_position: 'bottom-center',
+            hero_height_desktop: 560,
+            hero_height_tablet: 420,
+            hero_height_mobile: 320,
             display_order: 0,
             slide_duration: 10,
             is_active: true
@@ -3024,18 +3082,95 @@ Title: Park Villas
         function normalizeHeroSlide(slide = {}) {
             const duration = Number(slide.slide_duration ?? slide.slideDuration ?? defaultSeaBreezeHero.slide_duration);
             const mediaType = String(slide.media_type ?? slide.mediaType ?? defaultSeaBreezeHero.media_type).toLowerCase() === 'video' ? 'video' : 'image';
+            const project = slide.project ? dbProjectToUi(slide.project) : getOfficialProjects().find(item => String(item.id) === String(slide.project_id ?? slide.projectId ?? ''));
+            const slideType = String(slide.slide_type ?? slide.slideType ?? 'custom').toLowerCase() === 'project' ? 'project' : 'custom';
+            const projectMedia = project?.img || project?.images?.[0] || '';
+            const projectLinkValue = project ? projectPath(project) : '';
             return {
                 id: slide.id,
-                title: slide.title ?? defaultSeaBreezeHero.title,
-                description: slide.description ?? defaultSeaBreezeHero.description,
+                title: slide.title ?? (slideType === 'project' && project?.title ? project.title : defaultSeaBreezeHero.title),
+                description: slide.description ?? (slideType === 'project' && project?.desc ? project.desc : defaultSeaBreezeHero.description),
+                slide_type: slideType,
+                project_id: slide.project_id ?? slide.projectId ?? '',
+                project,
                 media_type: mediaType,
-                media_url: slide.media_url ?? slide.mediaUrl ?? slide.hero_image_url ?? slide.heroImageUrl ?? DEFAULT_SEA_BREEZE_HERO_IMAGE,
+                media_source: slide.media_source ?? slide.mediaSource ?? defaultSeaBreezeHero.media_source,
+                media_url: slide.media_url ?? slide.mediaUrl ?? slide.hero_image_url ?? slide.heroImageUrl ?? projectMedia ?? DEFAULT_SEA_BREEZE_HERO_IMAGE,
                 button_text: slide.button_text ?? slide.buttonText ?? defaultSeaBreezeHero.button_text,
-                button_link: slide.button_link ?? slide.buttonLink ?? defaultSeaBreezeHero.button_link,
+                button_link: slide.button_link ?? slide.buttonLink ?? projectLinkValue ?? defaultSeaBreezeHero.button_link,
+                badge_text: slide.badge_text ?? slide.badgeText ?? defaultSeaBreezeHero.badge_text,
+                badge_color: slide.badge_color ?? slide.badgeColor ?? defaultSeaBreezeHero.badge_color,
+                badge_background: slide.badge_background ?? slide.badgeBackground ?? defaultSeaBreezeHero.badge_background,
+                title_color: slide.title_color ?? slide.titleColor ?? defaultSeaBreezeHero.title_color,
+                title_font_size: Number(slide.title_font_size ?? slide.titleFontSize ?? defaultSeaBreezeHero.title_font_size),
+                description_color: slide.description_color ?? slide.descriptionColor ?? defaultSeaBreezeHero.description_color,
+                description_font_size: Number(slide.description_font_size ?? slide.descriptionFontSize ?? defaultSeaBreezeHero.description_font_size),
+                button_background: slide.button_background ?? slide.buttonBackground ?? defaultSeaBreezeHero.button_background,
+                button_text_color: slide.button_text_color ?? slide.buttonTextColor ?? defaultSeaBreezeHero.button_text_color,
+                panel_background: slide.panel_background ?? slide.panelBackground ?? defaultSeaBreezeHero.panel_background,
+                panel_blur: Number(slide.panel_blur ?? slide.panelBlur ?? defaultSeaBreezeHero.panel_blur),
+                panel_opacity: Number(slide.panel_opacity ?? slide.panelOpacity ?? defaultSeaBreezeHero.panel_opacity),
+                panel_position: slide.panel_position ?? slide.panelPosition ?? defaultSeaBreezeHero.panel_position,
+                hero_height_desktop: Number(slide.hero_height_desktop ?? slide.heroHeightDesktop ?? defaultSeaBreezeHero.hero_height_desktop),
+                hero_height_tablet: Number(slide.hero_height_tablet ?? slide.heroHeightTablet ?? defaultSeaBreezeHero.hero_height_tablet),
+                hero_height_mobile: Number(slide.hero_height_mobile ?? slide.heroHeightMobile ?? defaultSeaBreezeHero.hero_height_mobile),
                 display_order: Number(slide.display_order ?? slide.displayOrder ?? 0),
                 slide_duration: Number.isFinite(duration) && duration > 0 ? duration : 10,
                 is_active: slide.is_active ?? slide.isActive ?? true
             };
+        }
+
+        function heroPanelAlignment(position = 'bottom-center') {
+            const map = {
+                'bottom-center': ['flex-end', 'center', 'center', '0 0 16px 0'],
+                'bottom-left': ['flex-end', 'flex-start', 'left', '0 0 16px 24px'],
+                'bottom-right': ['flex-end', 'flex-end', 'right', '0 24px 16px 0'],
+                'center': ['center', 'center', 'center', '0'],
+                'center-left': ['center', 'flex-start', 'left', '0 0 0 24px'],
+                'center-right': ['center', 'flex-end', 'right', '0 24px 0 0']
+            };
+            return map[position] || map['bottom-center'];
+        }
+
+        function hexToRgb(color = '#111827') {
+            const match = String(color).trim().match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+            if (!match) return String(color || '#111827');
+            return `${parseInt(match[1], 16)}, ${parseInt(match[2], 16)}, ${parseInt(match[3], 16)}`;
+        }
+
+        function rgbaFromAdmin(color, opacity = 72) {
+            if (String(color || '').startsWith('rgba') || String(color || '').startsWith('rgb')) return color;
+            return `rgba(${hexToRgb(color)}, ${Math.min(Math.max(Number(opacity) || 0, 0), 100) / 100})`;
+        }
+
+        function applyHeroVisualStyles(container, panel, title, description, button, badge, hero) {
+            if (container) {
+                container.style.setProperty('--hero-height-desktop', `${hero.hero_height_desktop || 560}px`);
+                container.style.setProperty('--hero-height-tablet', `${hero.hero_height_tablet || 420}px`);
+                container.style.setProperty('--hero-height-mobile', `${hero.hero_height_mobile || 320}px`);
+                const [alignItems, justifyContent, textAlign] = heroPanelAlignment(hero.panel_position);
+                container.style.alignItems = alignItems;
+                container.style.justifyContent = justifyContent;
+                container.style.textAlign = textAlign;
+            }
+            if (panel) {
+                panel.style.setProperty('--hero-panel-background', rgbaFromAdmin(hero.panel_background, hero.panel_opacity));
+                panel.style.setProperty('--hero-panel-blur', `${hero.panel_blur || 0}px`);
+                panel.style.background = rgbaFromAdmin(hero.panel_background, hero.panel_opacity);
+                panel.style.backdropFilter = `blur(${hero.panel_blur || 0}px)`;
+                panel.style.webkitBackdropFilter = `blur(${hero.panel_blur || 0}px)`;
+                panel.style.margin = heroPanelAlignment(hero.panel_position)[3];
+                panel.style.textAlign = heroPanelAlignment(hero.panel_position)[2];
+            }
+            if (title) { title.style.color = hero.title_color || '#FFFFFF'; title.style.fontSize = `${hero.title_font_size || 48}px`; }
+            if (description) { description.style.color = hero.description_color || '#F8FAFC'; description.style.fontSize = `${hero.description_font_size || 18}px`; }
+            if (button) { button.style.background = hero.button_background || '#7F7FFF'; button.style.color = hero.button_text_color || '#FFFFFF'; }
+            if (badge) {
+                badge.textContent = hero.badge_text || '';
+                badge.style.background = hero.badge_background || 'rgba(127,127,255,0.92)';
+                badge.style.color = hero.badge_color || '#FFFFFF';
+                badge.classList.toggle('hidden', !hero.badge_text);
+            }
         }
 
         function normalizeHeroSlides(slides = []) {
@@ -3057,7 +3192,7 @@ Title: Park Villas
             if (lines.length <= 1) return escapeHtml(lines[0] || defaultSeaBreezeHero.title);
             const firstLines = lines.slice(0, -1).map(escapeHtml).join('<br>');
             const lastLine = escapeHtml(lines[lines.length - 1]);
-            return `${firstLines}<br><span class="font-black text-gray-900">${lastLine}</span>`;
+            return `${firstLines}<br><span class="font-black">${lastLine}</span>`;
         }
 
         function getHeroMediaUrl(hero = appData.heroSection) {
@@ -3092,10 +3227,13 @@ Title: Park Villas
             heroSliderIndex = ((activeIndex % slides.length) + slides.length) % slides.length;
             const hero = slides[heroSliderIndex];
             appData.heroSection = hero;
+            const slider = document.getElementById('sea-breeze-hero-slider');
+            const panel = document.getElementById('sea-breeze-hero-panel');
             const mediaWrap = document.getElementById('sea-breeze-hero-media');
             const title = document.getElementById('sea-breeze-hero-title');
             const description = document.getElementById('sea-breeze-hero-description');
             const button = document.getElementById('sea-breeze-hero-button');
+            const badge = document.getElementById('sea-breeze-hero-badge');
             if (mediaWrap) {
                 mediaWrap.innerHTML = '';
                 slides.forEach((slide, index) => {
@@ -3107,6 +3245,7 @@ Title: Park Villas
             }
             if (title) title.innerHTML = formatHeroTitle(hero.title);
             if (description) description.textContent = hero.description || '';
+            applyHeroVisualStyles(slider, panel, title, description, button, badge, hero);
             if (button) {
                 button.textContent = hero.button_text || defaultSeaBreezeHero.button_text;
                 const icon = document.createElement('i');
@@ -3141,9 +3280,29 @@ Title: Park Villas
                 'hero-slide-id': slide?.id || '',
                 'hero-title-input': hero.title || '',
                 'hero-description-input': hero.description || '',
+                'hero-slide-type-input': hero.slide_type || 'custom',
+                'hero-project-id-input': hero.project_id || '',
+                'hero-media-source-input': hero.media_source || 'upload',
                 'hero-media-type-input': hero.media_type || 'image',
+                'hero-media-url-input': hero.media_url || '',
                 'hero-button-text-input': hero.button_text || '',
                 'hero-button-link-input': hero.button_link || '',
+                'hero-badge-text-input': hero.badge_text || '',
+                'hero-badge-color-input': hero.badge_color || '#FFFFFF',
+                'hero-badge-background-input': hero.badge_background || 'rgba(127,127,255,0.92)',
+                'hero-title-color-input': hero.title_color || '#FFFFFF',
+                'hero-title-font-size-input': hero.title_font_size || 48,
+                'hero-description-color-input': hero.description_color || '#F8FAFC',
+                'hero-description-font-size-input': hero.description_font_size || 18,
+                'hero-button-background-input': hero.button_background || '#7F7FFF',
+                'hero-button-text-color-input': hero.button_text_color || '#FFFFFF',
+                'hero-panel-background-input': hero.panel_background || '#111827',
+                'hero-panel-blur-input': hero.panel_blur ?? 18,
+                'hero-panel-opacity-input': hero.panel_opacity ?? 72,
+                'hero-panel-position-input': hero.panel_position || 'bottom-center',
+                'hero-height-desktop-input': hero.hero_height_desktop || 560,
+                'hero-height-tablet-input': hero.hero_height_tablet || 420,
+                'hero-height-mobile-input': hero.hero_height_mobile || 320,
                 'hero-display-order-input': hero.display_order ?? 0,
                 'hero-duration-input': hero.slide_duration || 10,
             };
@@ -3153,7 +3312,9 @@ Title: Park Villas
             const file = document.getElementById('hero-media-file-input');
             if (file) file.value = '';
             const label = document.getElementById('hero-existing-media-label');
-            if (label) label.textContent = slide?.media_url ? `Mövcud media: ${slide.media_type} — yeni fayl seçməsəniz saxlanılacaq.` : 'Yeni slayd üçün media faylı seçin.';
+            if (label) label.textContent = slide?.media_url ? `Mövcud media: ${slide.media_type} — upload etməsəniz və ya URL dəyişməsəniz saxlanılacaq.` : 'Upload, URL və ya Project Auto media istifadə edin.';
+            handleHeroMediaSourceChange(false);
+            handleHeroSlideTypeChange(false);
             document.getElementById('hero-form-submit').textContent = slide?.id ? 'Slaydı Yenilə' : 'Slayd Yarat';
             updateHeroAdminPreview(slide);
         }
@@ -3162,40 +3323,104 @@ Title: Park Villas
             fillHeroAdminForm(null);
         }
 
+        function getSelectedHeroProject() {
+            const id = document.getElementById('hero-project-id-input')?.value;
+            return getOfficialProjects().find(item => String(item.id) === String(id)) || null;
+        }
+
+        function handleHeroMediaSourceChange(refresh = true) {
+            const source = document.getElementById('hero-media-source-input')?.value || 'upload';
+            document.getElementById('hero-upload-panel')?.classList.toggle('hidden', source !== 'upload');
+            document.getElementById('hero-url-panel')?.classList.toggle('hidden', source !== 'url');
+            if (refresh) updateHeroAdminPreview();
+        }
+
+        function handleHeroSlideTypeChange(refresh = true) {
+            const isProject = (document.getElementById('hero-slide-type-input')?.value || 'custom') === 'project';
+            document.getElementById('hero-project-id-input')?.closest('label')?.classList.toggle('opacity-60', !isProject);
+            if (refresh) handleHeroProjectChange();
+        }
+
+        function handleHeroProjectChange() {
+            const isProject = (document.getElementById('hero-slide-type-input')?.value || 'custom') === 'project';
+            const project = isProject ? getSelectedHeroProject() : null;
+            if (project) {
+                const link = document.getElementById('hero-button-link-input');
+                if (link && !link.value.trim()) link.value = projectPath(project);
+            }
+            updateHeroAdminPreview();
+        }
+
         function getHeroPreviewUrl(existing = null) {
             const file = document.getElementById('hero-media-file-input')?.files?.[0];
             if (heroPreviewObjectUrl) URL.revokeObjectURL(heroPreviewObjectUrl);
             heroPreviewObjectUrl = file ? URL.createObjectURL(file) : '';
-            return heroPreviewObjectUrl || existing?.media_url || DEFAULT_SEA_BREEZE_HERO_IMAGE;
+            const source = document.getElementById('hero-media-source-input')?.value || existing?.media_source || 'upload';
+            const urlValue = document.getElementById('hero-media-url-input')?.value?.trim();
+            const project = (document.getElementById('hero-slide-type-input')?.value || 'custom') === 'project' ? getSelectedHeroProject() : null;
+            return heroPreviewObjectUrl || (source === 'url' ? urlValue : '') || existing?.media_url || project?.img || DEFAULT_SEA_BREEZE_HERO_IMAGE;
+        }
+
+        function readHeroFormPreview(existing = null) {
+            const project = getSelectedHeroProject();
+            const slideType = document.getElementById('hero-slide-type-input')?.value || 'custom';
+            return normalizeHeroSlide({
+                ...(existing || {}),
+                slide_type: slideType,
+                project_id: document.getElementById('hero-project-id-input')?.value || '',
+                title: document.getElementById('hero-title-input')?.value || (slideType === 'project' ? project?.title : '') || defaultSeaBreezeHero.title,
+                description: document.getElementById('hero-description-input')?.value || (slideType === 'project' ? project?.desc : '') || defaultSeaBreezeHero.description,
+                media_type: document.getElementById('hero-media-type-input')?.value || 'image',
+                media_source: document.getElementById('hero-media-source-input')?.value || 'upload',
+                media_url: getHeroPreviewUrl(existing),
+                button_text: document.getElementById('hero-button-text-input')?.value || defaultSeaBreezeHero.button_text,
+                button_link: document.getElementById('hero-button-link-input')?.value || (project ? projectPath(project) : defaultSeaBreezeHero.button_link),
+                badge_text: document.getElementById('hero-badge-text-input')?.value || '',
+                badge_color: document.getElementById('hero-badge-color-input')?.value || '#FFFFFF',
+                badge_background: document.getElementById('hero-badge-background-input')?.value || 'rgba(127,127,255,0.92)',
+                title_color: document.getElementById('hero-title-color-input')?.value || '#FFFFFF',
+                title_font_size: Number(document.getElementById('hero-title-font-size-input')?.value || 48),
+                description_color: document.getElementById('hero-description-color-input')?.value || '#F8FAFC',
+                description_font_size: Number(document.getElementById('hero-description-font-size-input')?.value || 18),
+                button_background: document.getElementById('hero-button-background-input')?.value || '#7F7FFF',
+                button_text_color: document.getElementById('hero-button-text-color-input')?.value || '#FFFFFF',
+                panel_background: document.getElementById('hero-panel-background-input')?.value || '#111827',
+                panel_blur: Number(document.getElementById('hero-panel-blur-input')?.value || 0),
+                panel_opacity: Number(document.getElementById('hero-panel-opacity-input')?.value || 72),
+                panel_position: document.getElementById('hero-panel-position-input')?.value || 'bottom-center',
+                hero_height_desktop: Number(document.getElementById('hero-height-desktop-input')?.value || 560),
+                hero_height_tablet: Number(document.getElementById('hero-height-tablet-input')?.value || 420),
+                hero_height_mobile: Number(document.getElementById('hero-height-mobile-input')?.value || 320),
+                slide_duration: Number(document.getElementById('hero-duration-input')?.value || 10)
+            });
         }
 
         function updateHeroAdminPreview(existing = null) {
             const currentId = document.getElementById('hero-slide-id')?.value;
             const currentSlide = existing || (appData.heroSlides || []).find(item => String(item.id) === String(currentId)) || null;
-            const mediaType = document.getElementById('hero-media-type-input')?.value || currentSlide?.media_type || 'image';
-            const url = getHeroPreviewUrl(currentSlide);
+            const hero = readHeroFormPreview(currentSlide);
             const media = document.getElementById('hero-preview-media');
             if (media) {
                 media.innerHTML = '';
                 media.style.backgroundImage = '';
-                if (mediaType === 'video') {
-                    media.innerHTML = `<video src="${escapeHtml(url)}" class="w-full h-full object-cover" autoplay muted loop playsinline></video>`;
+                if (hero.media_type === 'video') {
+                    media.innerHTML = `<video src="${escapeHtml(hero.media_url)}" class="w-full h-full object-cover" autoplay muted loop playsinline></video>`;
                 } else {
-                    media.style.backgroundImage = `url('${url}')`;
+                    media.style.backgroundImage = `url('${hero.media_url}')`;
                 }
             }
-            const title = document.getElementById('hero-title-input')?.value || defaultSeaBreezeHero.title;
-            const description = document.getElementById('hero-description-input')?.value || defaultSeaBreezeHero.description;
-            const buttonText = document.getElementById('hero-button-text-input')?.value || defaultSeaBreezeHero.button_text;
-            const duration = Number(document.getElementById('hero-duration-input')?.value || 10);
+            const preview = document.getElementById('hero-admin-preview');
+            const panel = document.getElementById('hero-preview-panel');
             const titleEl = document.getElementById('hero-preview-title');
             const descEl = document.getElementById('hero-preview-description');
             const buttonEl = document.getElementById('hero-preview-button');
+            const badgeEl = document.getElementById('hero-preview-badge');
             const durationEl = document.getElementById('hero-preview-duration');
-            if (titleEl) titleEl.innerHTML = formatHeroTitle(title);
-            if (descEl) descEl.textContent = description;
-            if (buttonEl) buttonEl.textContent = buttonText;
-            if (durationEl) durationEl.textContent = `${Number.isFinite(duration) && duration > 0 ? duration : 10} saniyə`;
+            if (titleEl) titleEl.innerHTML = formatHeroTitle(hero.title);
+            if (descEl) descEl.textContent = hero.description;
+            if (buttonEl) buttonEl.textContent = hero.button_text;
+            applyHeroVisualStyles(preview, panel, titleEl, descEl, buttonEl, badgeEl, hero);
+            if (durationEl) durationEl.textContent = `${Number.isFinite(hero.slide_duration) && hero.slide_duration > 0 ? hero.slide_duration : 10} saniyə`;
         }
 
         async function handleSaveHeroSlide(e) {
@@ -3203,15 +3428,26 @@ Title: Park Villas
             if (!activeUser || activeUser.role !== 'admin') return;
             const id = document.getElementById('hero-slide-id').value;
             const file = document.getElementById('hero-media-file-input').files[0];
-            if (!id && !file) return alert('Yeni hero slayd üçün media faylı seçin.');
+            const slideType = document.getElementById('hero-slide-type-input').value;
+            const mediaSource = document.getElementById('hero-media-source-input').value;
+            const mediaUrl = document.getElementById('hero-media-url-input').value.trim();
+            const projectId = document.getElementById('hero-project-id-input').value;
+            if (!id && !file && mediaSource !== 'url' && slideType !== 'project') return alert('Yeni hero slayd üçün media faylı, URL və ya project seçin.');
+            if (mediaSource === 'url' && !mediaUrl && !file && slideType !== 'project') return alert('Media URL daxil edin.');
+            if (slideType === 'project' && !projectId) return alert('Project Auto üçün layihə seçin.');
             const formData = new FormData();
-            formData.append('title', document.getElementById('hero-title-input').value.trim());
-            formData.append('description', document.getElementById('hero-description-input').value.trim());
-            formData.append('media_type', document.getElementById('hero-media-type-input').value);
-            formData.append('button_text', document.getElementById('hero-button-text-input').value.trim());
-            formData.append('button_link', document.getElementById('hero-button-link-input').value.trim());
-            formData.append('display_order', document.getElementById('hero-display-order-input').value || '0');
-            formData.append('slide_duration', document.getElementById('hero-duration-input').value || '10');
+            const fieldIds = {
+                title: 'hero-title-input', description: 'hero-description-input', slide_type: 'hero-slide-type-input', project_id: 'hero-project-id-input',
+                media_source: 'hero-media-source-input', media_type: 'hero-media-type-input', media_url: 'hero-media-url-input',
+                button_text: 'hero-button-text-input', button_link: 'hero-button-link-input', badge_text: 'hero-badge-text-input',
+                badge_color: 'hero-badge-color-input', badge_background: 'hero-badge-background-input', title_color: 'hero-title-color-input',
+                title_font_size: 'hero-title-font-size-input', description_color: 'hero-description-color-input', description_font_size: 'hero-description-font-size-input',
+                button_background: 'hero-button-background-input', button_text_color: 'hero-button-text-color-input', panel_background: 'hero-panel-background-input',
+                panel_blur: 'hero-panel-blur-input', panel_opacity: 'hero-panel-opacity-input', panel_position: 'hero-panel-position-input',
+                hero_height_desktop: 'hero-height-desktop-input', hero_height_tablet: 'hero-height-tablet-input', hero_height_mobile: 'hero-height-mobile-input',
+                display_order: 'hero-display-order-input', slide_duration: 'hero-duration-input'
+            };
+            Object.entries(fieldIds).forEach(([key, inputId]) => formData.append(key, document.getElementById(inputId)?.value?.trim?.() ?? document.getElementById(inputId)?.value ?? ''));
             formData.append('is_active', document.getElementById('hero-is-active-input').checked ? 'true' : 'false');
             if (file) formData.append('media', file);
             try {
@@ -3604,7 +3840,18 @@ Title: Park Villas
             renderAdminDashboard();
         }
 
+
+        function updateHeroProjectOptions() {
+            const select = document.getElementById('hero-project-id-input');
+            if (!select) return;
+            const current = select.value;
+            const projects = getOfficialProjects();
+            select.innerHTML = '<option value="">Layihə seçin</option>' + projects.map(project => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.title)}</option>`).join('');
+            if (current) select.value = current;
+        }
+
         function renderOfficialProjectOptions() {
+            updateHeroProjectOptions();
             syncDistrictSelect(document.getElementById('filter-sb-project'), document.getElementById('filter-sb-region')?.value === 'all' ? 'seabreeze' : (document.getElementById('filter-sb-region')?.value || 'seabreeze'), true);
             syncDistrictSelect(document.getElementById('sb-project'), (document.getElementById('sb-region-type')?.value || 'seabreeze') === 'general' ? 'city' : (document.getElementById('sb-region-type')?.value || 'seabreeze'), false);
             syncDistrictSelect(document.getElementById('admin-listing-district-filter'), document.getElementById('admin-listing-region-filter')?.value === 'all' ? 'seabreeze' : (document.getElementById('admin-listing-region-filter')?.value || 'seabreeze'), true);
