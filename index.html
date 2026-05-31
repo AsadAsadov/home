@@ -2050,7 +2050,7 @@ Title: Park Villas
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1200;
-        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null };
+        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '' };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
@@ -2743,7 +2743,7 @@ Title: Park Villas
             if (!url) return `<div class="p-4 text-xs text-gray-400" style="width:${dimensions.width}px;height:${dimensions.height}px;">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
                 const loopAttr = options.loop === false ? '' : ' loop';
-                const dataRole = options.rotation ? ' data-ad-rotation-video="true"' : '';
+                const dataRole = options.rotation ? ` data-ad-rotation-video="true" data-ad-id="${escapeHtml(ad.id || '')}"` : '';
                 return `<video class="${classes}" style="${style}" src="${url}" muted autoplay${loopAttr} playsinline preload="metadata" title="${title}"${dataRole}></video>`;
             }
             return `<img class="${classes}" style="${style}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
@@ -2771,6 +2771,21 @@ Title: Park Villas
                 .sort((a, b) => (a.rotationOrder - b.rotationOrder) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || Number(a.id) - Number(b.id));
         }
 
+        function getAdSignature(ads = []) {
+            return ads.map(ad => [ad.id, ad.rotationOrder, ad.repeatCount, ad.displayDuration, ad.mediaType, ad.position].join(':')).join('|');
+        }
+
+        function logActiveRotationAds(ads = []) {
+            console.log('Active Ads:', ads.map(ad => ({
+                id: ad.id,
+                rotationOrder: ad.rotationOrder,
+                repeatCount: ad.repeatCount,
+                displayDuration: ad.displayDuration,
+                mediaType: ad.mediaType,
+                position: ad.position
+            })));
+        }
+
         function clearAdRotationTimer() {
             if (adRotationState.timer) {
                 clearTimeout(adRotationState.timer);
@@ -2778,17 +2793,27 @@ Title: Park Villas
             }
         }
 
-        function finishAdRotationRepeat() {
+        function resetAdRotationRenderState() {
+            clearAdRotationTimer();
+            adRotationState.renderedAdId = null;
+            adRotationState.activeAdId = null;
+        }
+
+        function finishAdRotationRepeat(expectedAdId = null) {
             const ads = visibleRotationAds();
-            if (!ads.length) return renderDesktopAds();
+            if (!ads.length) return renderDesktopAds({ force: true });
+            const currentIndex = ads.findIndex(ad => String(ad.id) === String(expectedAdId ?? adRotationState.activeAdId));
+            if (currentIndex >= 0) adRotationState.index = currentIndex;
             const currentAd = ads[adRotationState.index] || ads[0];
             const repeatCount = adDimension(currentAd.repeatCount, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT);
             adRotationState.repeat += 1;
+            console.log('Ad Repeat Count:', { id: currentAd.id, repeat: adRotationState.repeat, repeatCount });
             if (adRotationState.repeat >= repeatCount) {
                 adRotationState.index = (adRotationState.index + 1) % ads.length;
                 adRotationState.repeat = 0;
             }
-            renderDesktopAds();
+            adRotationState.timer = null;
+            renderDesktopAds({ force: true });
         }
 
         async function trackAdView(ad) {
@@ -2803,31 +2828,48 @@ Title: Park Villas
             if (clickUrl) window.open(clickUrl, '_blank', 'noopener,noreferrer');
         }
 
-        function renderDesktopAds() {
+        function renderDesktopAds(options = {}) {
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
-            clearAdRotationTimer();
             if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
                 left.innerHTML = '';
                 right.innerHTML = '';
+                resetAdRotationRenderState();
                 return;
             }
             const ads = visibleRotationAds();
+            logActiveRotationAds(ads);
             if (!ads.length) {
                 left.innerHTML = '';
                 right.innerHTML = '';
                 adRotationState.index = 0;
                 adRotationState.repeat = 0;
-                adRotationState.activeAdId = null;
+                adRotationState.activeAdsSignature = '';
+                resetAdRotationRenderState();
                 return;
+            }
+            const activeAdsSignature = getAdSignature(ads);
+            if (adRotationState.activeAdsSignature !== activeAdsSignature) {
+                adRotationState.activeAdsSignature = activeAdsSignature;
+                const activeIndex = ads.findIndex(ad => String(ad.id) === String(adRotationState.activeAdId));
+                adRotationState.index = activeIndex >= 0 ? activeIndex : 0;
+                if (activeIndex < 0) adRotationState.repeat = 0;
+                resetAdRotationRenderState();
             }
             if (adRotationState.index >= ads.length) adRotationState.index = 0;
             const ad = ads[adRotationState.index];
+            const sameRenderedAd = String(adRotationState.renderedAdId) === String(ad.id);
+            const renderedVideo = sameRenderedAd && Array.from(document.querySelectorAll('[data-ad-rotation-video="true"]')).some(video => String(video.dataset.adId) === String(ad.id));
+            if (!options.force && sameRenderedAd && (adRotationState.timer || (ad.mediaType === 'video' && renderedVideo))) {
+                return;
+            }
+            clearAdRotationTimer();
             if (String(adRotationState.activeAdId) !== String(ad.id)) {
                 adRotationState.activeAdId = ad.id;
                 adRotationState.repeat = 0;
             }
+            console.log('Current Ad:', ad.id);
             trackAdView(ad);
             const encodedUrl = encodeURIComponent(ad.clickUrl || '');
             const dimensions = getAdDimensions(ad);
@@ -2837,15 +2879,16 @@ Title: Park Villas
             </article>`;
             left.innerHTML = (ad.position === 'left' || ad.position === 'both') ? cardHtml : '';
             right.innerHTML = (ad.position === 'right' || ad.position === 'both') ? cardHtml : '';
+            adRotationState.renderedAdId = ad.id;
             if (ad.mediaType === 'video') {
                 document.querySelectorAll('[data-ad-rotation-video="true"]').forEach((video, index) => {
-                    video.onended = index === 0 ? finishAdRotationRepeat : null;
+                    video.onended = index === 0 ? () => finishAdRotationRepeat(ad.id) : null;
                     video.currentTime = 0;
                     video.play().catch(() => {});
                 });
             } else {
                 const durationSeconds = adDimension(ad.displayDuration, AD_DEFAULT_DISPLAY_DURATION_SECONDS, AD_MIN_DISPLAY_DURATION_SECONDS, AD_MAX_DISPLAY_DURATION_SECONDS);
-                adRotationState.timer = setTimeout(finishAdRotationRepeat, durationSeconds * 1000);
+                adRotationState.timer = setTimeout(() => finishAdRotationRepeat(ad.id), durationSeconds * 1000);
             }
         }
 
