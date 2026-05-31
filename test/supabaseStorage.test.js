@@ -149,3 +149,28 @@ function cryptoRandomUuidForTest() {
   crypto.randomUUID = () => '00000000-0000-4000-8000-000000000000';
   return { restore: () => { crypto.randomUUID = original; } };
 }
+
+test('reklamlar uploads return public URLs from the reklamlar bucket', async () => {
+  process.env.SUPABASE_URL = 'https://demo.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
+
+  let requestedUrl = '';
+  const originalFetch = global.fetch;
+  global.fetch = async (url) => {
+    requestedUrl = url;
+    return { ok: true, text: async () => '' };
+  };
+
+  try {
+    const publicUrl = await storage.uploadToAdBucket({
+      originalname: 'sidebar-ad.gif',
+      mimetype: 'image/gif',
+      size: 1024,
+      buffer: Buffer.from('gif'),
+    });
+    assert.match(requestedUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/reklamlar\/media\//);
+    assert.match(publicUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/public\/reklamlar\/media\//);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
