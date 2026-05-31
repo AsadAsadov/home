@@ -223,7 +223,6 @@ model HeroSlide {
   slideType             String   @default("custom") @map("slide_type")
   projectId             Int?     @map("project_id")
   mediaType             String   @default("image") @map("media_type")
-  mediaSource           String   @default("upload") @map("media_source")
   mediaUrl              String   @map("media_url") @db.Text
   badgeText             String?  @map("badge_text")
   badgeColor            String?  @default("#FFFFFF") @map("badge_color")
