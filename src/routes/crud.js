@@ -76,6 +76,8 @@ const serializers = {
       listingType: cleanString(body.listing_type ?? body.listingType),
       propertyCategory: cleanString(body.property_category ?? body.propertyCategory),
       projectName: cleanString(body.project_name ?? body.projectName),
+      regionType: cleanString(body.region_type ?? body.regionType),
+      district: cleanString(body.district),
       roomCount: toInt(body.room_count ?? body.roomCount),
       area,
       floorNumber: toInt(body.floor_number ?? body.floorNumber),

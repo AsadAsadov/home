@@ -34,6 +34,8 @@ model Listing {
   listingType      String?        @map("listing_type")
   propertyCategory String?        @map("property_category")
   projectName      String?        @map("project_name")
+  regionType       String?        @map("region_type")
+  district         String?
   roomCount        Int?           @map("room_count")
   area             String?
   floorNumber      Int?           @map("floor_number")

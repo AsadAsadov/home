@@ -40,3 +40,15 @@ test('listing serializer maps camelCase listing fields to Prisma field names', (
   assert.equal(data.price, 250000);
   assert.equal(data.description, 'Tam məlumat');
 });
+
+
+test('listing serializer maps region fields', () => {
+  const data = compact(serializers.listing({
+    title: 'Region test',
+    region_type: 'baki',
+    district: 'Yasamal',
+  }));
+
+  assert.equal(data.regionType, 'baki');
+  assert.equal(data.district, 'Yasamal');
+});

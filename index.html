@@ -936,19 +936,15 @@
                             <option value="Kiraye">Kirayə</option>
                             <option value="GunlukKiraye">Günlük Kirayə</option>
                         </select>
+                        <select id="filter-sb-region" onchange="handlePublicRegionFilterChange()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                            <option value="all">Bütün regionlar</option>
+                            <option value="seabreeze">Sea Breeze</option>
+                            <option value="baki">Bakı</option>
+                            <option value="absheron">Abşeron</option>
+                            <option value="sumqayit">Sumqayıt</option>
+                        </select>
                         <select id="filter-sb-project" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option value="all">Bütün Layihələr</option>
-                            <option value="Caspian Dream Liner">Caspian Dream Liner</option>
-                            <option value="Blue Waters">Blue Waters</option>
-                            <option value="Sky Park">Sky Park</option>
-                            <option value="Marina Village">Marina Village</option>
-                            <option value="Park Residences 3">Park Residences 3</option>
-                            <option value="Park Lane">Park Lane</option>
-                            <option value="Skyline">Skyline</option>
-                            <option value="Palazzo del Mare">Palazzo del Mare</option>
-                            <option value="Harbour Residence">Harbour Residence</option>
-                            <option value="Park Residences 4">Park Residences 4</option>
-                            <option value="Digər">Digər Rezidensiyalar</option>
+                            <option value="all">Bütün layihə/rayonlar</option>
                         </select>
                     </div>
                 </div>
@@ -1171,21 +1167,23 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Sea Breeze Layihəsi *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Region Type *</label>
+                                <select id="sb-region-type" onchange="handleListingRegionTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <option value="seabreeze">Sea Breeze</option>
+                                    <option value="baki">Bakı</option>
+                                    <option value="absheron">Abşeron</option>
+                                    <option value="sumqayit">Sumqayıt</option>
+                                </select>
+                            </div>
+                            <div id="sb-district-wrap">
+                                <label id="sb-district-label" class="text-[10px] text-gray-400 font-bold uppercase">Project *</label>
                                 <select id="sb-project" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                                    <option value="Caspian Dream Liner">Caspian Dream Liner</option>
-                                    <option value="Blue Waters">Blue Waters</option>
-                                    <option value="Sky Park">Sky Park</option>
-                                    <option value="Marina Village">Marina Village</option>
-                                    <option value="Park Residences 3">Park Residences 3</option>
-                                    <option value="Park Lane">Park Lane</option>
-                                    <option value="Skyline">Skyline</option>
-                                    <option value="Palazzo del Mare">Palazzo del Mare</option>
-                                    <option value="Harbour Residence">Harbour Residence</option>
-                                    <option value="Park Residences 4">Park Residences 4</option>
                                     <option value="Digər">Digər Rezidensiya</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-[10px] text-gray-400 font-bold uppercase">Otaq sayı *</label>
                                 <input type="number" id="sb-rooms" required min="1" value="2" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
@@ -1264,6 +1262,16 @@
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <input type="search" id="admin-listing-code-search" oninput="renderAdminDashboard()" placeholder="Kod ilə axtar (məs: 1001)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <select id="admin-listing-region-filter" onchange="handleAdminRegionFilterChange()" class="bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <option value="all">Bütün regionlar</option>
+                            <option value="seabreeze">Sea Breeze</option>
+                            <option value="baki">Bakı</option>
+                            <option value="absheron">Abşeron</option>
+                            <option value="sumqayit">Sumqayıt</option>
+                        </select>
+                        <select id="admin-listing-district-filter" onchange="renderAdminDashboard()" class="bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <option value="all">Bütün layihə/rayonlar</option>
+                        </select>
                     </div>
                     <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
                 </div>
@@ -1713,6 +1721,7 @@ Title: Park Villas
                         </div>
 
                         <div class="space-y-2">
+                            <span id="p-modal-code-description" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">Təsvir</h4>
                             <p id="p-modal-desc" class="text-gray-700 text-sm md:text-base font-medium leading-7 whitespace-pre-line"></p>
                         </div>
@@ -1972,6 +1981,26 @@ Title: Park Villas
             button_text_color: '#ffffff',
             is_active: true
         };
+
+        const REGION_LABELS = { seabreeze: 'Sea Breeze', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
+        const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
+        const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan', 'Mehdiabad'];
+        const AD_ROTATION_INTERVAL_MS = 30000;
+        const adRotationState = { left: 0, right: 0, timers: {} };
+
+        function normalizeRegionType(value, projectName = '') {
+            const normalized = String(value || '').trim().toLowerCase();
+            if (['seabreeze', 'sea breeze', 'sea-breeze'].includes(normalized)) return 'seabreeze';
+            if (['baki', 'bakı'].includes(normalized)) return 'baki';
+            if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
+            if (['sumqayit', 'sumqayıt'].includes(normalized)) return 'sumqayit';
+            return projectName ? 'seabreeze' : '';
+        }
+
+        function getRegionLabel(regionType) { return REGION_LABELS[regionType] || 'Unknown'; }
+        function getListingRegionType(listing = {}) { return normalizeRegionType(listing.regionType, listing.project); }
+        function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'sumqayit' ? 'Sumqayıt' : (listing.district || (region === 'seabreeze' ? listing.project : '') || ''); }
+        function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getOfficialProjects().map(p => p.title).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : [])); }
 
         // OFFICIAL SEA BREEZE 10 PROJECTS DATA WITH CAT & DETAILED SPECS
         const officialSeaBreezeProjects = [
@@ -2527,6 +2556,8 @@ Title: Park Villas
                 id: l.id,
                 title: firstDefined(l.title, ''),
                 project: firstDefined(l.projectName, l.project_name, l.project, ''),
+                regionType: normalizeRegionType(firstDefined(l.regionType, l.region_type, ''), firstDefined(l.projectName, l.project_name, l.project, '')),
+                district: firstDefined(l.district, ''),
                 listingType: canonicalListingType(firstDefined(l.listingType, l.listing_type, 'Satis')),
                 category: firstDefined(l.propertyCategory, l.property_category, l.category, ''),
                 rooms: integerValue(l.roomCount, l.room_count, l.rooms),
@@ -2682,17 +2713,33 @@ Title: Park Villas
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
-            const renderSide = (position) => visibleAdsByPosition(position).map(ad => {
+            const renderSide = (position, container) => {
+                const ads = visibleAdsByPosition(position);
+                if (adRotationState[position] >= ads.length) adRotationState[position] = 0;
+                const ad = ads[adRotationState[position]];
+                if (!ad) {
+                    container.innerHTML = '';
+                    clearInterval(adRotationState.timers[position]);
+                    adRotationState.timers[position] = null;
+                    return;
+                }
                 trackAdView(ad);
                 const encodedUrl = encodeURIComponent(ad.clickUrl || '');
                 const dimensions = getAdDimensions(ad);
-                return `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
+                container.innerHTML = `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
                     ${renderAdMedia(ad)}
                     <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
                 </article>`;
-            }).join('');
-            left.innerHTML = renderSide('left');
-            right.innerHTML = renderSide('right');
+                if (ads.length > 1 && !adRotationState.timers[position]) {
+                    adRotationState.timers[position] = setInterval(() => {
+                        const currentAds = visibleAdsByPosition(position);
+                        adRotationState[position] = currentAds.length ? (adRotationState[position] + 1) % currentAds.length : 0;
+                        renderDesktopAds();
+                    }, AD_ROTATION_INTERVAL_MS);
+                }
+            };
+            renderSide('left', left);
+            renderSide('right', right);
         }
 
         function dbAppToUi(a) {
@@ -2963,6 +3010,8 @@ Title: Park Villas
                 listing_type: listingTypeLabel(l.listingType || 'Satis'),
                 property_category: l.category || 'Apartment',
                 project_name: l.project || 'Digər',
+                region_type: l.regionType || 'seabreeze',
+                district: l.district || (l.regionType === 'sumqayit' ? 'Sumqayıt' : (l.project || 'Digər')),
                 room_count: Number.isFinite(roomCount) ? roomCount : undefined,
                 area,
                 floor_number: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
@@ -3168,21 +3217,51 @@ Title: Park Villas
             renderProjectImageRows();
         }
 
+        function buildDistrictOptionHtml(region, includeAll = false) {
+            const options = getDistrictOptionsForRegion(region);
+            const first = includeAll ? '<option value="all">Bütün layihə/rayonlar</option>' : '';
+            const suffix = region === 'seabreeze' && !options.includes('Digər') ? '<option value="Digər">Digər Rezidensiya</option>' : '';
+            return first + options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('') + suffix;
+        }
+
+        function syncDistrictSelect(select, region, includeAll = false) {
+            if (!select) return;
+            const selected = select.value || (includeAll ? 'all' : '');
+            const wrapper = select.id === 'sb-project' ? document.getElementById('sb-district-wrap') : select;
+            const hide = region === 'sumqayit' || (!region && !includeAll);
+            wrapper?.classList.toggle('hidden', hide);
+            if (hide) return;
+            select.innerHTML = buildDistrictOptionHtml(region || 'seabreeze', includeAll);
+            select.value = Array.from(select.options).some(opt => opt.value === selected) ? selected : (includeAll ? 'all' : (select.options[0]?.value || ''));
+        }
+
+        function handleListingRegionTypeChange() {
+            const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
+            const label = document.getElementById('sb-district-label');
+            if (label) label.textContent = region === 'seabreeze' ? 'Project *' : 'District *';
+            syncDistrictSelect(document.getElementById('sb-project'), region, false);
+        }
+
+        function handlePublicRegionFilterChange() {
+            const region = document.getElementById('filter-sb-region')?.value || 'all';
+            syncDistrictSelect(document.getElementById('filter-sb-project'), region === 'all' ? 'seabreeze' : region, true);
+            document.getElementById('filter-sb-project')?.classList.toggle('hidden', region === 'sumqayit');
+            listingPage = 1;
+            renderSeaBreeze();
+        }
+
+        function handleAdminRegionFilterChange() {
+            const region = document.getElementById('admin-listing-region-filter')?.value || 'all';
+            syncDistrictSelect(document.getElementById('admin-listing-district-filter'), region === 'all' ? 'seabreeze' : region, true);
+            document.getElementById('admin-listing-district-filter')?.classList.toggle('hidden', region === 'sumqayit');
+            renderAdminDashboard();
+        }
+
         function renderOfficialProjectOptions() {
-            const projects = getOfficialProjects();
-            const optionHtml = projects.map(p => `<option value="${p.title}">${p.title}</option>`).join('') + '<option value="Digər">Digər Rezidensiya</option>';
-            const filter = document.getElementById('filter-sb-project');
-            const formSelect = document.getElementById('sb-project');
-            if (filter) {
-                const selected = filter.value || 'all';
-                filter.innerHTML = '<option value="all">Bütün Layihələr</option>' + optionHtml.replace('Digər Rezidensiya', 'Digər Rezidensiyalar');
-                filter.value = Array.from(filter.options).some(opt => opt.value === selected) ? selected : 'all';
-            }
-            if (formSelect) {
-                const selected = formSelect.value;
-                formSelect.innerHTML = optionHtml;
-                if (selected && Array.from(formSelect.options).some(opt => opt.value === selected)) formSelect.value = selected;
-            }
+            syncDistrictSelect(document.getElementById('filter-sb-project'), document.getElementById('filter-sb-region')?.value === 'all' ? 'seabreeze' : (document.getElementById('filter-sb-region')?.value || 'seabreeze'), true);
+            syncDistrictSelect(document.getElementById('sb-project'), document.getElementById('sb-region-type')?.value || 'seabreeze', false);
+            syncDistrictSelect(document.getElementById('admin-listing-district-filter'), document.getElementById('admin-listing-region-filter')?.value === 'all' ? 'seabreeze' : (document.getElementById('admin-listing-region-filter')?.value || 'seabreeze'), true);
+            handleListingRegionTypeChange();
         }
 
         let activeUser = null;
@@ -3535,12 +3614,16 @@ Title: Park Villas
             const grid = document.getElementById('seabreeze-properties-grid');
             grid.innerHTML = '';
 
-            const projectFilter = document.getElementById('filter-sb-project').value;
+            const regionFilter = document.getElementById('filter-sb-region')?.value || 'all';
+            const projectFilter = document.getElementById('filter-sb-project')?.value || 'all';
             const typeFilter = document.getElementById('filter-sb-type').value;
 
             const filtered = properties.filter(p => {
                 if (normalizeListingStatus(p.status) !== 'approved') return false;
-                if (projectFilter !== 'all' && p.project !== projectFilter) return false;
+                const listingRegion = getListingRegionType(p);
+                const listingDistrict = getListingDistrict(p);
+                if (regionFilter !== 'all' && listingRegion !== regionFilter) return false;
+                if (regionFilter !== 'sumqayit' && projectFilter !== 'all' && listingDistrict !== projectFilter) return false;
                 if (typeFilter !== 'all' && canonicalListingType(p.listingType) !== typeFilter) return false;
                 return true;
             });
@@ -3583,7 +3666,6 @@ Title: Park Villas
                         <div class="sea-breeze-listing-card__media h-44 md:h-48 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             <div class="sea-breeze-listing-card__badges">
-                                <div class="sea-breeze-listing-card__badge bg-white/95 text-gray-900 text-[10px] font-black rounded-full uppercase shadow">Kod: ${p.listingCode || '—'}</div>
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase">${p.project || '—'}</div>
                                 <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${cardListingLabel}</div>
                             </div>
@@ -3607,6 +3689,7 @@ Title: Park Villas
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
                                 <span class="sea-breeze-listing-card__price-label text-[9px] text-gray-500 uppercase block">Qiymət</span>
                                 <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${formattedPrice !== '—' ? ' AZN' : ''}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
+                                <span class="block text-[10px] font-black text-brand-700 mt-1">Elan kodu: ${p.listingCode || '—'}</span>
                             </div>
                             ${sqPriceHtml}
                         </div>
@@ -3732,7 +3815,8 @@ Title: Park Villas
             document.getElementById('p-modal-category').textContent = categoryLabel;
             document.getElementById('p-modal-project').textContent = p.project || '—';
             document.getElementById('p-modal-title').textContent = p.title || '—';
-            document.getElementById('p-modal-code').textContent = `Kod: ${p.listingCode || '—'}`;
+            document.getElementById('p-modal-code').textContent = `Elan kodu: ${p.listingCode || '—'}`;
+            document.getElementById('p-modal-code-description').textContent = `Elan kodu: ${p.listingCode || '—'}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = p.desc || 'Təsvir əlavə edilməyib.';
             document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
@@ -5176,7 +5260,16 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
             // 1. Listings Grid
             const codeSearch = document.getElementById('admin-listing-code-search')?.value.trim() || '';
-            const properties = appData.listings.filter(item => !codeSearch || String(item.listingCode || '').includes(codeSearch));
+            const regionFilter = document.getElementById('admin-listing-region-filter')?.value || 'all';
+            const districtFilter = document.getElementById('admin-listing-district-filter')?.value || 'all';
+            const properties = appData.listings.filter(item => {
+                const listingRegion = getListingRegionType(item);
+                const listingDistrict = getListingDistrict(item);
+                if (codeSearch && !String(item.listingCode || '').includes(codeSearch)) return false;
+                if (regionFilter !== 'all' && listingRegion !== regionFilter) return false;
+                if (regionFilter !== 'sumqayit' && districtFilter !== 'all' && listingDistrict !== districtFilter) return false;
+                return true;
+            });
             const pContainer = document.getElementById('admin-seabreeze-list');
             pContainer.innerHTML = '';
 
@@ -5189,6 +5282,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 const label = listingStatusLabel(normalizedStatus);
                 const badge = listingStatusBadgeClass(normalizedStatus);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
+                const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
+                const districtLabel = getListingDistrict(p) || (regionLabel === 'Unknown' ? '—' : regionLabel);
 
                 pContainer.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
@@ -5200,7 +5295,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
                                 ${p.vip ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">VIP</span>' : ''}
                                 ${p.featured ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Featured</span>' : ''}
-                                <span class="text-[10px] text-gray-400 ml-2">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
+                                <span class="text-[10px] text-gray-400 ml-2">Region: ${regionLabel} • District: ${districtLabel} • ${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -5321,7 +5416,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             e.preventDefault();
             const editId = document.getElementById('edit-sb-id').value;
             const title = document.getElementById('sb-title').value;
-            const project = document.getElementById('sb-project').value;
+            const regionType = document.getElementById('sb-region-type')?.value || 'seabreeze';
+            const project = regionType === 'sumqayit' ? 'Sumqayıt' : document.getElementById('sb-project').value;
+            const district = regionType === 'sumqayit' ? 'Sumqayıt' : project;
             const listingType = document.getElementById('sb-listing-type').value;
             const category = document.getElementById('sb-form-category').value;
             const rooms = parseInt(document.getElementById('sb-rooms').value);
@@ -5359,6 +5456,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 id: editId || null,
                 title,
                 project,
+                regionType,
+                district,
                 listingType,
                 category,
                 rooms,
@@ -5407,7 +5506,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             if (p) {
                 document.getElementById('edit-sb-id').value = p.id;
                 document.getElementById('sb-title').value = p.title;
-                document.getElementById('sb-project').value = p.project;
+                document.getElementById('sb-region-type').value = getListingRegionType(p) || 'seabreeze';
+                handleListingRegionTypeChange();
+                document.getElementById('sb-project').value = getListingDistrict(p) || p.project;
                 document.getElementById('sb-listing-type').value = p.listingType;
                 document.getElementById('sb-form-category').value = p.category || "Apartment";
                 document.getElementById('sb-rooms').value = p.rooms;
@@ -5434,6 +5535,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('edit-sb-id').value = '';
             document.getElementById('sb-title').value = '';
             document.getElementById('sb-listing-type').value = 'Satis';
+            document.getElementById('sb-region-type').value = 'seabreeze';
+            handleListingRegionTypeChange();
             document.getElementById('sb-form-category').value = 'Apartment';
             document.getElementById('sb-rooms').value = '2';
             document.getElementById('sb-area').value = '';
