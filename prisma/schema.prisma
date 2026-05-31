@@ -23,6 +23,7 @@ model Project {
   displayOrder   Int?     @map("display_order")
   slug           String?  @unique
   createdAt      DateTime @default(now()) @map("created_at")
+  heroSlides     HeroSlide[]
 
   @@index([displayOrder, id])
   @@map("projects")
@@ -216,19 +217,40 @@ model HeroSection {
 }
 
 model HeroSlide {
-  id            Int      @id @default(autoincrement())
-  title         String
-  description   String?  @db.Text
-  mediaType     String   @default("image") @map("media_type")
-  mediaUrl      String   @map("media_url") @db.Text
-  buttonText    String?  @map("button_text")
-  buttonLink    String?  @map("button_link") @db.Text
-  displayOrder  Int      @default(0) @map("display_order")
-  slideDuration Int      @default(10) @map("slide_duration")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id                    Int      @id @default(autoincrement())
+  title                 String
+  description           String?  @db.Text
+  slideType             String   @default("custom") @map("slide_type")
+  projectId             Int?     @map("project_id")
+  mediaType             String   @default("image") @map("media_type")
+  mediaSource           String   @default("upload") @map("media_source")
+  mediaUrl              String   @map("media_url") @db.Text
+  badgeText             String?  @map("badge_text")
+  badgeColor            String?  @default("#FFFFFF") @map("badge_color")
+  badgeBackground       String?  @default("rgba(127,127,255,0.92)") @map("badge_background")
+  titleColor            String?  @default("#FFFFFF") @map("title_color")
+  titleFontSize         Int      @default(48) @map("title_font_size")
+  descriptionColor      String?  @default("#F8FAFC") @map("description_color")
+  descriptionFontSize   Int      @default(18) @map("description_font_size")
+  buttonBackground      String?  @default("#7F7FFF") @map("button_background")
+  buttonTextColor       String?  @default("#FFFFFF") @map("button_text_color")
+  panelBackground       String?  @default("#111827") @map("panel_background")
+  panelBlur             Int      @default(18) @map("panel_blur")
+  panelOpacity          Int      @default(72) @map("panel_opacity")
+  panelPosition         String   @default("bottom-center") @map("panel_position")
+  heroHeightDesktop     Int      @default(560) @map("hero_height_desktop")
+  heroHeightTablet      Int      @default(420) @map("hero_height_tablet")
+  heroHeightMobile      Int      @default(320) @map("hero_height_mobile")
+  buttonText            String?  @map("button_text")
+  buttonLink            String?  @map("button_link") @db.Text
+  displayOrder          Int      @default(0) @map("display_order")
+  slideDuration         Int      @default(10) @map("slide_duration")
+  isActive              Boolean  @default(true) @map("is_active")
+  createdAt             DateTime @default(now()) @map("created_at")
+  project               Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([isActive, displayOrder, id], map: "idx_hero_slides_active_order")
+  @@index([slideType, projectId], map: "idx_hero_slides_slide_type_project")
   @@map("hero_slides")
 }
 
