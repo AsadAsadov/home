@@ -92,7 +92,7 @@ function projectToHeroSlide(project, index = 0) {
     heroHeightDesktop: 520,
     heroHeightTablet: 420,
     heroHeightMobile: 280,
-    buttonText: 'Layihəyə Bax',
+    buttonText: 'Layihəyə Bax →',
     buttonLink: projectLink(project),
     displayOrder: project.displayOrder ?? index + 1,
     slideDuration: DEFAULT_SLIDE_DURATION,
@@ -120,7 +120,9 @@ async function normalizePayload(body = {}, uploadedUrl = null, file = null, exis
   const title = slideType === 'project'
     ? String(project?.title || '').trim()
     : String(body.title ?? existing.title ?? '').trim();
-  const buttonText = String(body.button_text ?? body.buttonText ?? existing.buttonText ?? (slideType === 'project' ? 'Layihəyə Bax' : '')).trim();
+  const buttonText = slideType === 'project'
+    ? 'Layihəyə Bax →'
+    : String(body.button_text ?? body.buttonText ?? existing.buttonText ?? '').trim();
   const buttonLink = slideType === 'project'
     ? projectLink(project)
     : String(body.button_link ?? body.buttonLink ?? existing.buttonLink ?? '').trim();
@@ -158,12 +160,23 @@ async function normalizePayload(body = {}, uploadedUrl = null, file = null, exis
 
 function serializeHeroSlide(slide) {
   if (!slide) return slide;
+  const isProjectSlide = slide.slideType === 'project';
+  const project = slide.project || null;
+  const dynamicMediaUrl = isProjectSlide && project ? firstProjectImage(project) : slide.mediaUrl;
+  const dynamicTitle = isProjectSlide && project ? String(project.title || '').trim() : slide.title;
+  const dynamicButtonLink = isProjectSlide && project ? projectLink(project) : slide.buttonLink;
   return {
     ...slide,
+    title: dynamicTitle,
+    description: isProjectSlide ? '' : slide.description,
+    mediaType: isProjectSlide ? inferMediaType(null, 'image', dynamicMediaUrl) : slide.mediaType,
+    mediaUrl: dynamicMediaUrl,
+    buttonText: isProjectSlide ? 'Layihəyə Bax →' : slide.buttonText,
+    buttonLink: dynamicButtonLink,
     slide_type: slide.slideType,
     project_id: slide.projectId,
-    media_type: slide.mediaType,
-    media_url: slide.mediaUrl,
+    media_type: isProjectSlide ? inferMediaType(null, 'image', dynamicMediaUrl) : slide.mediaType,
+    media_url: dynamicMediaUrl,
     badge_text: slide.badgeText,
     badge_color: slide.badgeColor,
     badge_background: slide.badgeBackground,
@@ -180,8 +193,8 @@ function serializeHeroSlide(slide) {
     hero_height_desktop: slide.heroHeightDesktop,
     hero_height_tablet: slide.heroHeightTablet,
     hero_height_mobile: slide.heroHeightMobile,
-    button_text: slide.buttonText,
-    button_link: slide.buttonLink,
+    button_text: isProjectSlide ? 'Layihəyə Bax →' : slide.buttonText,
+    button_link: dynamicButtonLink,
     display_order: slide.displayOrder,
     slide_duration: slide.slideDuration ?? DEFAULT_SLIDE_DURATION,
     is_active: slide.isActive,
