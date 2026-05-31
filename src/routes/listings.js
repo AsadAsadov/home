@@ -5,6 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
 const { assertValidListingImage, sanitizeText, uploadListingImage } = require('../utils/supabaseStorage');
+const { logUserActivity } = require('../utils/activity');
 
 const router = express.Router();
 
@@ -51,7 +52,9 @@ const LISTING_INPUT_LOG_FIELDS = [
   ['description', (body) => body.description],
   ['project_name', (body) => body.project_name ?? body.projectName],
   ['region_type', (body) => body.region_type ?? body.regionType],
+  ['city', (body) => body.city],
   ['district', (body) => body.district],
+  ['neighborhood', (body) => body.neighborhood],
   ['listing_type', (body) => body.listing_type ?? body.listingType],
   ['property_category', (body) => body.property_category ?? body.propertyCategory],
   ['image_url', (body) => body.image_url ?? body.imageUrl],
@@ -65,7 +68,9 @@ const LISTING_TEXT_PAYLOAD_FIELDS = [
   'description',
   'projectName',
   'regionType',
+  'city',
   'district',
+  'neighborhood',
   'listingType',
   'propertyCategory',
   'imageUrl',
@@ -352,12 +357,13 @@ async function ensureListingCodeForData(tx, data) {
 }
 
 
-const REGION_TYPES = new Set(['seabreeze', 'baki', 'absheron', 'sumqayit']);
-const REGION_LABELS = { seabreeze: 'Sea Breeze', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
+const REGION_TYPES = new Set(['seabreeze', 'general', 'baki', 'absheron', 'sumqayit']);
+const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Ümumi', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
 
 function normalizeRegionType(value) {
   const normalized = String(value || '').trim().toLowerCase();
   if (['sea breeze', 'sea-breeze', 'seabreeze'].includes(normalized)) return 'seabreeze';
+  if (['general', 'umumi', 'ümumi'].includes(normalized)) return 'general';
   if (['baki', 'bakı'].includes(normalized)) return 'baki';
   if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
   if (['sumqayit', 'sumqayıt'].includes(normalized)) return 'sumqayit';
@@ -366,35 +372,56 @@ function normalizeRegionType(value) {
 
 function normalizeListingRegionData(data, body = {}, existing = {}) {
   const rawRegion = body.region_type ?? body.regionType ?? data.regionType ?? existing.regionType;
-  const regionType = normalizeRegionType(rawRegion) || (!rawRegion && (data.projectName || existing.projectName) ? 'seabreeze' : undefined);
+  const requestedRegion = normalizeRegionType(rawRegion);
+  const city = sanitizeText(body.city ?? data.city ?? existing.city ?? '');
+  const legacyGeneralRegion = ['baki', 'absheron', 'sumqayit'].includes(requestedRegion) ? requestedRegion : null;
+  const regionType = requestedRegion === 'seabreeze'
+    ? 'seabreeze'
+    : (requestedRegion === 'general' || legacyGeneralRegion ? 'general' : (!rawRegion && (data.projectName || existing.projectName) ? 'seabreeze' : undefined));
   if (regionType) data.regionType = regionType;
-  if (regionType === 'sumqayit') {
-    data.district = REGION_LABELS.sumqayit;
+  if (regionType === 'seabreeze') {
+    data.city = 'Sea Breeze';
+    data.neighborhood = sanitizeText(body.neighborhood ?? data.neighborhood ?? existing.neighborhood ?? '') || undefined;
+    data.district = sanitizeText(body.district ?? data.district ?? data.projectName ?? existing.district ?? existing.projectName ?? '') || undefined;
     return data;
   }
-  const rawDistrict = body.district ?? data.district ?? existing.district;
-  if (rawDistrict !== undefined && rawDistrict !== null && String(rawDistrict).trim() !== '') {
-    data.district = sanitizeText(rawDistrict);
-  } else if (regionType === 'seabreeze') {
-    data.district = data.projectName || existing.projectName || undefined;
+  if (regionType === 'general') {
+    const nextCity = legacyGeneralRegion ? REGION_LABELS[legacyGeneralRegion] : city;
+    if (nextCity) data.city = nextCity;
+    if ((nextCity || '').toLowerCase() === 'sumqayıt' || legacyGeneralRegion === 'sumqayit') {
+      data.city = REGION_LABELS.sumqayit;
+      data.district = null;
+    } else {
+      const rawDistrict = body.district ?? data.district ?? existing.district;
+      data.district = rawDistrict ? sanitizeText(rawDistrict) : undefined;
+    }
+    data.neighborhood = sanitizeText(body.neighborhood ?? data.neighborhood ?? existing.neighborhood ?? '') || undefined;
   }
   return data;
 }
 
 function listingRegionFilterWhere(query) {
   const regionType = normalizeRegionType(query.region_type ?? query.regionType ?? query.region);
+  const city = sanitizeText(query.city ?? '');
   const district = sanitizeText(query.district ?? '');
+  const neighborhood = sanitizeText(query.neighborhood ?? '');
   const clauses = [];
   if (regionType === 'seabreeze') {
     clauses.push({ OR: [{ regionType: 'seabreeze' }, { AND: [{ regionType: null }, { projectName: { not: null } }] }] });
+  } else if (regionType === 'general') {
+    clauses.push({ regionType: 'general' });
+  } else if (['baki', 'absheron', 'sumqayit'].includes(regionType)) {
+    clauses.push({ regionType: 'general', city: REGION_LABELS[regionType] });
   } else if (regionType) {
     clauses.push({ regionType });
   }
+  if (city) clauses.push({ city });
   if (district) {
     clauses.push(regionType === 'seabreeze'
       ? { OR: [{ district }, { AND: [{ district: null }, { projectName: district }] }] }
       : { district });
   }
+  if (neighborhood) clauses.push({ neighborhood });
   return clauses.length ? { AND: clauses } : undefined;
 }
 
@@ -408,7 +435,7 @@ function parseListingOrder(body) {
     .filter((item) => item.id !== undefined && Number.isInteger(item.displayOrder));
 }
 
-router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
+async function listListings(req, res, extraWhere) {
   const q = String(req.query.q || '').trim();
   const code = Number.parseInt(req.query.listingCode || req.query.code || ( /^\d+$/.test(q) ? q : ''), 10);
   const searchWhere = q || Number.isInteger(code) ? { OR: [
@@ -420,7 +447,8 @@ router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
     ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
   ] } : undefined;
   const regionWhere = listingRegionFilterWhere(req.query);
-  const baseWhere = searchWhere && regionWhere ? { AND: [searchWhere, regionWhere] } : (searchWhere || regionWhere);
+  const queryWhere = searchWhere && regionWhere ? { AND: [searchWhere, regionWhere] } : (searchWhere || regionWhere);
+  const baseWhere = queryWhere && extraWhere ? { AND: [queryWhere, extraWhere] } : (queryWhere || extraWhere);
   const where = listingVisibilityWhere(req, baseWhere);
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
@@ -429,7 +457,11 @@ router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => {
   ]);
   await attachListingUsers(data);
   res.json({ data: orderedListingRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
-}));
+}
+
+router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res)));
+router.get('/sea-breeze', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res, { regionType: 'seabreeze' })));
+router.get('/general', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res, { regionType: 'general' })));
 
 router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const items = parseListingOrder(req.body);
@@ -599,6 +631,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     }
 
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
+    await logUserActivity(prisma, req.auth.id, 'create_listing');
     await attachListingUsers(savedListing || listing);
     return res.status(201).json(savedListing || listing);
   } catch (error) {
@@ -653,6 +686,7 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
     }
     return tx.listing.findUnique({ where: { id: listing.id }, include });
   });
+  await logUserActivity(prisma, req.auth.id, 'edit_listing');
   await attachListingUsers(updated);
   res.json(updated);
 }));
@@ -664,6 +698,7 @@ router.delete('/:id', authenticate, authorize('admin', 'user'), asyncHandler(asy
   if (!existing) return res.status(404).json({ message: 'Record not found.' });
   if (req.auth.role === 'user' && !sameId(existing.userId, req.auth.id)) return res.status(403).json({ message: 'You do not have permission for this action.' });
   await prisma.listing.delete({ where: { id } });
+  await logUserActivity(prisma, req.auth.id, 'delete_listing');
   res.status(204).send();
 }));
 

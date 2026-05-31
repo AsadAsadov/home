@@ -1103,6 +1103,37 @@
                     <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Daxil Ol</button>
                 </form>
+                <div class="flex justify-between text-xs text-gray-400">
+                    <button onclick="switchTab('register')" class="hover:text-brand-500">Qeydiyyat</button>
+                    <button onclick="switchTab('forgot-password')" class="hover:text-brand-500">Şifrəni unutdum</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-register" class="tab-content hidden max-w-md mx-auto py-12">
+            <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
+                <h2 class="text-2xl font-bold text-white">İstifadəçi Qeydiyyatı</h2>
+                <div id="register-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs"></div>
+                <form onsubmit="handleUserRegister(event)" class="space-y-4 text-left">
+                    <input type="text" id="register-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="tel" id="register-phone" required placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="email" id="register-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Qeydiyyatdan keç</button>
+                </form>
+                <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Artıq hesabım var</button>
+            </div>
+        </section>
+
+        <section id="tab-forgot-password" class="tab-content hidden max-w-md mx-auto py-12">
+            <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
+                <h2 class="text-2xl font-bold text-white">Şifrəni Bərpa Et</h2>
+                <div id="forgot-message" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
+                <form onsubmit="handleForgotPassword(event)" class="space-y-4 text-left">
+                    <input type="email" id="forgot-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Göndər</button>
+                </form>
+                <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Girişə qayıt</button>
             </div>
         </section>
 
@@ -1120,7 +1151,8 @@
 
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
             <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
-                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Sea Breeze Elanları</button>
+                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Elanlarım</button>
+                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
                 <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Bölmələri</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
@@ -1170,9 +1202,7 @@
                                 <label class="text-[10px] text-gray-400 font-bold uppercase">Region Type *</label>
                                 <select id="sb-region-type" onchange="handleListingRegionTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                                     <option value="seabreeze">Sea Breeze</option>
-                                    <option value="baki">Bakı</option>
-                                    <option value="absheron">Abşeron</option>
-                                    <option value="sumqayit">Sumqayıt</option>
+                                    <option value="general">Elanlar</option>
                                 </select>
                             </div>
                             <div id="sb-district-wrap">
@@ -1274,6 +1304,27 @@
                         </select>
                     </div>
                     <div class="grid grid-cols-1 gap-4" id="admin-seabreeze-list"></div>
+                </div>
+            </div>
+
+            <div id="admin-subtab-user-profile" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i>Profil</h3>
+                    <form onsubmit="handleProfileUpdate(event)" class="space-y-3">
+                        <input id="profile-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input id="profile-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input id="profile-email" type="email" required placeholder="Email" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input id="profile-avatar" type="url" placeholder="Avatar URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <button class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl">Profili yenilə</button>
+                    </form>
+                </div>
+                <div class="glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-lock text-brand-500 mr-2"></i>Şifrəni dəyiş</h3>
+                    <form onsubmit="handlePasswordChange(event)" class="space-y-3">
+                        <input id="profile-current-password" type="password" placeholder="Cari şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <input id="profile-new-password" type="password" minlength="6" required placeholder="Yeni şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        <button class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl">Şifrəni yenilə</button>
+                    </form>
                 </div>
             </div>
 
@@ -1982,15 +2033,17 @@ Title: Park Villas
             is_active: true
         };
 
-        const REGION_LABELS = { seabreeze: 'Sea Breeze', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
+        const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Elanlar', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
-        const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan', 'Mehdiabad'];
+        const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Mehdiabad', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan'];
+        const GENERAL_CITIES = ['Bakı', 'Abşeron', 'Sumqayıt'];
         const AD_ROTATION_INTERVAL_MS = 30000;
         const adRotationState = { left: 0, right: 0, timers: {} };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
             if (['seabreeze', 'sea breeze', 'sea-breeze'].includes(normalized)) return 'seabreeze';
+            if (['general', 'umumi', 'ümumi'].includes(normalized)) return 'general';
             if (['baki', 'bakı'].includes(normalized)) return 'baki';
             if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
             if (['sumqayit', 'sumqayıt'].includes(normalized)) return 'sumqayit';
@@ -1998,9 +2051,11 @@ Title: Park Villas
         }
 
         function getRegionLabel(regionType) { return REGION_LABELS[regionType] || 'Unknown'; }
-        function getListingRegionType(listing = {}) { return normalizeRegionType(listing.regionType, listing.project); }
-        function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'sumqayit' ? 'Sumqayıt' : (listing.district || (region === 'seabreeze' ? listing.project : '') || ''); }
+        function getListingRegionType(listing = {}) { return normalizeRegionType(listing.regionType, listing.project) || (listing.city ? 'general' : ''); }
+        function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'seabreeze' ? (listing.district || listing.project || '') : (listing.district || ''); }
         function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getOfficialProjects().map(p => p.title).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : [])); }
+        function cityToLegacyRegion(city) { const n = String(city || '').trim().toLowerCase(); if (['baki', 'bakı'].includes(n)) return 'baki'; if (['absheron', 'abşeron', 'abseron'].includes(n)) return 'absheron'; if (['sumqayit', 'sumqayıt'].includes(n)) return 'sumqayit'; return ''; }
+        function legacyRegionToCity(region) { return region === 'baki' ? 'Bakı' : (region === 'absheron' ? 'Abşeron' : (region === 'sumqayit' ? 'Sumqayıt' : '')); }
 
         // OFFICIAL SEA BREEZE 10 PROJECTS DATA WITH CAT & DETAILED SPECS
         const officialSeaBreezeProjects = [
@@ -2557,7 +2612,9 @@ Title: Park Villas
                 title: firstDefined(l.title, ''),
                 project: firstDefined(l.projectName, l.project_name, l.project, ''),
                 regionType: normalizeRegionType(firstDefined(l.regionType, l.region_type, ''), firstDefined(l.projectName, l.project_name, l.project, '')),
+                city: firstDefined(l.city, ''),
                 district: firstDefined(l.district, ''),
+                neighborhood: firstDefined(l.neighborhood, ''),
                 listingType: canonicalListingType(firstDefined(l.listingType, l.listing_type, 'Satis')),
                 category: firstDefined(l.propertyCategory, l.property_category, l.category, ''),
                 rooms: integerValue(l.roomCount, l.room_count, l.rooms),
@@ -2750,7 +2807,7 @@ Title: Park Villas
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, listingsCount: u.listingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, totalListingViews: u.totalListingViews || 0 };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0 };
         }
 
         const appData = {
@@ -3009,9 +3066,11 @@ Title: Park Villas
                 title: l.title || '',
                 listing_type: listingTypeLabel(l.listingType || 'Satis'),
                 property_category: l.category || 'Apartment',
-                project_name: l.project || 'Digər',
+                project_name: l.regionType === 'seabreeze' ? (l.project || 'Digər') : '',
                 region_type: l.regionType || 'seabreeze',
-                district: l.district || (l.regionType === 'sumqayit' ? 'Sumqayıt' : (l.project || 'Digər')),
+                city: l.city || (l.regionType === 'general' ? legacyRegionToCity(l.generalCityRegion) : ''),
+                district: l.district || (l.regionType === 'seabreeze' ? (l.project || 'Digər') : ''),
+                neighborhood: l.neighborhood || '',
                 room_count: Number.isFinite(roomCount) ? roomCount : undefined,
                 area,
                 floor_number: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
@@ -3218,7 +3277,7 @@ Title: Park Villas
         }
 
         function buildDistrictOptionHtml(region, includeAll = false) {
-            const options = getDistrictOptionsForRegion(region);
+            const options = region === 'city' ? GENERAL_CITIES : getDistrictOptionsForRegion(region);
             const first = includeAll ? '<option value="all">Bütün layihə/rayonlar</option>' : '';
             const suffix = region === 'seabreeze' && !options.includes('Digər') ? '<option value="Digər">Digər Rezidensiya</option>' : '';
             return first + options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('') + suffix;
@@ -3228,18 +3287,39 @@ Title: Park Villas
             if (!select) return;
             const selected = select.value || (includeAll ? 'all' : '');
             const wrapper = select.id === 'sb-project' ? document.getElementById('sb-district-wrap') : select;
-            const hide = region === 'sumqayit' || (!region && !includeAll);
+            const hide = (!region && !includeAll);
             wrapper?.classList.toggle('hidden', hide);
             if (hide) return;
             select.innerHTML = buildDistrictOptionHtml(region || 'seabreeze', includeAll);
             select.value = Array.from(select.options).some(opt => opt.value === selected) ? selected : (includeAll ? 'all' : (select.options[0]?.value || ''));
         }
 
+        function ensureGeneralDistrictField() {
+            const wrap = document.getElementById('sb-district-wrap');
+            if (!wrap || document.getElementById('sb-general-district-wrap')) return;
+            wrap.insertAdjacentHTML('afterend', `<div id="sb-general-district-wrap" class="space-y-1"><label class="text-[10px] text-gray-400 font-bold uppercase">Rayon/Qəsəbə *</label><select id="sb-district" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></select></div>`);
+            document.getElementById('sb-project')?.addEventListener('change', syncGeneralDistrictSelect);
+        }
+
+        function syncGeneralDistrictSelect() {
+            ensureGeneralDistrictField();
+            const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
+            const wrap = document.getElementById('sb-general-district-wrap');
+            const select = document.getElementById('sb-district');
+            if (!wrap || !select) return;
+            const cityRegion = cityToLegacyRegion(document.getElementById('sb-project')?.value || '');
+            const options = region === 'general' ? getDistrictOptionsForRegion(cityRegion) : [];
+            wrap.classList.toggle('hidden', region !== 'general' || cityRegion === 'sumqayit');
+            select.innerHTML = options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
+        }
+
         function handleListingRegionTypeChange() {
             const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
             const label = document.getElementById('sb-district-label');
-            if (label) label.textContent = region === 'seabreeze' ? 'Project *' : 'District *';
-            syncDistrictSelect(document.getElementById('sb-project'), region, false);
+            if (label) label.textContent = region === 'seabreeze' ? 'Project *' : 'Şəhər *';
+            syncDistrictSelect(document.getElementById('sb-project'), region === 'general' ? 'city' : region, false);
+            ensureGeneralDistrictField();
+            syncGeneralDistrictSelect();
         }
 
         function handlePublicRegionFilterChange() {
@@ -3259,7 +3339,7 @@ Title: Park Villas
 
         function renderOfficialProjectOptions() {
             syncDistrictSelect(document.getElementById('filter-sb-project'), document.getElementById('filter-sb-region')?.value === 'all' ? 'seabreeze' : (document.getElementById('filter-sb-region')?.value || 'seabreeze'), true);
-            syncDistrictSelect(document.getElementById('sb-project'), document.getElementById('sb-region-type')?.value || 'seabreeze', false);
+            syncDistrictSelect(document.getElementById('sb-project'), (document.getElementById('sb-region-type')?.value || 'seabreeze') === 'general' ? 'city' : (document.getElementById('sb-region-type')?.value || 'seabreeze'), false);
             syncDistrictSelect(document.getElementById('admin-listing-district-filter'), document.getElementById('admin-listing-region-filter')?.value === 'all' ? 'seabreeze' : (document.getElementById('admin-listing-region-filter')?.value || 'seabreeze'), true);
             handleListingRegionTypeChange();
         }
@@ -3305,7 +3385,7 @@ Title: Park Villas
                 const result = await apiRequest('/api/auth/me');
                 const user = result.user || result;
                 const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
-                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email, phone: user.phone || '' };
+                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '' };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (_error) {
                 clearAuthSession();
@@ -3345,7 +3425,8 @@ Title: Park Villas
             }
         }
 
-        function logoutAdmin() {
+        async function logoutAdmin() {
+            try { if (getAuthToken()) await apiRequest('/api/auth/logout', { method: 'POST' }); } catch (_error) {}
             clearAuthSession();
             activeUser = null;
             updateHeaderUI();
@@ -4173,6 +4254,61 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         }
 
         // LOGIN ENGINE
+        async function handleUserRegister(e) {
+            e.preventDefault();
+            const error = document.getElementById('register-error');
+            try {
+                const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
+                error.classList.add('hidden');
+                setAuthSession(result.token, result.user);
+                activeUser = { role: 'user', name: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
+                updateHeaderUI();
+                await hydrateFromDatabase();
+                switchTab('admin-dashboard');
+            } catch (apiError) {
+                error.textContent = apiError.message || 'Qeydiyyat alınmadı.';
+                error.classList.remove('hidden');
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const box = document.getElementById('forgot-message');
+            await apiRequest('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: document.getElementById('forgot-email').value }) });
+            box.textContent = 'Əgər e-poçt mövcuddursa, bərpa təlimatı göndəriləcək.';
+            box.classList.remove('hidden');
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+            try {
+                const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ fullname: document.getElementById('profile-fullname').value, phone: document.getElementById('profile-phone').value, email: document.getElementById('profile-email').value, avatar_url: document.getElementById('profile-avatar').value }) });
+                setAuthSession(result.token, result.user);
+                activeUser = { ...activeUser, name: result.user.fullname, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
+                updateHeaderUI();
+                alert('Profil yeniləndi.');
+            } catch (error) { alert('Profil yenilənmədi: ' + error.message); }
+        }
+
+        async function handlePasswordChange(e) {
+            e.preventDefault();
+            try {
+                await apiRequest('/api/auth/me/password', { method: 'PUT', body: JSON.stringify({ current_password: document.getElementById('profile-current-password').value, new_password: document.getElementById('profile-new-password').value }) });
+                document.getElementById('profile-current-password').value = '';
+                document.getElementById('profile-new-password').value = '';
+                alert('Şifrə yeniləndi.');
+            } catch (error) { alert('Şifrə yenilənmədi: ' + error.message); }
+        }
+
+        function fillProfileForm() {
+            if (!activeUser) return;
+            const stored = JSON.parse(sessionStorage.getItem('besthome_user_data') || '{}');
+            if (document.getElementById('profile-fullname')) document.getElementById('profile-fullname').value = stored.fullname || activeUser.name || '';
+            if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = stored.phone || activeUser.phone || '';
+            if (document.getElementById('profile-email')) document.getElementById('profile-email').value = stored.email || activeUser.email || '';
+            if (document.getElementById('profile-avatar')) document.getElementById('profile-avatar').value = stored.avatarUrl || stored.avatar_url || activeUser.avatarUrl || '';
+        }
+
         async function handleGeneralLogin(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -4187,7 +4323,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 error.classList.add('hidden');
                 sessionStorage.setItem('token', result.token);
                 setAuthSession(result.token, result.user);
-                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '' };
+                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '' };
                 updateHeaderUI();
                 await hydrateFromDatabase();
                 switchTab('admin-dashboard');
@@ -4216,14 +4352,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
                 const restrictedClass = btn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
-                const hiddenClass = activeUser && activeUser.role !== 'admin' && btn.id !== 'subtab-btn-sb' ? ' hidden' : '';
+                const hiddenClass = activeUser && activeUser.role !== 'admin' && !['subtab-btn-sb','subtab-btn-user-profile'].includes(btn.id) ? ' hidden' : (activeUser?.role === 'admin' && btn.id === 'subtab-btn-user-profile' ? ' hidden' : '');
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -4236,6 +4373,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 updateProjectImagePreview();
             }
             if (subtab === 'ads-manager') { loadAdminAds(); }
+            if (subtab === 'user-profile') { fillProfileForm(); }
             if (subtab === 'hero-sections') {
                 fillHeroAdminForm();
             }
@@ -5249,11 +5387,13 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const adminTags = document.querySelectorAll('.admin-only-element');
             if (activeUser.role === 'user') {
                 adminTags.forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.user-only-element').forEach(el => el.classList.remove('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İstifadəçi Kabineti`;
                 document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name}. Elanlarınızı yerləşdirin və redaktə edin.`;
                 switchAdminSubtab('seabreeze-manager');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.user-only-element').forEach(el => el.classList.add('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
                 document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, hero bölmələrini, namizəd məlumatlarını və istifadəçiləri idarə edin.`;
             }
@@ -5358,13 +5498,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                                 <div class="flex items-center gap-2 min-w-0">
                                     <h4 class="font-bold text-white truncate">${fullname}</h4>
                                     <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10 shrink-0">${roleLabel(a.role)}</span>
+                                    <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'} shrink-0">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
                                 </div>
                                 <span class="text-[10px] text-gray-400 truncate block">${a.email || 'E-poçt yoxdur'}</span>
                                 <span class="text-[10px] text-gray-500 truncate block">${a.phone || 'Nömrə qeyd edilməyib'} • ${formatAzDate(a.createdAt || a.created_at)}</span>
-                                <span class="text-[10px] text-gray-400 truncate block">Listings: ${a.listingsCount || 0} • Approved: ${a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0}</span>
+                                <span class="text-[10px] text-gray-400 truncate block">Aktiv: ${a.activeListingsCount || a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0} • Favori: ${a.totalFavorites || a.favoritesCount || 0}</span>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="event.stopPropagation(); toggleUserActive('${a.id}', ${a.isActive === false ? 'true' : 'false'})" class="w-8 h-8 rounded-lg ${a.isActive === false ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500'} hover:text-white transition" aria-label="Status"><i class="fa-solid ${a.isActive === false ? 'fa-check' : 'fa-ban'}"></i></button>
                                 <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
@@ -5417,8 +5559,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const editId = document.getElementById('edit-sb-id').value;
             const title = document.getElementById('sb-title').value;
             const regionType = document.getElementById('sb-region-type')?.value || 'seabreeze';
-            const project = regionType === 'sumqayit' ? 'Sumqayıt' : document.getElementById('sb-project').value;
-            const district = regionType === 'sumqayit' ? 'Sumqayıt' : project;
+            const selectorValue = document.getElementById('sb-project').value;
+            const project = regionType === 'seabreeze' ? selectorValue : '';
+            const city = regionType === 'general' ? selectorValue : 'Sea Breeze';
+            const district = regionType === 'seabreeze' ? project : (city === 'Sumqayıt' ? '' : (document.getElementById('sb-district')?.value || ''));
+            const generalCityRegion = cityToLegacyRegion(city);
             const listingType = document.getElementById('sb-listing-type').value;
             const category = document.getElementById('sb-form-category').value;
             const rooms = parseInt(document.getElementById('sb-rooms').value);
@@ -5457,7 +5602,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 title,
                 project,
                 regionType,
+                city,
                 district,
+                generalCityRegion,
                 listingType,
                 category,
                 rooms,
@@ -5508,7 +5655,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 document.getElementById('sb-title').value = p.title;
                 document.getElementById('sb-region-type').value = getListingRegionType(p) || 'seabreeze';
                 handleListingRegionTypeChange();
-                document.getElementById('sb-project').value = getListingDistrict(p) || p.project;
+                document.getElementById('sb-project').value = getListingRegionType(p) === 'general' ? (p.city || 'Bakı') : (getListingDistrict(p) || p.project);
+                syncGeneralDistrictSelect();
+                if (document.getElementById('sb-district')) document.getElementById('sb-district').value = p.district || '';
                 document.getElementById('sb-listing-type').value = p.listingType;
                 document.getElementById('sb-form-category').value = p.category || "Apartment";
                 document.getElementById('sb-rooms').value = p.rooms;
@@ -5682,6 +5831,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             } catch (error) {
                 alert('İstifadəçi yenilənmədi: ' + error.message);
             }
+        }
+
+        async function toggleUserActive(id, activate) {
+            try {
+                const updated = await apiRequest(`/api/users/${id}/${activate ? 'activate' : 'block'}`, { method: 'PATCH' });
+                const idx = appData.agents.findIndex(x => String(x.id) === String(id));
+                if (idx > -1) appData.agents[idx] = userToUi(updated);
+                renderAdminDashboard();
+            } catch (error) { alert('İstifadəçi statusu dəyişmədi: ' + error.message); }
         }
 
         async function deleteAgent(id) {
