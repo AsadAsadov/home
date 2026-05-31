@@ -22,6 +22,7 @@ model Project {
   images         Json?
   displayOrder   Int?     @map("display_order")
   slug           String?  @unique
+  featuredInHero Boolean  @default(false) @map("featured_in_hero")
   createdAt      DateTime @default(now()) @map("created_at")
   heroSlides     HeroSlide[]
 

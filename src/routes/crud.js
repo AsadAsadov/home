@@ -66,6 +66,7 @@ const serializers = {
     images: parseJsonArray(body.images),
     displayOrder: toInt(body.display_order ?? body.displayOrder),
     slug: cleanString(body.slug),
+    featuredInHero: toBool(body.featured_in_hero ?? body.featuredInHero),
   }),
   listing: (body) => {
     const area = cleanString(body.area);
