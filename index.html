@@ -444,6 +444,30 @@
             border-color: rgba(207, 207, 255, 0.45);
             box-shadow: 0 24px 60px rgba(127, 127, 255, 0.18);
         }
+        .hero-slide-media {
+            opacity: 0;
+            transition: opacity 600ms ease;
+        }
+        .hero-slide-media.is-active {
+            opacity: 1;
+        }
+        .hero-glass-panel {
+            width: min(90%, 700px);
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.52);
+            box-shadow: 0 26px 70px rgba(15, 23, 42, 0.22);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+        }
+        .hero-preview-panel {
+            width: min(90%, 700px);
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.52);
+            box-shadow: 0 22px 55px rgba(15, 23, 42, 0.20);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
         .bg-brand-500 {
             background-color: var(--color-primary) !important;
         }
@@ -857,23 +881,21 @@
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
         <section id="tab-seabreeze" class="tab-content space-y-12">
             <!-- Hero banner -->
-            <div class="sea-breeze-hero relative rounded-3xl overflow-hidden glass-card min-h-[60vh] md:min-h-[70vh] flex items-center">
-                <div id="sea-breeze-hero-bg" class="absolute inset-0 w-full h-full bg-cover bg-center" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
-                <div id="sea-breeze-hero-color-overlay" class="absolute inset-0"></div>
-                <div class="absolute inset-0 bg-gradient-to-br from-white/65 via-brand-50/35 to-transparent"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-white/45 via-transparent to-transparent"></div>
+            <div id="sea-breeze-hero-slider" class="sea-breeze-hero relative rounded-3xl overflow-hidden glass-card min-h-[60vh] md:min-h-[70vh] flex items-end justify-center">
+                <div id="sea-breeze-hero-media" class="absolute inset-0" role="img" aria-label="Sea Breeze premium həyat tərzi"></div>
+                <div id="sea-breeze-hero-color-overlay" class="absolute inset-0 bg-black/25"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
 
-                <div class="relative z-10 max-w-3xl space-y-5 px-6 py-8 sm:px-10 md:px-14 md:py-12 lg:py-14 text-left">
-                    <span id="sea-breeze-hero-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em] shadow-lg shadow-brand-500/10">Etibarlı seçim</span>
-                    <h1 id="sea-breeze-hero-title" class="text-3xl md:text-5xl lg:text-6xl font-black text-gray-950 leading-[1.02] drop-shadow-xl">
+                <div id="sea-breeze-hero-panel" class="hero-glass-panel relative z-10 rounded-3xl p-5 sm:p-7 md:p-8 text-center space-y-4">
+                    <h1 id="sea-breeze-hero-title" class="text-2xl md:text-4xl lg:text-5xl font-black text-gray-950 leading-[1.05] drop-shadow-xl">
                         Sea Breeze-də <br><span class="font-black text-gray-900">Premium Həyat Tərzi!</span>
                     </h1>
-                    <p id="sea-breeze-hero-description" class="max-w-2xl text-gray-800 text-lg md:text-2xl font-semibold leading-snug md:leading-relaxed drop-shadow-md">
+                    <p id="sea-breeze-hero-description" class="mx-auto max-w-2xl text-gray-800 text-sm md:text-lg font-semibold leading-snug md:leading-relaxed drop-shadow-md">
                         Arzuladığınız evi tapın. Seçilmiş layihələr və aktual elanlar sizi gözləyir.
                     </p>
-                    <button id="sea-breeze-hero-button" onclick="document.getElementById('sea-breeze-projects-list').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="inline-flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black shadow-xl transition hover:scale-[1.02]">
-                        Layihələrə bax <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                    <a id="sea-breeze-hero-button" href="#sea-breeze-projects-list" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-6 py-3 text-sm font-black text-white shadow-xl transition hover:scale-[1.02]">
+                        Layihələrə bax <i class="fa-solid fa-arrow-down"></i>
+                    </a>
                 </div>
             </div>
 
@@ -1154,7 +1176,7 @@
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Elanlarım</button>
                 <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
-                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Bölmələri</button>
+                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Slaydlar</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
@@ -1513,61 +1535,61 @@ Title: Park Villas
                 </div>
             </div>
 
-            <!-- SUBTAB: HERO SECTIONS -->
+            <!-- SUBTAB: HERO SLIDES -->
             <div id="admin-subtab-hero-sections" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                        <i class="fa-solid fa-image text-brand-500"></i>
-                        <span>Sea Breeze Hero Bölməsi</span>
+                        <i class="fa-solid fa-images text-brand-500"></i>
+                        <span>Hero Slaydlar</span>
                     </h3>
-                    <div id="hero-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Hero bölməsi uğurla yeniləndi.</div>
-                    <form onsubmit="handleSaveHeroSection(event)" class="space-y-3">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Badge mətni</label>
-                            <input type="text" id="hero-badge-text" placeholder="Məs: Etibarlı seçim" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-                        </div>
+                    <div id="hero-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Hero slayd uğurla saxlanıldı.</div>
+                    <form onsubmit="handleSaveHeroSlide(event)" class="space-y-3">
+                        <input type="hidden" id="hero-slide-id">
                         <div class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</label>
-                            <textarea id="hero-title-input" rows="3" placeholder="Hero başlığı" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
-                            <p class="text-[10px] text-gray-500">Sətir qırmaq üçün Enter istifadə edə bilərsiniz.</p>
+                            <textarea id="hero-title-input" rows="3" required placeholder="Hero başlığı" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama</label>
                             <textarea id="hero-description-input" rows="4" placeholder="Hero açıqlaması" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Fon şəkli URL</label>
-                            <input type="url" id="hero-image-url-input" placeholder="https://..." oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-                            <p class="text-[10px] text-gray-500">Boş saxlanılarsa mövcud default şəkil göstəriləcək.</p>
-                        </div>
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge rəngi</span><input type="color" id="hero-badge-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Başlıq rəngi</span><input type="color" id="hero-title-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Açıqlama rəngi</span><input type="color" id="hero-description-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Overlay rəngi</span><input type="color" id="hero-overlay-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Düymə rəngi</span><input type="color" id="hero-button-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Düymə mətn rəngi</span><input type="color" id="hero-button-text-color" oninput="updateHeroAdminPreview()" class="w-full h-11 rounded-xl"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Media Type</span><select id="hero-media-type-input" onchange="updateHeroAdminPreview()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="image">Image</option><option value="video">Video</option></select></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Duration Seconds</span><input type="number" id="hero-duration-input" min="1" value="10" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         </div>
-                        <label class="space-y-1 block">
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">Overlay opacity: <strong id="hero-overlay-opacity-label">0.35</strong></span>
-                            <input type="range" id="hero-overlay-opacity" min="0" max="1" step="0.01" oninput="updateHeroAdminPreview()" class="w-full">
-                        </label>
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Media Upload</label>
+                            <input type="file" id="hero-media-file-input" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" onchange="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                            <p id="hero-existing-media-label" class="text-[10px] text-gray-500">Yeni slayd üçün media faylı seçin. Redaktə zamanı fayl seçməsəniz mövcud media qalacaq.</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Text</span><input type="text" id="hero-button-text-input" placeholder="Layihələrə bax" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Link</span><input type="text" id="hero-button-link-input" placeholder="#sea-breeze-projects-list" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Display Order</span><input type="number" id="hero-display-order-input" value="0" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300 mt-5"><input type="checkbox" id="hero-is-active-input" checked onchange="updateHeroAdminPreview()" class="w-4 h-4"> Aktiv slayd</label>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" id="hero-form-submit" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
+                            <button type="button" onclick="resetHeroSlideForm()" class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300">Təmizlə</button>
+                        </div>
                     </form>
                 </div>
-                <div class="lg:col-span-7 glass-card p-5 rounded-2xl border border-white/5">
-                    <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden min-h-[360px] flex items-end bg-cover bg-center">
-                        <div id="hero-preview-overlay" class="absolute inset-0"></div>
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/60 via-brand-50/30 to-transparent"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-white/35 via-transparent to-transparent"></div>
-                        <div class="relative z-10 p-8 space-y-4">
-                            <span id="hero-preview-badge" class="inline-flex bg-brand-500/15 text-blue-100 border border-brand-500/40 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.28em]">Etibarlı seçim</span>
-                            <h4 id="hero-preview-title" class="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-2xl"></h4>
-                            <p id="hero-preview-description" class="max-w-xl text-gray-100 text-sm md:text-base font-semibold leading-relaxed drop-shadow-lg"></p>
-                            <span id="hero-preview-button" class="inline-flex rounded-2xl px-5 py-2.5 text-xs font-black shadow-lg">Layihələrə bax</span>
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="glass-card p-5 rounded-2xl border border-white/5">
+                        <div id="hero-admin-preview" class="relative rounded-2xl overflow-hidden min-h-[360px] flex items-end justify-center bg-cover bg-center">
+                            <div id="hero-preview-media" class="absolute inset-0 bg-cover bg-center"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
+                            <div class="hero-preview-panel relative z-10 rounded-3xl p-5 sm:p-7 text-center space-y-3 mb-4">
+                                <h4 id="hero-preview-title" class="text-2xl md:text-4xl font-extrabold text-gray-950 leading-tight drop-shadow-2xl"></h4>
+                                <p id="hero-preview-description" class="max-w-xl mx-auto text-gray-800 text-sm md:text-base font-semibold leading-relaxed drop-shadow-lg"></p>
+                                <span id="hero-preview-button" class="inline-flex rounded-2xl bg-brand-500 px-5 py-2.5 text-xs font-black text-white shadow-lg">Layihələrə bax</span>
+                                <p id="hero-preview-duration" class="text-[10px] font-bold uppercase tracking-wide text-gray-500">10 saniyə</p>
+                            </div>
                         </div>
                     </div>
+                    <div id="admin-hero-slides-list" class="space-y-3"></div>
                 </div>
             </div>
 
@@ -2036,20 +2058,20 @@ Title: Park Villas
         const SEA_BREEZE_PAGE_KEY = 'sea-breeze';
         const DEFAULT_SEA_BREEZE_HERO_IMAGE = 'https://scontent.fgyd21-1.fna.fbcdn.net/v/t39.30808-6/557956945_1410435877753430_6514473924415472229_n.jpg';
         const defaultSeaBreezeHero = {
-            page_key: SEA_BREEZE_PAGE_KEY,
-            badge_text: 'Etibarlı seçim',
+            id: 'default',
             title: 'Sea Breeze-də\nPremium Həyat Tərzi!',
             description: 'Arzuladığınız evi tapın. Seçilmiş layihələr və aktual elanlar sizi gözləyir.',
-            hero_image_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
-            badge_color: '#000000',
-            title_color: '#000000',
-            description_color: '#000000',
-            overlay_color: '#ffffff',
-            overlay_opacity: 0.35,
-            button_color: '#7309dc',
-            button_text_color: '#ffffff',
+            media_type: 'image',
+            media_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
+            button_text: 'Layihələrə bax',
+            button_link: '#sea-breeze-projects-list',
+            display_order: 0,
+            slide_duration: 10,
             is_active: true
         };
+        let heroSliderTimer = null;
+        let heroSliderIndex = 0;
+        let heroPreviewObjectUrl = '';
 
         const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Elanlar', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
@@ -2947,6 +2969,7 @@ Title: Park Villas
             gallery: defaultGallery,
             applications: [],
             agents: defaultAgents,
+            heroSlides: [defaultSeaBreezeHero],
             heroSection: defaultSeaBreezeHero,
             ads: [],
             adStats: null,
@@ -2960,6 +2983,7 @@ Title: Park Villas
             gallery: 'besthome_gallery',
             applications: 'besthome_applications',
             agents: 'besthome_agents',
+            heroSlides: 'besthome_hero_slides',
             heroSection: 'besthome_hero_sea_breeze',
             careerText: 'besthome_career_text',
             ads: 'besthome_site_ads'
@@ -2991,28 +3015,37 @@ Title: Park Villas
             appData.gallery = readCache(CACHE_KEYS.gallery, defaultGallery);
             appData.applications = readCache(CACHE_KEYS.applications, []);
             appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
-            appData.heroSection = normalizeHeroSection(readCache(CACHE_KEYS.heroSection, defaultSeaBreezeHero));
+            appData.heroSlides = normalizeHeroSlides(readCache(CACHE_KEYS.heroSlides, [defaultSeaBreezeHero]));
+            appData.heroSection = appData.heroSlides[0] || defaultSeaBreezeHero;
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
             appData.ads = readCache(CACHE_KEYS.ads, []);
         }
 
-        function normalizeHeroSection(hero = {}) {
+        function normalizeHeroSlide(slide = {}) {
+            const duration = Number(slide.slide_duration ?? slide.slideDuration ?? defaultSeaBreezeHero.slide_duration);
+            const mediaType = String(slide.media_type ?? slide.mediaType ?? defaultSeaBreezeHero.media_type).toLowerCase() === 'video' ? 'video' : 'image';
             return {
-                id: hero.id,
-                page_key: hero.page_key || hero.pageKey || SEA_BREEZE_PAGE_KEY,
-                badge_text: hero.badge_text ?? hero.badgeText ?? defaultSeaBreezeHero.badge_text,
-                title: hero.title ?? defaultSeaBreezeHero.title,
-                description: hero.description ?? defaultSeaBreezeHero.description,
-                hero_image_url: hero.hero_image_url ?? hero.heroImageUrl ?? defaultSeaBreezeHero.hero_image_url,
-                badge_color: hero.badge_color ?? hero.badgeColor ?? defaultSeaBreezeHero.badge_color,
-                title_color: hero.title_color ?? hero.titleColor ?? defaultSeaBreezeHero.title_color,
-                description_color: hero.description_color ?? hero.descriptionColor ?? defaultSeaBreezeHero.description_color,
-                overlay_color: hero.overlay_color ?? hero.overlayColor ?? defaultSeaBreezeHero.overlay_color,
-                overlay_opacity: Number(hero.overlay_opacity ?? hero.overlayOpacity ?? defaultSeaBreezeHero.overlay_opacity),
-                button_color: hero.button_color ?? hero.buttonColor ?? defaultSeaBreezeHero.button_color,
-                button_text_color: hero.button_text_color ?? hero.buttonTextColor ?? defaultSeaBreezeHero.button_text_color,
-                is_active: hero.is_active ?? hero.isActive ?? true
+                id: slide.id,
+                title: slide.title ?? defaultSeaBreezeHero.title,
+                description: slide.description ?? defaultSeaBreezeHero.description,
+                media_type: mediaType,
+                media_url: slide.media_url ?? slide.mediaUrl ?? slide.hero_image_url ?? slide.heroImageUrl ?? DEFAULT_SEA_BREEZE_HERO_IMAGE,
+                button_text: slide.button_text ?? slide.buttonText ?? defaultSeaBreezeHero.button_text,
+                button_link: slide.button_link ?? slide.buttonLink ?? defaultSeaBreezeHero.button_link,
+                display_order: Number(slide.display_order ?? slide.displayOrder ?? 0),
+                slide_duration: Number.isFinite(duration) && duration > 0 ? duration : 10,
+                is_active: slide.is_active ?? slide.isActive ?? true
             };
+        }
+
+        function normalizeHeroSlides(slides = []) {
+            const list = Array.isArray(slides) ? slides : [slides];
+            const normalized = list.filter(Boolean).map(normalizeHeroSlide).sort((a, b) => (a.display_order - b.display_order) || Number(a.id || 0) - Number(b.id || 0));
+            return normalized.length ? normalized : [defaultSeaBreezeHero];
+        }
+
+        function normalizeHeroSection(hero = {}) {
+            return normalizeHeroSlide(hero);
         }
 
         function escapeHtml(value = '') {
@@ -3027,137 +3060,242 @@ Title: Park Villas
             return `${firstLines}<br><span class="font-black text-gray-900">${lastLine}</span>`;
         }
 
-        function getHeroImageUrl(hero = appData.heroSection) {
-            const url = String(hero?.hero_image_url || hero?.heroImageUrl || '').trim();
+        function getHeroMediaUrl(hero = appData.heroSection) {
+            const url = String(hero?.media_url || hero?.mediaUrl || hero?.hero_image_url || hero?.heroImageUrl || '').trim();
             return url || DEFAULT_SEA_BREEZE_HERO_IMAGE;
         }
 
-        function renderSeaBreezeHero() {
-            const hero = normalizeHeroSection(appData.heroSection);
-            const bg = document.getElementById('sea-breeze-hero-bg');
-            const badge = document.getElementById('sea-breeze-hero-badge');
+        function createHeroMediaElement(slide) {
+            const url = getHeroMediaUrl(slide);
+            if (slide.media_type === 'video') {
+                const video = document.createElement('video');
+                video.className = 'hero-slide-media absolute inset-0 w-full h-full object-cover';
+                video.src = url;
+                video.autoplay = true;
+                video.muted = true;
+                video.loop = true;
+                video.playsInline = true;
+                video.setAttribute('playsinline', '');
+                video.setAttribute('aria-hidden', 'true');
+                return video;
+            }
+            const image = document.createElement('div');
+            image.className = 'hero-slide-media absolute inset-0 w-full h-full bg-cover bg-center';
+            image.style.backgroundImage = `url('${url}')`;
+            image.setAttribute('aria-hidden', 'true');
+            return image;
+        }
+
+        function renderSeaBreezeHero(activeIndex = heroSliderIndex) {
+            const activeSlides = normalizeHeroSlides(appData.heroSlides).filter(slide => slide.is_active);
+            const slides = activeSlides.length ? activeSlides : [defaultSeaBreezeHero];
+            heroSliderIndex = ((activeIndex % slides.length) + slides.length) % slides.length;
+            const hero = slides[heroSliderIndex];
+            appData.heroSection = hero;
+            const mediaWrap = document.getElementById('sea-breeze-hero-media');
             const title = document.getElementById('sea-breeze-hero-title');
             const description = document.getElementById('sea-breeze-hero-description');
-            const overlay = document.getElementById('sea-breeze-hero-color-overlay');
             const button = document.getElementById('sea-breeze-hero-button');
-            if (bg) bg.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
-            if (overlay) {
-                overlay.style.backgroundColor = hero.overlay_color;
-                overlay.style.opacity = String(hero.overlay_opacity);
+            if (mediaWrap) {
+                mediaWrap.innerHTML = '';
+                slides.forEach((slide, index) => {
+                    const el = createHeroMediaElement(slide);
+                    if (index === heroSliderIndex) el.classList.add('is-active');
+                    mediaWrap.appendChild(el);
+                    if (slide.media_type === 'video' && index === heroSliderIndex) el.play?.().catch(() => {});
+                });
             }
-            if (badge) {
-                badge.textContent = hero.badge_text || defaultSeaBreezeHero.badge_text;
-                badge.style.color = hero.badge_color;
-                badge.style.borderColor = `${hero.badge_color}88`;
-                badge.style.backgroundColor = `${hero.badge_color}22`;
-            }
-            if (title) {
-                title.innerHTML = formatHeroTitle(hero.title);
-                title.style.color = hero.title_color;
-                title.querySelectorAll('span').forEach(span => { span.style.color = hero.title_color; });
-            }
-            if (description) {
-                description.textContent = hero.description || defaultSeaBreezeHero.description;
-                description.style.color = hero.description_color;
-            }
+            if (title) title.innerHTML = formatHeroTitle(hero.title);
+            if (description) description.textContent = hero.description || '';
             if (button) {
-                button.style.backgroundColor = hero.button_color;
-                button.style.color = hero.button_text_color;
+                button.textContent = hero.button_text || defaultSeaBreezeHero.button_text;
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-arrow-down';
+                button.appendChild(icon);
+                button.href = hero.button_link || '#sea-breeze-projects-list';
+                button.onclick = (event) => {
+                    const href = button.getAttribute('href') || '';
+                    if (href.startsWith('#')) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            event.preventDefault();
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                };
             }
+            startHeroSliderTimer(slides);
         }
 
-        function fillHeroAdminForm() {
-            const hero = normalizeHeroSection(appData.heroSection);
-            const badge = document.getElementById('hero-badge-text');
-            const title = document.getElementById('hero-title-input');
-            const description = document.getElementById('hero-description-input');
-            const image = document.getElementById('hero-image-url-input');
-            if (badge) badge.value = hero.badge_text || '';
-            if (title) title.value = hero.title || '';
-            if (description) description.value = hero.description || '';
-            if (image) image.value = hero.hero_image_url || '';
-            const colorMap = {
-                'hero-badge-color': hero.badge_color,
-                'hero-title-color': hero.title_color,
-                'hero-description-color': hero.description_color,
-                'hero-overlay-color': hero.overlay_color,
-                'hero-button-color': hero.button_color,
-                'hero-button-text-color': hero.button_text_color,
+        function startHeroSliderTimer(slides = normalizeHeroSlides(appData.heroSlides).filter(slide => slide.is_active)) {
+            clearTimeout(heroSliderTimer);
+            if (!slides.length) slides = [defaultSeaBreezeHero];
+            if (slides.length <= 1) return;
+            const duration = Math.max(1, Number(slides[heroSliderIndex]?.slide_duration || 10)) * 1000;
+            heroSliderTimer = setTimeout(() => renderSeaBreezeHero(heroSliderIndex + 1), duration);
+        }
+
+        function fillHeroAdminForm(slide = null) {
+            const hero = normalizeHeroSlide(slide || { ...defaultSeaBreezeHero, display_order: (appData.heroSlides || []).length + 1 });
+            const fields = {
+                'hero-slide-id': slide?.id || '',
+                'hero-title-input': hero.title || '',
+                'hero-description-input': hero.description || '',
+                'hero-media-type-input': hero.media_type || 'image',
+                'hero-button-text-input': hero.button_text || '',
+                'hero-button-link-input': hero.button_link || '',
+                'hero-display-order-input': hero.display_order ?? 0,
+                'hero-duration-input': hero.slide_duration || 10,
             };
-            Object.entries(colorMap).forEach(([id, value]) => { const input = document.getElementById(id); if (input) input.value = value; });
-            const opacity = document.getElementById('hero-overlay-opacity');
-            if (opacity) opacity.value = hero.overlay_opacity;
-            updateHeroAdminPreview();
+            Object.entries(fields).forEach(([id, value]) => { const input = document.getElementById(id); if (input) input.value = value; });
+            const active = document.getElementById('hero-is-active-input');
+            if (active) active.checked = hero.is_active !== false;
+            const file = document.getElementById('hero-media-file-input');
+            if (file) file.value = '';
+            const label = document.getElementById('hero-existing-media-label');
+            if (label) label.textContent = slide?.media_url ? `Mövcud media: ${slide.media_type} — yeni fayl seçməsəniz saxlanılacaq.` : 'Yeni slayd üçün media faylı seçin.';
+            document.getElementById('hero-form-submit').textContent = slide?.id ? 'Slaydı Yenilə' : 'Slayd Yarat';
+            updateHeroAdminPreview(slide);
         }
 
-        function updateHeroAdminPreview() {
-            const hero = {
-                badge_text: document.getElementById('hero-badge-text')?.value || defaultSeaBreezeHero.badge_text,
-                title: document.getElementById('hero-title-input')?.value || defaultSeaBreezeHero.title,
-                description: document.getElementById('hero-description-input')?.value || defaultSeaBreezeHero.description,
-                hero_image_url: document.getElementById('hero-image-url-input')?.value || DEFAULT_SEA_BREEZE_HERO_IMAGE,
-                badge_color: document.getElementById('hero-badge-color')?.value || defaultSeaBreezeHero.badge_color,
-                title_color: document.getElementById('hero-title-color')?.value || defaultSeaBreezeHero.title_color,
-                description_color: document.getElementById('hero-description-color')?.value || defaultSeaBreezeHero.description_color,
-                overlay_color: document.getElementById('hero-overlay-color')?.value || defaultSeaBreezeHero.overlay_color,
-                overlay_opacity: Number(document.getElementById('hero-overlay-opacity')?.value ?? defaultSeaBreezeHero.overlay_opacity),
-                button_color: document.getElementById('hero-button-color')?.value || defaultSeaBreezeHero.button_color,
-                button_text_color: document.getElementById('hero-button-text-color')?.value || defaultSeaBreezeHero.button_text_color
-            };
-            const preview = document.getElementById('hero-admin-preview');
-            if (preview) preview.style.backgroundImage = `url('${getHeroImageUrl(hero)}')`;
-            const badge = document.getElementById('hero-preview-badge');
-            const title = document.getElementById('hero-preview-title');
-            const description = document.getElementById('hero-preview-description');
-            const overlay = document.getElementById('hero-preview-overlay');
-            const button = document.getElementById('hero-preview-button');
-            const opacityLabel = document.getElementById('hero-overlay-opacity-label');
-            if (overlay) { overlay.style.backgroundColor = hero.overlay_color; overlay.style.opacity = String(hero.overlay_opacity); }
-            if (opacityLabel) opacityLabel.textContent = hero.overlay_opacity.toFixed(2);
-            if (badge) {
-                badge.textContent = hero.badge_text;
-                badge.style.color = hero.badge_color;
-                badge.style.borderColor = `${hero.badge_color}88`;
-                badge.style.backgroundColor = `${hero.badge_color}22`;
-            }
-            if (title) {
-                title.innerHTML = formatHeroTitle(hero.title);
-                title.style.color = hero.title_color;
-                title.querySelectorAll('span').forEach(span => { span.style.color = hero.title_color; });
-            }
-            if (description) { description.textContent = hero.description; description.style.color = hero.description_color; }
-            if (button) { button.style.backgroundColor = hero.button_color; button.style.color = hero.button_text_color; }
+        function resetHeroSlideForm() {
+            fillHeroAdminForm(null);
         }
 
-        async function handleSaveHeroSection(e) {
+        function getHeroPreviewUrl(existing = null) {
+            const file = document.getElementById('hero-media-file-input')?.files?.[0];
+            if (heroPreviewObjectUrl) URL.revokeObjectURL(heroPreviewObjectUrl);
+            heroPreviewObjectUrl = file ? URL.createObjectURL(file) : '';
+            return heroPreviewObjectUrl || existing?.media_url || DEFAULT_SEA_BREEZE_HERO_IMAGE;
+        }
+
+        function updateHeroAdminPreview(existing = null) {
+            const currentId = document.getElementById('hero-slide-id')?.value;
+            const currentSlide = existing || (appData.heroSlides || []).find(item => String(item.id) === String(currentId)) || null;
+            const mediaType = document.getElementById('hero-media-type-input')?.value || currentSlide?.media_type || 'image';
+            const url = getHeroPreviewUrl(currentSlide);
+            const media = document.getElementById('hero-preview-media');
+            if (media) {
+                media.innerHTML = '';
+                media.style.backgroundImage = '';
+                if (mediaType === 'video') {
+                    media.innerHTML = `<video src="${escapeHtml(url)}" class="w-full h-full object-cover" autoplay muted loop playsinline></video>`;
+                } else {
+                    media.style.backgroundImage = `url('${url}')`;
+                }
+            }
+            const title = document.getElementById('hero-title-input')?.value || defaultSeaBreezeHero.title;
+            const description = document.getElementById('hero-description-input')?.value || defaultSeaBreezeHero.description;
+            const buttonText = document.getElementById('hero-button-text-input')?.value || defaultSeaBreezeHero.button_text;
+            const duration = Number(document.getElementById('hero-duration-input')?.value || 10);
+            const titleEl = document.getElementById('hero-preview-title');
+            const descEl = document.getElementById('hero-preview-description');
+            const buttonEl = document.getElementById('hero-preview-button');
+            const durationEl = document.getElementById('hero-preview-duration');
+            if (titleEl) titleEl.innerHTML = formatHeroTitle(title);
+            if (descEl) descEl.textContent = description;
+            if (buttonEl) buttonEl.textContent = buttonText;
+            if (durationEl) durationEl.textContent = `${Number.isFinite(duration) && duration > 0 ? duration : 10} saniyə`;
+        }
+
+        async function handleSaveHeroSlide(e) {
             e.preventDefault();
             if (!activeUser || activeUser.role !== 'admin') return;
-            const payload = {
-                badge_text: document.getElementById('hero-badge-text').value.trim(),
-                title: document.getElementById('hero-title-input').value.trim(),
-                description: document.getElementById('hero-description-input').value.trim(),
-                hero_image_url: document.getElementById('hero-image-url-input').value.trim(),
-                badge_color: document.getElementById('hero-badge-color').value,
-                title_color: document.getElementById('hero-title-color').value,
-                description_color: document.getElementById('hero-description-color').value,
-                overlay_color: document.getElementById('hero-overlay-color').value,
-                overlay_opacity: Number(document.getElementById('hero-overlay-opacity').value),
-                button_color: document.getElementById('hero-button-color').value,
-                button_text_color: document.getElementById('hero-button-text-color').value,
-                is_active: true
-            };
+            const id = document.getElementById('hero-slide-id').value;
+            const file = document.getElementById('hero-media-file-input').files[0];
+            if (!id && !file) return alert('Yeni hero slayd üçün media faylı seçin.');
+            const formData = new FormData();
+            formData.append('title', document.getElementById('hero-title-input').value.trim());
+            formData.append('description', document.getElementById('hero-description-input').value.trim());
+            formData.append('media_type', document.getElementById('hero-media-type-input').value);
+            formData.append('button_text', document.getElementById('hero-button-text-input').value.trim());
+            formData.append('button_link', document.getElementById('hero-button-link-input').value.trim());
+            formData.append('display_order', document.getElementById('hero-display-order-input').value || '0');
+            formData.append('slide_duration', document.getElementById('hero-duration-input').value || '10');
+            formData.append('is_active', document.getElementById('hero-is-active-input').checked ? 'true' : 'false');
+            if (file) formData.append('media', file);
             try {
-                const saved = await apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`, { method: 'PUT', body: JSON.stringify(payload) });
-                cacheData('heroSection', normalizeHeroSection(saved));
-                renderSeaBreezeHero();
-                fillHeroAdminForm();
+                await apiRequest(id ? `/api/hero-slides/${id}` : '/api/hero-slides', id ? 'PUT' : 'POST', formData);
+                await loadAdminHeroSlides();
+                resetHeroSlideForm();
                 const success = document.getElementById('hero-save-success');
                 if (success) {
                     success.classList.remove('hidden');
                     setTimeout(() => success.classList.add('hidden'), 4000);
                 }
             } catch (error) {
-                alert('Hero bölməsi saxlanılmadı: ' + error.message);
+                alert('Hero slayd saxlanılmadı: ' + error.message);
+            }
+        }
+
+        async function loadAdminHeroSlides() {
+            const slides = await apiRequest('/api/hero-slides?admin=1').catch(() => appData.heroSlides || []);
+            cacheData('heroSlides', normalizeHeroSlides(slides));
+            renderAdminHeroSlides();
+            renderSeaBreezeHero(0);
+        }
+
+        function renderAdminHeroSlides() {
+            const list = document.getElementById('admin-hero-slides-list');
+            if (!list) return;
+            const slides = normalizeHeroSlides(appData.heroSlides);
+            list.innerHTML = slides.length ? slides.map((slide, index) => `
+                <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${slide.is_active ? '' : 'opacity-55 grayscale'}">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-[88px] h-[64px] rounded-xl overflow-hidden bg-white/5 shrink-0">${slide.media_type === 'video' ? `<video src="${escapeHtml(slide.media_url)}" class="w-full h-full object-cover" muted playsinline></video>` : `<img src="${escapeHtml(slide.media_url)}" class="w-full h-full object-cover" alt="">`}</div>
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-white truncate">${escapeHtml(slide.title)}</h4>
+                            <div class="text-gray-400">${slide.media_type} • order ${slide.display_order} • ${slide.slide_duration}s • ${slide.button_text || 'buttonsuz'}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="moveHeroSlide('${slide.id}', -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">↑</button>
+                        <button onclick="moveHeroSlide('${slide.id}', 1)" ${index === slides.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">↓</button>
+                        <button onclick="editHeroSlide('${slide.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
+                        <button onclick="toggleHeroSlide('${slide.id}', ${!slide.is_active})" class="${slide.is_active ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${slide.is_active ? 'Aktiv' : 'Deaktiv'}</button>
+                        <button onclick="deleteHeroSlide('${slide.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Hero slayd yoxdur.</div>';
+        }
+
+        function editHeroSlide(id) {
+            const slide = (appData.heroSlides || []).find(item => String(item.id) === String(id));
+            if (slide) fillHeroAdminForm(slide);
+        }
+
+        async function toggleHeroSlide(id, isActive) {
+            try {
+                await apiRequest(`/api/hero-slides/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: isActive }) });
+                await loadAdminHeroSlides();
+            } catch (error) {
+                alert('Hero slayd statusu dəyişmədi: ' + error.message);
+            }
+        }
+
+        async function deleteHeroSlide(id) {
+            if (!confirm('Bu hero slaydı silmək istədiyinizə əminsiniz?')) return;
+            try {
+                await apiRequest(`/api/hero-slides/${id}`, { method: 'DELETE' });
+                await loadAdminHeroSlides();
+            } catch (error) {
+                alert('Hero slayd silinmədi: ' + error.message);
+            }
+        }
+
+        async function moveHeroSlide(id, direction) {
+            const slides = normalizeHeroSlides(appData.heroSlides);
+            const index = slides.findIndex(slide => String(slide.id) === String(id));
+            const nextIndex = index + direction;
+            if (index < 0 || nextIndex < 0 || nextIndex >= slides.length) return;
+            [slides[index], slides[nextIndex]] = [slides[nextIndex], slides[index]];
+            const items = slides.map((slide, idx) => ({ id: slide.id, display_order: idx + 1 }));
+            try {
+                const saved = await apiRequest('/api/hero-slides/reorder', { method: 'PATCH', body: JSON.stringify({ items }) });
+                cacheData('heroSlides', normalizeHeroSlides(saved));
+                renderAdminHeroSlides();
+                renderSeaBreezeHero(0);
+            } catch (error) {
+                alert('Hero slayd sırası dəyişmədi: ' + error.message);
             }
         }
 
@@ -3258,12 +3396,12 @@ Title: Park Villas
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             try {
-                const [projects, listings, vacancies, gallery, heroSection, applications, users, dashboardStats, favorites, ads, adStats] = await Promise.all([
+                const [projects, listings, vacancies, gallery, heroSlides, applications, users, dashboardStats, favorites, ads, adStats] = await Promise.all([
                     apiRequest('/api/projects?page=1&limit=100'),
                     apiRequest('/api/listings?page=1&limit=100'),
                     apiRequest('/api/vacancies'),
                     apiRequest('/api/gallery?page=1&limit=18'),
-                    apiRequest(`/api/hero-sections/${SEA_BREEZE_PAGE_KEY}`).catch(() => defaultSeaBreezeHero),
+                    apiRequest('/api/hero-slides').catch(() => [defaultSeaBreezeHero]),
                     getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
                     getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([]),
                     activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null)),
@@ -3279,7 +3417,8 @@ Title: Park Villas
                 const galleryRows = Array.isArray(gallery) ? gallery : (gallery.items || []);
                 galleryPagination = Array.isArray(gallery) ? { page: 1, limit: galleryRows.length || 18, total: galleryRows.length, totalPages: 1 } : { page: gallery.page || 1, limit: 18, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
                 cacheData('gallery', galleryRows.map(dbGalleryToUi));
-                cacheData('heroSection', normalizeHeroSection(heroSection));
+                cacheData('heroSlides', normalizeHeroSlides(heroSlides));
+                appData.heroSection = appData.heroSlides[0] || defaultSeaBreezeHero;
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
@@ -4548,7 +4687,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'user-profile') { fillProfileForm(); }
             if (subtab === 'hero-sections') {
-                fillHeroAdminForm();
+                loadAdminHeroSlides();
+                resetHeroSlideForm();
             }
         }
 

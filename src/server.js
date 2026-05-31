@@ -55,6 +55,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/hero-sections', require('./routes/heroSections'));
+app.use('/api/hero-slides', require('./routes/heroSlides'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/uploads', require('./routes/uploads'));
