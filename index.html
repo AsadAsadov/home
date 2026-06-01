@@ -130,6 +130,45 @@
             border-color: rgba(127, 127, 255, .32);
             box-shadow: 0 20px 40px rgba(127, 127, 255, .14);
         }
+
+        .add-listing-fab {
+            position: fixed;
+            right: 1rem;
+            bottom: 5rem;
+            z-index: 61;
+            width: 4.15rem;
+            height: 4.15rem;
+            border-radius: 9999px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: .1rem;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+            color: #fff;
+            box-shadow: 0 18px 38px rgba(127, 127, 255, .38);
+            font-weight: 900;
+            letter-spacing: -.02em;
+        }
+        .add-listing-fab span:first-child { font-size: 1.35rem; line-height: 1; }
+        .add-listing-fab span:last-child { font-size: .68rem; line-height: 1; }
+        .add-listing-fab.is-visible { display: inline-flex; }
+        @media (min-width: 768px) { .add-listing-fab { display: none !important; } }
+        .public-listing-shell { max-width: 1200px; margin: 0 auto; }
+        .public-form-card { background: rgba(255,255,255,.97); border: 1px solid rgba(207,207,255,.85); box-shadow: 0 24px 70px rgba(79,70,229,.13); }
+        .public-form-label { display:block; font-size:12px; line-height:1.15; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.35rem; }
+        .public-form-input { width:100%; height:2.75rem; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:0 .85rem; font-size:.86rem; color:#0f172a; outline:none; }
+        .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(127,127,255,.14); }
+        .public-location-suggestions, .fullscreen-location-suggestions { max-height:260px; overflow-y:auto; scrollbar-width:thin; }
+        .public-location-suggestion { display:block; width:100%; text-align:left; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:.75rem .85rem; color:#0f172a; transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease; }
+        .public-location-suggestion:hover, .public-location-suggestion:focus-visible { background:#f4f4ff; border-color:var(--color-primary-border); transform:translateX(2px); outline:none; }
+        .public-location-map { width:100%; height:320px; min-height:260px; border-radius:1.25rem; overflow:hidden; background:#e5e7eb; }
+        .public-floor-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:.65rem; }
+        @media (min-width: 768px) { .public-floor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .public-form-label { font-size:13px; } }
+        .fullscreen-map-search { position:absolute; left:1rem; right:1rem; top:1rem; z-index:1001; max-width:680px; margin:0 auto; }
+        .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
+        .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
+
         .whatsapp-floating-btn {
             position: fixed;
             right: 1rem;
@@ -1308,6 +1347,8 @@
         </div>
     </nav>
 
+    <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
+
     <!-- MAIN CONTAINER -->
     <div id="desktop-ad-layout" class="desktop-ad-layout">
         <aside id="desktop-left-ads" class="desktop-ad-rail" aria-label="Sol reklamlar"></aside>
@@ -1595,6 +1636,14 @@
         </section>
 
         <!-- 7. COMPREHENSIVE DASHBOARD PANEL -->
+
+        <section id="tab-create-listing" class="tab-content hidden py-8">
+            <div id="public-listing-root" class="public-listing-shell"></div>
+        </section>
+        <section id="tab-my-listings" class="tab-content hidden py-8">
+            <div id="my-listings-root" class="public-listing-shell"></div>
+        </section>
+
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
                 <div>
@@ -2393,6 +2442,10 @@ Title: Park Villas
     <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
     <div id="project-detail-modal-official" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
         <div class="glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
+
+            <button onclick="shareActiveProject()" class="absolute top-4 right-16 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">
+                <i class="fa-solid fa-link"></i><span>Paylaş</span>
+            </button>
             <button onclick="closeOfficialProjectModal()" class="absolute top-4 right-4 text-white hover:text-brand-500 text-2xl z-20 drop-shadow-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -2465,6 +2518,11 @@ Title: Park Villas
     <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
     <div id="fullscreen-map-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[70] items-center justify-center p-3 md:p-6">
         <div class="fullscreen-map-panel relative">
+
+            <div id="fullscreen-map-search-wrap" class="fullscreen-map-search hidden">
+                <input type="search" id="fullscreen-location-search" oninput="debouncedFullscreenLocationSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" placeholder="🔍 Ünvan, metro və ya rayon axtar…" class="w-full h-12 rounded-2xl border border-white/20 bg-white/95 px-4 pr-12 text-sm font-bold text-slate-900 shadow-2xl focus:outline-none focus:border-brand-500">
+                <div id="fullscreen-location-results" class="fullscreen-location-suggestions hidden mt-2 space-y-1 rounded-2xl border border-white/20 bg-white/95 p-2 text-xs shadow-2xl backdrop-blur"></div>
+            </div>
             <button type="button" onclick="closeFullscreenMap()" class="absolute top-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">✕ Bağla</button>
             <div id="fullscreen-map-canvas"></div>
             <div id="fullscreen-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
@@ -3214,7 +3272,7 @@ Title: Park Villas
         }
 
         function listingStatusLabel(status) {
-            return { pending: 'Gözləyən', approved: 'Təsdiqlənmiş', rejected: 'Rejected' }[normalizeListingStatus(status)] || 'Gözləyən';
+            return { pending: 'Gözləyən', approved: 'Təsdiqlənmiş', rejected: 'İmtina edilən' }[normalizeListingStatus(status)] || 'Gözləyən';
         }
 
         function listingStatusBadgeClass(status) {
@@ -4883,12 +4941,27 @@ Title: Park Villas
             }, 120);
         }
 
+
+        function fullscreenSearchCity() {
+            if (fullscreenMapSource === 'public') return publicLocationCity();
+            return adminLocationSearchCity();
+        }
+        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(!q){el?.classList.add('hidden'); return;} if(el){el.classList.remove('hidden'); el.innerHTML='<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>';} window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,300); }
+        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(!q) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; try { const rows=await nominatimSearch(q, fullscreenSearchCity()); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen'); } catch(e){ const el=document.getElementById('fullscreen-location-results'); if(el) el.innerHTML='<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'; } }
+        function selectFullscreenLocationResult(index) { const item=(window.__lastFullscreenLocationResults||[])[index]; if(!item) return; const point=[Number(item.lat), Number(item.lon)]; if(fullscreenMap) fullscreenMap.setView(point, item.type==='house'?17:16); updateFullscreenMarker(point, fullscreenMapSource==='admin' || fullscreenMapSource==='public'); if(fullscreenMapSource==='admin'){ setAdminListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom:item.type==='house'?17:16}); fillLocationFieldsFromAddress(item.address||{}, item.display_name||''); } if(fullscreenMapSource==='public'){ setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom:item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); } const input=document.getElementById('fullscreen-location-search'); if(input) input.value=item.display_name||input.value; document.getElementById('fullscreen-location-results')?.classList.add('hidden'); }
+
         function currentMapPoint(source) {
             if (source === 'admin') {
                 const lat = Number(document.getElementById('sb-latitude')?.value);
                 const lng = Number(document.getElementById('sb-longitude')?.value);
                 if (Number.isFinite(lat) && Number.isFinite(lng)) return { point: [lat, lng], zoom: Math.max(adminListingMap?.getZoom?.() || 16, 15), hasMarker: true };
                 return { point: adminMapDefaultCenter(), zoom: 12, hasMarker: false };
+            }
+            if (source === 'public') {
+                const lat = Number(document.getElementById('pl-latitude')?.value);
+                const lng = Number(document.getElementById('pl-longitude')?.value);
+                if (Number.isFinite(lat) && Number.isFinite(lng)) return { point: [lat, lng], zoom: Math.max(publicListingMap?.getZoom?.() || 16, 15), hasMarker: true };
+                return { point: publicMapDefaultCenter(), zoom: 12, hasMarker: false };
             }
             const markerPoint = detailListingMarker?.getLatLng?.();
             if (markerPoint) return { point: [markerPoint.lat, markerPoint.lng], zoom: detailListingMap?.getZoom?.() || 15, hasMarker: true };
@@ -4903,6 +4976,9 @@ Title: Park Villas
             if (!modal || !canvas) return;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.getElementById('fullscreen-map-search-wrap')?.classList.toggle('hidden', !['admin','public'].includes(source));
+            const fsInput = document.getElementById('fullscreen-location-search'); if (fsInput) fsInput.value = '';
+            document.getElementById('fullscreen-location-results')?.classList.add('hidden');
             const { point, zoom, hasMarker } = currentMapPoint(source);
             setTimeout(() => {
                 if (!fullscreenMap) {
@@ -4911,14 +4987,15 @@ Title: Park Villas
                     addOpenStreetMapLayer(fullscreenMap);
                     attachMapLoadingOverlay(fullscreenMap, 'fullscreen-map-loading');
                     fullscreenMap.on('click', event => {
-                        if (fullscreenMapSource !== 'admin') return;
-                        setAdminListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: true, reverse: true });
+                        if (!['admin','public'].includes(fullscreenMapSource)) return;
+                        if (fullscreenMapSource === 'admin') setAdminListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: true, reverse: true });
+                        if (fullscreenMapSource === 'public') setPublicListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: true, reverse: true });
                         updateFullscreenMarker([event.latlng.lat, event.latlng.lng], true);
                     });
                 } else {
                     fullscreenMap.setView(point, zoom);
                 }
-                if (hasMarker) updateFullscreenMarker(point, source === 'admin');
+                if (hasMarker) updateFullscreenMarker(point, source === 'admin' || source === 'public');
                 else clearFullscreenMarker();
                 fullscreenMap.invalidateSize();
             }, 80);
@@ -4935,9 +5012,10 @@ Title: Park Villas
             if (!fullscreenMapMarker) {
                 fullscreenMapMarker = L.marker(point, { draggable }).addTo(fullscreenMap);
                 fullscreenMapMarker.on('dragend', event => {
-                    if (fullscreenMapSource !== 'admin') return;
+                    if (!['admin','public'].includes(fullscreenMapSource)) return;
                     const pos = event.target.getLatLng();
-                    setAdminListingCoordinates(pos.lat, pos.lng, { moveMap: true, reverse: true });
+                    if (fullscreenMapSource === 'admin') setAdminListingCoordinates(pos.lat, pos.lng, { moveMap: true, reverse: true });
+                    if (fullscreenMapSource === 'public') setPublicListingCoordinates(pos.lat, pos.lng, { moveMap: true, reverse: true });
                 });
             } else {
                 fullscreenMapMarker.setLatLng(point);
@@ -5042,23 +5120,215 @@ Title: Park Villas
             initializeAuth();
         }
 
+
+        let publicListingMap = null;
+        let publicListingMarker = null;
+        let publicListingSubmitting = false;
+        let publicListingImageFiles = [];
+        let myListingsFilter = 'all';
+
+        function spaNavigate(path) {
+            history.pushState({ path }, '', path);
+            routeToCurrentPath();
+        }
+
+        function navigateToCreateListing() {
+            if (!activeUser) { switchTab('admin-login'); return; }
+            spaNavigate('/elan-elave-et');
+        }
+
+        function navigateToMyListings() {
+            if (!activeUser) { switchTab('admin-login'); return; }
+            spaNavigate('/menim-elanlarim');
+        }
+
+        function renderPublicListingForm(success = false) {
+            const root = document.getElementById('public-listing-root');
+            if (!root) return;
+            if (!activeUser) { switchTab('admin-login'); return; }
+            updateSeo({ title: 'Elan əlavə et', path: '/elan-elave-et' });
+            if (success) {
+                root.innerHTML = `<div class="public-form-card rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
+                    <div class="text-5xl mb-4">✅</div><h1 class="text-3xl md:text-4xl font-black text-slate-950">Elanınız qəbul edildi</h1>
+                    <p class="mt-3 text-slate-600 font-semibold">Moderator təsdiqindən sonra saytda görünəcək.</p>
+                    <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+                        <button onclick="switchTab('seabreeze')" class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 font-black transition">🏠 Ana səhifəyə qayıt</button>
+                        <button onclick="navigateToMyListings()" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📋 Elanlarım</button>
+                    </div></div>`;
+                return;
+            }
+            root.innerHTML = `<div class="mb-6"><button onclick="switchTab('seabreeze')" class="text-sm font-black text-brand-700 hover:underline">← Ana səhifə</button></div>
+                <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
+                    <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
+                    <form onsubmit="submitPublicListing(event)" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <label><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
+                            <label><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
+                            <label><span class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
+                            <label><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <label><span class="public-form-label">Kateqoriya</span><select id="pl-category" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
+                            <label><span class="public-form-label">Elan növü</span><select id="pl-listing-type" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
+                            <label><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required class="public-form-input" placeholder="Məs: 185000"></label>
+                        </div>
+                        <div class="public-floor-grid">
+                            <label><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
+                            <label><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required class="public-form-input" placeholder="m²"></label>
+                            <label><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
+                            <label><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
+                        </div>
+                        <label><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="5" class="public-form-input h-auto py-3" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
+                        <div class="rounded-3xl bg-slate-50 border border-slate-200 p-3 md:p-4 space-y-3">
+                            <input type="hidden" id="pl-settlement"><input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
+                            <label class="relative block"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
+                            <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div>
+                        </div>
+                        <div class="rounded-3xl bg-slate-50 border border-slate-200 p-4"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <button id="pl-submit-btn" type="submit" class="async-submit-btn w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black py-4 transition"><span id="pl-submit-spinner" class="button-spinner hidden"></span><span id="pl-submit-text">Yerləşdir</span></button>
+                    </form>
+                </div>`;
+            handlePublicListingRegionChange();
+            setTimeout(initPublicListingMap, 120);
+        }
+
+        function handlePublicListingRegionChange() {
+            const region = document.getElementById('pl-region-type')?.value || 'general';
+            const city = document.getElementById('pl-city')?.value || 'Bakı';
+            const district = document.getElementById('pl-district');
+            if (!district) return;
+            let options = region === 'seabreeze' ? getOfficialProjects().map(p=>p.title).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : SUMQAYIT_DISTRICTS));
+            district.innerHTML = options.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+            document.getElementById('pl-metro')?.closest('label')?.classList.toggle('hidden', city !== 'Bakı' && region !== 'seabreeze');
+            if (publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), 12);
+        }
+
+        function publicMapDefaultCenter() {
+            const city = document.getElementById('pl-city')?.value || 'Bakı';
+            if (city === 'Abşeron') return [40.457, 49.75];
+            if (city === 'Sumqayıt') return [40.585, 49.631];
+            return [40.4093, 49.8671];
+        }
+
+        function setPublicListingCoordinates(lat, lng, { moveMap = true, reverse = true, zoom = 16 } = {}) {
+            const latNum = Number(lat), lngNum = Number(lng);
+            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            document.getElementById('pl-latitude').value = latNum.toFixed(7);
+            document.getElementById('pl-longitude').value = lngNum.toFixed(7);
+            if (publicListingMap && typeof L !== 'undefined') {
+                const point = [latNum, lngNum];
+                if (!publicListingMarker) {
+                    publicListingMarker = L.marker(point, { draggable: true }).addTo(publicListingMap);
+                    publicListingMarker.on('dragend', e => { const pos=e.target.getLatLng(); setPublicListingCoordinates(pos.lat,pos.lng,{moveMap:false,reverse:true}); });
+                } else publicListingMarker.setLatLng(point);
+                if (moveMap) publicListingMap.setView(point, Math.max(publicListingMap.getZoom(), zoom));
+            }
+            if (reverse) reverseGeocodePublicListingLocation(latNum, lngNum);
+        }
+
+        function initPublicListingMap() {
+            const el = document.getElementById('pl-location-map');
+            if (!el || typeof L === 'undefined') return;
+            if (publicListingMap) { publicListingMap.remove(); publicListingMap = null; publicListingMarker = null; }
+            setMapLoading('pl-location-map-loading', true);
+            publicListingMap = L.map(el, { scrollWheelZoom: true }).setView(publicMapDefaultCenter(), 12);
+            addOpenStreetMapLayer(publicListingMap);
+            attachMapLoadingOverlay(publicListingMap, 'pl-location-map-loading');
+            publicListingMap.on('click', e => setPublicListingCoordinates(e.latlng.lat, e.latlng.lng, { moveMap:false, reverse:true }));
+            setTimeout(()=>publicListingMap.invalidateSize(), 120);
+        }
+
+        function fillPublicLocationFieldsFromAddress(address = {}, displayName = '') {
+            const district = cleanAddressPart(address.city_district || address.county || address.municipality || address.city || address.suburb || address.town || '');
+            const settlement = cleanAddressPart(address.village || address.town || address.suburb || address.neighbourhood || address.hamlet || '');
+            const street = [address.road || address.pedestrian || address.footway || address.street, address.house_number].filter(Boolean).join(' ').trim()
+                || [address.neighbourhood, address.suburb].filter(Boolean).join(', ').trim()
+                || String(displayName || '').split(',').slice(0, 2).join(', ').trim();
+            const districtSelect = document.getElementById('pl-district');
+            if (districtSelect && district) {
+                const matched = Array.from(districtSelect.options).find(opt => district.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(district.toLowerCase()));
+                if (matched) districtSelect.value = matched.value;
+            }
+            if (document.getElementById('pl-settlement')) document.getElementById('pl-settlement').value = settlement || district || '';
+            if (document.getElementById('pl-street-address')) document.getElementById('pl-street-address').value = street || '';
+        }
+
+        async function reverseGeocodePublicListingLocation(lat, lng) {
+            try { const data = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`, { headers:{Accept:'application/json'} }).then(r=>r.json()); fillPublicLocationFieldsFromAddress(data.address||{}, data.display_name||''); } catch(e) { console.warn('Reverse geocoding alınmadı:', e.message); }
+        }
+
+        function handlePublicListingImages(files) {
+            publicListingImageFiles = Array.from(files || []).filter(f => f.type?.startsWith('image/'));
+            const preview = document.getElementById('pl-images-preview');
+            if (preview) preview.innerHTML = publicListingImageFiles.map(file => `<div class="aspect-square rounded-2xl overflow-hidden bg-slate-100"><img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""></div>`).join('');
+        }
+
+        function publicLocationCity() { return document.getElementById('pl-city')?.value || 'Bakı'; }
+        function renderPublicLocationResults(rows, query, target='pl') {
+            const el = document.getElementById(target === 'fullscreen' ? 'fullscreen-location-results' : 'pl-location-results');
+            if (!el) return;
+            el.classList.remove('hidden');
+            if (!rows?.length) { el.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-100 p-2 text-red-700 font-bold">Nəticə tapılmadı.</div>'; return; }
+            el.innerHTML = rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('');
+        }
+        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!q){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} showPublicLocationSuggestions(); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,300); }
+        function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(el&&q) el.classList.remove('hidden'); }
+        async function nominatimSearch(query, city='Bakı') {
+            const variants = Array.from(new Set([query, azSearchVariant(query)].filter(Boolean)));
+            const phrases = variants.flatMap(v => [[v, city, 'Azerbaijan'].filter(Boolean).join(', '), [v, 'Bakı', 'Azerbaijan'].filter(Boolean).join(', ')]);
+            const responses = await Promise.all(phrases.slice(0,6).map(phrase => fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`, {headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():[])));
+            const seen = new Set(); return responses.flat().filter(item => { const key=item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`; if(!item||seen.has(key)) return false; seen.add(key); return true; }).slice(0,8);
+        }
+        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!q) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const el=document.getElementById('pl-location-results'); if(el){el.classList.remove('hidden'); el.innerHTML='<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>';} try { const rows=await nominatimSearch(q, publicLocationCity()); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q); } catch(e){ if(el) el.innerHTML='<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'; } }
+        function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); const input=document.getElementById('pl-location-search'); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
+
+        function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'◌ Elan göndərilir…':'Yerləşdir'; }
+        async function submitPublicListing(event) {
+            event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
+            publicListingSubmitting=true; setPublicSubmitLoading(true);
+            try {
+                const regionType=document.getElementById('pl-region-type').value;
+                const city=document.getElementById('pl-city').value;
+                const district=document.getElementById('pl-district').value;
+                const payload={ title:[city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, ownerType:'owner', hasDocument:false };
+                const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file));
+                const saved = await apiRequest('/api/listings', 'POST', formData); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
+            } catch(error) { alert('Elan göndərilmədi: '+error.message); }
+            finally { publicListingSubmitting=false; setPublicSubmitLoading(false); }
+        }
+
+        async function renderMyListingsPage() {
+            const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
+            updateSeo({ title:'Elanlarım', path:'/menim-elanlarim' });
+            root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Elanlar yüklənir...</div>';
+            try { const rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi); const filtered = rows.filter(x=> myListingsFilter==='all' || normalizeListingStatus(x.status)===myListingsFilter);
+                const buttons=[['all','Hamısı'],['pending','Gözləyən'],['approved','Təsdiqlənən'],['rejected','İmtina edilən']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
+                root.innerHTML=`<div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4"><div><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Pending, approved və rejected elanlarınız.</p></div><button onclick="navigateToCreateListing()" class="rounded-2xl bg-brand-600 text-white px-5 py-3 font-black">➕ Elan əlavə et</button></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${filtered.length?filtered.map(p=>`<article class="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden"><img src="${escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80')}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></article>`).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>`;
+            } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Elanlar açılmadı: ${escapeHtml(error.message)}</div>`; }
+        }
+
         function updateHeaderUI() {
             const container = document.getElementById('header-user-status');
             const mobileIcon = document.getElementById('mobile-user-status-icon');
             const mobileActions = document.getElementById('mobile-user-status-actions');
 
+            document.getElementById('add-listing-fab')?.classList.toggle('is-visible', Boolean(activeUser));
+
             if (activeUser) {
                 const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (İstifadəçi)`;
                 container.innerHTML = `
                     <span class="text-xs text-gray-400">Xoş gəldiniz: <strong class="text-white">${welcomeName}</strong></span>
-                    <button onclick="switchTab('admin-dashboard')" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
+                    <button onclick="navigateToCreateListing()" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1"><span>➕</span><span>Elan əlavə et</span></button>
+                    <button onclick="switchTab('admin-dashboard')" class="bg-white/10 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
                         <i class="fa-solid fa-chart-line"></i> <span>Kabinet</span>
                     </button>
                     <button onclick="logoutAdmin()" class="text-gray-400 hover:text-red-400 text-xs"><i class="fa-solid fa-sign-out-alt"></i></button>
                 `;
                 mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${(activeUser.name || 'U')[0]}</div>`;
                 mobileActions.innerHTML = `
-                    <button onclick="switchTab('admin-dashboard'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">Kabinetə Keç</button>
+                    <button onclick="navigateToCreateListing(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">➕ Elan əlavə et</button>
+                    <button onclick="navigateToMyListings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">📋 Elanlarım</button>
+                    <button onclick="switchTab('admin-dashboard'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">Kabinetə Keç</button>
                     <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
                 `;
             } else {
@@ -5103,6 +5373,10 @@ Title: Park Villas
             } else if (tabId === 'portfolio') {
                 renderPortfolio();
                 loadGalleryBackground();
+            } else if (tabId === 'create-listing') {
+                renderPublicListingForm(false);
+            } else if (tabId === 'my-listings') {
+                renderMyListingsPage();
             } else if (tabId === 'career') {
                 renderCareerSection();
                 loadVacanciesBackground();
@@ -5113,8 +5387,8 @@ Title: Park Villas
                 loadAdminBackground();
             }
 
-            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : '/'));
-            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : SITE_NAME)), path: routePath });
+            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : (tabId === 'create-listing' ? '/elan-elave-et' : (tabId === 'my-listings' ? '/menim-elanlarim' : '/'))));
+            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : (tabId === 'create-listing' ? 'Elan əlavə et' : (tabId === 'my-listings' ? 'Elanlarım' : SITE_NAME)))), path: routePath });
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
@@ -5350,6 +5624,41 @@ Təşəkkür edirəm. 🙏`;
         // OPEN OFFICIAL PROJECT MODAL
         let activeOfficialModalTab = 'details';
         let activeOfficialProject = null;
+
+
+
+        function showToast(message) {
+            let toast = document.getElementById('besthome-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'besthome-toast';
+                toast.className = 'fixed left-1/2 top-24 z-[1200] -translate-x-1/2 rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-2xl transition';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            clearTimeout(window.__besthomeToastTimer);
+            window.__besthomeToastTimer = setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-50%) translateY(-8px)'; }, 1800);
+        }
+
+        function projectSharePayload(project = activeOfficialProject) {
+            if (!project) return null;
+            const url = absoluteUrl(projectPath(project));
+            const location = project.location || project.area || 'Sea Breeze';
+            return { title: '🏡 BestHome', text: `🏡 BestHome\n\nLayihə:\n${project.title}\n\n📍 ${location}\n\n🔗 ${url}`, url };
+        }
+        async function shareActiveProject() {
+            const payload = projectSharePayload();
+            if (!payload) return;
+            try {
+                if (navigator.share && window.matchMedia('(max-width: 767px)').matches) await navigator.share(payload);
+                else await navigator.clipboard.writeText(payload.text);
+                showToast('✅ Link kopyalandı');
+            } catch (_error) {
+                try { await navigator.clipboard.writeText(payload.text); showToast('✅ Link kopyalandı'); } catch (_copyError) { alert(payload.url); }
+            }
+        }
 
         function openOfficialProjectModal(id, pushRoute = false) {
             const p = getOfficialProjects().find(item => String(item.id) === String(id) || item.slug === id);
@@ -8599,6 +8908,16 @@ Təşəkkür edirəm. 🙏`;
 
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
+            if (path === '/elan-elave-et' || path === '/create-listing') {
+                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
+                switchTab('create-listing', { skipPush: true });
+                return;
+            }
+            if (path === '/menim-elanlarim') {
+                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
+                switchTab('my-listings', { skipPush: true });
+                return;
+            }
             const userListingsMatch = path.match(/^\/user\/(\d+)\/listings\/?$/);
             if (userListingsMatch) { await renderPublicProfile(userListingsMatch[1], true); return; }
             const userMatch = path.match(/^\/user\/(\d+)\/?$/);

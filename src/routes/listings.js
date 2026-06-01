@@ -592,6 +592,15 @@ router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => listListi
 router.get('/sea-breeze', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res, { regionType: 'seabreeze' })));
 router.get('/general', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res, { regionType: 'general' })));
 
+
+router.get('/mine', authenticate, authorize('user', 'admin'), asyncHandler(async (req, res) => {
+  const where = req.auth.role === 'admin' ? {} : { userId: toBigIntId(req.auth.id) };
+  const data = await prisma.listing.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include });
+  await attachListingUsers(data);
+  decorateListingUi(data);
+  res.json(data);
+}));
+
 router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const items = parseListingOrder(req.body);
   if (!items.length) return res.status(400).json({ message: 'Listing order array is required.' });
