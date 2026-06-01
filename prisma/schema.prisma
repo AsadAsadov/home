@@ -154,8 +154,10 @@ model Gallery {
   images         Json?
   mediaPositionX String    @default("center") @map("media_position_x")
   mediaPositionY String    @default("center") @map("media_position_y")
+  sortOrder      Int       @default(0) @map("sort_order")
   createdAt      DateTime  @default(now()) @map("created_at")
 
+  @@index([sortOrder, id])
   @@map("gallery")
 }
 
