@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BestHome.az</title>
-    <meta name="description" content="Daşınmaz Əmlak Elanları">
+    <meta name="description" content="Daşınmaz Əmlak Digər əraziləri">
     <meta property="og:title" content="BestHome.az">
-    <meta property="og:description" content="Daşınmaz Əmlak Elanları">
+    <meta property="og:description" content="Daşınmaz Əmlak Digər əraziləri">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://besthome.onrender.com/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <link rel="canonical" href="https://besthome.onrender.com/">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az">
-    <meta name="twitter:description" content="Daşınmaz Əmlak Elanları">
+    <meta name="twitter:description" content="Daşınmaz Əmlak Digər əraziləri">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -778,11 +778,12 @@
             position: absolute;
             top: 1rem;
             left: 1rem;
-            right: 1rem;
+            right: auto;
             display: flex;
+            flex-direction: column;
             align-items: flex-start;
-            justify-content: space-between;
-            gap: .5rem;
+            justify-content: flex-start;
+            gap: .38rem;
             min-width: 0;
             max-width: calc(100% - 2rem);
             pointer-events: none;
@@ -800,7 +801,7 @@
             display: inline-flex;
             align-items: center;
             width: fit-content;
-            max-width: 70%;
+            max-width: 100%;
             padding: 8px 16px;
             white-space: nowrap;
             overflow: hidden;
@@ -808,7 +809,18 @@
         }
         .sea-breeze-listing-card__badge--type {
             flex: 0 0 auto;
-            margin-left: auto;
+            margin-left: 0;
+        }
+        .listing-badge-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: .4rem;
+        }
+        .listing-detail-badge-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
         }
         .sea-breeze-listing-card__body,
         .sea-breeze-listing-card__footer {
@@ -1105,11 +1117,11 @@
                 <div id="projects-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
             </div>
 
-            <!-- Agent Elanları Grid -->
+            <!-- Agent Digər əraziləri Grid -->
             <div class="space-y-6 pt-12 border-t border-white/5" id="agent-listings-area">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-white">Satış və Kirayə Elanları</h2>
+                        <h2 class="text-2xl font-extrabold text-white">Satış və Kirayə Digər əraziləri</h2>
                         <p class="text-gray-400 text-xs font-light">Komandamızın təqdim etdiyi aktual, yoxlanılmış satış və kirayə elanları</p>
                     </div>
 
@@ -1339,7 +1351,7 @@
 
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
             <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
-                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Elanlarım</button>
+                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Digər ərazilərim</button>
                 <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
                 <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Slaydlar</button>
@@ -1387,7 +1399,7 @@
                                 <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Region *</label>
                                 <select id="sb-region-type" onchange="handleListingRegionTypeChange()" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                     <option value="seabreeze">Sea Breeze</option>
-                                    <option value="general">Elanlar</option>
+                                    <option value="general">Digər ərazilər</option>
                                 </select>
                             </div>
                             <div id="sb-district-wrap" class="space-y-1">
@@ -1431,6 +1443,20 @@
                                 <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Valyuta</label>
                                 <select id="sb-currency" onchange="calculateSqPrice()" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60"><option value="AZN">AZN</option><option value="USD">USD</option></select>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Elan sahibi</label>
+                                <select id="sb-owner-type" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                    <option value="owner">Əmlak sahibi</option>
+                                    <option value="agent">Vasitəçi</option>
+                                </select>
+                            </div>
+                            <label class="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 font-bold mt-5">
+                                <input type="checkbox" id="sb-has-document" class="accent-emerald-500">
+                                <span>Kupça / Çıxarış var</span>
+                            </label>
                         </div>
 
                         <label class="inline-flex w-fit items-center gap-2 rounded-xl border border-red-500/30 bg-red-600/10 px-3 py-2 text-xs text-black font-bold">
@@ -1480,7 +1506,7 @@
 
                 <div class="lg:col-span-7 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h3 class="text-lg font-bold text-white">Mənim / Bütün Elanlar</h3>
+                        <h3 class="text-lg font-bold text-white">Mənim / Bütün Digər ərazilər</h3>
                         <div class="flex flex-wrap gap-2 text-[10px] font-bold">
                             <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending Listings</span>
                             <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved Listings</span>
@@ -1622,7 +1648,7 @@
                             </div>
                             <p class="text-[10px] text-gray-500">Birinci link kartda əsas şəkil kimi göstərilir, bütün linklər isə detal modalında slider/carousel kimi açılır.</p>
                         </div>
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
+                        <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
                             <i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla
                         </button>
                     </form>
@@ -1811,15 +1837,20 @@ Title: Park Villas
                             <option value="admin">Admin</option>
                         </select>
                         <input type="password" id="agent-reg-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                        <button type="submit" class="w-full bg-brand-500 text-white font-bold py-2 rounded-xl text-xs">Yarat</button>
+                        <button type="submit" id="user-create-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2 rounded-xl text-xs">Yarat</button>
                     </form>
                 </div>
                 <div class="lg:col-span-8 space-y-3">
                     <div class="flex items-center justify-between">
                         <h3 class="text-sm font-extrabold text-white uppercase tracking-wide">İstifadəçilər</h3>
-                        <span id="admin-users-count" class="text-[10px] text-gray-400 bg-white/5 border border-white/10 rounded-full px-3 py-1">0 istifadəçi</span>
+                        <div class="flex items-center gap-2"><span id="admin-user-action-status" class="hidden text-[10px] text-brand-300"><i class="fa-solid fa-spinner fa-spin mr-1"></i>İşlənir…</span><span id="admin-users-count" class="text-[10px] text-gray-400 bg-white/5 border border-white/10 rounded-full px-3 py-1">0 istifadəçi</span></div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3" id="admin-agents-grid"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input type="search" id="admin-user-search-name" oninput="renderAdminDashboard()" placeholder="Ad ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <input type="search" id="admin-user-search-phone" oninput="renderAdminDashboard()" placeholder="Telefon ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <input type="search" id="admin-user-search-email" oninput="renderAdminDashboard()" placeholder="E-poçt ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 gap-3" id="admin-agents-grid"></div>
                 </div>
             </div>
 
@@ -1842,7 +1873,7 @@ Title: Park Villas
                             <input type="text" id="vac-salary" required placeholder="Əmək haqqı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
                             <input type="text" id="vac-location" required placeholder="Şəhər" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
                             <textarea id="vac-desc" required rows="3" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white"></textarea>
-                            <button type="submit" class="w-full bg-brand-500 text-white text-xs py-2 rounded-xl">Yadda Saxla</button>
+                            <button type="submit" id="vacancy-save-submit-btn" class="w-full bg-brand-500 text-white text-xs py-2 rounded-xl">Yadda Saxla</button>
                         </form>
                     </div>
                 </div>
@@ -1878,7 +1909,7 @@ Title: Park Villas
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <button type="submit" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
+                        <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
                     </form>
                 </div>
                 <div class="lg:col-span-7 space-y-4" id="admin-gallery-list"></div>
@@ -1978,6 +2009,7 @@ Title: Park Villas
                                 <span id="p-modal-category" class="bg-brand-500/10 text-brand-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-brand-200"></span>
                                 <span id="p-modal-project" class="bg-slate-100 text-slate-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200"></span>
                             </div>
+                            <div id="p-modal-badges" class="listing-detail-badge-stack"></div>
                             <h3 id="p-modal-title" class="text-2xl md:text-4xl font-black text-gray-950 leading-tight"></h3>
                             <span id="p-modal-code" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <p id="p-modal-date" class="text-xs text-gray-500 font-semibold"><i class="fa-regular fa-calendar mr-1"></i></p>
@@ -2053,7 +2085,7 @@ Title: Park Villas
                     <option value="user">İstifadəçi</option>
                     <option value="admin">Admin</option>
                 </select>
-                <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda saxla</button>
+                <button type="submit" id="user-edit-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda saxla</button>
             </form>
         </div>
     </div>
@@ -2295,7 +2327,9 @@ Title: Park Villas
             return `${parsed.toLocaleString('az-AZ')} ${code === 'USD' ? '$' : '₼'}`;
         }
 
-        const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Elanlar', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
+        const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Digər ərazilər', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
+        const SEA_BREEZE_CATEGORIES = [{ value: 'Apartment', label: 'Mənzil' }, { value: 'Villa', label: 'Villa' }, { value: 'Townhouse', label: 'Townhouse' }, { value: 'Penthouse', label: 'Penthouse' }];
+        const GENERAL_CATEGORIES = [{ value: 'NewBuilding', label: 'Yeni tikili' }, { value: 'OldBuilding', label: 'Köhnə tikili' }, { value: 'House', label: 'Həyət evi' }, { value: 'GardenHouse', label: 'Bağ evi' }, { value: 'Villa', label: 'Villa' }, { value: 'Commercial', label: 'Obyekt' }, { value: 'Office', label: 'Ofis' }, { value: 'LandSale', label: 'Torpaq' }];
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
         const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Mehdiabad', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan'];
         const GENERAL_CITIES = ['Bakı', 'Abşeron', 'Sumqayıt'];
@@ -2319,8 +2353,8 @@ Title: Park Villas
         }
 
         function getRegionLabel(regionType) { return REGION_LABELS[regionType] || 'Unknown'; }
-        function getListingRegionType(listing = {}) { return normalizeRegionType(listing.regionType, listing.project) || (listing.city ? 'general' : ''); }
-        function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'seabreeze' ? (listing.district || listing.project || '') : (listing.district || ''); }
+        function getListingRegionType(listing = {}) { const normalized = normalizeRegionType(listing.regionType, listing.project); if (normalized === 'general') return cityToLegacyRegion(listing.city) || 'general'; return normalized || cityToLegacyRegion(listing.city) || ''; }
+        function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'seabreeze' ? (listing.district || listing.project || '') : (listing.district || listing.neighborhood || ''); }
         function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getOfficialProjects().map(p => p.title).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : [])); }
         function cityToLegacyRegion(city) { const n = String(city || '').trim().toLowerCase(); if (['baki', 'bakı'].includes(n)) return 'baki'; if (['absheron', 'abşeron', 'abseron'].includes(n)) return 'absheron'; if (['sumqayit', 'sumqayıt'].includes(n)) return 'sumqayit'; return ''; }
         function legacyRegionToCity(region) { return region === 'baki' ? 'Bakı' : (region === 'absheron' ? 'Abşeron' : (region === 'sumqayit' ? 'Sumqayıt' : '')); }
@@ -2640,7 +2674,7 @@ Title: Park Villas
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
         const API_BASE = window.location.origin;
         const SITE_NAME = 'BestHome';
-        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Elanları';
+        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Digər əraziləri';
         let isLoginSubmitting = false;
 
         function absoluteUrl(path = window.location.pathname) {
@@ -2942,6 +2976,10 @@ Title: Park Villas
                 price,
                 currency: firstDefined(l.currency, 'AZN'),
                 isCredit: Boolean(l.isCredit ?? l.is_credit),
+                ownerType: firstDefined(l.ownerType, l.owner_type, 'owner'),
+                hasDocument: Boolean(l.hasDocument ?? l.has_document),
+                locationLabel: firstDefined(l.locationLabel, l.location_label, ''),
+                apiBadges: Array.isArray(l.badges) ? l.badges : [],
                 creditDownPayment: numericValue(l.creditDownPayment, l.credit_down_payment),
                 creditMonthlyPayment: numericValue(l.creditMonthlyPayment, l.credit_monthly_payment),
                 creditYears: integerValue(l.creditYears, l.credit_years),
@@ -3662,7 +3700,7 @@ Title: Park Villas
 
         async function handleSaveHeroSlide(e) {
             e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || activeUser.role !== 'admin' || isHeroSaveSubmitting) return;
             const id = document.getElementById('hero-slide-id').value;
             const file = document.getElementById('hero-media-file-input')?.files?.[0];
             const slideType = document.getElementById('hero-slide-type-input').value;
@@ -3671,6 +3709,8 @@ Title: Park Villas
             if (slideType === 'project' && !projectId) return alert('Project mode üçün layihə seçin.');
             if (slideType === 'custom' && !id && !file && !mediaUrl) return alert('Custom hero üçün media URL və ya upload tələb olunur.');
             if (slideType === 'custom' && !document.getElementById('hero-title-input')?.value.trim()) return alert('Custom hero üçün başlıq daxil edin.');
+            isHeroSaveSubmitting = true;
+            setHeroSaveButtonLoading(true);
             const formData = new FormData();
             const fieldIds = {
                 title: 'hero-title-input', description: 'hero-description-input', slide_type: 'hero-slide-type-input', project_id: 'hero-project-id-input',
@@ -3692,6 +3732,9 @@ Title: Park Villas
                 }
             } catch (error) {
                 alert('Hero slayd saxlanılmadı: ' + error.message);
+            } finally {
+                isHeroSaveSubmitting = false;
+                setHeroSaveButtonLoading(false);
             }
         }
 
@@ -3815,6 +3858,8 @@ Title: Park Villas
                 image_url: l.img || '',
                 currency: l.currency || 'AZN',
                 is_credit: Boolean(l.isCredit),
+                owner_type: l.ownerType || 'owner',
+                has_document: Boolean(l.hasDocument),
                 credit_down_payment: l.creditDownPayment,
                 credit_monthly_payment: l.creditMonthlyPayment,
                 credit_years: l.creditYears,
@@ -3950,7 +3995,7 @@ Title: Park Villas
                 cacheData('listings', listingRows.map(dbListingToUi));
                 if (isTabActive('seabreeze')) renderSeaBreeze();
             } catch (error) {
-                console.warn('Elanlar oxunmadı, cache istifadə olunur:', error.message);
+                console.warn('Digər ərazilər oxunmadı, cache istifadə olunur:', error.message);
             }
             scheduleIdleTask(loadFavoritesLazy, 800);
         }
@@ -4201,13 +4246,24 @@ Title: Park Villas
             select.innerHTML = options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
         }
 
-        function handleListingRegionTypeChange() {
+        function syncCategoryOptionsForRegion(region, preferredValue = '') {
+            const select = document.getElementById('sb-form-category');
+            if (!select) return;
+            const current = preferredValue || select.value;
+            const options = region === 'general' ? GENERAL_CATEGORIES : SEA_BREEZE_CATEGORIES;
+            select.innerHTML = options.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+            select.value = options.some(item => item.value === current) ? current : options[0]?.value || '';
+        }
+
+        function handleListingRegionTypeChange(preferredCategory = '') {
             const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
             const label = document.getElementById('sb-district-label');
             if (label) label.textContent = region === 'seabreeze' ? 'Project *' : 'Şəhər *';
+            syncCategoryOptionsForRegion(region, preferredCategory);
             syncDistrictSelect(document.getElementById('sb-project'), region === 'general' ? 'city' : region, false);
             ensureGeneralDistrictField();
             syncGeneralDistrictSelect();
+            toggleFormFieldsBasedOnCategory();
         }
 
         function handlePublicRegionFilterChange() {
@@ -4460,6 +4516,69 @@ Title: Park Villas
             return `${day} ${month} ${date.getFullYear()}`;
         }
 
+        function formatAzDateTime(value) {
+            const date = value ? new Date(value) : new Date();
+            if (Number.isNaN(date.getTime())) return '—';
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = AZ_MONTH_NAMES[date.getMonth()] || '';
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day} ${month} ${date.getFullYear()} • ${hours}:${minutes}`;
+        }
+
+        function getListingLocationLabel(listing = {}) {
+            const region = getListingRegionType(listing);
+            if (region === 'seabreeze') return listing.project || listing.district || 'Sea Breeze';
+            return listing.neighborhood || listing.district || listing.city || 'Digər ərazilər';
+        }
+
+        function ownerBadgeLabel(ownerType) {
+            return ownerType === 'agent' ? 'VASİTƏÇİ' : 'SAHİBİNDƏN';
+        }
+
+        function getListingBadges(listing = {}) {
+            const badges = [];
+            badges.push({ key: 'sale', label: canonicalListingType(listing.listingType) === 'Satis' ? 'SATILIR' : listingTypeLabel(listing.listingType).toUpperCase(), cls: listingTypeBadgeClass(listing.listingType) });
+            if (listing.isCredit) badges.push({ key: 'credit', label: 'KREDİTLƏ', cls: 'bg-red-600/95 text-white' });
+            if (listing.hasDocument) badges.push({ key: 'document', label: 'KUPÇA VAR', cls: 'bg-emerald-600/95 text-white' });
+            badges.push({ key: 'owner', label: ownerBadgeLabel(listing.ownerType), cls: listing.ownerType === 'agent' ? 'bg-amber-500/95 text-slate-950' : 'bg-blue-600/95 text-white' });
+            return badges;
+        }
+
+        function renderListingBadgeStack(listing, detail = false) {
+            const base = detail
+                ? 'inline-flex items-center w-fit rounded-full px-3 py-1 text-[10px] font-black uppercase border border-white/10 shadow-sm'
+                : 'sea-breeze-listing-card__badge text-[9px] font-black px-2.5 py-1 rounded-full uppercase shadow-lg';
+            return getListingBadges(listing).map(badge => `<span class="${base} ${badge.cls}">${escapeHtml(badge.label)}</span>`).join('');
+        }
+
+        function currentListingUrl(listing = {}) {
+            const code = formatListingCode(listing.listingCode || listing.code || listing.id);
+            return new URL(`/listing/${encodeURIComponent(code)}`, window.location.origin).href;
+        }
+
+        function buildWhatsAppMessage(listing, authorName) {
+            const price = Number(listing.price);
+            return `👋 Salam ${authorName},
+
+🏠 BestHome.az saytında yerləşdirilən bu əmlakla maraqlanıram.
+
+📌 Elan:
+${listing.title || 'Elan'}
+
+💰 Qiymət:
+${Number.isFinite(price) ? formatPrice(price, listing.currency) : '—'}
+
+📍 Elan linki:
+${currentListingUrl(listing)}
+
+📅 Elanı BestHome.az üzərindən gördüm və əlavə məlumat almaq istəyirəm.
+
+Zəhmət olmasa mənimlə əlaqə saxlayın.
+
+Təşəkkür edirəm. 🙏`;
+        }
+
         function renderProjectYearOptions(projects) {
             const select = document.getElementById('project-delivery-year-filter');
             if (!select) return;
@@ -4618,7 +4737,7 @@ Title: Park Villas
 
         // RENDER PROPERTIES ELAN GRID
         function renderSeaBreeze() {
-            const properties = [...appData.listings].sort((a, b) => getDisplayOrderValue(a, appData.listings.indexOf(a)) - getDisplayOrderValue(b, appData.listings.indexOf(b)));
+            const properties = [...appData.listings].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || Number(b.id || 0) - Number(a.id || 0));
             const grid = document.getElementById('seabreeze-properties-grid');
             grid.innerHTML = '';
 
@@ -4650,7 +4769,7 @@ Title: Park Villas
             paged.forEach(p => {
                 const canonicalType = canonicalListingType(p.listingType);
                 const listingLabel = listingTypeLabel(p.listingType);
-                const cardListingLabel = canonicalType === 'GunlukKiraye' ? 'Günlük' : listingLabel;
+                const locationLabel = getListingLocationLabel(p);
                 const isRent = canonicalType === 'Kiraye';
                 const isDailyRent = canonicalType === 'GunlukKiraye';
                 const listingTitle = p.title || '—';
@@ -4677,18 +4796,17 @@ Title: Park Villas
                     <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full">
                         <div class="sea-breeze-listing-card__media h-44 md:h-48 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
-                            <div class="sea-breeze-listing-card__badges">
-                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase">${p.project || '—'}</div>
-                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--type ${badgeColor} text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">${cardListingLabel}</div>
+                            <div class="sea-breeze-listing-card__badges listing-badge-stack">
+                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(locationLabel)}</div>
+                                ${renderListingBadgeStack(p)}
                             </div>
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
-                            ${p.isCredit ? '<div class="credit-badge absolute top-4 right-4 text-[10px] font-semibold px-3 py-1.5 rounded-full uppercase">KREDİT</div>' : ''}
                             <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 space-y-2 flex-1 min-w-0 max-w-full">
                             <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${escapeHtml(listingTitle)}</h4>
-                            <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
+                            <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(locationLabel)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
                             <p class="text-[11px] font-bold text-brand-700">By: <a href="/user/${p.ownerId || p.authorId}" onclick="event.stopPropagation()" class="hover:underline">${escapeHtml(p.ownerName || agentNameById(p.authorId) || 'BestHome Agent')}</a></p>
                             <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${escapeHtml(listingDesc)}</p>
                             <p class="sea-breeze-listing-card__mobile-facts">${roomFact} • ${areaFact} • ${floorFact}</p>
@@ -4704,6 +4822,7 @@ Title: Park Villas
                                 <span class="sea-breeze-listing-card__price-label text-[9px] text-gray-500 uppercase block">Qiymət</span>
                                 <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
                                 <span class="block text-[10px] font-black text-brand-700 mt-1">Elan kodu: ${formatListingCode(p.listingCode)}</span>
+                                <span class="block text-[10px] text-gray-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${formatAzDateTime(p.createdAt)}</span>
                             </div>
                             ${sqPriceHtml}
                         </div>
@@ -4820,7 +4939,7 @@ Title: Park Villas
             const listingLabel = listingTypeLabel(p.listingType);
             const isRent = canonicalListingType(p.listingType) === 'Kiraye';
             const isDailyRent = canonicalListingType(p.listingType) === 'GunlukKiraye';
-            const categoryLabel = p.category === 'Villa' ? 'Villa' : (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
+            const categoryLabel = [...SEA_BREEZE_CATEGORIES, ...GENERAL_CATEGORIES].find(item => item.value === p.category)?.label || (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
             const price = Number(p.price);
             const area = Number(p.area);
             const pricePerM2 = Number(p.pricePerM2 || (area && price ? price / area : 0));
@@ -4829,11 +4948,12 @@ Title: Park Villas
             typeBadge.textContent = listingLabel;
             typeBadge.className = `${listingTypeBadgeClass(p.listingType).replace('/90', '/10')} text-gray-900 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200`;
             document.getElementById('p-modal-category').textContent = categoryLabel;
-            document.getElementById('p-modal-project').textContent = p.project || '—';
+            document.getElementById('p-modal-project').textContent = getListingLocationLabel(p);
+            document.getElementById('p-modal-badges').innerHTML = renderListingBadgeStack(p, true);
             document.getElementById('p-modal-title').textContent = listingTitle;
             document.getElementById('p-modal-code').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
             document.getElementById('p-modal-code-description').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
-            document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
+            document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = listingDesc || 'Təsvir əlavə edilməyib.';
             document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${formatPrice(price, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
             document.getElementById('p-modal-rooms').textContent = p.rooms ?? '—';
@@ -4867,9 +4987,7 @@ Title: Park Villas
             document.getElementById('p-modal-agent-name').textContent = authorName;
             document.getElementById('p-modal-agent-phone').textContent = authorPhone || 'Nömrə qeyd edilməyib';
 
-            const messageText = `Salam, ${authorName}. besthome.az saytındakı bu elanla bağlı məlumat almaq istəyirəm:
-"${p.title}"
-Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '—'}`;
+            const messageText = buildWhatsAppMessage(p, authorName);
             const whatsappBtn = document.getElementById('p-modal-whatsapp-btn');
             const callBtn = document.getElementById('p-modal-call-btn');
             const updateContactAction = (btn, isAvailable, enabledClasses, disabledLabel) => {
@@ -5296,6 +5414,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         let isRegisterSubmitting = false;
         let isListingSaveSubmitting = false;
+        let isProjectSaveSubmitting = false;
+        let isHeroSaveSubmitting = false;
+        let isGallerySaveSubmitting = false;
+        let isVacancySaveSubmitting = false;
+        let isUserActionSubmitting = false;
 
         function setSubmitButtonLoading(buttonId, isLoading, loadingText, defaultText) {
             const button = document.getElementById(buttonId);
@@ -5314,6 +5437,18 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         function setListingSaveButtonLoading(isLoading) {
             setSubmitButtonLoading('listing-save-submit-btn', isLoading, 'Elan saxlanılır…', 'Yadda Saxla');
+        }
+        function setProjectSaveButtonLoading(isLoading) { setSubmitButtonLoading('project-save-submit-btn', isLoading, 'Layihə saxlanılır…', '<i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla'); }
+        function setHeroSaveButtonLoading(isLoading) { setSubmitButtonLoading('hero-form-submit', isLoading, 'Hero saxlanılır…', 'Yadda Saxla'); }
+        function setGallerySaveButtonLoading(isLoading) { setSubmitButtonLoading('gallery-save-submit-btn', isLoading, 'Qalereya saxlanılır…', 'Saxla'); }
+        function setVacancySaveButtonLoading(isLoading) { setSubmitButtonLoading('vacancy-save-submit-btn', isLoading, 'Vakansiya saxlanılır…', 'Yadda Saxla'); }
+        function setUserCreateButtonLoading(isLoading) { setSubmitButtonLoading('user-create-submit-btn', isLoading, 'İstifadəçi yaradılır…', 'Yarat'); }
+        function setUserEditButtonLoading(isLoading) { setSubmitButtonLoading('user-edit-submit-btn', isLoading, 'İstifadəçi saxlanılır…', 'Yadda saxla'); }
+        function setUserActionStatusLoading(isLoading, text = 'İstifadəçi əməliyyatı icra olunur…') {
+            const status = document.getElementById('admin-user-action-status');
+            if (!status) return;
+            status.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>${text}`;
+            status.classList.toggle('hidden', !isLoading);
         }
 
         function getLoginSubmitButton() {
@@ -6056,7 +6191,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         async function handleSaveOfficialProject(e) {
             e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || activeUser.role !== 'admin' || isProjectSaveSubmitting) return;
+            isProjectSaveSubmitting = true;
+            setProjectSaveButtonLoading(true);
 
             const editId = document.getElementById('edit-project-id').value;
             const projectImages = collectProjectImageInputs();
@@ -6102,6 +6239,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 resetOfficialProjectForm();
             } catch (error) {
                 alert('Layihə API-yə yazılmadı: ' + error.message);
+            } finally {
+                isProjectSaveSubmitting = false;
+                setProjectSaveButtonLoading(false);
             }
         }
 
@@ -6499,7 +6639,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 adminTags.forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.remove('hidden'));
                 document.getElementById('dashboard-user-title').textContent = `BestHome İstifadəçi Kabineti`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name}. Elanlarınızı yerləşdirin və redaktə edin.`;
+                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name}. Digər ərazilərinizi yerləşdirin və redaktə edin.`;
                 switchAdminSubtab('seabreeze-manager');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
@@ -6512,7 +6652,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const codeSearch = document.getElementById('admin-listing-code-search')?.value.trim() || '';
             const regionFilter = document.getElementById('admin-listing-region-filter')?.value || 'all';
             const districtFilter = document.getElementById('admin-listing-district-filter')?.value || 'all';
-            const properties = appData.listings.filter(item => {
+            const properties = appData.listings.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || Number(b.id || 0) - Number(a.id || 0)).filter(item => {
                 const listingRegion = getListingRegionType(item);
                 const listingDistrict = getListingDistrict(item);
                 if (codeSearch && !String(item.listingCode || '').includes(codeSearch.replace(/^BH/i, '')) && !formatListingCode(item.listingCode).toLowerCase().includes(codeSearch.toLowerCase())) return false;
@@ -6595,7 +6735,15 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 }
 
                 // 3. Users List
-                const agents = appData.agents;
+                const nameQuery = (document.getElementById('admin-user-search-name')?.value || '').trim().toLowerCase();
+                const phoneQuery = (document.getElementById('admin-user-search-phone')?.value || '').trim().toLowerCase();
+                const emailQuery = (document.getElementById('admin-user-search-email')?.value || '').trim().toLowerCase();
+                const agents = appData.agents.filter(a => {
+                    const fullname = (a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || '').toLowerCase();
+                    const phone = String(a.phone || '').toLowerCase();
+                    const email = String(a.email || '').toLowerCase();
+                    return (!nameQuery || fullname.includes(nameQuery)) && (!phoneQuery || phone.includes(phoneQuery)) && (!emailQuery || email.includes(emailQuery));
+                });
                 const agentsContainer = document.getElementById('admin-agents-grid');
                 const usersCount = document.getElementById('admin-users-count');
                 agentsContainer.innerHTML = '';
@@ -6605,22 +6753,30 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                     const initials = fullname.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
                     const avatar = a.avatarUrl || avatarFallback(fullname);
                     agentsContainer.innerHTML += `
-                        <div onclick="openUserListingsModal('${a.id}')" class="glass-card p-3 rounded-2xl border border-white/5 text-xs flex items-center gap-3 hover:border-brand-500/30 transition cursor-pointer">
-                            <img src="${avatar}" onclick="event.stopPropagation(); openAvatarModal(this.src)" class="w-12 h-12 rounded-full object-cover bg-brand-500/10 shrink-0 cursor-zoom-in" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0&quot;>${initials}</div>'">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <h4 class="font-bold text-white truncate">${fullname}</h4>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10 shrink-0">${roleLabel(a.role)}</span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'} shrink-0">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
+                        <div onclick="openUserListingsModal('${a.id}')" class="glass-card p-4 rounded-2xl border border-white/5 text-xs hover:border-brand-500/30 transition cursor-pointer">
+                            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                                <img src="${avatar}" onclick="event.stopPropagation(); openAvatarModal(this.src)" class="w-16 h-16 rounded-2xl object-cover bg-brand-500/10 shrink-0 cursor-zoom-in" onerror="this.outerHTML='<div class=&quot;w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0&quot;>${initials}</div>'">
+                                <div class="min-w-0 flex-1 space-y-2">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h4 class="font-extrabold text-white text-base">${escapeHtml(fullname)}</h4>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10">${roleLabel(a.role)}</span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-gray-300">
+                                        <span><b class="text-gray-500 uppercase text-[9px] block">E-poçt</b>${escapeHtml(a.email || '—')}</span>
+                                        <span><b class="text-gray-500 uppercase text-[9px] block">Telefon</b>${escapeHtml(a.phone || '—')}</span>
+                                        <span><b class="text-gray-500 uppercase text-[9px] block">Qeydiyyat</b>${formatAzDateTime(a.createdAt || a.created_at)}</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-center">
+                                        ${[['Elan', a.listingsCount], ['Approved', a.approvedListingsCount], ['Pending', a.pendingListingsCount], ['Views', a.totalListingViews], ['Favori', a.totalFavorites || a.favoritesCount], ['Profil', `${a.profileCompletion || profileCompletionFor(a)}%`]].map(([label, value]) => `<span class="rounded-xl bg-white/5 border border-white/10 p-2"><strong class="block text-white">${value || 0}</strong><em class="not-italic text-[9px] text-gray-500 uppercase">${label}</em></span>`).join('')}
+                                    </div>
+                                    <p class="text-[10px] text-gray-500">Son giriş: ${formatAzDateTime(a.lastLogin)} • Bio: ${escapeHtml(a.bio || '—')}</p>
                                 </div>
-                                <span class="text-[10px] text-gray-400 truncate block">${a.email || 'E-poçt yoxdur'}</span>
-                                <span class="text-[10px] text-gray-500 truncate block">${a.phone || 'Nömrə qeyd edilməyib'} • ${formatAzDate(a.createdAt || a.created_at)}</span>
-                                <span class="text-[10px] text-gray-400 truncate block">Listings: ${a.listingsCount || 0} • Approved: ${a.approvedListingsCount || 0} • Pending: ${a.pendingListingsCount || 0} • Views: ${a.totalListingViews || 0} • Favori: ${a.totalFavorites || a.favoritesCount || 0}</span><span class="text-[10px] text-gray-500 truncate block">Last login: ${formatAzDate(a.lastLogin)} • Completion: ${a.profileCompletion || profileCompletionFor(a)}%</span>
-                            </div>
-                            <div class="flex items-center gap-1 shrink-0">
-                                <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="event.stopPropagation(); toggleUserActive('${a.id}', ${a.isActive === false ? 'true' : 'false'})" class="w-8 h-8 rounded-lg ${a.isActive === false ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500'} hover:text-white transition" aria-label="Status"><i class="fa-solid ${a.isActive === false ? 'fa-check' : 'fa-ban'}"></i></button>
-                                <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
+                                <div class="flex md:flex-col items-center gap-2 shrink-0">
+                                    <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                    <button onclick="event.stopPropagation(); toggleUserActive('${a.id}', ${a.isActive === false ? 'true' : 'false'})" class="w-9 h-9 rounded-lg ${a.isActive === false ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500'} hover:text-white transition" aria-label="Status"><i class="fa-solid ${a.isActive === false ? 'fa-check' : 'fa-ban'}"></i></button>
+                                    <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -6691,6 +6847,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const desc = document.getElementById('sb-desc').value;
             const currency = document.getElementById('sb-currency')?.value || 'AZN';
             const isCredit = document.getElementById('sb-is-credit')?.checked || false;
+            const ownerType = document.getElementById('sb-owner-type')?.value || 'owner';
+            const hasDocument = document.getElementById('sb-has-document')?.checked || false;
             const creditDownPayment = document.getElementById('sb-credit-down')?.value ? parseFloat(document.getElementById('sb-credit-down').value) : null;
             const creditMonthlyPayment = document.getElementById('sb-credit-monthly')?.value ? parseFloat(document.getElementById('sb-credit-monthly').value) : null;
             const creditYears = document.getElementById('sb-credit-years')?.value ? parseInt(document.getElementById('sb-credit-years').value, 10) : null;
@@ -6743,6 +6901,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 price,
                 currency,
                 isCredit,
+                ownerType,
+                hasDocument,
                 creditDownPayment,
                 creditMonthlyPayment,
                 creditYears,
@@ -6788,9 +6948,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             if (p) {
                 document.getElementById('edit-sb-id').value = p.id;
                 document.getElementById('sb-title').value = p.title;
-                document.getElementById('sb-region-type').value = getListingRegionType(p) || 'seabreeze';
-                handleListingRegionTypeChange();
-                document.getElementById('sb-project').value = getListingRegionType(p) === 'general' ? (p.city || 'Bakı') : (getListingDistrict(p) || p.project);
+                document.getElementById('sb-region-type').value = normalizeRegionType(p.regionType, p.project) === 'seabreeze' ? 'seabreeze' : 'general';
+                handleListingRegionTypeChange(p.category || 'Apartment');
+                document.getElementById('sb-project').value = normalizeRegionType(p.regionType, p.project) === 'seabreeze' ? (getListingDistrict(p) || p.project) : (p.city || legacyRegionToCity(getListingRegionType(p)) || 'Bakı');
                 syncGeneralDistrictSelect();
                 if (document.getElementById('sb-district')) document.getElementById('sb-district').value = p.district || '';
                 document.getElementById('sb-listing-type').value = p.listingType;
@@ -6803,6 +6963,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 document.getElementById('sb-price').value = p.price;
                 document.getElementById('sb-currency').value = p.currency || 'AZN';
                 document.getElementById('sb-is-credit').checked = Boolean(p.isCredit);
+                document.getElementById('sb-owner-type').value = p.ownerType || 'owner';
+                document.getElementById('sb-has-document').checked = Boolean(p.hasDocument);
                 toggleCreditFields();
                 document.getElementById('sb-credit-down').value = p.creditDownPayment || '';
                 document.getElementById('sb-credit-monthly').value = p.creditMonthlyPayment || '';
@@ -6836,6 +6998,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('sb-price').value = '';
             document.getElementById('sb-currency').value = 'AZN';
             document.getElementById('sb-is-credit').checked = false;
+            document.getElementById('sb-owner-type').value = 'owner';
+            document.getElementById('sb-has-document').checked = false;
             toggleCreditFields();
             document.getElementById('sb-credit-down').value = '';
             document.getElementById('sb-credit-monthly').value = '';
@@ -6915,6 +7079,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         async function handleRegisterAgent(e) {
             e.preventDefault();
+            if (isUserActionSubmitting) return;
+            isUserActionSubmitting = true;
+            setUserCreateButtonLoading(true);
             const newUser = {
                 fullname: document.getElementById('agent-reg-fullname').value.trim(),
                 email: document.getElementById('agent-reg-email').value.trim(),
@@ -6936,6 +7103,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderAdminDashboard();
             } catch (error) {
                 alert('İstifadəçi API-yə yazılmadı: ' + error.message);
+            } finally {
+                isUserActionSubmitting = false;
+                setUserCreateButtonLoading(false);
             }
         }
 
@@ -6961,6 +7131,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         async function handleSaveUserEdit(e) {
             e.preventDefault();
+            if (isUserActionSubmitting) return;
+            isUserActionSubmitting = true;
+            setUserEditButtonLoading(true);
             const id = document.getElementById('edit-user-id').value;
             const payload = {
                 fullname: document.getElementById('edit-user-fullname').value.trim(),
@@ -6977,32 +7150,44 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderAdminDashboard();
             } catch (error) {
                 alert('İstifadəçi yenilənmədi: ' + error.message);
+            } finally {
+                isUserActionSubmitting = false;
+                setUserEditButtonLoading(false);
             }
         }
 
         async function toggleUserActive(id, activate) {
+            if (isUserActionSubmitting) return;
+            isUserActionSubmitting = true;
+            setUserActionStatusLoading(true, activate ? 'İstifadəçi aktiv edilir…' : 'İstifadəçi bloklanır…');
             try {
                 const updated = await apiRequest(`/api/users/${id}/${activate ? 'activate' : 'block'}`, { method: 'PATCH' });
                 const idx = appData.agents.findIndex(x => String(x.id) === String(id));
                 if (idx > -1) appData.agents[idx] = userToUi(updated);
                 renderAdminDashboard();
             } catch (error) { alert('İstifadəçi statusu dəyişmədi: ' + error.message); }
+            finally { isUserActionSubmitting = false; setUserActionStatusLoading(false); }
         }
 
         async function deleteAgent(id) {
-            if (!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
+            if (!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?') || isUserActionSubmitting) return;
+            isUserActionSubmitting = true;
+            setUserActionStatusLoading(true, 'İstifadəçi silinir…');
             try {
                 await apiRequest(`/api/users/${id}`, { method: 'DELETE' });
                 cacheData('agents', appData.agents.filter(x => String(x.id) !== String(id)));
                 renderAdminDashboard();
             } catch (error) {
                 alert('İstifadəçi API-dən silinmədi: ' + error.message);
-            }
+            } finally { isUserActionSubmitting = false; setUserActionStatusLoading(false); }
         }
 
         // SAVE & MANAGE VACANCIES (ACTIVE / BLOCKED LOGIC)
         async function handleSaveVacancy(e) {
             e.preventDefault();
+            if (isVacancySaveSubmitting) return;
+            isVacancySaveSubmitting = true;
+            setVacancySaveButtonLoading(true);
             const editId = document.getElementById('edit-vac-id').value;
             const list = [...appData.vacancies];
             const existingVacancy = list.find(v => String(v.id) === String(editId));
@@ -7040,6 +7225,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderCareerSection();
             } catch (error) {
                 alert('Vakansiya API-yə yazılmadı: ' + error.message);
+            } finally {
+                isVacancySaveSubmitting = false;
+                setVacancySaveButtonLoading(false);
             }
         }
 
@@ -7114,6 +7302,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
         async function handleSaveGalleryItem(e) {
             e.preventDefault();
+            if (isGallerySaveSubmitting) return;
+            isGallerySaveSubmitting = true;
+            setGallerySaveButtonLoading(true);
             const editId = document.getElementById('edit-g-id').value;
             const title = document.getElementById('g-title').value;
             const type = document.getElementById('g-type').value;
@@ -7132,10 +7323,14 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
             if (type === 'event' && galleryPayload.images.length === 0 && uploadedEventImageFiles.length === 0) {
                 alert('Qalereya üçün ən azı bir şəkil seçin.');
+                isGallerySaveSubmitting = false;
+                setGallerySaveButtonLoading(false);
                 return;
             }
             if (type === 'video' && !videoUrl && !videoFile) {
                 alert('Video URL daxil edin və ya MP4 fayl seçin.');
+                isGallerySaveSubmitting = false;
+                setGallerySaveButtonLoading(false);
                 return;
             }
 
@@ -7168,6 +7363,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderPortfolio();
             } catch (error) {
                 alert('Qalereya API-yə yazılmadı: ' + error.message);
+            } finally {
+                isGallerySaveSubmitting = false;
+                setGallerySaveButtonLoading(false);
             }
         }
 

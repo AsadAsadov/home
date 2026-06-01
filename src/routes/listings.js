@@ -389,7 +389,7 @@ function decorateListingUi(listings) {
 }
 
 function orderedListingRows(rows) {
-  return [...rows].sort((a, b) => (listingSortValue(a.displayOrder, listingSortValue(a.id)) - listingSortValue(b.displayOrder, listingSortValue(b.id))) || (listingSortValue(a.id) - listingSortValue(b.id)));
+  return [...rows].sort((a, b) => (new Date(b.createdAt || 0) - new Date(a.createdAt || 0)) || (listingSortValue(b.id) - listingSortValue(a.id)));
 }
 
 
@@ -511,7 +511,7 @@ async function listListings(req, res, extraWhere) {
   const where = listingVisibilityWhere(req, baseWhere);
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
-    prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, skip, take }),
+    prisma.listing.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include, skip, take }),
     prisma.listing.count({ where }),
   ]);
   await attachListingUsers(data);
@@ -547,7 +547,7 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
     prisma.listing.update({ where: { id: item.id }, data: { displayOrder: item.displayOrder } })
   )));
 
-  const data = await prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include });
+  const data = await prisma.listing.findMany({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include });
   await attachListingUsers(data);
   decorateListingUi(data);
   res.json({ ok: true, data: orderedListingRows(data) });
@@ -638,7 +638,7 @@ router.get('/:id/navigation', optionalAuthenticate, asyncHandler(async (req, res
   const creditWhere = ['true', '1', 'yes', 'on'].includes(String(creditValue || '').toLowerCase()) ? { isCredit: true } : undefined;
   const pieces = [regionWhere, searchWhere, creditWhere].filter(Boolean);
   const where = listingVisibilityWhere(req, pieces.length ? { AND: pieces } : undefined);
-  const rows = await prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, take: 1000 });
+  const rows = await prisma.listing.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include, take: 1000 });
   await attachListingUsers(rows);
   decorateListingUi(rows);
   const ordered = orderedListingRows(rows);
