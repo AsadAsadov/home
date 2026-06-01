@@ -1592,7 +1592,7 @@ Title: Park Villas
                             </div>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Title Color</span><input type="color" id="hero-title-color-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="h-10 w-full bg-white/5 border border-white/10 rounded-xl p-1"></label>
-                                <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button BG</span><input type="color" id="hero-button-background-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="h-10 w-full bg-white/5 border border-white/10 rounded-xl p-1"></label>
+                                <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Color</span><input type="color" id="hero-button-color-input" value="#FFFFFF" oninput="updateHeroAdminPreview()" class="h-10 w-full bg-white/5 border border-white/10 rounded-xl p-1"></label>
                                 <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Button Text</span><input type="color" id="hero-button-text-color-input" value="#111827" oninput="updateHeroAdminPreview()" class="h-10 w-full bg-white/5 border border-white/10 rounded-xl p-1"></label>
                                 <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Badge Color</span><input type="color" id="hero-badge-color-input" value="#C8A96A" oninput="updateHeroAdminPreview()" class="h-10 w-full bg-white/5 border border-white/10 rounded-xl p-1"></label>
                             </div>
@@ -2110,7 +2110,7 @@ Title: Park Villas
             title_font_size: 48,
             description_color: '#F8FAFC',
             description_font_size: 18,
-            button_background: '#FFFFFF',
+            button_color: '#FFFFFF',
             button_text_color: '#111827',
             panel_background: '#111827',
             panel_blur: 18,
@@ -3103,7 +3103,7 @@ Title: Park Villas
                 title_font_size: Number(slide.title_font_size ?? slide.titleFontSize ?? defaultSeaBreezeHero.title_font_size),
                 description_color: slide.description_color ?? slide.descriptionColor ?? defaultSeaBreezeHero.description_color,
                 description_font_size: Number(slide.description_font_size ?? slide.descriptionFontSize ?? defaultSeaBreezeHero.description_font_size),
-                button_background: slide.button_background ?? slide.buttonBackground ?? defaultSeaBreezeHero.button_background,
+                button_color: slide.button_color ?? slide.buttonColor ?? defaultSeaBreezeHero.button_color,
                 button_text_color: slide.button_text_color ?? slide.buttonTextColor ?? defaultSeaBreezeHero.button_text_color,
                 panel_background: slide.panel_background ?? slide.panelBackground ?? defaultSeaBreezeHero.panel_background,
                 panel_blur: 0,
@@ -3321,7 +3321,7 @@ Title: Park Villas
                 'hero-badge-color-input': hero.badge_color || '#C8A96A',
                 'hero-badge-background-input': hero.badge_background || '#111827',
                 'hero-title-color-input': hero.title_color || '#FFFFFF',
-                'hero-button-background-input': hero.button_background || '#FFFFFF',
+                'hero-button-color-input': hero.button_color || '#FFFFFF',
                 'hero-button-text-color-input': hero.button_text_color || '#111827',
                 'hero-display-order-input': hero.display_order ?? 0,
                 'hero-duration-input': hero.slide_duration || 10,
@@ -3403,7 +3403,7 @@ Title: Park Villas
                 badge_color: document.getElementById('hero-badge-color-input')?.value || '#C8A96A',
                 badge_background: document.getElementById('hero-badge-background-input')?.value || '#111827',
                 title_color: document.getElementById('hero-title-color-input')?.value || '#FFFFFF',
-                button_background: document.getElementById('hero-button-background-input')?.value || '#FFFFFF',
+                button_color: document.getElementById('hero-button-color-input')?.value || '#FFFFFF',
                 button_text_color: document.getElementById('hero-button-text-color-input')?.value || '#111827',
                 slide_duration: Number(document.getElementById('hero-duration-input')?.value || 10)
             });
@@ -3452,7 +3452,7 @@ Title: Park Villas
                 title: 'hero-title-input', description: 'hero-description-input', slide_type: 'hero-slide-type-input', project_id: 'hero-project-id-input',
                 media_type: 'hero-media-type-input', media_url: 'hero-media-url-input', button_text: 'hero-button-text-input', button_link: 'hero-button-link-input',
                 badge_text: 'hero-badge-text-input', badge_color: 'hero-badge-color-input', badge_background: 'hero-badge-background-input', title_color: 'hero-title-color-input',
-                button_background: 'hero-button-background-input', button_text_color: 'hero-button-text-color-input', display_order: 'hero-display-order-input', slide_duration: 'hero-duration-input'
+                button_color: 'hero-button-color-input', button_text_color: 'hero-button-text-color-input', display_order: 'hero-display-order-input', slide_duration: 'hero-duration-input'
             };
             Object.entries(fieldIds).forEach(([key, inputId]) => formData.append(key, document.getElementById(inputId)?.value?.trim?.() ?? document.getElementById(inputId)?.value ?? ''));
             formData.append('is_active', document.getElementById('hero-is-active-input').checked ? 'true' : 'false');

@@ -232,7 +232,7 @@ model HeroSlide {
   titleFontSize         Int      @default(48) @map("title_font_size")
   descriptionColor      String?  @default("#F8FAFC") @map("description_color")
   descriptionFontSize   Int      @default(18) @map("description_font_size")
-  buttonBackground      String?  @default("#7F7FFF") @map("button_background")
+  buttonColor           String?  @default("#7F7FFF") @map("button_color")
   buttonTextColor       String?  @default("#FFFFFF") @map("button_text_color")
   panelBackground       String?  @default("#111827") @map("panel_background")
   panelBlur             Int      @default(18) @map("panel_blur")
