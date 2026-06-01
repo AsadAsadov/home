@@ -2603,6 +2603,29 @@ Title: Park Villas
             return [...arr, fallback].map(x => String(x || '').trim()).filter((x, idx, all) => x && all.indexOf(x) === idx);
         }
 
+        function normalizeFeatures(features) {
+            if (!features) return [];
+
+            if (Array.isArray(features)) {
+                return features;
+            }
+
+            if (typeof features === 'string') {
+                return features
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(Boolean);
+            }
+
+            if (typeof features === 'object') {
+                return Object.values(features)
+                    .filter(Boolean)
+                    .map(String);
+            }
+
+            return [];
+        }
+
         function dbProjectToUi(p) {
             const primaryImage = String(p.imageUrl || p.image_url || '').trim();
             const images = normalizeProjectImages(p.images, primaryImage);
@@ -2610,7 +2633,7 @@ Title: Park Villas
             return {
                 id: String(p.id), title: p.title, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
-                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: (p.features || '').split('/').map(x => x.trim()).filter(Boolean),
+                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: normalizeFeatures(p.features),
                 desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
                 displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
                 slug: p.slug || localSlug(p.title),
