@@ -68,7 +68,15 @@ const LISTING_INPUT_LOG_FIELDS = [
 
 const LISTING_TEXT_PAYLOAD_FIELDS = [
   'title',
+  'titleAz',
+  'titleEn',
+  'titleRu',
+  'titleTr',
   'description',
+  'descriptionAz',
+  'descriptionEn',
+  'descriptionRu',
+  'descriptionTr',
   'projectName',
   'regionType',
   'city',
@@ -450,8 +458,11 @@ async function listListings(req, res, extraWhere) {
     ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
   ] } : undefined;
   const regionWhere = listingRegionFilterWhere(req.query);
+  const creditValue = req.query.credit ?? req.query.is_credit ?? req.query.isCredit;
+  const creditWhere = ['true', '1', 'yes', 'on'].includes(String(creditValue || '').toLowerCase()) ? { isCredit: true } : undefined;
   const queryWhere = searchWhere && regionWhere ? { AND: [searchWhere, regionWhere] } : (searchWhere || regionWhere);
-  const baseWhere = queryWhere && extraWhere ? { AND: [queryWhere, extraWhere] } : (queryWhere || extraWhere);
+  const combinedQueryWhere = queryWhere && creditWhere ? { AND: [queryWhere, creditWhere] } : (queryWhere || creditWhere);
+  const baseWhere = combinedQueryWhere && extraWhere ? { AND: [combinedQueryWhere, extraWhere] } : (combinedQueryWhere || extraWhere);
   const where = listingVisibilityWhere(req, baseWhere);
   const { page, limit, skip, take } = pagination(req.query);
   const [data, total] = await Promise.all([
