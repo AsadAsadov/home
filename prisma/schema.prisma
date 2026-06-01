@@ -10,6 +10,10 @@ datasource db {
 model Project {
   id             Int      @id @default(autoincrement())
   title          String
+  titleAz        String?  @map("title_az")
+  titleEn        String?  @map("title_en")
+  titleRu        String?  @map("title_ru")
+  titleTr        String?  @map("title_tr")
   category       String?
   deliveryDate   String?  @map("delivery_date")
   floorCount     String?  @map("floor_count")
@@ -17,7 +21,15 @@ model Project {
   apartmentCount String?  @map("apartment_count")
   repairStatus   String?  @map("repair_status")
   features       String?
+  featuresAz     String?  @map("features_az")
+  featuresEn     String?  @map("features_en")
+  featuresRu     String?  @map("features_ru")
+  featuresTr     String?  @map("features_tr")
   description    String?  @db.Text
+  descriptionAz  String?  @map("description_az") @db.Text
+  descriptionEn  String?  @map("description_en") @db.Text
+  descriptionRu  String?  @map("description_ru") @db.Text
+  descriptionTr  String?  @map("description_tr") @db.Text
   imageUrl       String?  @map("image_url") @db.Text
   images         Json?
   displayOrder   Int?     @map("display_order")
@@ -33,6 +45,10 @@ model Project {
 model Listing {
   id               BigInt         @id @default(autoincrement())
   title            String
+  titleAz          String?        @map("title_az")
+  titleEn          String?        @map("title_en")
+  titleRu          String?        @map("title_ru")
+  titleTr          String?        @map("title_tr")
   listingType      String?        @map("listing_type")
   propertyCategory String?        @map("property_category")
   projectName      String?        @map("project_name")
@@ -46,8 +62,17 @@ model Listing {
   floorCount       String?        @map("floor_count")
   price            Decimal?       @db.Decimal(14, 2)
   pricePerM2       Decimal?       @map("price_per_m2") @db.Decimal(12, 2)
+  currency         String         @default("AZN")
+  isCredit         Boolean        @default(false) @map("is_credit")
+  creditDownPayment Decimal?      @map("credit_down_payment") @db.Decimal(14, 2)
+  creditMonthlyPayment Decimal?   @map("credit_monthly_payment") @db.Decimal(14, 2)
+  creditYears      Int?           @map("credit_years")
   imageUrl         String?        @map("image_url") @db.Text
   description      String?        @db.Text
+  descriptionAz    String?        @map("description_az") @db.Text
+  descriptionEn    String?        @map("description_en") @db.Text
+  descriptionRu    String?        @map("description_ru") @db.Text
+  descriptionTr    String?        @map("description_tr") @db.Text
   displayOrder     Int?           @map("display_order")
   listingCode      Int?           @unique @map("listing_code")
   createdAt        DateTime       @default(now()) @map("created_at")
@@ -110,10 +135,18 @@ model ListingImage {
 model Vacancy {
   id             Int           @id @default(autoincrement())
   title          String
+  titleAz        String?       @map("title_az")
+  titleEn        String?       @map("title_en")
+  titleRu        String?       @map("title_ru")
+  titleTr        String?       @map("title_tr")
   employmentType String?       @map("employment_type")
   salary         String?
   city           String?
   description    String?       @db.Text
+  descriptionAz  String?       @map("description_az") @db.Text
+  descriptionEn  String?       @map("description_en") @db.Text
+  descriptionRu  String?       @map("description_ru") @db.Text
+  descriptionTr  String?       @map("description_tr") @db.Text
   isActive       Boolean       @default(true) @map("is_active")
   slug           String?       @unique
   createdAt      DateTime      @default(now()) @map("created_at")
@@ -220,7 +253,15 @@ model HeroSection {
 model HeroSlide {
   id                    Int      @id @default(autoincrement())
   title                 String
+  titleAz               String?  @map("title_az")
+  titleEn               String?  @map("title_en")
+  titleRu               String?  @map("title_ru")
+  titleTr               String?  @map("title_tr")
   description           String?  @db.Text
+  descriptionAz         String?  @map("description_az") @db.Text
+  descriptionEn         String?  @map("description_en") @db.Text
+  descriptionRu         String?  @map("description_ru") @db.Text
+  descriptionTr         String?  @map("description_tr") @db.Text
   slideType             String   @default("custom") @map("slide_type")
   projectId             Int?     @map("project_id")
   mediaType             String   @default("image") @map("media_type")
@@ -242,6 +283,10 @@ model HeroSlide {
   heroHeightTablet      Int      @default(420) @map("hero_height_tablet")
   heroHeightMobile      Int      @default(320) @map("hero_height_mobile")
   buttonText            String?  @map("button_text")
+  buttonTextAz          String?  @map("button_text_az")
+  buttonTextEn          String?  @map("button_text_en")
+  buttonTextRu          String?  @map("button_text_ru")
+  buttonTextTr          String?  @map("button_text_tr")
   buttonLink            String?  @map("button_link") @db.Text
   displayOrder          Int      @default(0) @map("display_order")
   slideDuration         Int      @default(10) @map("slide_duration")

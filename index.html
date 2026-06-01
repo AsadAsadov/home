@@ -867,6 +867,9 @@
                 grid-template-columns: minmax(0, 1fr) !important;
             }
         }
+        .language-switcher button.is-active { background: linear-gradient(135deg, #7F7FFF, #5656E8); color: #fff; box-shadow: 0 8px 22px rgba(127,127,255,.28); }
+        .credit-badge { background: linear-gradient(135deg, #ef4444, #991b1b); color: #fff; box-shadow: 0 12px 28px rgba(239,68,68,.35); letter-spacing: .12em; }
+        .credit-info-panel { background: linear-gradient(135deg, rgba(254,242,242,.96), rgba(255,255,255,.98)); border: 1px solid rgba(248,113,113,.28); }
         @media (max-width: 767px) {
             .listing-detail-main-image {
                 min-height: 220px;
@@ -898,6 +901,8 @@
                     </button>
                 </div>
 
+                <div class="hidden md:flex items-center gap-1 language-switcher rounded-full bg-brand-50/80 border border-brand-200 p-1" id="language-switcher-desktop"></div>
+
                 <!-- Session status -->
                 <div class="hidden md:flex items-center space-x-4">
                     <div id="header-user-status" class="flex items-center space-x-3"></div>
@@ -905,6 +910,7 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center space-x-3">
+                    <select id="language-switcher-mobile" onchange="setLanguage(this.value)" class="bg-white border border-brand-200 rounded-xl px-2 py-1 text-xs font-black text-brand-700"></select>
                     <div id="mobile-user-status-icon"></div>
                     <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white focus:outline-none">
                         <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
@@ -1019,6 +1025,10 @@
                         <select id="filter-sb-project" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
                             <option value="all">Bütün layihə/rayonlar</option>
                         </select>
+                        <label class="inline-flex items-center gap-2 bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-bold cursor-pointer">
+                            <input type="checkbox" id="filter-sb-credit" onchange="listingPage = 1; renderSeaBreeze()" class="accent-red-500">
+                            <span data-i18n="filters.creditOnly">Kreditlə satılır</span>
+                        </label>
                     </div>
                 </div>
 
@@ -1314,13 +1324,28 @@
                             <input type="number" id="sb-land" min="1" step="any" placeholder="Məs: 4.5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                         </div>
 
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Qiymət (AZN) *</label>
-                            <input type="number" id="sb-price" required min="1" oninput="calculateSqPrice()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1 sm:col-span-2">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Qiymət *</label>
+                                <input type="number" id="sb-price" required min="1" oninput="calculateSqPrice()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Valyuta</label>
+                                <select id="sb-currency" onchange="calculateSqPrice()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"><option value="AZN">AZN</option><option value="USD">USD</option></select>
+                            </div>
+                        </div>
+                        <label class="flex items-start gap-3 rounded-2xl border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-100 font-bold">
+                            <input type="checkbox" id="sb-is-credit" onchange="toggleCreditFields()" class="mt-0.5 accent-red-500">
+                            <span>☑ Kreditlə satış</span>
+                        </label>
+                        <div id="sb-credit-fields" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">İlkin ödəniş</span><input type="number" id="sb-credit-down" min="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Aylıq ödəniş</span><input type="number" id="sb-credit-monthly" min="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Müddət (il)</span><input type="number" id="sb-credit-years" min="1" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></label>
                         </div>
 
                         <div id="calc-result-box" class="bg-brand-500/10 p-3 rounded-xl border border-brand-500/20 text-xs">
-                            <strong>1 m² Üçün Qiymət:</strong> <span id="sb-calc-val">0</span> AZN
+                            <strong>1 m² Üçün Qiymət:</strong> <span id="sb-calc-val">0 ₼</span>
                         </div>
 
                         <div class="space-y-2">
@@ -1867,6 +1892,15 @@ Title: Park Villas
                             <div id="p-modal-sqprice" class="text-sm text-black font-semibold bg-white/80 px-4 py-2 rounded-full border border-brand-100"></div>
                         </div>
 
+                        <div id="p-modal-credit" class="hidden credit-info-panel rounded-[1.5rem] p-5 space-y-3 shadow-sm">
+                            <h4 class="text-sm font-black text-red-700 uppercase tracking-wider">Kredit Məlumatları</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">İlkin ödəniş:</span><strong id="p-modal-credit-down" class="text-gray-950 text-lg"></strong></div>
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Aylıq ödəniş:</span><strong id="p-modal-credit-monthly" class="text-gray-950 text-lg"></strong></div>
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Müddət:</span><strong id="p-modal-credit-years" class="text-gray-950 text-lg"></strong></div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Otaq sayı</span><strong id="p-modal-rooms" class="text-gray-950 text-lg"></strong></div>
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Sahə</span><strong id="p-modal-area" class="text-gray-950 text-lg"></strong></div>
@@ -2121,11 +2155,11 @@ Title: Park Villas
         const DEFAULT_SEA_BREEZE_HERO_IMAGE = 'https://scontent.fgyd21-1.fna.fbcdn.net/v/t39.30808-6/557956945_1410435877753430_6514473924415472229_n.jpg';
         const defaultSeaBreezeHero = {
             id: 'default',
-            title: 'Sea Breeze Premium',
-            description: '',
+            title: 'Sea Breeze Premium', title_az: 'Sea Breeze Premium', title_en: 'Sea Breeze Premium', title_ru: 'Sea Breeze Premium', title_tr: 'Sea Breeze Premium',
+            description: '', description_az: '', description_en: '', description_ru: '', description_tr: '',
             media_type: 'image',
             media_url: DEFAULT_SEA_BREEZE_HERO_IMAGE,
-            button_text: 'Layihəyə Bax →',
+            button_text: 'Layihəyə Bax →', button_text_az: 'Layihəyə Bax →', button_text_en: 'View Project →', button_text_ru: 'Смотреть проект →', button_text_tr: 'Projeye Bak →',
             button_link: '#sea-breeze-projects-list',
             slide_type: 'custom',
             project_id: '',
@@ -2153,6 +2187,52 @@ Title: Park Villas
         let heroSliderIndex = 0;
         let isHeroSlidesLoaded = false;
         let heroPreviewObjectUrl = '';
+
+
+        const SUPPORTED_LANGUAGES = ['az', 'en', 'ru', 'tr'];
+        const LANGUAGE_NAMES = { az: 'AZ', en: 'EN', ru: 'RU', tr: 'TR' };
+        const LANGUAGE_FALLBACKS = ['en', 'az'];
+        let activeLanguage = SUPPORTED_LANGUAGES.includes(localStorage.getItem('language')) ? localStorage.getItem('language') : 'az';
+        const translations = {
+            az: { 'filters.creditOnly': 'Kreditlə satılır' },
+            en: { 'filters.creditOnly': 'Credit sale' },
+            ru: { 'filters.creditOnly': 'Продается в кредит' },
+            tr: { 'filters.creditOnly': 'Kredili satış' }
+        };
+        function langSuffix(lang = activeLanguage) { return String(lang).charAt(0).toUpperCase() + String(lang).slice(1); }
+        function getLocalizedValue(item = {}, field = '') {
+            const chain = [activeLanguage, ...LANGUAGE_FALLBACKS].filter((lang, idx, arr) => arr.indexOf(lang) === idx);
+            for (const lang of chain) {
+                const camel = `${field}${langSuffix(lang)}`;
+                const snake = `${field}_${lang}`;
+                const value = item[camel] ?? item[snake];
+                if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+            }
+            return item[field] ?? '';
+        }
+        function t(key) { return translations[activeLanguage]?.[key] || translations.en?.[key] || translations.az?.[key] || key; }
+        function formatPrice(price, currency = 'AZN') {
+            const parsed = Number(price);
+            if (!Number.isFinite(parsed)) return '—';
+            const code = String(currency || 'AZN').toUpperCase() === 'USD' ? 'USD' : 'AZN';
+            return `${parsed.toLocaleString(activeLanguage === 'az' ? 'az-AZ' : activeLanguage)} ${code === 'USD' ? '$' : '₼'}`;
+        }
+        function renderLanguageSwitchers() {
+            const desktop = document.getElementById('language-switcher-desktop');
+            if (desktop) desktop.innerHTML = SUPPORTED_LANGUAGES.map(lang => `<button type="button" onclick="setLanguage('${lang}')" class="px-3 py-1.5 rounded-full text-xs font-black transition ${lang === activeLanguage ? 'is-active' : 'text-brand-700 hover:bg-white'}">${LANGUAGE_NAMES[lang]}</button>`).join('<span class="text-brand-200 font-bold">|</span>');
+            const mobile = document.getElementById('language-switcher-mobile');
+            if (mobile) { mobile.innerHTML = SUPPORTED_LANGUAGES.map(lang => `<option value="${lang}">${LANGUAGE_NAMES[lang]}</option>`).join(''); mobile.value = activeLanguage; }
+            document.documentElement.lang = activeLanguage;
+        }
+        function applyTranslations() { document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); }); }
+        function rerenderLocalizedContent() {
+            renderLanguageSwitchers(); applyTranslations();
+            if (typeof renderSeaBreezeHero === 'function') renderSeaBreezeHero(heroSliderIndex || 0);
+            if (typeof renderOfficialProjects === 'function') renderOfficialProjects();
+            if (typeof renderSeaBreeze === 'function') renderSeaBreeze();
+            if (activeOfficialProject && !document.getElementById('project-detail-modal-official')?.classList.contains('hidden')) openOfficialProjectModal(activeOfficialProject.id, false);
+        }
+        function setLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; activeLanguage = lang; localStorage.setItem('language', lang); rerenderLocalizedContent(); }
 
         const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Elanlar', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
@@ -2677,10 +2757,10 @@ Title: Park Villas
             const images = normalizeProjectImages(p.images, primaryImage);
             const img = primaryImage || images[0] || '';
             return {
-                id: String(p.id), title: p.title, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
+                id: String(p.id), title: p.title, titleAz: p.titleAz || p.title_az, titleEn: p.titleEn || p.title_en, titleRu: p.titleRu || p.title_ru, titleTr: p.titleTr || p.title_tr, category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
-                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: normalizeFeatures(p.features),
-                desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
+                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: normalizeFeatures(p.features), featuresAz: p.featuresAz || p.features_az, featuresEn: p.featuresEn || p.features_en, featuresRu: p.featuresRu || p.features_ru, featuresTr: p.featuresTr || p.features_tr,
+                desc: p.description || '', descriptionAz: p.descriptionAz || p.description_az, descriptionEn: p.descriptionEn || p.description_en, descriptionRu: p.descriptionRu || p.description_ru, descriptionTr: p.descriptionTr || p.description_tr, img, images, picture: buildProjectPictureFromLink(img),
                 displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
                 slug: p.slug || localSlug(p.title),
                 featuredInHero: Boolean(p.featuredInHero ?? p.featured_in_hero)
@@ -2780,7 +2860,7 @@ Title: Park Villas
             const images = normalizeListingImages(l);
             return {
                 id: l.id,
-                title: firstDefined(l.title, ''),
+                title: firstDefined(l.title, ''), titleAz: firstDefined(l.titleAz, l.title_az, ''), titleEn: firstDefined(l.titleEn, l.title_en, ''), titleRu: firstDefined(l.titleRu, l.title_ru, ''), titleTr: firstDefined(l.titleTr, l.title_tr, ''),
                 project: firstDefined(l.projectName, l.project_name, l.project, ''),
                 regionType: normalizeRegionType(firstDefined(l.regionType, l.region_type, ''), firstDefined(l.projectName, l.project_name, l.project, '')),
                 city: firstDefined(l.city, ''),
@@ -2794,11 +2874,16 @@ Title: Park Villas
                 floorCount,
                 floor: floorNumber || floorCount,
                 price,
+                currency: firstDefined(l.currency, 'AZN'),
+                isCredit: Boolean(l.isCredit ?? l.is_credit),
+                creditDownPayment: numericValue(l.creditDownPayment, l.credit_down_payment),
+                creditMonthlyPayment: numericValue(l.creditMonthlyPayment, l.credit_monthly_payment),
+                creditYears: integerValue(l.creditYears, l.credit_years),
                 pricePerM2: numericValue(l.pricePerM2, l.price_per_m2) || (area && price ? price / area : null),
                 user: l.user || null,
                 img: images[0] || '',
                 images,
-                desc: firstDefined(l.description, l.desc, ''),
+                desc: firstDefined(l.description, l.desc, ''), descriptionAz: firstDefined(l.descriptionAz, l.description_az, ''), descriptionEn: firstDefined(l.descriptionEn, l.description_en, ''), descriptionRu: firstDefined(l.descriptionRu, l.description_ru, ''), descriptionTr: firstDefined(l.descriptionTr, l.description_tr, ''),
                 authorId: firstDefined(l.userId, l.user_id, l.user?.id, 'admin'),
                 status: normalizeListingStatus(firstDefined(l.status, 'approved')),
                 displayOrder: Number(l.displayOrder ?? l.display_order ?? l.id),
@@ -2817,7 +2902,7 @@ Title: Park Villas
 
         function dbVacancyToUi(v) {
             const isActive = v.isActive ?? v.is_active ?? true;
-            return { id: v.id, title: v.title, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', isActive, status: isActive ? 'Aktiv' : 'Bloklanıb', slug: v.slug || localSlug(v.title) };
+            return { id: v.id, title: v.title, titleAz: v.titleAz || v.title_az, titleEn: v.titleEn || v.title_en, titleRu: v.titleRu || v.title_ru, titleTr: v.titleTr || v.title_tr, type: v.employmentType || v.employment_type || '', salary: v.salary || '', location: v.city || '', desc: v.description || '', descriptionAz: v.descriptionAz || v.description_az, descriptionEn: v.descriptionEn || v.description_en, descriptionRu: v.descriptionRu || v.description_ru, descriptionTr: v.descriptionTr || v.description_tr, isActive, status: isActive ? 'Aktiv' : 'Bloklanıb', slug: v.slug || localSlug(v.title) };
         }
 
         function normalizeJsonArray(value) {
@@ -3156,14 +3241,14 @@ Title: Park Villas
             const mediaType = String(slide.media_type ?? slide.mediaType ?? (/\.(mp4|webm|mov)(\?|#|$)/i.test(mediaUrl || '') ? 'video' : defaultSeaBreezeHero.media_type)).toLowerCase() === 'video' ? 'video' : 'image';
             return {
                 id: slide.id,
-                title: slideType === 'project' && project?.title ? project.title : (slide.title ?? defaultSeaBreezeHero.title),
-                description: slideType === 'project' ? '' : (slide.description ?? defaultSeaBreezeHero.description),
+                title: slideType === 'project' && project?.title ? getLocalizedValue(project, 'title') : (slide.title ?? defaultSeaBreezeHero.title), titleAz: slide.titleAz || slide.title_az, titleEn: slide.titleEn || slide.title_en, titleRu: slide.titleRu || slide.title_ru, titleTr: slide.titleTr || slide.title_tr,
+                description: slideType === 'project' ? '' : (slide.description ?? defaultSeaBreezeHero.description), descriptionAz: slide.descriptionAz || slide.description_az, descriptionEn: slide.descriptionEn || slide.description_en, descriptionRu: slide.descriptionRu || slide.description_ru, descriptionTr: slide.descriptionTr || slide.description_tr,
                 slide_type: slideType,
                 project_id: slide.project_id ?? slide.projectId ?? '',
                 project,
                 media_type: mediaType,
                 media_url: mediaUrl || DEFAULT_SEA_BREEZE_HERO_IMAGE,
-                button_text: slide.button_text ?? slide.buttonText ?? (slideType === 'project' ? 'Layihəyə Bax →' : defaultSeaBreezeHero.button_text),
+                button_text: slide.button_text ?? slide.buttonText ?? (slideType === 'project' ? 'Layihəyə Bax →' : defaultSeaBreezeHero.button_text), buttonTextAz: slide.buttonTextAz || slide.button_text_az, buttonTextEn: slide.buttonTextEn || slide.button_text_en, buttonTextRu: slide.buttonTextRu || slide.button_text_ru, buttonTextTr: slide.buttonTextTr || slide.button_text_tr,
                 button_link: slideType === 'project' ? (projectLinkValue || slide.button_link || slide.buttonLink) : (slide.button_link ?? slide.buttonLink ?? defaultSeaBreezeHero.button_link),
                 badge_text: slide.badge_text ?? slide.badgeText ?? '',
                 badge_color: slide.badge_color ?? slide.badgeColor ?? defaultSeaBreezeHero.badge_color,
@@ -3243,7 +3328,7 @@ Title: Park Villas
                 title: project.title,
                 media_type: 'image',
                 media_url: project.img || project.images?.[0] || '',
-                button_text: 'Layihəyə Bax →',
+                button_text: 'Layihəyə Bax →', button_text_az: 'Layihəyə Bax →', button_text_en: 'View Project →', button_text_ru: 'Смотреть проект →', button_text_tr: 'Projeye Bak →',
                 button_link: projectPath(project),
                 display_order: project.displayOrder ?? index + 1,
                 slide_duration: 10,
@@ -3348,8 +3433,8 @@ Title: Park Villas
                     if (slide.media_type === 'video' && index === heroSliderIndex) el.play?.().catch(() => {});
                 });
             }
-            if (title) title.innerHTML = formatHeroTitle(hero.title);
-            if (description) description.textContent = hero.description || '';
+            if (title) title.innerHTML = formatHeroTitle(getLocalizedValue(hero, 'title') || hero.title);
+            if (description) description.textContent = getLocalizedValue(hero, 'description') || hero.description || '';
             applyHeroVisualStyles(slider, panel, title, description, button, badge, hero);
             if (slider) {
                 slider.style.cursor = hero.button_link ? 'pointer' : 'default';
@@ -3359,7 +3444,7 @@ Title: Park Villas
                 };
             }
             if (button) {
-                button.textContent = hero.slide_type === 'project' ? 'Layihəyə Bax →' : (hero.button_text || defaultSeaBreezeHero.button_text);
+                button.textContent = hero.slide_type === 'project' ? (getLocalizedValue(defaultSeaBreezeHero, 'button_text') || 'Layihəyə Bax →') : (getLocalizedValue(hero, 'buttonText') || getLocalizedValue(hero, 'button_text') || hero.button_text || defaultSeaBreezeHero.button_text);
                 button.href = hero.button_link || '#sea-breeze-projects-list';
                 button.onclick = (event) => {
                     const href = button.getAttribute('href') || '';
@@ -3522,8 +3607,8 @@ Title: Park Villas
             if (slideType === 'custom' && !document.getElementById('hero-title-input')?.value.trim()) return alert('Custom hero üçün başlıq daxil edin.');
             const formData = new FormData();
             const fieldIds = {
-                title: 'hero-title-input', description: 'hero-description-input', slide_type: 'hero-slide-type-input', project_id: 'hero-project-id-input',
-                media_type: 'hero-media-type-input', media_url: 'hero-media-url-input', button_text: 'hero-button-text-input', button_link: 'hero-button-link-input',
+                title: 'hero-title-input', title_az: 'hero-title-input', description: 'hero-description-input', description_az: 'hero-description-input', slide_type: 'hero-slide-type-input', project_id: 'hero-project-id-input',
+                media_type: 'hero-media-type-input', media_url: 'hero-media-url-input', button_text: 'hero-button-text-input', button_text_az: 'hero-button-text-input', button_link: 'hero-button-link-input',
                 badge_text: 'hero-badge-text-input', badge_color: 'hero-badge-color-input', badge_background: 'hero-badge-background-input', title_color: 'hero-title-color-input',
                 button_color: 'hero-button-color-input', button_text_color: 'hero-button-text-color-input', display_order: 'hero-display-order-input', slide_duration: 'hero-duration-input'
             };
@@ -3618,15 +3703,15 @@ Title: Park Villas
 
         function uiProjectToApi(p) {
             return {
-                title: p.title,
+                title: p.title, title_az: p.titleAz || p.title_az || p.title, title_en: p.titleEn || p.title_en, title_ru: p.titleRu || p.title_ru, title_tr: p.titleTr || p.title_tr,
                 category: p.category,
                 delivery_date: p.year,
                 floor_count: p.floors,
                 area: p.area,
                 apartment_count: p.apartments,
                 repair_status: p.repairStatus || p.repair,
-                features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
-                description: p.desc,
+                features: Array.isArray(p.features) ? p.features.join(' / ') : p.features, features_az: p.featuresAz || p.features_az, features_en: p.featuresEn || p.features_en, features_ru: p.featuresRu || p.features_ru, features_tr: p.featuresTr || p.features_tr,
+                description: p.desc, description_az: p.descriptionAz || p.description_az || p.desc, description_en: p.descriptionEn || p.description_en, description_ru: p.descriptionRu || p.description_ru, description_tr: p.descriptionTr || p.description_tr,
                 image_url: p.img,
                 images: normalizeProjectImages(p.images, p.img),
                 display_order: p.displayOrder ?? p.display_order,
@@ -3647,7 +3732,7 @@ Title: Park Villas
             const floorNumber = Number.parseInt(l.floorNumber ?? l.floor, 10);
             const floorCount = Number.parseInt(l.floorCount ?? l.floor, 10);
             return {
-                title: l.title || '',
+                title: l.title || '', title_az: l.titleAz || l.title_az || l.title || '', title_en: l.titleEn || l.title_en, title_ru: l.titleRu || l.title_ru, title_tr: l.titleTr || l.title_tr,
                 listing_type: listingTypeLabel(l.listingType || 'Satis'),
                 property_category: l.category || 'Apartment',
                 project_name: l.regionType === 'seabreeze' ? (l.project || 'Digər') : '',
@@ -3662,19 +3747,24 @@ Title: Park Villas
                 price,
                 price_per_m2: isSaleListing(l.listingType) && area && price ? price / area : undefined,
                 image_url: l.img || '',
+                currency: l.currency || 'AZN',
+                is_credit: Boolean(l.isCredit),
+                credit_down_payment: l.creditDownPayment,
+                credit_monthly_payment: l.creditMonthlyPayment,
+                credit_years: l.creditYears,
                 images: Array.isArray(l.images) ? l.images : (l.img ? [l.img] : []),
-                description: l.desc || '',
+                description: l.desc || '', description_az: l.descriptionAz || l.description_az || l.desc || '', description_en: l.descriptionEn || l.description_en, description_ru: l.descriptionRu || l.description_ru, description_tr: l.descriptionTr || l.description_tr,
                 user_id: activeUser?.role === 'user' ? activeUser.id : undefined
             };
         }
 
         function uiVacancyToApi(v) {
             return {
-                title: v.title,
+                title: v.title, title_az: v.titleAz || v.title_az || v.title, title_en: v.titleEn || v.title_en, title_ru: v.titleRu || v.title_ru, title_tr: v.titleTr || v.title_tr,
                 employment_type: v.type,
                 salary: v.salary,
                 city: v.location,
-                description: v.desc,
+                description: v.desc, description_az: v.descriptionAz || v.description_az || v.desc, description_en: v.descriptionEn || v.description_en, description_ru: v.descriptionRu || v.description_ru, description_tr: v.descriptionTr || v.description_tr,
                 is_active: v.isActive ?? v.status !== 'Bloklanıb',
                 slug: v.slug
             };
@@ -4246,6 +4336,7 @@ Title: Park Villas
         }
 
         function getProjectPictureMarkup(p, imgClasses = "w-full h-full object-cover group-hover:scale-105 transition duration-500") {
+            const projectTitle = getLocalizedValue(p, 'title') || p.title || '';
             const picture = p.picture || {};
             const desktopSrc = picture.desktop || p.img;
             const tabletSrc = picture.tablet || desktopSrc;
@@ -4254,7 +4345,7 @@ Title: Park Villas
                 <picture class="block w-full h-full imageMove">
                     <source media="(min-width: 1024px)" srcset="${desktopSrc}">
                     <source media="(min-width: 640px)" srcset="${tabletSrc}">
-                    <img src="${mobileSrc}" alt="${p.title}" loading="lazy" data-parallax="true" class="${imgClasses} lazyload">
+                    <img src="${mobileSrc}" alt="${escapeHtml(projectTitle)}" loading="lazy" data-parallax="true" class="${imgClasses} lazyload">
                 </picture>
             `;
         }
@@ -4309,9 +4400,10 @@ Title: Park Villas
             renderProjectYearOptions(allProjects);
             const deliveryYear = document.getElementById('project-delivery-year-filter')?.value || 'all';
             const filtered = allProjects.filter(p => {
+                const titleText = String(getLocalizedValue(p, 'title') || p.title || '').toLowerCase();
                 const year = String(p.year || '').match(/\d{4}/)?.[0] || '';
                 return p.category === selectedProjectCategory
-                    && (!projectSearchQuery || p.title.toLowerCase().includes(projectSearchQuery))
+                    && (!projectSearchQuery || titleText.includes(projectSearchQuery))
                     && (deliveryYear === 'all' || year === deliveryYear);
             });
             const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
@@ -4325,16 +4417,18 @@ Title: Park Villas
             }
 
             paged.forEach(p => {
+                const projectTitle = getLocalizedValue(p, 'title') || p.title || '—';
+                const projectDesc = getLocalizedValue(p, 'description') || p.desc || '';
                 const cardHtml = `
                     <div onclick="openOfficialProjectModal('${p.id}', true)" class="sea-breeze-project-card group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             <span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
-                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${p.title || '—'}</h4>
+                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h4>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
-                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${p.desc || ''}</p>
+                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${escapeHtml(projectDesc)}</p>
                             <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-gray-800 font-semibold mt-4 border-t border-brand-200 pt-3 overflow-hidden">
                                 <span title="${p.area}"><i class="fa-solid fa-expand"></i> ${p.area}</span>
                                 <span title="${p.floors}"><i class="fa-solid fa-building"></i> ${p.floors}</span>
@@ -4356,15 +4450,17 @@ Title: Park Villas
             if (!p) return;
             activeOfficialProject = p;
             if (pushRoute) history.pushState({ route: 'project', id: p.id }, '', projectPath(p));
-            updateSeo({ title: p.title, description: p.desc || DEFAULT_SEO_DESCRIPTION, path: projectPath(p), image: p.img, type: 'article' });
+            const localizedTitle = getLocalizedValue(p, 'title') || p.title;
+            const localizedDesc = getLocalizedValue(p, 'description') || p.desc;
+            updateSeo({ title: localizedTitle, description: localizedDesc || DEFAULT_SEO_DESCRIPTION, path: projectPath(p), image: p.img, type: 'article' });
 
             officialProjectImages = getProjectImages(p);
             officialProjectImageIndex = 0;
             updateOfficialProjectImage();
-            document.getElementById('op-modal-img').alt = p.title;
-            document.getElementById('op-modal-title').textContent = p.title;
+            document.getElementById('op-modal-img').alt = localizedTitle;
+            document.getElementById('op-modal-title').textContent = localizedTitle;
             document.getElementById('op-modal-year').textContent = p.year;
-            document.getElementById('op-modal-desc-text').textContent = p.desc;
+            document.getElementById('op-modal-desc-text').textContent = localizedDesc;
 
             // Details mapping
             document.getElementById('op-detail-floors').textContent = p.floors;
@@ -4372,7 +4468,7 @@ Title: Park Villas
             document.getElementById('op-detail-apartments').textContent = p.apartments;
             document.getElementById('op-detail-year-val').textContent = p.year;
             document.getElementById('op-detail-repair').textContent = p.repairStatus;
-            document.getElementById('op-detail-features').textContent = p.features;
+            document.getElementById('op-detail-features').textContent = getLocalizedValue(p, 'features') || (Array.isArray(p.features) ? p.features.join(' / ') : p.features);
 
             switchOfficialModalTab('details');
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
@@ -4383,6 +4479,7 @@ Title: Park Villas
             const p = activeOfficialProject;
             if (!p) return;
             const current = officialProjectImages[officialProjectImageIndex] || p.img || '';
+            const projectTitle = getLocalizedValue(p, 'title') || p.title || 'Layihə';
             document.getElementById('op-modal-source-desktop').srcset = current;
             document.getElementById('op-modal-source-tablet').srcset = current;
             document.getElementById('op-modal-img').src = current;
@@ -4397,7 +4494,7 @@ Title: Park Villas
             counter.textContent = hasMany ? `${officialProjectImageIndex + 1} / ${officialProjectImages.length}` : '';
             thumbs.innerHTML = hasMany ? officialProjectImages.map((img, idx) => `
                 <button onclick="setOfficialProjectImage(${idx})" class="h-16 rounded-xl overflow-hidden border ${idx === officialProjectImageIndex ? 'border-brand-500' : 'border-white/10'} transition">
-                    <img src="${img}" class="w-full h-full object-cover" alt="${p.title}">
+                    <img src="${img}" class="w-full h-full object-cover" alt="${escapeHtml(projectTitle)}">
                 </button>
             `).join('') : '';
         }
@@ -4450,6 +4547,7 @@ Title: Park Villas
             const regionFilter = document.getElementById('filter-sb-region')?.value || 'all';
             const projectFilter = document.getElementById('filter-sb-project')?.value || 'all';
             const typeFilter = document.getElementById('filter-sb-type').value;
+            const creditOnly = document.getElementById('filter-sb-credit')?.checked;
 
             const filtered = properties.filter(p => {
                 if (normalizeListingStatus(p.status) !== 'approved') return false;
@@ -4458,6 +4556,7 @@ Title: Park Villas
                 if (regionFilter !== 'all' && listingRegion !== regionFilter) return false;
                 if (regionFilter !== 'sumqayit' && projectFilter !== 'all' && listingDistrict !== projectFilter) return false;
                 if (typeFilter !== 'all' && canonicalListingType(p.listingType) !== typeFilter) return false;
+                if (creditOnly && !p.isCredit) return false;
                 return true;
             });
             const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
@@ -4476,7 +4575,9 @@ Title: Park Villas
                 const cardListingLabel = canonicalType === 'GunlukKiraye' ? 'Günlük' : listingLabel;
                 const isRent = canonicalType === 'Kiraye';
                 const isDailyRent = canonicalType === 'GunlukKiraye';
-                const formattedPrice = formatOptionalNumber(p.price);
+                const listingTitle = getLocalizedValue(p, 'title') || p.title || '—';
+                const listingDesc = getLocalizedValue(p, 'description') || p.desc || '';
+                const formattedPrice = formatPrice(p.price, p.currency);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
                 const badgeColor = listingTypeBadgeClass(p.listingType);
                 const isFavorite = appData.favoriteListingIds?.has(String(p.id));
@@ -4489,7 +4590,7 @@ Title: Park Villas
                     sqPriceHtml = `
                         <div class="sea-breeze-listing-card__price-per-m2 text-right">
                             <span class="text-[9px] text-black uppercase font-semibold">1 m² Qiyməti</span>
-                            <div class="text-xs font-semibold text-black">${Number(sqPrice).toLocaleString('az-AZ')} AZN</div>
+                            <div class="text-xs font-semibold text-black">${formatPrice(sqPrice, p.currency)}</div>
                         </div>
                     `;
                 }
@@ -4504,13 +4605,14 @@ Title: Park Villas
                             </div>
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
+                            ${p.isCredit ? '<div class="credit-badge absolute top-4 right-4 text-[10px] font-black px-3 py-1.5 rounded-full uppercase">🔴 KREDİT</div>' : ''}
                             <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 space-y-2 flex-1 min-w-0 max-w-full">
-                            <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${p.title || '—'}</h4>
+                            <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${escapeHtml(listingTitle)}</h4>
                             <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Paylaşılıb: ${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
                             <p class="text-[11px] font-bold text-brand-700">By: <a href="/user/${p.ownerId || p.authorId}" onclick="event.stopPropagation()" class="hover:underline">${escapeHtml(p.ownerName || agentNameById(p.authorId) || 'BestHome Agent')}</a></p>
-                            <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${p.desc || ''}</p>
+                            <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${escapeHtml(listingDesc)}</p>
                             <p class="sea-breeze-listing-card__mobile-facts">${roomFact} • ${areaFact} • ${floorFact}</p>
                             <div class="sea-breeze-listing-card__stats grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
                                 <span>Otaq: <strong class="text-gray-900">${p.rooms ?? '—'}</strong></span>
@@ -4522,7 +4624,7 @@ Title: Park Villas
                         <div class="sea-breeze-listing-card__footer p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5 min-w-0 max-w-full">
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
                                 <span class="sea-breeze-listing-card__price-label text-[9px] text-gray-500 uppercase block">Qiymət</span>
-                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${formattedPrice !== '—' ? ' AZN' : ''}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
+                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
                                 <span class="block text-[10px] font-black text-brand-700 mt-1">Elan kodu: ${p.listingCode || '—'}</span>
                             </div>
                             ${sqPriceHtml}
@@ -4611,7 +4713,7 @@ Title: Park Villas
 
         async function shareListing(p) {
             const shareUrl = absoluteUrl(listingPath(p));
-            const shareData = { title: p.title, text: `${p.title} - ${Number(p.price).toLocaleString('az-AZ')} AZN`, url: shareUrl };
+            const shareData = { title: getLocalizedValue(p, 'title') || p.title, text: `${getLocalizedValue(p, 'title') || p.title} - ${formatPrice(p.price, p.currency)}`, url: shareUrl };
             if (navigator.share) {
                 await navigator.share(shareData).catch(() => {});
                 return;
@@ -4626,7 +4728,9 @@ Title: Park Villas
             if (!p) return;
 
             if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
-            updateSeo({ title: `Kod ${p.listingCode || p.id}`, description: p.title || DEFAULT_SEO_DESCRIPTION, path: listingPath(p), image: p.img, type: 'article' });
+            const listingTitle = getLocalizedValue(p, 'title') || p.title || '—';
+            const listingDesc = getLocalizedValue(p, 'description') || p.desc || '';
+            updateSeo({ title: `Kod ${p.listingCode || p.id}`, description: listingTitle || DEFAULT_SEO_DESCRIPTION, path: listingPath(p), image: p.img, type: 'article' });
 
             const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
             activePropertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
@@ -4648,22 +4752,30 @@ Title: Park Villas
             typeBadge.className = `${listingTypeBadgeClass(p.listingType).replace('/90', '/10')} text-gray-900 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200`;
             document.getElementById('p-modal-category').textContent = categoryLabel;
             document.getElementById('p-modal-project').textContent = p.project || '—';
-            document.getElementById('p-modal-title').textContent = p.title || '—';
+            document.getElementById('p-modal-title').textContent = listingTitle;
             document.getElementById('p-modal-code').textContent = `Elan kodu: ${p.listingCode || '—'}`;
             document.getElementById('p-modal-code-description').textContent = `Elan kodu: ${p.listingCode || '—'}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDate(p.createdAt)}`;
-            document.getElementById('p-modal-desc').textContent = p.desc || 'Təsvir əlavə edilməyib.';
-            document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${price.toLocaleString('az-AZ')} AZN${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
+            document.getElementById('p-modal-desc').textContent = listingDesc || 'Təsvir əlavə edilməyib.';
+            document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${formatPrice(price, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
             document.getElementById('p-modal-rooms').textContent = p.rooms ?? '—';
             document.getElementById('p-modal-area').textContent = Number.isFinite(area) ? `${area.toLocaleString('az-AZ')} m²` : '—';
             document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
             const sqPriceEl = document.getElementById('p-modal-sqprice');
             if (isSaleListing(p.listingType) && pricePerM2) {
-                sqPriceEl.textContent = `1 m²: ${Math.round(pricePerM2).toLocaleString('az-AZ')} AZN`;
+                sqPriceEl.textContent = `1 m²: ${formatPrice(Math.round(pricePerM2), p.currency)}`;
                 sqPriceEl.classList.remove('hidden');
             } else {
                 sqPriceEl.textContent = '';
                 sqPriceEl.classList.add('hidden');
+            }
+
+            const creditPanel = document.getElementById('p-modal-credit');
+            if (creditPanel) {
+                creditPanel.classList.toggle('hidden', !p.isCredit);
+                document.getElementById('p-modal-credit-down').textContent = formatPrice(p.creditDownPayment, p.currency);
+                document.getElementById('p-modal-credit-monthly').textContent = formatPrice(p.creditMonthlyPayment, p.currency);
+                document.getElementById('p-modal-credit-years').textContent = p.creditYears ? `${p.creditYears} il` : '—';
             }
 
             const listingUser = p.user || appData.agents.find(a => String(a.id) === String(p.authorId)) || null;
@@ -5214,6 +5326,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             }
         }
 
+        function toggleCreditFields() {
+            const enabled = document.getElementById('sb-is-credit')?.checked;
+            document.getElementById('sb-credit-fields')?.classList.toggle('hidden', !enabled);
+        }
+
         // DYNAMIC CALC 1m²
         function calculateSqPrice() {
             const area = parseFloat(document.getElementById('sb-area').value);
@@ -5229,7 +5346,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
             if (area > 0 && price > 0) {
                 const sq = Math.round(price / area);
-                document.getElementById('sb-calc-val').textContent = Number(sq).toLocaleString('az-AZ');
+                document.getElementById('sb-calc-val').textContent = formatPrice(sq, document.getElementById('sb-currency')?.value || 'AZN');
             } else {
                 document.getElementById('sb-calc-val').textContent = '0';
             }
@@ -5415,6 +5532,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.querySelector('#admin-subtab-projects-manager form').reset();
             document.getElementById('project-featured-hero').checked = false;
             document.getElementById('project-hero-badge')?.classList.add('hidden');
+            renderLanguageSwitchers();
+            applyTranslations();
             renderProjectImageInputs(['']);
             updateProjectImagePreview();
         }
@@ -6317,18 +6436,19 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
                 const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
                 const districtLabel = getListingDistrict(p) || (regionLabel === 'Unknown' ? '—' : regionLabel);
+                const adminListingTitle = getLocalizedValue(p, 'title') || p.title || '—';
 
                 pContainer.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
                         <div class="flex items-center space-x-3 truncate">
                             <img src="${mainImage}" class="w-12 h-12 rounded-lg object-cover">
                             <div class="truncate">
-                                <h4 class="text-xs font-bold text-white truncate">${p.title || '—'}</h4>
+                                <h4 class="text-xs font-bold text-white truncate">${escapeHtml(adminListingTitle)}</h4>
                                 <span class="inline-flex w-fit text-[9px] font-black px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">Kod: ${p.listingCode || '—'}</span>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
                                 ${p.vip ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">VIP</span>' : ''}
                                 ${p.featured ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Featured</span>' : ''}
-                                <span class="text-[10px] text-gray-400 ml-2">Region: ${regionLabel} • District: ${districtLabel} • ${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
+                                <span class="text-[10px] text-gray-400 ml-2">Region: ${regionLabel} • District: ${districtLabel} • ${formatPrice(p.price, p.currency)} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
@@ -6467,6 +6587,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const land = document.getElementById('sb-land').value ? parseFloat(document.getElementById('sb-land').value) : null;
             const price = parseFloat(document.getElementById('sb-price').value);
             const desc = document.getElementById('sb-desc').value;
+            const currency = document.getElementById('sb-currency')?.value || 'AZN';
+            const isCredit = document.getElementById('sb-is-credit')?.checked || false;
+            const creditDownPayment = document.getElementById('sb-credit-down')?.value ? parseFloat(document.getElementById('sb-credit-down').value) : null;
+            const creditMonthlyPayment = document.getElementById('sb-credit-monthly')?.value ? parseFloat(document.getElementById('sb-credit-monthly').value) : null;
+            const creditYears = document.getElementById('sb-credit-years')?.value ? parseInt(document.getElementById('sb-credit-years').value, 10) : null;
 
             if (!floorNumber || floorNumber < 1) {
                 alert('Yerləşdiyi mərtəbə minimum 1 olmalıdır.');
@@ -6508,6 +6633,11 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 floor,
                 land,
                 price,
+                currency,
+                isCredit,
+                creditDownPayment,
+                creditMonthlyPayment,
+                creditYears,
                 img: coverImg,
                 images: [coverImg, ...existingImageUrls.filter(url => url !== coverImg)],
                 desc,
@@ -6560,6 +6690,12 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 document.getElementById('sb-floor').value = p.floorCount || p.floor || 1;
                 document.getElementById('sb-land').value = p.land || '';
                 document.getElementById('sb-price').value = p.price;
+                document.getElementById('sb-currency').value = p.currency || 'AZN';
+                document.getElementById('sb-is-credit').checked = Boolean(p.isCredit);
+                toggleCreditFields();
+                document.getElementById('sb-credit-down').value = p.creditDownPayment || '';
+                document.getElementById('sb-credit-monthly').value = p.creditMonthlyPayment || '';
+                document.getElementById('sb-credit-years').value = p.creditYears || '';
                 document.getElementById('sb-desc').value = p.desc;
 
                 uploadedListingImageFiles = [];
@@ -6587,6 +6723,12 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             document.getElementById('sb-floor').value = '1';
             document.getElementById('sb-land').value = '';
             document.getElementById('sb-price').value = '';
+            document.getElementById('sb-currency').value = 'AZN';
+            document.getElementById('sb-is-credit').checked = false;
+            toggleCreditFields();
+            document.getElementById('sb-credit-down').value = '';
+            document.getElementById('sb-credit-monthly').value = '';
+            document.getElementById('sb-credit-years').value = '';
             document.getElementById('sb-img-url').value = '';
             document.getElementById('sb-img-preview-val').value = '';
             uploadedListingImages = [];
@@ -7260,8 +7402,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             const ownerId = p.ownerId || p.authorId;
             return `<a href="${listingPath(p)}" class="sea-breeze-listing-card rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
                 <div class="h-48 overflow-hidden relative"><img src="${mainImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500"><span class="absolute top-3 left-3 bg-brand-700/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${listingTypeLabel(p.listingType)}</span></div>
-                <div class="p-4 space-y-2 flex-1"><h4 class="text-gray-900 font-extrabold text-base truncate">${escapeHtml(p.title || '—')}</h4><p class="text-[10px] text-gray-500">${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye"></i> ${p.viewCount || 0} • <i class="fa-regular fa-heart"></i> ${p.favoritesCount || 0}</p><p class="text-[11px] font-bold text-brand-700">By: <span>${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span></p><p class="text-gray-700 text-xs line-clamp-2">${escapeHtml(p.desc || '')}</p></div>
-                <div class="p-4 pt-3 border-t border-gray-100 flex items-center justify-between"><strong class="text-base font-extrabold text-gray-900">${formatOptionalNumber(p.price)}${p.price != null ? ' AZN' : ''}</strong><span class="text-[10px] font-black text-brand-700">Kod: ${p.listingCode || '—'}</span></div>
+                <div class="p-4 space-y-2 flex-1"><h4 class="text-gray-900 font-extrabold text-base truncate">${escapeHtml(getLocalizedValue(p, 'title') || p.title || '—')}</h4><p class="text-[10px] text-gray-500">${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye"></i> ${p.viewCount || 0} • <i class="fa-regular fa-heart"></i> ${p.favoritesCount || 0}</p><p class="text-[11px] font-bold text-brand-700">By: <span>${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span></p><p class="text-gray-700 text-xs line-clamp-2">${escapeHtml(getLocalizedValue(p, 'description') || p.desc || '')}</p></div>
+                <div class="p-4 pt-3 border-t border-gray-100 flex items-center justify-between"><strong class="text-base font-extrabold text-gray-900">${formatPrice(p.price, p.currency)}</strong><span class="text-[10px] font-black text-brand-700">Kod: ${p.listingCode || '—'}</span></div>
             </a>`;
         }
 
@@ -7393,6 +7535,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         window.addEventListener('resize', renderDesktopAds);
 
         window.addEventListener('load', async () => {
+            renderLanguageSwitchers();
+            applyTranslations();
             renderProjectImageInputs(['']);
             await initializeAuth();
             await hydrateFromDatabase();
