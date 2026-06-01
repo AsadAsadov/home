@@ -40,7 +40,12 @@ model Listing {
   regionType           String?        @map("region_type")
   city                 String?
   district             String?
+  settlement           String?
   neighborhood         String?
+  metroStation         String?        @map("metro_station")
+  streetAddress        String?        @map("street_address") @db.Text
+  latitude             Float?
+  longitude            Float?
   roomCount            Int?           @map("room_count")
   area                 String?
   floorNumber          Int?           @map("floor_number")

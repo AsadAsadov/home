@@ -19,6 +19,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- OpenStreetMap + Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -981,6 +983,66 @@
         .listing-detail-contact-actions {
             width: 100%;
         }
+
+        .listing-location-lines {
+            display: grid;
+            gap: .25rem;
+            color: #334155;
+            font-weight: 800;
+            font-size: .82rem;
+            line-height: 1.25;
+        }
+        .listing-location-lines__row {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            min-width: 0;
+        }
+        .listing-location-lines__row span:last-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .location-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+        .location-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border-radius: 999px;
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
+            color: #1e3a8a;
+            padding: .35rem .7rem;
+            font-size: .72rem;
+            font-weight: 900;
+        }
+        .listing-location-map,
+        .admin-location-map {
+            width: 100%;
+            height: 400px;
+            min-height: 400px;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            border: 1px solid rgba(127, 127, 255, .25);
+            background: #e2e8f0;
+        }
+        .admin-location-map {
+            border-color: rgba(255,255,255,.12);
+        }
+        .leaflet-container {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        @media (max-width: 767.98px) {
+            .listing-location-map,
+            .admin-location-map {
+                height: 280px;
+                min-height: 280px;
+            }
+        }
         @media (max-width: 480px) {
             .listing-detail-contact-actions {
                 grid-template-columns: minmax(0, 1fr) !important;
@@ -1480,6 +1542,46 @@
                         <div id="calc-result-box" class="bg-brand-500/10 p-3 rounded-xl border border-brand-500/20 text-xs">
                             <strong>1 m² Üçün Qiymət:</strong> <span id="sb-calc-val">0 ₼</span>
                         </div>
+
+                        <div class="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="text-sm font-black text-white">📍 Ünvan və xəritə</h4>
+                                <span class="text-[10px] text-gray-400">OpenStreetMap + Leaflet</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="space-y-1">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">📍 Qəsəbə</span>
+                                    <input type="text" id="sb-settlement" list="settlement-options" placeholder="Məs: Masazır" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                </label>
+                                <label id="sb-metro-wrap" class="space-y-1 hidden">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🚇 Metro stansiyası</span>
+                                    <select id="sb-metro" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                        <option value="">Metro seçilməyib</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <label class="space-y-1 block">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🏠 Tam ünvan</span>
+                                <textarea id="sb-street-address" rows="2" placeholder="Nizami küçəsi 15" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500/60"></textarea>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+                                <input type="search" id="sb-location-search" list="location-search-examples" placeholder="Ünvan, küçə, metro, rayon axtar (məs: 28 May, Yasamal, Masazır)" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                <button type="button" onclick="searchAdminListingLocation()" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 rounded-xl text-xs">Axtar</button>
+                            </div>
+                            <div id="sb-location-results" class="hidden space-y-1 text-xs"></div>
+                            <div id="sb-location-map" class="admin-location-map"></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" step="any" id="sb-latitude" placeholder="Latitude" readonly class="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-[11px] text-gray-300">
+                                <input type="number" step="any" id="sb-longitude" placeholder="Longitude" readonly class="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-[11px] text-gray-300">
+                            </div>
+                        </div>
+
+                        <datalist id="settlement-options">
+                            <option value="Bilgəh"><option value="Mərdəkan"><option value="Buzovna"><option value="Hövsan"><option value="Masazır"><option value="Mehdiabad"><option value="Novxanı"><option value="Ramana"><option value="Zabrat"><option value="Kürdəxanı"><option value="Türkan"><option value="Şüvəlan">
+                        </datalist>
+                        <datalist id="location-search-examples">
+                            <option value="28 May"><option value="Nizami"><option value="Nərimanov"><option value="Yasamal"><option value="Masazır"><option value="Xırdalan">
+                        </datalist>
 
                         <div class="space-y-2">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Şəkillər (ilk şəkil cover olacaq)*</label>
@@ -2033,6 +2135,7 @@ Title: Park Villas
                             </div>
                             <div id="p-modal-badges" class="listing-detail-badge-stack"></div>
                             <h3 id="p-modal-title" class="text-2xl md:text-4xl font-black text-gray-950 leading-tight"></h3>
+                            <div id="p-modal-location-badges" class="location-badge-row"></div>
                             <span id="p-modal-code" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <p id="p-modal-date" class="text-xs text-gray-500 font-semibold"><i class="fa-regular fa-calendar mr-1"></i></p>
                         </div>
@@ -2058,6 +2161,17 @@ Title: Park Villas
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Otaq sayı</span><strong id="p-modal-rooms" class="text-gray-950 text-lg"></strong></div>
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Sahə</span><strong id="p-modal-area" class="text-gray-950 text-lg"></strong></div>
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Mərtəbə</span><strong id="p-modal-floor" class="text-gray-950 text-lg"></strong></div>
+                        </div>
+
+                        <div id="p-modal-location-section" class="rounded-[1.5rem] bg-slate-50 border border-slate-200 p-4 md:p-5 space-y-4">
+                            <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">📍 Ünvan</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Rayon:</span><strong id="p-modal-district" class="text-gray-950"></strong></div>
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Qəsəbə:</span><strong id="p-modal-settlement" class="text-gray-950"></strong></div>
+                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Metro:</span><strong id="p-modal-metro" class="text-gray-950"></strong></div>
+                                <div class="sm:col-span-2"><span class="block text-[10px] uppercase font-black text-gray-400">Tam ünvan:</span><strong id="p-modal-street-address" class="text-gray-950"></strong></div>
+                            </div>
+                            <div id="p-modal-location-map" class="listing-location-map hidden"></div>
                         </div>
 
                         <div class="space-y-2">
@@ -2355,6 +2469,8 @@ Title: Park Villas
         const BAKI_DISTRICTS = ['Binəqədi', 'Qaradağ', 'Sabunçu', 'Səbail', 'Suraxanı', 'Xəzər', 'Nərimanov', 'Nəsimi', 'Nizami', 'Pirallahı', 'Xətai', 'Yasamal'];
         const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Mehdiabad', 'Saray', 'Novxanı', 'Fatmayı', 'Hökməli', 'Qobu', 'Güzdək', 'Ceyranbatan'];
         const GENERAL_CITIES = ['Bakı', 'Abşeron', 'Sumqayıt'];
+        const BAKU_METRO_STATIONS = ['28 May', 'Nizami', 'Sahil', 'İçərişəhər', 'Gənclik', 'Nəriman Nərimanov', 'Ulduz', 'Koroğlu', 'Qara Qarayev', 'Neftçilər', 'Xalqlar Dostluğu', 'Əhmədli', 'Həzi Aslanov', 'Xətai', 'Cəfər Cabbarlı', 'Elmlər Akademiyası', 'İnşaatçılar', '20 Yanvar', 'Memar Əcəmi', 'Nəsimi', 'Azadlıq Prospekti', 'Dərnəgül', 'Avtovağzal', '8 Noyabr'];
+        const SETTLEMENT_OPTIONS = ['Bilgəh', 'Mərdəkan', 'Buzovna', 'Hövsan', 'Masazır', 'Mehdiabad', 'Novxanı', 'Ramana', 'Zabrat', 'Kürdəxanı', 'Türkan', 'Şüvəlan'];
         const AD_DEFAULT_DISPLAY_DURATION_SECONDS = 30;
         const AD_MIN_DISPLAY_DURATION_SECONDS = 1;
         const AD_MAX_DISPLAY_DURATION_SECONDS = 86400;
@@ -3001,6 +3117,12 @@ Title: Park Villas
                 ownerType: firstDefined(l.ownerType, l.owner_type, 'owner'),
                 hasDocument: Boolean(l.hasDocument ?? l.has_document),
                 locationLabel: firstDefined(l.locationLabel, l.location_label, ''),
+                locationSummary: l.locationSummary || l.location_summary || null,
+                settlement: firstDefined(l.settlement, ''),
+                metroStation: firstDefined(l.metroStation, l.metro_station, ''),
+                streetAddress: firstDefined(l.streetAddress, l.street_address, ''),
+                latitude: numericValue(l.latitude),
+                longitude: numericValue(l.longitude),
                 apiBadges: Array.isArray(l.badges) ? l.badges : [],
                 creditDownPayment: numericValue(l.creditDownPayment, l.credit_down_payment),
                 creditMonthlyPayment: numericValue(l.creditMonthlyPayment, l.credit_monthly_payment),
@@ -3870,7 +3992,12 @@ Title: Park Villas
                 region_type: l.regionType || 'seabreeze',
                 city: l.city || (l.regionType === 'general' ? legacyRegionToCity(l.generalCityRegion) : ''),
                 district: l.district || (l.regionType === 'seabreeze' ? (l.project || 'Digər') : ''),
+                settlement: l.settlement || '',
                 neighborhood: l.neighborhood || '',
+                metro_station: l.metroStation || '',
+                street_address: l.streetAddress || '',
+                latitude: safeNumber(l.latitude),
+                longitude: safeNumber(l.longitude),
                 room_count: Number.isFinite(roomCount) ? roomCount : undefined,
                 area,
                 floor_number: Number.isFinite(floorNumber) && floorNumber > 0 ? floorNumber : 1,
@@ -4252,8 +4379,8 @@ Title: Park Villas
         function ensureGeneralDistrictField() {
             const wrap = document.getElementById('sb-district-wrap');
             if (!wrap || document.getElementById('sb-general-district-wrap')) return;
-            wrap.insertAdjacentHTML('afterend', `<div id="sb-general-district-wrap" class="space-y-1"><label class="text-[10px] text-gray-400 font-bold uppercase">Rayon/Qəsəbə *</label><select id="sb-district" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></select></div>`);
-            document.getElementById('sb-project')?.addEventListener('change', syncGeneralDistrictSelect);
+            wrap.insertAdjacentHTML('afterend', `<div id="sb-general-district-wrap" class="space-y-1"><label class="text-[10px] text-gray-400 font-bold uppercase">📍 Rayon *</label><select id="sb-district" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white"></select></div>`);
+            document.getElementById('sb-project')?.addEventListener('change', () => { syncGeneralDistrictSelect(); toggleMetroFieldForCity(); setTimeout(initAdminListingMap, 50); });
         }
 
         function syncGeneralDistrictSelect() {
@@ -4285,7 +4412,151 @@ Title: Park Villas
             syncDistrictSelect(document.getElementById('sb-project'), region === 'general' ? 'city' : region, false);
             ensureGeneralDistrictField();
             syncGeneralDistrictSelect();
+            toggleMetroFieldForCity();
+            setTimeout(initAdminListingMap, 50);
             toggleFormFieldsBasedOnCategory();
+        }
+
+        let adminListingMap = null;
+        let adminListingMarker = null;
+        let detailListingMap = null;
+        let detailListingMarker = null;
+
+        function isBakuSelectedForListing() {
+            const region = document.getElementById('sb-region-type')?.value || '';
+            const city = document.getElementById('sb-project')?.value || '';
+            return region === 'general' && city.toLowerCase() === 'bakı';
+        }
+
+        function populateMetroSelect() {
+            const select = document.getElementById('sb-metro');
+            if (!select || select.dataset.ready === '1') return;
+            select.innerHTML = '<option value="">Metro seçilməyib</option>' + BAKU_METRO_STATIONS.map(station => `<option value="${escapeHtml(station)}">${escapeHtml(station)}</option>`).join('');
+            select.dataset.ready = '1';
+        }
+
+        function toggleMetroFieldForCity() {
+            populateMetroSelect();
+            const wrap = document.getElementById('sb-metro-wrap');
+            if (!wrap) return;
+            const show = isBakuSelectedForListing();
+            wrap.classList.toggle('hidden', !show);
+            if (!show) document.getElementById('sb-metro').value = '';
+        }
+
+        function adminMapDefaultCenter() {
+            const city = document.getElementById('sb-project')?.value || '';
+            if (city === 'Abşeron') return [40.457, 49.75];
+            if (city === 'Sumqayıt') return [40.585, 49.631];
+            return [40.4093, 49.8671];
+        }
+
+        function setAdminListingCoordinates(lat, lng, { moveMap = true } = {}) {
+            const latNum = Number(lat);
+            const lngNum = Number(lng);
+            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            document.getElementById('sb-latitude').value = latNum.toFixed(7);
+            document.getElementById('sb-longitude').value = lngNum.toFixed(7);
+            if (!adminListingMap || typeof L === 'undefined') return;
+            const point = [latNum, lngNum];
+            if (!adminListingMarker) {
+                adminListingMarker = L.marker(point, { draggable: true }).addTo(adminListingMap);
+                adminListingMarker.on('dragend', event => {
+                    const pos = event.target.getLatLng();
+                    setAdminListingCoordinates(pos.lat, pos.lng, { moveMap: false });
+                });
+            } else {
+                adminListingMarker.setLatLng(point);
+            }
+            if (moveMap) adminListingMap.setView(point, Math.max(adminListingMap.getZoom(), 14));
+        }
+
+        function initAdminListingMap() {
+            const el = document.getElementById('sb-location-map');
+            if (!el || typeof L === 'undefined') return;
+            if (!adminListingMap) {
+                adminListingMap = L.map(el, { scrollWheelZoom: true }).setView(adminMapDefaultCenter(), 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(adminListingMap);
+                adminListingMap.on('click', event => setAdminListingCoordinates(event.latlng.lat, event.latlng.lng));
+            }
+            setTimeout(() => adminListingMap.invalidateSize(), 80);
+            const lat = document.getElementById('sb-latitude')?.value;
+            const lng = document.getElementById('sb-longitude')?.value;
+            if (lat && lng) setAdminListingCoordinates(lat, lng, { moveMap: true });
+            else adminListingMap.setView(adminMapDefaultCenter(), 12);
+        }
+
+        function fillLocationFieldsFromAddress(address = {}) {
+            const district = address.city_district || address.suburb || address.county || address.town || '';
+            const settlement = address.village || address.town || address.suburb || address.neighbourhood || '';
+            if (district && document.getElementById('sb-district')) {
+                const select = document.getElementById('sb-district');
+                const normalizedDistrict = district.toLowerCase().replace(/\s+rayonu$/, '').trim();
+                const option = Array.from(select.options).find(opt => opt.value.toLowerCase() === normalizedDistrict || opt.value.toLowerCase() === district.toLowerCase());
+                if (option) select.value = option.value;
+            }
+            if (settlement) document.getElementById('sb-settlement').value = settlement;
+            const road = [address.road, address.house_number].filter(Boolean).join(' ');
+            if (road && !document.getElementById('sb-street-address').value) document.getElementById('sb-street-address').value = road;
+        }
+
+        async function searchAdminListingLocation() {
+            const queryInput = document.getElementById('sb-location-search');
+            const resultsEl = document.getElementById('sb-location-results');
+            const query = (queryInput?.value || '').trim();
+            if (!query) return;
+            resultsEl.classList.remove('hidden');
+            resultsEl.innerHTML = '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Axtarılır...</div>';
+            const city = document.getElementById('sb-project')?.value || 'Bakı';
+            const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=az&q=${encodeURIComponent(`${query}, ${city}, Azerbaijan`)}`;
+            try {
+                const rows = await fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.json());
+                if (!Array.isArray(rows) || !rows.length) {
+                    resultsEl.innerHTML = '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Nəticə tapılmadı.</div>';
+                    return;
+                }
+                resultsEl.innerHTML = rows.map((item, index) => `<button type="button" onclick="selectAdminLocationResult(${index})" class="block w-full text-left rounded-xl bg-white/5 hover:bg-brand-500/20 border border-white/10 p-2 text-gray-100">${escapeHtml(item.display_name || query)}</button>`).join('');
+                window.__lastAdminLocationResults = rows;
+            } catch (error) {
+                resultsEl.innerHTML = '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Axtarış alınmadı. Yenidən cəhd edin.</div>';
+            }
+        }
+
+        function selectAdminLocationResult(index) {
+            const item = (window.__lastAdminLocationResults || [])[index];
+            if (!item) return;
+            setAdminListingCoordinates(item.lat, item.lon);
+            fillLocationFieldsFromAddress(item.address || {});
+            document.getElementById('sb-location-results')?.classList.add('hidden');
+        }
+
+        function renderListingDetailMap(listing = {}) {
+            const mapEl = document.getElementById('p-modal-location-map');
+            const lat = Number(listing.latitude);
+            const lng = Number(listing.longitude);
+            const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+            if (!mapEl) return;
+            mapEl.classList.toggle('hidden', !hasCoordinates);
+            if (!hasCoordinates || typeof L === 'undefined') return;
+            const point = [lat, lng];
+            setTimeout(() => {
+                if (!detailListingMap) {
+                    detailListingMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(detailListingMap);
+                    detailListingMarker = L.marker(point).addTo(detailListingMap);
+                } else {
+                    detailListingMap.setView(point, 15);
+                    if (!detailListingMarker) detailListingMarker = L.marker(point).addTo(detailListingMap);
+                    else detailListingMarker.setLatLng(point);
+                }
+                detailListingMap.invalidateSize();
+            }, 120);
         }
 
         function handlePublicRegionFilterChange() {
@@ -4550,8 +4821,28 @@ Title: Park Villas
 
         function getListingLocationLabel(listing = {}) {
             const region = getListingRegionType(listing);
-            if (region === 'seabreeze') return listing.project || listing.district || 'Sea Breeze';
-            return listing.neighborhood || listing.district || listing.city || 'Digər ərazilər';
+            if (region === 'seabreeze') return listing.project || listing.district || listing.settlement || 'Sea Breeze';
+            return listing.settlement || listing.neighborhood || listing.district || listing.city || 'Digər ərazilər';
+        }
+
+        function listingLocationPrimary(listing = {}) {
+            return listing.settlement || listing.district || listing.neighborhood || listing.city || listing.project || getListingLocationLabel(listing);
+        }
+
+        function renderListingLocationLines(listing = {}) {
+            const primary = listingLocationPrimary(listing);
+            const rows = [];
+            if (primary) rows.push(['📍', primary]);
+            if (listing.metroStation) rows.push(['🚇', listing.metroStation]);
+            return rows.length ? `<div class="listing-location-lines">${rows.map(([icon, label]) => `<div class="listing-location-lines__row"><span>${icon}</span><span>${escapeHtml(label)}</span></div>`).join('')}</div>` : '';
+        }
+
+        function renderLocationBadges(listing = {}) {
+            const rows = [];
+            const primary = listingLocationPrimary(listing);
+            if (primary) rows.push(['📍', primary]);
+            if (listing.metroStation) rows.push(['🚇', listing.metroStation]);
+            return rows.length ? rows.map(([icon, label]) => `<span class="location-badge"><span>${icon}</span>${escapeHtml(label)}</span>`).join('') : '';
         }
 
         function ownerBadgeLabel(ownerType) {
@@ -4792,6 +5083,7 @@ Təşəkkür edirəm. 🙏`;
                 const canonicalType = canonicalListingType(p.listingType);
                 const listingLabel = listingTypeLabel(p.listingType);
                 const locationLabel = getListingLocationLabel(p);
+                const locationLinesHtml = renderListingLocationLines(p);
                 const isRent = canonicalType === 'Kiraye';
                 const isDailyRent = canonicalType === 'GunlukKiraye';
                 const listingTitle = p.title || '—';
@@ -4835,7 +5127,7 @@ Təşəkkür edirəm. 🙏`;
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
                             <div class="space-y-1.5">
-                                <p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>
+                                ${locationLinesHtml || `<p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>`}
                                 <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base leading-snug truncate">${escapeHtml(listingTitle)}</h4>
                             </div>
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
@@ -4977,6 +5269,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('p-modal-project').textContent = getListingLocationLabel(p);
             document.getElementById('p-modal-badges').innerHTML = renderListingBadgeStack(p, true);
             document.getElementById('p-modal-title').textContent = listingTitle;
+            document.getElementById('p-modal-location-badges').innerHTML = renderLocationBadges(p);
             document.getElementById('p-modal-code').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
             document.getElementById('p-modal-code-description').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
@@ -4993,6 +5286,15 @@ Təşəkkür edirəm. 🙏`;
                 sqPriceEl.textContent = '';
                 sqPriceEl.classList.add('hidden');
             }
+
+            document.getElementById('p-modal-district').textContent = p.district || '—';
+            document.getElementById('p-modal-settlement').textContent = p.settlement || '—';
+            document.getElementById('p-modal-metro').textContent = p.metroStation || '—';
+            document.getElementById('p-modal-street-address').textContent = p.streetAddress || '—';
+            const locationSection = document.getElementById('p-modal-location-section');
+            const hasLocationInfo = Boolean(p.district || p.settlement || p.metroStation || p.streetAddress || (Number.isFinite(Number(p.latitude)) && Number.isFinite(Number(p.longitude))));
+            locationSection?.classList.toggle('hidden', !hasLocationInfo);
+            renderListingDetailMap(p);
 
             const creditPanel = document.getElementById('p-modal-credit');
             if (creditPanel) {
@@ -5043,6 +5345,7 @@ Təşəkkür edirəm. 🙏`;
 
         function closePropertyModal() {
             document.getElementById('property-detail-modal').classList.add('hidden');
+            if (detailListingMap) setTimeout(() => detailListingMap.invalidateSize(), 50);
             if (window.location.pathname.startsWith('/listing/')) {
                 history.pushState({ tabId: 'seabreeze' }, '', '/');
                 updateSeo({ title: SITE_NAME, path: '/' });
@@ -5579,6 +5882,7 @@ Təşəkkür edirəm. 🙏`;
                 renderBulkProjectPreview();
                 updateProjectImagePreview();
             }
+            if (subtab === 'seabreeze-manager') { toggleMetroFieldForCity(); setTimeout(initAdminListingMap, 80); }
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'user-profile') { fillProfileForm(); }
             if (subtab === 'hero-sections') {
@@ -6958,6 +7262,11 @@ Təşəkkür edirəm. 🙏`;
             const creditDownPayment = document.getElementById('sb-credit-down')?.value ? parseFloat(document.getElementById('sb-credit-down').value) : null;
             const creditMonthlyPayment = document.getElementById('sb-credit-monthly')?.value ? parseFloat(document.getElementById('sb-credit-monthly').value) : null;
             const creditYears = document.getElementById('sb-credit-years')?.value ? parseInt(document.getElementById('sb-credit-years').value, 10) : null;
+            const settlement = document.getElementById('sb-settlement')?.value.trim() || '';
+            const metroStation = isBakuSelectedForListing() ? (document.getElementById('sb-metro')?.value || '') : '';
+            const streetAddress = document.getElementById('sb-street-address')?.value.trim() || '';
+            const latitude = safeNumber(document.getElementById('sb-latitude')?.value);
+            const longitude = safeNumber(document.getElementById('sb-longitude')?.value);
 
             if (!floorNumber || floorNumber < 1) {
                 alert('Yerləşdiyi mərtəbə minimum 1 olmalıdır.');
@@ -6995,6 +7304,11 @@ Təşəkkür edirəm. 🙏`;
                 regionType,
                 city,
                 district,
+                settlement,
+                metroStation,
+                streetAddress,
+                latitude,
+                longitude,
                 generalCityRegion,
                 listingType,
                 category,
@@ -7059,6 +7373,13 @@ Təşəkkür edirəm. 🙏`;
                 document.getElementById('sb-project').value = normalizeRegionType(p.regionType, p.project) === 'seabreeze' ? (getListingDistrict(p) || p.project) : (p.city || legacyRegionToCity(getListingRegionType(p)) || 'Bakı');
                 syncGeneralDistrictSelect();
                 if (document.getElementById('sb-district')) document.getElementById('sb-district').value = p.district || '';
+                document.getElementById('sb-settlement').value = p.settlement || '';
+                toggleMetroFieldForCity();
+                document.getElementById('sb-metro').value = p.metroStation || '';
+                document.getElementById('sb-street-address').value = p.streetAddress || '';
+                document.getElementById('sb-latitude').value = Number.isFinite(Number(p.latitude)) ? Number(p.latitude).toFixed(7) : '';
+                document.getElementById('sb-longitude').value = Number.isFinite(Number(p.longitude)) ? Number(p.longitude).toFixed(7) : '';
+                setTimeout(() => { initAdminListingMap(); if (p.latitude && p.longitude) setAdminListingCoordinates(p.latitude, p.longitude); }, 120);
                 document.getElementById('sb-listing-type').value = p.listingType;
                 document.getElementById('sb-form-category').value = p.category || "Apartment";
                 document.getElementById('sb-rooms').value = p.rooms;
@@ -7079,7 +7400,7 @@ Təşəkkür edirəm. 🙏`;
 
                 uploadedListingImageFiles = [];
                 uploadedListingImages = Array.isArray(p.images) && p.images.length ? [...p.images] : (p.img ? [p.img] : []);
-                document.getElementById('sb-img-url').value = '';
+            document.getElementById('sb-img-url').value = '';
                 document.getElementById('sb-img-preview-val').value = '';
                 renderListingImagesPreview();
 
@@ -7110,6 +7431,15 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('sb-credit-down').value = '';
             document.getElementById('sb-credit-monthly').value = '';
             document.getElementById('sb-credit-years').value = '';
+            document.getElementById('sb-settlement').value = '';
+            document.getElementById('sb-metro').value = '';
+            document.getElementById('sb-street-address').value = '';
+            document.getElementById('sb-location-search').value = '';
+            document.getElementById('sb-location-results')?.classList.add('hidden');
+            document.getElementById('sb-latitude').value = '';
+            document.getElementById('sb-longitude').value = '';
+            if (adminListingMarker) { adminListingMarker.remove(); adminListingMarker = null; }
+            setTimeout(initAdminListingMap, 80);
             document.getElementById('sb-img-url').value = '';
             document.getElementById('sb-img-preview-val').value = '';
             uploadedListingImages = [];
@@ -7973,6 +8303,9 @@ Təşəkkür edirəm. 🙏`;
             await initializeAuth();
             await hydrateFromDatabase();
             await routeToCurrentPath();
+            populateMetroSelect();
+            toggleMetroFieldForCity();
+            setTimeout(initAdminListingMap, 120);
         });
 
         window.addEventListener('popstate', () => {
