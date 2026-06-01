@@ -91,6 +91,7 @@ async function payload(req, existing = {}) {
     thumbnailUrl,
     mediaPositionX: normalizeMediaPosition(body.media_position_x ?? body.mediaPositionX ?? existing.mediaPositionX, MEDIA_POSITION_X),
     mediaPositionY: normalizeMediaPosition(body.media_position_y ?? body.mediaPositionY ?? existing.mediaPositionY, MEDIA_POSITION_Y),
+    sortOrder: Number.isFinite(Number(body.sort_order ?? body.sortOrder)) ? Number(body.sort_order ?? body.sortOrder) : existing.sortOrder,
   }).filter(([, v]) => v !== undefined));
 }
 
@@ -105,6 +106,7 @@ function serializeGallery(item) {
     media_position_x: mediaPositionX,
     media_position_y: mediaPositionY,
     objectPosition: `${mediaPositionX} ${mediaPositionY}`,
+    sort_order: item.sortOrder ?? item.sort_order ?? 0,
     preview: { objectPosition: `${mediaPositionX} ${mediaPositionY}`, updatesInstantly: true },
   };
 }
@@ -120,10 +122,28 @@ router.get('/', asyncHandler(async (req, res) => {
   const limit = positiveInt(req.query.limit, 18, 100);
   const skip = (page - 1) * limit;
   const [items, total] = await Promise.all([
-    prisma.gallery.findMany({ orderBy: { createdAt: 'desc' }, skip, take: limit }),
+    prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }], skip, take: limit }),
     prisma.gallery.count(),
   ]);
   res.json({ items: items.map(serializeGallery), total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
+}));
+
+
+router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const order = Array.isArray(req.body?.order) ? req.body.order : [];
+  const normalized = order
+    .map((item, index) => ({ id: Number(item.id), sortOrder: Number(item.sortOrder ?? item.sort_order ?? index + 1) }))
+    .filter((item) => Number.isInteger(item.id) && item.id > 0);
+
+  if (!normalized.length) return res.status(400).json({ message: 'Order payload is required.' });
+
+  await prisma.$transaction(normalized.map((item, index) => prisma.gallery.update({
+    where: { id: item.id },
+    data: { sortOrder: index + 1 },
+  })));
+
+  const items = await prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }] });
+  res.json({ items: items.map(serializeGallery) });
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
@@ -137,7 +157,12 @@ router.post('/', authenticate, authorize('admin'), upload.fields([
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
-  const created = await prisma.gallery.create({ data: await payload(req) });
+  const data = await payload(req);
+  if (!Number.isFinite(Number(data.sortOrder)) || Number(data.sortOrder) <= 0) {
+    await prisma.gallery.updateMany({ data: { sortOrder: { increment: 1 } } });
+    data.sortOrder = 1;
+  }
+  const created = await prisma.gallery.create({ data });
   res.status(201).json(serializeGallery(created));
 }));
 

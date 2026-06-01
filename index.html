@@ -903,7 +903,6 @@
             }
             .sea-breeze-listing-card__meta,
             .sea-breeze-listing-card__description,
-            .sea-breeze-listing-card__stats,
             .sea-breeze-listing-card__price-per-m2,
             .sea-breeze-listing-card__favorite,
             .sea-breeze-listing-card__promo-badge,
@@ -912,7 +911,7 @@
                 display: none !important;
             }
             .sea-breeze-listing-card__mobile-facts {
-                display: block;
+                display: none;
                 color: #64748b;
                 font-size: 12px;
                 font-weight: 700;
@@ -987,6 +986,29 @@
                 grid-template-columns: minmax(0, 1fr) !important;
             }
         }
+        .listing-card-badge-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+        .listing-card-badge-row .sea-breeze-listing-card__badge { box-shadow: none; }
+        .listing-info-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .55rem; color: #334155; font-size: 12px; font-weight: 800; }
+        .listing-info-row__item { display: inline-flex; align-items: center; gap: .28rem; white-space: nowrap; }
+        .listing-info-row__divider { color: #cbd5e1; }
+        .media-card { border-radius: 1rem; overflow: hidden; border: 1px solid rgba(226,232,240,.9); background: #fff; box-shadow: 0 14px 32px rgba(15,23,42,.08); transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
+        .media-card:hover { transform: translateY(-4px); border-color: rgba(127,127,255,.34); box-shadow: 0 24px 48px rgba(15,23,42,.14); }
+        .media-card__thumb, .gallery-media, .admin-media-card img, .admin-media-card video { object-fit: cover; object-position: center; }
+        .admin-media-card { min-height: 112px; }
+        .admin-media-drag-handle { touch-action: none; cursor: grab; }
+        .admin-media-drag-handle:active { cursor: grabbing; }
+        .admin-media-card.is-dragging { opacity: .72; transform: scale(.98); }
+        .admin-media-card.is-drop-target { outline: 2px dashed var(--color-primary); outline-offset: 4px; }
+        .admin-stat-card { min-height: 118px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 1.25rem; }
+        .admin-stat-card__icon { width: 2.75rem; height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 1rem; background: rgba(255,255,255,.08); }
+        .mortgage-input { background: rgba(255,255,255,.86); border: 1px solid rgba(255,255,255,.15); color: #111827; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
+        .mortgage-input:focus { border-color: #dc2626; box-shadow: 0 0 0 4px rgba(220,38,38,.12); background: #fff; }
+        .kupcha-control span { color: #111827; font-weight: 600; }
+        @media (min-width: 1536px) {
+            main.max-w-7xl, nav .max-w-7xl, footer .max-w-7xl { max-width: 88rem; }
+            #seabreeze-properties-grid, #sea-breeze-projects-list, #portfolio-grid { gap: 1.75rem; }
+        }
+        @media (max-width: 767.98px) { .listing-info-row { font-size: 11px; gap: .3rem .45rem; } }
         .credit-badge { background: #dc2626; color: #ffffff; font-weight: 600; box-shadow: 0 12px 28px rgba(220,38,38,.28); letter-spacing: .12em; }
         .credit-info-panel { background: linear-gradient(135deg, rgba(254,242,242,.96), rgba(255,255,255,.98)); border: 1px solid rgba(248,113,113,.28); }
         @media (max-width: 767px) {
@@ -1254,7 +1276,7 @@
                         <p class="text-white text-lg font-extrabold">Best Home — güvən, peşəkarlıq və keyfiyyətin ünvanı.</p>
                     </div>
                     <div class="lg:col-span-5 space-y-4">
-                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg" class="rounded-3xl w-full h-80 object-cover shadow-2xl border border-white/10" alt="Best Home Group korporativ təqdimat">
+                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg" class="rounded-3xl w-full h-64 md:h-72 object-contain object-center bg-white/90 p-6 shadow-2xl border border-white/10" alt="Best Home Group korporativ təqdimat">
                         <div class="grid grid-cols-3 gap-3 text-center">
                             <div class="rounded-2xl bg-white/[0.04] border border-white/5 p-4"><strong class="text-white text-xl">10+</strong><span class="block text-[10px] text-gray-400 uppercase">Xidmət</span></div>
                             <div class="rounded-2xl bg-white/[0.04] border border-white/5 p-4"><strong class="text-white text-xl">24/7</strong><span class="block text-[10px] text-gray-400 uppercase">Dəstək</span></div>
@@ -1275,11 +1297,10 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <form id="mortgage-form" oninput="calculateMortgage()" class="lg:col-span-5 glass-card p-6 rounded-3xl space-y-4">
-                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Mənzil qiyməti (AZN)</span><input id="mortgage-price" type="number" min="0" step="1000" value="250000" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
-                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">İlkin ödəniş (AZN)</span><input id="mortgage-down" type="number" min="0" step="1000" value="50000" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
-                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Faiz dərəcəsi (%)</span><input id="mortgage-rate" type="number" min="0" step="0.1" value="8" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
-                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Müddət (il)</span><input id="mortgage-years" type="number" min="1" step="1" value="25" class="w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
-                    <button type="button" onclick="downloadMortgagePdf()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-black py-3 rounded-2xl transition"><i class="fa-solid fa-file-pdf mr-2"></i>PDF kimi yüklə</button>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Mənzil qiyməti (AZN)</span><input id="mortgage-price" type="number" min="0" step="1000" value="250000" class="mortgage-input w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">İlkin ödəniş (AZN)</span><input id="mortgage-down" type="number" min="0" step="1000" value="50000" class="mortgage-input w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Faiz dərəcəsi (%)</span><input id="mortgage-rate" type="number" min="0" step="0.1" value="8" class="mortgage-input w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
+                    <label class="block space-y-2"><span class="text-xs font-bold uppercase text-gray-600">Müddət (il)</span><input id="mortgage-years" type="number" min="1" step="1" value="25" class="mortgage-input w-full rounded-2xl px-4 py-3 text-lg font-bold"></label>
                 </form>
                 <div class="lg:col-span-7 glass-card p-6 rounded-3xl space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="mortgage-results">
@@ -1387,7 +1408,7 @@
                                 </select>
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Kateqoriya *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Növ *</label>
                                 <select id="sb-form-category" onchange="toggleFormFieldsBasedOnCategory()" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                     <option value="Apartment">Mənzil</option>
                                     <option value="Villa">Villa</option>
@@ -1420,11 +1441,11 @@
                                 <input type="number" id="sb-area" required min="1" step="any" oninput="calculateSqPrice()" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mərtəbə *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mərtəbəsi *</label>
                                 <input type="number" id="sb-floor-number" required min="1" value="1" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Ümumi mərtəbə *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mərtəbə sayı *</label>
                                 <input type="number" id="sb-floor" required min="1" value="1" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                         </div>
@@ -1445,19 +1466,6 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Elan sahibi</label>
-                                <select id="sb-owner-type" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
-                                    <option value="owner">Əmlak sahibi</option>
-                                    <option value="agent">Vasitəçi</option>
-                                </select>
-                            </div>
-                            <label class="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 font-bold mt-5">
-                                <input type="checkbox" id="sb-has-document" class="accent-emerald-500">
-                                <span>Kupça / Çıxarış var</span>
-                            </label>
-                        </div>
 
                         <label class="inline-flex w-fit items-center gap-2 rounded-xl border border-red-500/30 bg-red-600/10 px-3 py-2 text-xs text-black font-bold">
                             <input type="checkbox" id="sb-is-credit" onchange="toggleCreditFields()" class="accent-red-600">
@@ -1497,6 +1505,20 @@
                             <textarea id="sb-desc" required rows="2" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Elan sahibi</label>
+                                <select id="sb-owner-type" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                    <option value="owner">Əmlak sahibi</option>
+                                    <option value="agent">Vasitəçi</option>
+                                </select>
+                            </div>
+                            <label class="kupcha-control flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold sm:mt-5">
+                                <input type="checkbox" id="sb-has-document" class="accent-emerald-500">
+                                <span>Kupça / Çıxarış var</span>
+                            </label>
+                        </div>
+
                         <div class="flex space-x-2">
                             <button type="submit" id="listing-save-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
                             <button type="button" onclick="resetSeaBreezeForm()" class="bg-white/5 text-white px-3 rounded-xl text-xs">Təmizlə</button>
@@ -1508,9 +1530,9 @@
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="text-lg font-bold text-white">Mənim / Bütün Digər ərazilər</h3>
                         <div class="flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending Listings</span>
-                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved Listings</span>
-                            <span class="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">Rejected Listings</span>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Gözləyən elanlar</span>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Təsdiqlənmiş elanlar</span>
+                            <span class="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">Rədd edilmiş elanlar</span>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
@@ -1549,7 +1571,7 @@
                         <input id="profile-email" type="email" readonly placeholder="Email" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
                         <input id="profile-avatar" type="hidden">
                         <textarea id="profile-bio" rows="4" placeholder="Bio" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></textarea>
-                        <div><div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase"><span>Profile Completion</span><span id="profile-completion-label">0%</span></div><div class="h-2 rounded-full bg-white/10 mt-1 overflow-hidden"><div id="profile-completion-bar" class="h-full bg-brand-500" style="width:0%"></div></div></div>
+                        <div><div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase"><span>Profil tamamlanması</span><span id="profile-completion-label">0%</span></div><div class="h-2 rounded-full bg-white/10 mt-1 overflow-hidden"><div id="profile-completion-bar" class="h-full bg-brand-500" style="width:0%"></div></div></div>
                         <button class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl">Profili yenilə</button>
                     </form>
                 </div>
@@ -1586,7 +1608,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Kateqoriya *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase">Növ *</label>
                                 <select id="project-category" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                                     <option value="Apartment">Mənzil (Apartment)</option>
                                     <option value="Villa">Şəxsi Villa</option>
@@ -1948,7 +1970,7 @@ Title: Park Villas
                             <input type="number" id="ad-repeat-count" min="1" max="100" value="3" placeholder="Repeat Count" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                             <input type="number" id="ad-display-duration" min="1" max="86400" value="30" placeholder="Display Duration (seconds)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         </div>
-                        <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Active Status</label>
+                        <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Aktiv Status</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Width (px)<input type="number" id="ad-width-px" min="80" max="1000" value="180" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Height (px)<input type="number" id="ad-height-px" min="80" max="1200" value="320" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
@@ -2133,7 +2155,7 @@ Title: Park Villas
                     <!-- Tab Content: Details -->
                     <div id="op-tab-details" class="grid grid-cols-2 gap-4 text-sm">
                         <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
-                            <span class="text-xs text-gray-600 block font-semibold">Mərtəbə Sayı</span>
+                            <span class="text-xs text-gray-600 block font-semibold">Mərtəbə sayı</span>
                             <strong id="op-detail-floors" class="text-gray-800"></strong>
                         </div>
                         <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
@@ -2903,7 +2925,7 @@ Title: Park Villas
         }
 
         function listingStatusLabel(status) {
-            return { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' }[normalizeListingStatus(status)] || 'Pending';
+            return { pending: 'Gözləyən', approved: 'Təsdiqlənmiş', rejected: 'Rejected' }[normalizeListingStatus(status)] || 'Gözləyən';
         }
 
         function listingStatusBadgeClass(status) {
@@ -3031,8 +3053,8 @@ Title: Park Villas
                 .map(x => String(x || '').trim())
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
             return mediaType === 'video'
-                ? { id: g.id, title: g.title || '', type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', desc: g.description || '', createdAt, duration: g.duration || '' }
-                : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt };
+                ? { id: g.id, title: g.title || '', type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0 }
+                : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0 };
         }
 
         const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
@@ -3127,8 +3149,8 @@ Title: Park Villas
             return ads.map(ad => [ad.id, ad.rotationOrder, ad.repeatCount, ad.displayDuration, ad.mediaType, ad.position].join(':')).join('|');
         }
 
-        function logActiveRotationAds(ads = []) {
-            console.log('Active Ads:', ads.map(ad => ({
+        function logAktivRotationAds(ads = []) {
+            console.log('Aktiv Ads:', ads.map(ad => ({
                 id: ad.id,
                 rotationOrder: ad.rotationOrder,
                 repeatCount: ad.repeatCount,
@@ -3191,7 +3213,7 @@ Title: Park Villas
                 return;
             }
             const ads = visibleRotationAds();
-            logActiveRotationAds(ads);
+            logAktivRotationAds(ads);
             if (!ads.length) {
                 left.innerHTML = '';
                 right.innerHTML = '';
@@ -3953,7 +3975,7 @@ Title: Park Villas
             observer.observe(element);
         }
 
-        function isTabActive(tabId) {
+        function isTabAktiv(tabId) {
             return !document.getElementById(`tab-${tabId}`)?.classList.contains('hidden');
         }
 
@@ -3993,7 +4015,7 @@ Title: Park Villas
                 const listings = await apiRequest('/api/listings?page=1&limit=100');
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
                 cacheData('listings', listingRows.map(dbListingToUi));
-                if (isTabActive('seabreeze')) renderSeaBreeze();
+                if (isTabAktiv('seabreeze')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Digər ərazilər oxunmadı, cache istifadə olunur:', error.message);
             }
@@ -4006,7 +4028,7 @@ Title: Park Villas
             try {
                 const favorites = await apiRequest('/api/favorites').catch(() => []);
                 appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
-                if (isTabActive('seabreeze')) renderSeaBreeze();
+                if (isTabAktiv('seabreeze')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Favoritlər oxunmadı:', error.message);
             }
@@ -4021,8 +4043,8 @@ Title: Park Villas
                 galleryPagination = Array.isArray(gallery)
                     ? { page: 1, limit: galleryRows.length || 18, total: galleryRows.length, totalPages: 1 }
                     : { page: gallery.page || 1, limit: 18, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
-                cacheData('gallery', galleryRows.map(dbGalleryToUi));
-                if (isTabActive('portfolio')) renderPortfolio();
+                cacheData('gallery', galleryRows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+                if (isTabAktiv('portfolio')) renderPortfolio();
             } catch (error) {
                 console.warn('Qalereya oxunmadı, cache istifadə olunur:', error.message);
             }
@@ -4034,7 +4056,7 @@ Title: Park Villas
             try {
                 const vacancies = await apiRequest('/api/vacancies');
                 cacheData('vacancies', vacancies.map(dbVacancyToUi));
-                if (isTabActive('career')) renderCareerSection();
+                if (isTabAktiv('career')) renderCareerSection();
             } catch (error) {
                 console.warn('Vakansiyalar oxunmadı, cache istifadə olunur:', error.message);
             }
@@ -4069,7 +4091,7 @@ Title: Park Villas
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
-                if (isTabActive('admin-dashboard')) renderAdminDashboard();
+                if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
             } catch (error) {
                 console.warn('Kabinet məlumatları oxunmadı:', error.message);
             }
@@ -4792,39 +4814,43 @@ Təşəkkür edirəm. 🙏`;
                     `;
                 }
 
+                const infoRowHtml = `
+                    <div class="listing-info-row sea-breeze-listing-card__stats">
+                        <span class="listing-info-row__item">🛏 <strong>${escapeHtml(roomFact)}</strong></span>
+                        <span class="listing-info-row__divider">|</span>
+                        <span class="listing-info-row__item">📐 <strong>${escapeHtml(areaFact)}</strong></span>
+                        <span class="listing-info-row__divider">|</span>
+                        <span class="listing-info-row__item">🏢 <strong>${escapeHtml(formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/'))}</strong></span>
+                        ${p.land ? `<span class="listing-info-row__divider">|</span><span class="listing-info-row__item">🌿 <strong>${escapeHtml(String(p.land))} Sot</strong></span>` : ''}
+                    </div>
+                `;
+
                 const cardHtml = `
-                    <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full">
-                        <div class="sea-breeze-listing-card__media h-44 md:h-48 overflow-hidden relative min-w-0 max-w-full">
-                            <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-auto object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
-                            <div class="sea-breeze-listing-card__badges listing-badge-stack">
-                                <div class="sea-breeze-listing-card__badge sea-breeze-listing-card__badge--project bg-brand-700/90 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(locationLabel)}</div>
-                                ${renderListingBadgeStack(p)}
-                            </div>
-                            ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
-                            ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute bottom-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
+                    <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
+                        <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative min-w-0 max-w-full">
+                            <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                            ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
+                            ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
                             <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
-                        <div class="sea-breeze-listing-card__body p-4 space-y-2 flex-1 min-w-0 max-w-full">
-                            <h4 class="sea-breeze-listing-card__title text-gray-900 font-extrabold text-base truncate">${escapeHtml(listingTitle)}</h4>
-                            <p class="sea-breeze-listing-card__meta text-[10px] text-gray-500"><i class="fa-solid fa-location-dot mr-1"></i>${escapeHtml(locationLabel)} • <i class="fa-regular fa-eye ml-1 mr-1"></i>${p.viewCount || 0} • <i class="fa-regular fa-heart ml-1 mr-1"></i>${p.favoritesCount || 0}</p>
-                            <p class="text-[11px] font-bold text-brand-700">By: <a href="/user/${p.ownerId || p.authorId}" onclick="event.stopPropagation()" class="hover:underline">${escapeHtml(p.ownerName || agentNameById(p.authorId) || 'BestHome Agent')}</a></p>
-                            <p class="sea-breeze-listing-card__description text-gray-700 text-xs line-clamp-2 font-medium">${escapeHtml(listingDesc)}</p>
-                            <p class="sea-breeze-listing-card__mobile-facts">${roomFact} • ${areaFact} • ${floorFact}</p>
-                            <div class="sea-breeze-listing-card__stats grid grid-cols-2 gap-2 bg-brand-50/70 p-2.5 rounded-xl text-[11px] text-gray-700 border border-brand-200">
-                                <span>Otaq: <strong class="text-gray-900">${p.rooms ?? '—'}</strong></span>
-                                <span>Sahə: <strong class="text-gray-900">${formatOptionalNumber(p.area, ' m²')}</strong></span>
-                                <span>Mərtəbə: <strong class="text-gray-900">${formatListingFloor(p.floorNumber ?? p.floor, p.floorCount)}</strong></span>
-                                ${p.land ? `<span>Torpaq: <strong class="text-gray-900">${p.land} Sot</strong></span>` : ''}
+                        <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
+                            <div class="space-y-1.5">
+                                <p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>
+                                <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base leading-snug truncate">${escapeHtml(listingTitle)}</h4>
                             </div>
-                        </div>
-                        <div class="sea-breeze-listing-card__footer p-4 pt-3 mt-auto flex items-center justify-between border-t border-white/5 min-w-0 max-w-full">
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
-                                <span class="sea-breeze-listing-card__price-label text-[9px] text-gray-500 uppercase block">Qiymət</span>
-                                <strong class="text-base font-extrabold text-gray-900">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period"> /gün</span>' : ''}</strong>
-                                <span class="block text-[10px] font-black text-brand-700 mt-1">Elan kodu: ${formatListingCode(p.listingCode)}</span>
-                                <span class="block text-[10px] text-gray-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i>${formatAzDateTime(p.createdAt)}</span>
+                                <strong class="text-xl md:text-2xl font-black text-gray-950 tracking-tight">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /gün</span>' : ''}</strong>
                             </div>
-                            ${sqPriceHtml}
+                            <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
+                            ${infoRowHtml}
+                            <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                                <a href="/user/${p.ownerId || p.authorId}" onclick="event.stopPropagation()" class="text-[11px] font-bold text-brand-700 hover:underline truncate">${escapeHtml(p.ownerName || agentNameById(p.authorId) || 'BestHome Agent')}</a>
+                                <span class="text-[10px] font-black text-brand-700 whitespace-nowrap">Kod: ${formatListingCode(p.listingCode)}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-2 text-[10px] text-gray-500">
+                                <span><i class="fa-regular fa-calendar mr-1"></i>${formatAzDateTime(p.createdAt)}</span>
+                                <span><i class="fa-regular fa-eye mr-1"></i>${p.viewCount || 0} <i class="fa-regular fa-heart ml-2 mr-1"></i>${p.favoritesCount || 0}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -5083,7 +5109,7 @@ Təşəkkür edirəm. 🙏`;
                 galleryPagination = Array.isArray(result)
                     ? { page: 1, limit: rows.length || GALLERY_PAGE_LIMIT, total: rows.length, totalPages: 1 }
                     : { page: result.page || page, limit: GALLERY_PAGE_LIMIT, total: result.total || rows.length, totalPages: result.totalPages || 1 };
-                cacheData('gallery', rows.map(dbGalleryToUi));
+                cacheData('gallery', rows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
             } catch (error) {
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
             }
@@ -5108,7 +5134,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function renderPortfolio() {
-            const list = appData.gallery;
+            const list = [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
             const grid = document.getElementById('portfolio-grid');
             grid.innerHTML = '';
 
@@ -5125,7 +5151,7 @@ Təşəkkür edirəm. 🙏`;
                 if (item.type === 'event') {
                     const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
@@ -5135,7 +5161,7 @@ Təşəkkür edirəm. 🙏`;
                 } else {
                     const thumb = item.thumbnail || getYouTubeThumbnail(item.url) || getVimeoThumbnail(item.url) || 'https://placehold.co/600x400/f3f4f6/6b7280?text=Video';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="cursor-pointer group rounded-xl overflow-hidden bg-white relative border border-gray-100 h-64 shadow-sm hover:shadow-2xl transition duration-300 hover:-translate-y-1">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden relative">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
@@ -5835,6 +5861,70 @@ Təşəkkür edirəm. 🙏`;
             window.addEventListener('pointercancel', onPointerUp, { once: true });
         }
 
+
+        function getAdminGalleryOrderFromDom() {
+            return Array.from(document.querySelectorAll('#admin-gallery-list .admin-media-card'))
+                .map(card => String(card.dataset.galleryId || ''))
+                .filter(Boolean);
+        }
+
+        function clearGalleryDropTargets() {
+            document.querySelectorAll('#admin-gallery-list .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
+        }
+
+        async function persistGalleryOrderFromDom() {
+            const ids = getAdminGalleryOrderFromDom();
+            if (!ids.length) return;
+            const byId = new Map(appData.gallery.map(item => [String(item.id), item]));
+            const ordered = ids.map((id, index) => ({ ...byId.get(id), sortOrder: index + 1 })).filter(Boolean);
+            const remaining = appData.gallery.filter(item => !ids.includes(String(item.id))).map((item, offset) => ({ ...item, sortOrder: ordered.length + offset + 1 }));
+            cacheData('gallery', [...ordered, ...remaining]);
+            renderPortfolio();
+            try {
+                const response = await apiRequest('/api/gallery/reorder', { method: 'PUT', body: JSON.stringify({ order: ordered.map((item, index) => ({ id: Number(item.id), sortOrder: index + 1 })) }) });
+                const rows = Array.isArray(response?.items) ? response.items : [];
+                if (rows.length) cacheData('gallery', rows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+                renderAdminDashboard();
+                renderPortfolio();
+            } catch (error) {
+                alert('Media sırası yadda saxlanılmadı: ' + error.message);
+                renderAdminDashboard();
+            }
+        }
+
+        function startGalleryDrag(event, galleryId) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const card = event.target.closest('.admin-media-card');
+            const list = document.getElementById('admin-gallery-list');
+            if (!card || !list) return;
+            event.preventDefault();
+            card.classList.add('is-dragging');
+            card.setPointerCapture?.(event.pointerId);
+
+            const onPointerMove = (moveEvent) => {
+                const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.('.admin-media-card');
+                if (!target || target === card || !list.contains(target)) return;
+                clearGalleryDropTargets();
+                target.classList.add('is-drop-target');
+                const rect = target.getBoundingClientRect();
+                const insertAfter = moveEvent.clientY > rect.top + rect.height / 2;
+                list.insertBefore(card, insertAfter ? target.nextSibling : target);
+            };
+
+            const onPointerUp = () => {
+                card.classList.remove('is-dragging');
+                clearGalleryDropTargets();
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('pointercancel', onPointerUp);
+                persistGalleryOrderFromDom();
+            };
+
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            window.addEventListener('pointerup', onPointerUp, { once: true });
+            window.addEventListener('pointercancel', onPointerUp, { once: true });
+        }
+
         async function saveProjectOrder() {
             if (!activeUser || activeUser.role !== 'admin') return;
             const projects = getOfficialProjects().map((project, index) => ({ ...project, displayOrder: index + 1 }));
@@ -6332,7 +6422,7 @@ Təşəkkür edirəm. 🙏`;
                 applicationsCount: (appData.applications || []).length,
                 totalAds: (appData.ads || []).length,
                 activeAds: (appData.ads || []).filter(ad => ad.isActive && adIsWithinDates(ad)).length,
-                totalViews: (appData.ads || []).reduce((sum, ad) => sum + (ad.viewCount || 0), 0),
+                totalBaxış: (appData.ads || []).reduce((sum, ad) => sum + (ad.viewCount || 0), 0),
                 totalClicks: (appData.ads || []).reduce((sum, ad) => sum + (ad.clickCount || 0), 0),
             };
         }
@@ -6344,38 +6434,38 @@ Təşəkkür edirəm. 🙏`;
                 const mine = appData.listings.filter(item => String(item.authorId) === String(activeUser.id));
                 const stats = appData.dashboardStats || {};
                 const cards = [
-                    ['Total Listings', stats.totalListings ?? mine.length, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
-                    ['Approved Listings', stats.approvedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'approved').length, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
-                    ['Pending Listings', stats.pendingListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'pending').length, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
-                    ['Rejected Listings', stats.rejectedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'rejected').length, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
-                    ['Total Views', stats.totalViews ?? stats.views ?? mine.reduce((sum, x) => sum + (x.viewCount || 0), 0), 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
-                    ['Total Favorites', stats.totalFavorites ?? stats.favorites ?? mine.reduce((sum, x) => sum + (x.favoritesCount || 0), 0), 'fa-heart', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                    ['Elanlar', stats.totalListings ?? mine.length, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
+                    ['Təsdiqlənmiş elanlar', stats.approvedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'approved').length, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                    ['Gözləyən elanlar', stats.pendingListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'pending').length, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                    ['Rədd edilmiş elanlar', stats.rejectedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'rejected').length, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
+                    ['Baxışlar', stats.totalViews ?? stats.views ?? mine.reduce((sum, x) => sum + (x.viewCount || 0), 0), 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                    ['Seçilmişlər', stats.totalFavorites ?? stats.favorites ?? mine.reduce((sum, x) => sum + (x.favoritesCount || 0), 0), 'fa-heart', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
                 ];
-                container.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="rounded-2xl border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-center justify-between gap-3"><span class="text-[10px] uppercase tracking-wide font-black text-gray-300">${label}</span><i class="fa-solid ${icon}"></i></div><div class="mt-3 text-2xl font-black text-white">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
+                container.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-start justify-between gap-3"><span class="text-[11px] uppercase tracking-wide font-black text-gray-200 leading-snug">${label}</span><span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span></div><div class="mt-4 text-2xl md:text-3xl font-black text-white leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
                 return;
             }
             const stats = { ...getDashboardStats(), ...(appData.adStats || {}) };
             const cards = [
-                ['Total Users', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
-                ['Total Listings', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
-                ['Pending Listings', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
-                ['Approved Listings', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
-                ['Rejected Listings', stats.rejectedListings, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
-                ['Projects Count', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
-                ['Vacancies Count', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
-                ['Applications Count', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
-                ['Total Ads', stats.totalAds, 'fa-rectangle-ad', 'from-cyan-500/20 to-cyan-500/5 text-cyan-300'],
-                ['Active Ads', stats.activeAds, 'fa-toggle-on', 'from-lime-500/20 to-lime-500/5 text-lime-300'],
-                ['Total Views', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
-                ['Total Clicks', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
+                ['İstifadəçilər', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
+                ['Elanlar', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
+                ['Gözləyən elanlar', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                ['Təsdiqlənmiş elanlar', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                ['Rədd edilmiş elanlar', stats.rejectedListings, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
+                ['Layihələr', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
+                ['Vakansiyalar', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
+                ['Müraciətlər', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                ['Reklamlar', stats.totalAds, 'fa-rectangle-ad', 'from-cyan-500/20 to-cyan-500/5 text-cyan-300'],
+                ['Aktiv reklamlar', stats.activeAds, 'fa-toggle-on', 'from-lime-500/20 to-lime-500/5 text-lime-300'],
+                ['Baxışlar', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                ['Kliklər', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
             ];
             container.innerHTML = cards.map(([label, value, icon, classes]) => `
-                <div class="rounded-2xl border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
-                    <div class="flex items-center justify-between gap-3">
-                        <span class="text-[10px] uppercase tracking-wide font-black text-gray-300">${label}</span>
-                        <i class="fa-solid ${icon}"></i>
+                <div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
+                    <div class="flex items-start justify-between gap-3">
+                        <span class="text-[11px] uppercase tracking-wide font-black text-gray-200 leading-snug">${label}</span>
+                        <span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span>
                     </div>
-                    <div class="mt-3 text-2xl font-black text-white">${Number(value || 0).toLocaleString('az-AZ')}</div>
+                    <div class="mt-4 text-2xl md:text-3xl font-black text-white leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div>
                 </div>
             `).join('');
         }
@@ -6391,9 +6481,9 @@ Təşəkkür edirəm. 🙏`;
                 const listings = rows.map(dbListingToUi);
                 const recent = (user.recentListings || []).map(dbListingToUi).slice(0, 4);
                 const activity = user.recentActivity || [];
-                const listingHtml = listings.length ? listings.slice(0, 8).map(item => `<button onclick="openPropertyModal('${item.id}', true)" class="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"><div><div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div><div class="text-[10px] text-gray-400">Kod: ${formatListingCode(item.listingCode)} • ${formatAzDate(item.createdAt)} • Views: ${item.viewCount} • Favorites: ${item.favoritesCount}</div></div><span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span></button>`).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
-                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h4 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h4><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Blocked' : 'Active'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Listings', uiUser.listingsCount], ['Approved', uiUser.approvedListingsCount], ['Pending', uiUser.pendingListingsCount], ['Views', uiUser.totalListingViews], ['Favorites', uiUser.totalFavorites], ['Completion', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Phone:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Registered:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Last login:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h4 class="pt-3 text-sm font-black text-white">Recent listings</h4><div class="space-y-2">${listingHtml}</div><h4 class="pt-3 text-sm font-black text-white">Recent activity</h4><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
-                showInlineModal('User profile', body);
+                const listingHtml = listings.length ? listings.slice(0, 8).map(item => `<button onclick="openPropertyModal('${item.id}', true)" class="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"><div><div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div><div class="text-[10px] text-gray-400">Kod: ${formatListingCode(item.listingCode)} • ${formatAzDate(item.createdAt)} • Baxış: ${item.viewCount} • Seçilmiş: ${item.favoritesCount}</div></div><span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span></button>`).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
+                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h4 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h4><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Bloklanıb' : 'Aktiv'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Elanlar', uiUser.listingsCount], ['Təsdiqlənmiş', uiUser.approvedListingsCount], ['Gözləyən', uiUser.pendingListingsCount], ['Baxışlar', uiUser.totalListingViews], ['Seçilmişlər', uiUser.totalFavorites], ['Tamamlanma', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Telefon:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Qeydiyyat:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Son giriş:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h4 class="pt-3 text-sm font-black text-white">Son elanlar</h4><div class="space-y-2">${listingHtml}</div><h4 class="pt-3 text-sm font-black text-white">Son aktivlik</h4><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
+                showInlineModal('İstifadəçi profili', body);
             } catch (error) {
                 alert('İstifadəçi məlumatları oxunmadı: ' + error.message);
             }
@@ -6442,12 +6532,12 @@ Təşəkkür edirəm. 🙏`;
         function renderAdminAdStats() {
             const container = document.getElementById('admin-ad-stats');
             if (!container) return;
-            const stats = { totalAds: 0, activeAds: 0, totalViews: 0, totalClicks: 0, ...(appData.adStats || {}) };
+            const stats = { totalAds: 0, activeAds: 0, totalBaxış: 0, totalClicks: 0, ...(appData.adStats || {}) };
             container.innerHTML = [
-                ['Total Ads', stats.totalAds],
-                ['Active Ads', stats.activeAds],
-                ['Total Views', stats.totalViews],
-                ['Total Clicks', stats.totalClicks]
+                ['Reklamlar', stats.totalAds],
+                ['Aktiv reklamlar', stats.activeAds],
+                ['Baxışlar', stats.totalViews],
+                ['Kliklər', stats.totalClicks]
             ].map(([label, value]) => `<div class="rounded-2xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase font-black text-gray-400">${label}</div><div class="text-xl font-black text-white mt-1">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
         }
 
@@ -6768,7 +6858,7 @@ Təşəkkür edirəm. 🙏`;
                                         <span><b class="text-gray-500 uppercase text-[9px] block">Qeydiyyat</b>${formatAzDateTime(a.createdAt || a.created_at)}</span>
                                     </div>
                                     <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-center">
-                                        ${[['Elan', a.listingsCount], ['Approved', a.approvedListingsCount], ['Pending', a.pendingListingsCount], ['Views', a.totalListingViews], ['Favori', a.totalFavorites || a.favoritesCount], ['Profil', `${a.profileCompletion || profileCompletionFor(a)}%`]].map(([label, value]) => `<span class="rounded-xl bg-white/5 border border-white/10 p-2"><strong class="block text-white">${value || 0}</strong><em class="not-italic text-[9px] text-gray-500 uppercase">${label}</em></span>`).join('')}
+                                        ${[['Elan', a.listingsCount], ['Təsdiqlənmiş', a.approvedListingsCount], ['Gözləyən', a.pendingListingsCount], ['Baxışlar', a.totalListingViews], ['Favori', a.totalFavorites || a.favoritesCount], ['Profil', `${a.profileCompletion || profileCompletionFor(a)}%`]].map(([label, value]) => `<span class="rounded-xl bg-white/5 border border-white/10 p-2"><strong class="block text-white">${value || 0}</strong><em class="not-italic text-[9px] text-gray-500 uppercase">${label}</em></span>`).join('')}
                                     </div>
                                     <p class="text-[10px] text-gray-500">Son giriş: ${formatAzDateTime(a.lastLogin)} • Bio: ${escapeHtml(a.bio || '—')}</p>
                                 </div>
@@ -6803,16 +6893,32 @@ Təşəkkür edirəm. 🙏`;
                 });
 
                 // 5. Media Gallery
-                const gallery = appData.gallery;
+                const gallery = [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                 const galContainer = document.getElementById('admin-gallery-list');
                 galContainer.innerHTML = '';
-                gallery.forEach(g => {
+                gallery.forEach((g, index) => {
+                    const thumb = g.type === 'event'
+                        ? (g.images?.[0] || 'https://placehold.co/320x220/f3f4f6/6b7280?text=Foto')
+                        : (g.thumbnail || getYouTubeThumbnail(g.url) || getVimeoThumbnail(g.url) || 'https://placehold.co/320x220/f3f4f6/6b7280?text=Video');
                     galContainer.innerHTML += `
-                        <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs">
-                            <span class="font-bold text-white">${g.title} (${g.type === 'event' ? 'Tədbir' : 'Video'})</span>
-                            <div class="flex space-x-2">
-                                <button onclick="editGalleryItem(${g.id})" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
-                                <button onclick="deleteGalleryItem(${g.id})" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        <div class="admin-media-card media-card glass-card p-3 rounded-2xl flex gap-3 items-center text-xs" data-gallery-id="${g.id}">
+                            <button type="button" class="admin-media-drag-handle shrink-0 bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white w-10 h-10 rounded-xl transition" onpointerdown="startGalleryDrag(event, '${g.id}')" aria-label="Media sırasını dəyiş">
+                                <i class="fa-solid fa-grip-vertical"></i>
+                            </button>
+                            <div class="w-24 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 shadow-sm">
+                                <img src="${escapeHtml(thumb)}" alt="${escapeHtml(g.title)}" class="w-full h-full object-cover object-center">
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="font-black text-white truncate">${escapeHtml(g.title)}</span>
+                                    <span class="rounded-full bg-white/10 text-gray-300 px-2 py-0.5 text-[10px] font-bold">${g.type === 'event' ? 'Qalereya' : 'Video'}</span>
+                                    <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">${escapeHtml(g.desc || 'Açıqlama yoxdur')}</p>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                                <button onclick="editGalleryItem(${g.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
+                                <button onclick="deleteGalleryItem(${g.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     `;
@@ -6860,7 +6966,7 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (!floor || floor < 1) {
-                alert('Ümumi mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
+                alert('Mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
                 isListingSaveSubmitting = false;
                 setListingSaveButtonLoading(false);
                 return;
@@ -6910,7 +7016,7 @@ Təşəkkür edirəm. 🙏`;
                 images: [coverImg, ...existingImageUrls.filter(url => url !== coverImg)],
                 desc,
                 authorId: activeUser.id,
-                status: 'Approved'
+                status: 'Təsdiqlənmiş'
             };
 
             const formData = new FormData();
@@ -7191,7 +7297,7 @@ Təşəkkür edirəm. 🙏`;
             const editId = document.getElementById('edit-vac-id').value;
             const list = [...appData.vacancies];
             const existingVacancy = list.find(v => String(v.id) === String(editId));
-            const existingActive = existingVacancy ? (existingVacancy.isActive ?? existingVacancy.status === 'Aktiv') : true;
+            const existingAktiv = existingVacancy ? (existingVacancy.isActive ?? existingVacancy.status === 'Aktiv') : true;
             const vacancyPayload = {
                 id: editId || null,
                 title: document.getElementById('vac-title').value,
@@ -7200,8 +7306,8 @@ Təşəkkür edirəm. 🙏`;
                 location: document.getElementById('vac-location').value,
                 desc: document.getElementById('vac-desc').value,
                 slug: document.getElementById('vac-slug').value.trim(),
-                status: existingActive ? "Aktiv" : "Bloklanıb",
-                isActive: existingActive
+                status: existingAktiv ? "Aktiv" : "Bloklanıb",
+                isActive: existingAktiv
             };
 
             try {
@@ -7252,8 +7358,8 @@ Təşəkkür edirəm. 🙏`;
             if (idx === -1) return;
 
             const previous = { ...list[idx] };
-            const nextActive = !(previous.isActive ?? previous.status === 'Aktiv');
-            list[idx] = { ...previous, isActive: nextActive, status: nextActive ? 'Aktiv' : 'Bloklanıb' };
+            const nextAktiv = !(previous.isActive ?? previous.status === 'Aktiv');
+            list[idx] = { ...previous, isActive: nextAktiv, status: nextAktiv ? 'Aktiv' : 'Bloklanıb' };
             cacheData('vacancies', list);
             renderAdminDashboard();
             renderCareerSection();
@@ -7495,9 +7601,14 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('modal-slider-controls').className = (activeModalGalleryItems.length > 1 || media.length > 1) ? 'absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 md:px-5 pointer-events-none' : 'hidden';
         }
 
+        function orderedGalleryItems() {
+            return [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        }
+
         function openGalleryDetailModal(index = 0, pushRoute = false) {
-            activeModalGalleryItems = appData.gallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
-            const clicked = appData.gallery[index];
+            const orderedGallery = orderedGalleryItems();
+            activeModalGalleryItems = orderedGallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
+            const clicked = orderedGallery[index];
             activeModalGalleryIndex = Math.max(0, activeModalGalleryItems.findIndex(item => String(item.id) === String(clicked?.id)));
             activeModalMediaIndex = 0;
             lightboxScale = 1;
@@ -7709,10 +7820,24 @@ Təşəkkür edirəm. 🙏`;
         function publicListingCard(p) {
             const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';
             const ownerId = p.ownerId || p.authorId;
+            const canonicalType = canonicalListingType(p.listingType);
+            const isRent = canonicalType === 'Kiraye';
+            const isDailyRent = canonicalType === 'GunlukKiraye';
+            const formattedPrice = formatPrice(p.price, p.currency);
+            const locationLabel = getListingLocationLabel(p);
+            const roomFact = p.rooms != null && p.rooms !== '' ? `${p.rooms} otaq` : '— otaq';
+            const areaFact = formatOptionalNumber(p.area, ' m²');
+            const floorFact = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
             return `<a href="${listingPath(p)}" class="sea-breeze-listing-card rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
-                <div class="h-48 overflow-hidden relative"><img src="${mainImage}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500"><span class="absolute top-3 left-3 bg-brand-700/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">${listingTypeLabel(p.listingType)}</span></div>
-                <div class="p-4 space-y-2 flex-1"><h4 class="text-gray-900 font-extrabold text-base truncate">${escapeHtml(p.title || '—')}</h4><p class="text-[10px] text-gray-500">${formatAzDate(p.createdAt)} • <i class="fa-regular fa-eye"></i> ${p.viewCount || 0} • <i class="fa-regular fa-heart"></i> ${p.favoritesCount || 0}</p><p class="text-[11px] font-bold text-brand-700">By: <span>${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span></p><p class="text-gray-700 text-xs line-clamp-2">${escapeHtml(p.desc || '')}</p></div>
-                <div class="p-4 pt-3 border-t border-gray-100 flex items-center justify-between"><strong class="text-base font-extrabold text-gray-900">${formatPrice(p.price, p.currency)}</strong><span class="text-[10px] font-black text-brand-700">Kod: ${formatListingCode(p.listingCode)}</span></div>
+                <div class="h-48 overflow-hidden relative"><img src="${escapeHtml(mainImage)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}"></div>
+                <div class="p-4 md:p-5 space-y-3 flex-1">
+                    <p class="text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>
+                    <h4 class="text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h4>
+                    <strong class="block text-xl font-black text-gray-950">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="text-sm"> /gün</span>' : ''}</strong>
+                    <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
+                    <div class="listing-info-row"><span class="listing-info-row__item">🛏 <strong>${escapeHtml(roomFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">📐 <strong>${escapeHtml(areaFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">🏢 <strong>${escapeHtml(floorFact)}</strong></span></div>
+                    <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100"><span class="text-[11px] font-bold text-brand-700 truncate">${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span><span class="text-[10px] font-black text-brand-700 whitespace-nowrap">Kod: ${formatListingCode(p.listingCode)}</span></div>
+                </div>
             </a>`;
         }
 
@@ -7725,15 +7850,15 @@ Təşəkkür edirəm. 🙏`;
                 const user = userToUi(payload.user);
                 const listings = (payload.listings || []).map(dbListingToUi);
                 listings.forEach(item => { item.ownerName = user.fullname; item.ownerId = user.id; });
-                updateSeo({ title: payload.seo?.title || `${user.fullname} - BestHome`, description: payload.seo?.description || `Approved listings published by ${user.fullname}`, path: window.location.pathname });
+                updateSeo({ title: payload.seo?.title || `${user.fullname} - BestHome`, description: payload.seo?.description || `Təsdiqlənmiş elanlar — ${user.fullname}`, path: window.location.pathname });
                 const completion = payload.user.profileCompletion ?? profileCompletionFor(user);
                 const stats = payload.user;
                 const pagination = payload.pagination || { page, totalPages: 1 };
                 const pager = pagination.totalPages > 1 ? `<div class="flex justify-center gap-2 mt-8">${Array.from({ length: pagination.totalPages }, (_, idx) => idx + 1).map(n => `<a href="/user/${user.id}/listings?page=${n}" class="px-4 py-2 rounded-xl text-sm font-bold ${n === pagination.page ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 border border-gray-200'}">${n}</a>`).join('')}</div>` : '';
                 root.innerHTML = `<div class="rounded-[2rem] bg-white shadow-xl border border-gray-100 p-6 md:p-8 mb-8">
-                    <div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><img src="${user.avatarUrl || avatarFallback(user.fullname)}" onclick="openAvatarModal(this.src)" class="w-32 h-32 rounded-full object-cover border-4 border-brand-100 shadow cursor-zoom-in"><div class="flex-1 text-center md:text-left"><h1 class="text-3xl font-black text-gray-950">${escapeHtml(user.fullname)}</h1><p class="mt-2 text-gray-600 max-w-2xl">${escapeHtml(user.bio || 'Bio əlavə edilməyib.')}</p><p class="mt-3 text-sm text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Registration date: ${formatAzDate(user.createdAt)}</p><div class="mt-4"><div class="flex justify-between text-xs font-black text-gray-500"><span>Profile Completion</span><span>${completion}%</span></div><div class="h-2 bg-gray-100 rounded-full overflow-hidden mt-1"><div class="h-full bg-brand-500" style="width:${completion}%"></div></div></div></div></div>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 text-center">${[['Total listings', stats.listingsCount], ['Approved', stats.approvedListingsCount], ['Pending', stats.pendingListingsCount], ['Total views', stats.totalListingViews], ['Total favorites', stats.totalFavorites]].map(([l,v]) => `<div class="rounded-2xl bg-gray-50 p-4"><div class="text-2xl font-black text-gray-950">${Number(v||0).toLocaleString('az-AZ')}</div><div class="text-[10px] uppercase font-bold text-gray-500">${l}</div></div>`).join('')}</div>
-                </div><div class="flex items-center justify-between mb-4"><h2 class="text-2xl font-black text-gray-950">Approved listings</h2><a href="/user/${user.id}/listings" class="text-brand-700 font-bold text-sm hover:underline">All listings</a></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${listings.length ? listings.map(publicListingCard).join('') : '<div class="col-span-full p-12 text-center bg-white rounded-3xl text-gray-500">Approved listing yoxdur.</div>'}</div>${pager}`;
+                    <div class="flex flex-col md:flex-row gap-6 items-center md:items-start"><img src="${user.avatarUrl || avatarFallback(user.fullname)}" onclick="openAvatarModal(this.src)" class="w-32 h-32 rounded-full object-cover border-4 border-brand-100 shadow cursor-zoom-in"><div class="flex-1 text-center md:text-left"><h1 class="text-3xl font-black text-gray-950">${escapeHtml(user.fullname)}</h1><p class="mt-2 text-gray-600 max-w-2xl">${escapeHtml(user.bio || 'Bio əlavə edilməyib.')}</p><p class="mt-3 text-sm text-gray-500"><i class="fa-regular fa-calendar mr-1"></i> Qeydiyyat tarixi: ${formatAzDate(user.createdAt)}</p><div class="mt-4"><div class="flex justify-between text-xs font-black text-gray-500"><span>Profil tamamlanması</span><span>${completion}%</span></div><div class="h-2 bg-gray-100 rounded-full overflow-hidden mt-1"><div class="h-full bg-brand-500" style="width:${completion}%"></div></div></div></div></div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 text-center">${[['Elanlar', stats.listingsCount], ['Təsdiqlənmiş', stats.approvedListingsCount], ['Gözləyən', stats.pendingListingsCount], ['Baxışlar', stats.totalListingViews], ['Seçilmişlər', stats.totalFavorites]].map(([l,v]) => `<div class="rounded-2xl bg-gray-50 p-4"><div class="text-2xl font-black text-gray-950">${Number(v||0).toLocaleString('az-AZ')}</div><div class="text-[10px] uppercase font-bold text-gray-500">${l}</div></div>`).join('')}</div>
+                </div><div class="flex items-center justify-between mb-4"><h2 class="text-2xl font-black text-gray-950">Təsdiqlənmiş elanlar</h2><a href="/user/${user.id}/listings" class="text-brand-700 font-bold text-sm hover:underline">Bütün elanlar</a></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${listings.length ? listings.map(publicListingCard).join('') : '<div class="col-span-full p-12 text-center bg-white rounded-3xl text-gray-500">Təsdiqlənmiş elan yoxdur.</div>'}</div>${pager}`;
             } catch (error) {
                 root.innerHTML = `<div class="py-20 text-center text-red-500 font-bold">Profil açılmadı: ${escapeHtml(error.message)}</div>`;
             }
