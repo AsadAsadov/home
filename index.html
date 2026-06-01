@@ -67,19 +67,22 @@
             box-shadow: 0 18px 45px rgba(127, 127, 255, 0.10);
         }
 
-        .login-submit-btn {
+        .login-submit-btn,
+        .async-submit-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
             transition: opacity 180ms ease, background-color 180ms ease, transform 180ms ease;
         }
-        .login-submit-btn.is-loading {
+        .login-submit-btn.is-loading,
+        .async-submit-btn.is-loading {
             opacity: 0.8;
             cursor: not-allowed;
             pointer-events: none;
         }
-        .login-spinner {
+        .login-spinner,
+        .button-spinner {
             width: 16px;
             height: 16px;
             border: 2px solid rgba(255, 255, 255, 0.45);
@@ -252,31 +255,50 @@
         .desktop-ad-rail {
             display: none;
         }
-        @media (min-width: 1200px) {
+        @media (min-width: 1366px) {
             .desktop-ad-layout {
+                --ad-width: clamp(220px, 15vw, 340px);
+                --ad-height: clamp(450px, 34vw, 750px);
                 display: grid;
-                grid-template-columns: max-content minmax(0, 1fr) max-content;
-                gap: 1.5rem;
+                grid-template-columns: minmax(0, var(--ad-width)) minmax(720px, 1fr) minmax(0, var(--ad-width));
+                gap: clamp(0.75rem, 1.4vw, 1.5rem);
                 align-items: start;
-                max-width: 1720px;
+                max-width: min(100vw, 2040px);
                 margin: 0 auto;
-                padding: 0 1rem;
+                padding: 0 clamp(0.5rem, 1vw, 1rem);
+                overflow-x: clip;
+                box-sizing: border-box;
             }
             .desktop-ad-layout > main {
                 min-width: 0;
                 max-width: 1280px;
+                width: 100%;
                 padding-left: 0 !important;
                 padding-right: 0 !important;
+                justify-self: center;
             }
             .desktop-ad-rail {
                 display: flex;
                 position: sticky;
                 top: 7rem;
-                max-width: 1000px;
+                width: var(--ad-width);
+                max-width: 100%;
                 flex-direction: column;
                 gap: 1rem;
                 z-index: 10;
             }
+        }
+        @media (min-width: 1366px) and (max-width: 1599px) {
+            .desktop-ad-layout { --ad-width: 220px; --ad-height: 450px; grid-template-columns: 220px minmax(760px, 1fr) 220px; }
+        }
+        @media (min-width: 1600px) and (max-width: 1919px) {
+            .desktop-ad-layout { --ad-width: 260px; --ad-height: 550px; }
+        }
+        @media (min-width: 1920px) and (max-width: 2559px) {
+            .desktop-ad-layout { --ad-width: 300px; --ad-height: 650px; }
+        }
+        @media (min-width: 2560px) {
+            .desktop-ad-layout { --ad-width: 340px; --ad-height: 750px; }
         }
         .desktop-ad-card {
             overflow: hidden;
@@ -294,6 +316,15 @@
         .desktop-ad-card img,
         .desktop-ad-card video {
             display: block;
+        }
+        .desktop-ad-card--responsive {
+            width: 100%;
+            max-width: var(--ad-width);
+        }
+        .desktop-ad-media {
+            width: 100% !important;
+            height: var(--ad-height) !important;
+            max-width: 100%;
         }
         .desktop-ad-label {
             padding: .55rem .65rem;
@@ -618,6 +649,83 @@
         .gallery-media.is-loaded {
             opacity: 1;
         }
+        .gallery-detail-title {
+            font-size: 18px;
+            line-height: 1.25;
+            letter-spacing: -0.01em;
+        }
+        .gallery-detail-copy {
+            display: grid;
+            gap: 0.7rem;
+        }
+        .gallery-detail-copy #modal-date {
+            margin-top: 0;
+        }
+        @media (min-width: 768px) {
+            .gallery-detail-title { font-size: 20px; }
+            .gallery-detail-copy { gap: 0.8rem; }
+        }
+        @media (min-width: 1024px) {
+            .gallery-detail-title { font-size: 22px; }
+            .gallery-detail-copy { gap: 0.9rem; }
+        }
+        .no-important-truncate,
+        #admin-subtabs-container button,
+        .sea-breeze-listing-card__title,
+        .sea-breeze-listing-card__meta,
+        .sea-breeze-listing-card__stats span,
+        .sea-breeze-project-card__title,
+        .sea-breeze-project-card__meta span,
+        .section-readable-text {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: break-word;
+        }
+        .admin-responsive-form label,
+        .admin-responsive-form span,
+        .admin-responsive-form input,
+        .admin-responsive-form select,
+        .admin-responsive-form textarea {
+            min-width: 0;
+        }
+        .admin-responsive-form label > span,
+        .admin-responsive-form .field-label {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            line-height: 1.25;
+        }
+        @media (min-width: 1024px) and (max-width: 1439px) {
+            #admin-subtab-seabreeze-manager,
+            #admin-subtab-projects-manager,
+            #admin-subtab-hero-sections {
+                gap: 1rem;
+            }
+            #admin-subtab-seabreeze-manager > .glass-card,
+            #admin-subtab-projects-manager > .glass-card,
+            #admin-subtab-hero-sections > .glass-card {
+                padding: 1rem;
+            }
+            .admin-responsive-form {
+                gap: 0.65rem;
+            }
+            .admin-responsive-form input,
+            .admin-responsive-form select,
+            .admin-responsive-form textarea {
+                font-size: 12px;
+                padding-left: 0.7rem;
+                padding-right: 0.7rem;
+            }
+            #admin-seabreeze-list .truncate,
+            #admin-projects-grid .truncate,
+            #admin-agents-list .truncate {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
+        }
+
 
         @keyframes premiumZoomIn {
             from { opacity: 0; transform: scale(0.94); }
@@ -1199,7 +1307,7 @@
                     <input type="tel" id="register-phone" required placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="email" id="register-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Qeydiyyatdan keç</button>
+                    <button type="submit" id="register-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Qeydiyyatdan keç</button>
                 </form>
                 <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Artıq hesabım var</button>
             </div>
@@ -1249,7 +1357,7 @@
                         <i class="fa-solid fa-circle-plus text-brand-500"></i>
                         <span id="sb-form-action-title">Yeni Elan Əlavə Et</span>
                     </h3>
-                    <form onsubmit="handleSaveSeaBreezeItem(event)" class="space-y-3">
+                    <form onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3">
                         <input type="hidden" id="edit-sb-id" value="">
                         
                         <div class="space-y-1">
@@ -1364,7 +1472,7 @@
                         </div>
 
                         <div class="flex space-x-2">
-                            <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
+                            <button type="submit" id="listing-save-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
                             <button type="button" onclick="resetSeaBreezeForm()" class="bg-white/5 text-white px-3 rounded-xl text-xs">Təmizlə</button>
                         </div>
                     </form>
@@ -1439,7 +1547,7 @@
                         </h3>
                         <button type="button" onclick="resetOfficialProjectForm()" class="text-[10px] bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg font-bold transition">Formu təmizlə</button>
                     </div>
-                    <form onsubmit="handleSaveOfficialProject(event)" class="space-y-3">
+                    <form onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-3">
                         <input type="hidden" id="edit-project-id" value="">
                         <div class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə adı *</label>
@@ -1614,7 +1722,7 @@ Title: Park Villas
                         <span>Hero Slaydlar</span>
                     </h3>
                     <div id="hero-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Hero slayd uğurla saxlanıldı.</div>
-                    <form onsubmit="handleSaveHeroSlide(event)" class="space-y-3">
+                    <form onsubmit="handleSaveHeroSlide(event)" class="admin-responsive-form space-y-3">
                         <input type="hidden" id="hero-slide-id">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Mode</span><select id="hero-slide-type-input" onchange="handleHeroSlideTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="project">Project</option><option value="custom">Custom</option></select></label>
@@ -2040,11 +2148,11 @@ Title: Park Villas
                     <span id="modal-media-badge" class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold"></span>
                     <p id="modal-counter" class="text-gray-500 text-xs font-bold"></p>
                 </div>
-                <div>
-                    <p id="modal-title" class="text-gray-950 text-2xl md:text-3xl font-black leading-tight"></p>
-                    <p id="modal-date" class="text-gray-500 text-xs font-bold mt-2"></p>
+                <div class="gallery-detail-copy">
+                    <p id="modal-title" class="gallery-detail-title text-gray-950 font-black"></p>
+                    <p id="modal-date" class="text-gray-500 text-xs font-bold"></p>
+                    <p id="modal-description" class="text-gray-700 text-sm leading-relaxed"></p>
                 </div>
-                <p id="modal-description" class="text-gray-700 text-sm leading-relaxed"></p>
                 <div id="modal-thumbnails" class="hidden grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 gap-2 pt-2"></div>
             </aside>
         </div>
@@ -2197,7 +2305,7 @@ Title: Park Villas
         const AD_DEFAULT_REPEAT_COUNT = 3;
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
-        const AD_DESKTOP_MIN_WIDTH = 1200;
+        const AD_DESKTOP_MIN_WIDTH = 1366;
         const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '' };
 
         function normalizeRegionType(value, projectName = '') {
@@ -2944,8 +3052,9 @@ Title: Park Villas
             const url = escapeHtml(ad.mediaUrl || '');
             const title = escapeHtml(ad.title || 'Advertisement');
             const dimensions = getAdDimensions(ad);
-            const style = `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
-            if (!url) return `<div class="p-4 text-xs text-gray-400" style="width:${dimensions.width}px;height:${dimensions.height}px;">Media yoxdur</div>`;
+            const responsiveStyle = `width:100%;height:var(--ad-height);object-fit:${dimensions.objectFit};`;
+            const style = options.responsive ? responsiveStyle : `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
+            if (!url) return `<div class="p-4 text-xs text-gray-400" style="${options.responsive ? 'width:100%;height:var(--ad-height);' : `width:${dimensions.width}px;height:${dimensions.height}px;`}">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
                 const loopAttr = options.loop === false ? '' : ' loop';
                 const dataRole = options.rotation ? ` data-ad-rotation-video="true" data-ad-id="${escapeHtml(ad.id || '')}"` : '';
@@ -3077,9 +3186,8 @@ Title: Park Villas
             console.log('Current Ad:', ad.id);
             trackAdView(ad);
             const encodedUrl = encodeURIComponent(ad.clickUrl || '');
-            const dimensions = getAdDimensions(ad);
-            const cardHtml = `<article class="desktop-ad-card" style="width:${dimensions.width}px;" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
-                ${renderAdMedia(ad, '', { loop: false, rotation: true })}
+            const cardHtml = `<article class="desktop-ad-card desktop-ad-card--responsive" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
+                ${renderAdMedia(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true })}
                 <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
             </article>`;
             left.innerHTML = (ad.position === 'left' || ad.position === 'both') ? cardHtml : '';
@@ -3099,7 +3207,7 @@ Title: Park Villas
 
         function dbAppToUi(a) {
             const [name, ...surnameParts] = String(a.fullname || '').split(' ');
-            return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', cvFile: a.cvFile || a.cv_file || '', date: new Date(a.createdAt || a.created_at || Date.now()).toLocaleDateString('az-AZ'), status: 'Gözləmədə' };
+            return { id: a.id, name: name || '', surname: surnameParts.join(' '), phone: a.phone || '', email: '', vacancy: a.vacancy?.title || '', fileName: a.cvFile || a.cv_file || '', cvFile: a.cvFile || a.cv_file || '', date: formatAzDate(a.createdAt || a.created_at || Date.now()), status: 'Gözləmədə' };
         }
 
         function userToUi(u) {
@@ -4335,9 +4443,21 @@ Title: Park Villas
             document.getElementById('seabreeze-properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        const AZ_MONTH_NAMES = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+
         function formatAzDate(value) {
-            const date = new Date(value || Date.now());
-            return new Intl.DateTimeFormat('az-AZ', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+            if (typeof value === 'string') {
+                const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (dateOnly) {
+                    const [, year, month, day] = dateOnly;
+                    return `${day} ${AZ_MONTH_NAMES[Number(month) - 1] || ''} ${year}`;
+                }
+            }
+            const date = value ? new Date(value) : new Date();
+            if (Number.isNaN(date.getTime())) return '—';
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = AZ_MONTH_NAMES[date.getMonth()] || '';
+            return `${day} ${month} ${date.getFullYear()}`;
         }
 
         function renderProjectYearOptions(projects) {
@@ -4891,11 +5011,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
-                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-5 text-white pointer-events-none">
-                                <div class="flex items-center justify-between gap-2 mb-2">${galleryBadge(item)}<span class="bg-white/90 text-gray-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full">${galleryItemMediaCount(item)} şəkil</span></div>
-                                <h4 class="font-black text-base line-clamp-1">${escapeHtml(item.title)}</h4>
-                                <p class="text-white/85 text-xs line-clamp-2">${escapeHtml(item.desc || '')}</p>
-                            </div>
+
                         </article>
                     `);
                 } else {
@@ -4907,11 +5023,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                             </div>
                             <div class="absolute top-4 left-4 bg-black/65 text-white rounded-full px-3 py-1 text-xs font-extrabold flex items-center gap-1"><i class="fa-solid fa-play"></i> Play</div>
                             ${item.duration ? `<div class="absolute top-4 right-4 bg-black/65 text-white rounded-full px-2.5 py-1 text-xs font-bold">${escapeHtml(item.duration)}</div>` : ''}
-                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-5 text-white pointer-events-none">
-                                <div class="mb-2">${galleryBadge(item)}</div>
-                                <h4 class="font-black text-base line-clamp-1">${escapeHtml(item.title)}</h4>
-                                <p class="text-white/85 text-xs line-clamp-2">${escapeHtml(item.desc || '')}</p>
-                            </div>
+                            <div class="absolute left-4 bottom-4 pointer-events-none">${galleryBadge(item)}</div>
                         </article>
                     `);
                 }
@@ -5010,7 +5122,7 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 vacancy: document.getElementById('app-vacancy').value,
                 fileName: selectedCvFile || "cv.pdf",
                 notes: document.getElementById('app-notes').value,
-                date: new Date().toLocaleDateString('az-AZ'),
+                date: formatAzDate(new Date()),
                 status: "Gözləmədə"
             };
 
@@ -5079,6 +5191,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         // LOGIN ENGINE
         async function handleUserRegister(e) {
             e.preventDefault();
+            if (isRegisterSubmitting) return;
+            isRegisterSubmitting = true;
+            setRegisterButtonLoading(true);
             const error = document.getElementById('register-error');
             try {
                 const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
@@ -5091,6 +5206,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             } catch (apiError) {
                 error.textContent = apiError.message || 'Qeydiyyat alınmadı.';
                 error.classList.remove('hidden');
+            } finally {
+                isRegisterSubmitting = false;
+                setRegisterButtonLoading(false);
             }
         }
 
@@ -5176,6 +5294,28 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
             showInlineModal('Avatar', `<img src="${src}" class="max-h-[70vh] mx-auto rounded-3xl object-contain">`);
         }
 
+        let isRegisterSubmitting = false;
+        let isListingSaveSubmitting = false;
+
+        function setSubmitButtonLoading(buttonId, isLoading, loadingText, defaultText) {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            button.disabled = isLoading;
+            button.classList.toggle('is-loading', isLoading);
+            button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+            button.innerHTML = isLoading
+                ? `<span class="button-spinner" aria-hidden="true"></span><span>${loadingText}</span>`
+                : defaultText;
+        }
+
+        function setRegisterButtonLoading(isLoading) {
+            setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', 'Qeydiyyatdan keç');
+        }
+
+        function setListingSaveButtonLoading(isLoading) {
+            setSubmitButtonLoading('listing-save-submit-btn', isLoading, 'Elan saxlanılır…', 'Yadda Saxla');
+        }
+
         function getLoginSubmitButton() {
             return document.getElementById('login-submit-btn');
         }
@@ -5228,6 +5368,8 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 setLoginButtonSuccess();
                 await wait(500);
                 await hydrateFromDatabase();
+                setLoginButtonLoading(false);
+                isLoginSubmitting = false;
                 switchTab('admin-dashboard');
                 return;
             } catch (apiError) {
@@ -6527,6 +6669,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
         // SAVE & REGISTER EVENTS
         async function handleSaveSeaBreezeItem(e) {
             e.preventDefault();
+            if (isListingSaveSubmitting) return;
+            isListingSaveSubmitting = true;
+            setListingSaveButtonLoading(true);
             const editId = document.getElementById('edit-sb-id').value;
             const title = document.getElementById('sb-title').value;
             const regionType = document.getElementById('sb-region-type')?.value || 'seabreeze';
@@ -6552,14 +6697,20 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
 
             if (!floorNumber || floorNumber < 1) {
                 alert('Yerləşdiyi mərtəbə minimum 1 olmalıdır.');
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
                 return;
             }
             if (!floor || floor < 1) {
                 alert('Ümumi mərtəbə sayı bütün əmlak növləri üçün minimum 1 olmalıdır.');
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
                 return;
             }
             if (category === 'LandSale' && (!land || land <= 0)) {
                 alert('Torpaq satışı üçün torpaq sahəsi daxil edilməlidir.');
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
                 return;
             }
 
@@ -6625,6 +6776,9 @@ Qiymət: ${Number.isFinite(price) ? price.toLocaleString('az-AZ') + ' AZN' : '�
                 renderSeaBreeze();
             } catch (error) {
                 alert('Elan API-yə yazılmadı: ' + error.message);
+            } finally {
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
             }
         }
 
