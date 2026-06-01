@@ -1021,34 +1021,103 @@
             font-size: .72rem;
             font-weight: 900;
         }
-        .listing-location-map,
-        .admin-location-map {
+        .map-frame {
+            position: relative;
             width: 100%;
             border-radius: 1.25rem;
             overflow: hidden;
             border: 1px solid rgba(127, 127, 255, .25);
+            background: linear-gradient(135deg, rgba(127,127,255,.16), rgba(15,23,42,.06));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 18px 45px rgba(15,23,42,.10);
+        }
+        .map-frame--admin {
+            border-color: rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 32px rgba(0,0,0,.18);
+        }
+        .listing-location-map,
+        .admin-location-map {
+            width: 100%;
+            overflow: hidden;
             background: #e2e8f0;
         }
         .listing-location-map {
-            height: 400px;
-            min-height: 400px;
+            height: 260px;
+            min-height: 260px;
         }
         .admin-location-map {
-            height: 280px;
-            min-height: 280px;
-            border-color: rgba(255,255,255,.12);
+            height: 220px;
+            min-height: 220px;
+        }
+        .map-expand-btn {
+            position: absolute;
+            top: .75rem;
+            right: .75rem;
+            z-index: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.72);
+            background: rgba(255,255,255,.94);
+            color: #0f172a;
+            padding: .48rem .78rem;
+            font-size: .72rem;
+            font-weight: 900;
+            box-shadow: 0 14px 30px rgba(15,23,42,.20);
+            backdrop-filter: blur(10px);
+            transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+        }
+        .map-expand-btn:hover {
+            transform: translateY(-1px);
+            background: var(--color-primary);
+            color: #fff;
+        }
+        .fullscreen-map-panel {
+            width: 90vw;
+            height: 90vh;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.22);
+            background: #0f172a;
+            box-shadow: 0 32px 90px rgba(0,0,0,.45);
+        }
+        #fullscreen-map-canvas {
+            width: 100%;
+            height: 100%;
         }
         .leaflet-container {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        @media (max-width: 767.98px) {
-            .listing-location-map {
-                height: 280px;
-                min-height: 280px;
+        @media (min-width: 1024px) {
+            .listing-detail-gallery-sticky {
+                position: sticky;
+                top: 90px;
+                align-self: start;
+                max-height: calc(92vh - 110px);
+                overflow: hidden;
             }
-            .admin-location-map {
+        }
+        @media (max-width: 1023.98px) {
+            .listing-location-map {
                 height: 220px;
                 min-height: 220px;
+            }
+        }
+        @media (max-width: 767.98px) {
+            .listing-location-map {
+                height: 200px;
+                min-height: 200px;
+            }
+            .admin-location-map {
+                height: 180px;
+                min-height: 180px;
+            }
+            .map-expand-btn {
+                top: .55rem;
+                right: .55rem;
+                padding: .42rem .62rem;
+                font-size: .68rem;
             }
         }
         @media (max-width: 480px) {
@@ -1501,7 +1570,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                             <div class="space-y-1">
                                 <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Otaq sayı *</label>
                                 <input type="number" id="sb-rooms" required min="1" value="2" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
@@ -1511,11 +1580,11 @@
                                 <input type="number" id="sb-area" required min="1" step="any" oninput="calculateSqPrice()" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mərtəbəsi *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide whitespace-nowrap">Mərt. *</label>
                                 <input type="number" id="sb-floor-number" required min="1" value="1" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                             <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Mərtəbə sayı *</label>
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide whitespace-nowrap">Mərt. sayı *</label>
                                 <input type="number" id="sb-floor" required min="1" value="1" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                             </div>
                         </div>
@@ -1551,8 +1620,7 @@
                             <strong>1 m² Üçün Qiymət:</strong> <span id="sb-calc-val">0 ₼</span>
                         </div>
 
-                        <div class="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                            <h4 class="text-sm font-black text-white">📍 Ünvan və xəritə</h4>
+                        <div class="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3">
                             <input type="hidden" id="sb-settlement">
                             <input type="hidden" id="sb-street-address">
                             <input type="hidden" id="sb-latitude">
@@ -1562,10 +1630,13 @@
                                 <input type="search" id="sb-location-search" list="location-search-examples" onkeydown="if(event.key==='Enter'){event.preventDefault(); searchAdminListingLocation();}" placeholder="🔍 Ünvan, metro və ya məkan axtar" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                 <div id="sb-location-results" class="hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-white/10 bg-[#0f172a]/95 p-2 text-xs shadow-2xl backdrop-blur"></div>
                             </label>
-                            <div id="sb-location-map" class="admin-location-map"></div>
+                            <div class="map-frame map-frame--admin">
+                                <button type="button" class="map-expand-btn" onclick="openFullscreenMap('admin')">⛶ Xəritəni böyüt</button>
+                                <div id="sb-location-map" class="admin-location-map"></div>
+                            </div>
                             <label id="sb-metro-wrap" class="block space-y-1">
                                 <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🚇 Metro stansiyası (istəyə bağlı)</span>
-                                <select id="sb-metro" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                <select id="sb-metro" class="w-full h-9 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                     <option value="">Metro seçilməyib</option>
                                 </select>
                             </label>
@@ -1602,17 +1673,17 @@
                             <textarea id="sb-desc" required rows="2" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Elan sahibi</label>
-                                <select id="sb-owner-type" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                        <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
+                            <div class="space-y-1 min-w-0">
+                                <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide whitespace-nowrap">Elan sahibi</label>
+                                <select id="sb-owner-type" class="w-full h-9 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                     <option value="owner">Əmlak sahibi</option>
                                     <option value="agent">Vasitəçi</option>
                                 </select>
                             </div>
-                            <label class="kupcha-control flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold sm:mt-5">
-                                <input type="checkbox" id="sb-has-document" class="accent-emerald-500">
-                                <span>Kupça / Çıxarış var</span>
+                            <label class="kupcha-control flex h-9 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 text-[13px] font-bold whitespace-nowrap">
+                                <input type="checkbox" id="sb-has-document" class="accent-emerald-500 shrink-0">
+                                <span class="whitespace-nowrap">Kupça / Çıxarış var</span>
                             </label>
                         </div>
 
@@ -2110,7 +2181,7 @@ Title: Park Villas
             </button>
             <div class="overflow-y-auto">
                 <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-0">
-                    <div class="bg-slate-950 p-3 md:p-5 space-y-3">
+                    <div class="bg-slate-950 p-3 md:p-5 space-y-3 listing-detail-gallery-sticky">
                         <div class="relative overflow-hidden rounded-[1.5rem] bg-slate-900 listing-detail-main-image">
                             <img id="p-modal-img" class="w-full h-full object-cover cursor-zoom-in" src="" alt="Elan şəkli">
                             <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/55 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">1 / 1</div>
@@ -2160,13 +2231,13 @@ Title: Park Villas
 
                         <div id="p-modal-location-section" class="rounded-[1.5rem] bg-slate-50 border border-slate-200 p-4 md:p-5 space-y-4">
                             <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">📍 Ünvan</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Rayon:</span><strong id="p-modal-district" class="text-gray-950"></strong></div>
-                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Qəsəbə:</span><strong id="p-modal-settlement" class="text-gray-950"></strong></div>
-                                <div><span class="block text-[10px] uppercase font-black text-gray-400">Metro:</span><strong id="p-modal-metro" class="text-gray-950"></strong></div>
-                                <div class="sm:col-span-2"><span class="block text-[10px] uppercase font-black text-gray-400">Tam ünvan:</span><strong id="p-modal-street-address" class="text-gray-950"></strong></div>
+                            <div class="text-sm">
+                                <div class="rounded-2xl bg-white border border-slate-200 px-4 py-3 shadow-sm"><strong id="p-modal-street-address" class="text-gray-950">—</strong></div>
                             </div>
-                            <div id="p-modal-location-map" class="listing-location-map hidden"></div>
+                            <div id="p-modal-map-frame" class="map-frame hidden">
+                                <button type="button" class="map-expand-btn" onclick="openFullscreenMap('detail')">⛶ Xəritəni böyüt</button>
+                                <div id="p-modal-location-map" class="listing-location-map"></div>
+                            </div>
                         </div>
 
                         <div class="space-y-2">
@@ -2294,6 +2365,13 @@ Title: Park Villas
     </div>
 
     <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
+    <div id="fullscreen-map-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[70] items-center justify-center p-3 md:p-6">
+        <div class="fullscreen-map-panel relative">
+            <button type="button" onclick="closeFullscreenMap()" class="absolute top-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">✕ Bağla</button>
+            <div id="fullscreen-map-canvas"></div>
+        </div>
+    </div>
+
     <div id="media-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 md:p-6">
         <button onclick="closeModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-brand-500 text-3xl z-50" aria-label="Bağla">
             <i class="fa-solid fa-xmark"></i>
@@ -4408,6 +4486,9 @@ Title: Park Villas
         let adminListingMarker = null;
         let detailListingMap = null;
         let detailListingMarker = null;
+        let fullscreenMap = null;
+        let fullscreenMapMarker = null;
+        let fullscreenMapSource = null;
 
         function isBakuSelectedForListing() {
             const region = document.getElementById('sb-region-type')?.value || '';
@@ -4461,10 +4542,7 @@ Title: Park Villas
             if (!el || typeof L === 'undefined') return;
             if (!adminListingMap) {
                 adminListingMap = L.map(el, { scrollWheelZoom: true }).setView(adminMapDefaultCenter(), 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(adminListingMap);
+                addOpenStreetMapLayer(adminListingMap);
                 adminListingMap.on('click', event => setAdminListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: false, reverse: true }));
             }
             setTimeout(() => adminListingMap.invalidateSize(), 80);
@@ -4541,22 +4619,27 @@ Title: Park Villas
             if (!keepResults) document.getElementById('sb-location-results')?.classList.add('hidden');
         }
 
+        function addOpenStreetMapLayer(map) {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
         function renderListingDetailMap(listing = {}) {
             const mapEl = document.getElementById('p-modal-location-map');
+            const frameEl = document.getElementById('p-modal-map-frame');
             const lat = Number(listing.latitude);
             const lng = Number(listing.longitude);
             const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
             if (!mapEl) return;
-            mapEl.classList.toggle('hidden', !hasCoordinates);
+            frameEl?.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates || typeof L === 'undefined') return;
             const point = [lat, lng];
             setTimeout(() => {
                 if (!detailListingMap) {
                     detailListingMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '&copy; OpenStreetMap contributors'
-                    }).addTo(detailListingMap);
+                    addOpenStreetMapLayer(detailListingMap);
                     detailListingMarker = L.marker(point).addTo(detailListingMap);
                 } else {
                     detailListingMap.setView(point, 15);
@@ -4565,6 +4648,71 @@ Title: Park Villas
                 }
                 detailListingMap.invalidateSize();
             }, 120);
+        }
+
+        function currentMapPoint(source) {
+            if (source === 'admin') {
+                const lat = Number(document.getElementById('sb-latitude')?.value);
+                const lng = Number(document.getElementById('sb-longitude')?.value);
+                if (Number.isFinite(lat) && Number.isFinite(lng)) return { point: [lat, lng], zoom: Math.max(adminListingMap?.getZoom?.() || 16, 15) };
+                return { point: adminListingMap?.getCenter ? [adminListingMap.getCenter().lat, adminListingMap.getCenter().lng] : adminMapDefaultCenter(), zoom: adminListingMap?.getZoom?.() || 12 };
+            }
+            const markerPoint = detailListingMarker?.getLatLng?.();
+            if (markerPoint) return { point: [markerPoint.lat, markerPoint.lng], zoom: detailListingMap?.getZoom?.() || 15 };
+            return { point: [40.4093, 49.8671], zoom: 12 };
+        }
+
+        function openFullscreenMap(source = 'detail') {
+            if (typeof L === 'undefined') return;
+            fullscreenMapSource = source;
+            const modal = document.getElementById('fullscreen-map-modal');
+            const canvas = document.getElementById('fullscreen-map-canvas');
+            if (!modal || !canvas) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            const { point, zoom } = currentMapPoint(source);
+            setTimeout(() => {
+                if (!fullscreenMap) {
+                    fullscreenMap = L.map(canvas, { scrollWheelZoom: true }).setView(point, zoom);
+                    addOpenStreetMapLayer(fullscreenMap);
+                    fullscreenMap.on('click', event => {
+                        if (fullscreenMapSource !== 'admin') return;
+                        setAdminListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: true, reverse: true });
+                        updateFullscreenMarker([event.latlng.lat, event.latlng.lng], true);
+                    });
+                } else {
+                    fullscreenMap.setView(point, zoom);
+                }
+                updateFullscreenMarker(point, source === 'admin');
+                fullscreenMap.invalidateSize();
+            }, 80);
+        }
+
+        function updateFullscreenMarker(point, draggable = false) {
+            if (!fullscreenMap || !Array.isArray(point)) return;
+            if (!fullscreenMapMarker) {
+                fullscreenMapMarker = L.marker(point, { draggable }).addTo(fullscreenMap);
+                fullscreenMapMarker.on('dragend', event => {
+                    if (fullscreenMapSource !== 'admin') return;
+                    const pos = event.target.getLatLng();
+                    setAdminListingCoordinates(pos.lat, pos.lng, { moveMap: true, reverse: true });
+                });
+            } else {
+                fullscreenMapMarker.setLatLng(point);
+                if (draggable) fullscreenMapMarker.dragging?.enable();
+                else fullscreenMapMarker.dragging?.disable();
+            }
+        }
+
+        function closeFullscreenMap() {
+            const modal = document.getElementById('fullscreen-map-modal');
+            modal?.classList.add('hidden');
+            modal?.classList.remove('flex');
+            setTimeout(() => {
+                fullscreenMap?.invalidateSize();
+                adminListingMap?.invalidateSize?.();
+                detailListingMap?.invalidateSize?.();
+            }, 80);
         }
 
         function handlePublicRegionFilterChange() {
@@ -5295,10 +5443,8 @@ Təşəkkür edirəm. 🙏`;
                 sqPriceEl.classList.add('hidden');
             }
 
-            document.getElementById('p-modal-district').textContent = p.district || '—';
-            document.getElementById('p-modal-settlement').textContent = p.settlement || '—';
-            document.getElementById('p-modal-metro').textContent = p.metroStation || '—';
-            document.getElementById('p-modal-street-address').textContent = p.streetAddress || '—';
+            const compactStreetAddress = p.streetAddress || getListingLocationLabel(p) || '—';
+            document.getElementById('p-modal-street-address').textContent = `📌 ${compactStreetAddress}`;
             const locationSection = document.getElementById('p-modal-location-section');
             const hasLocationInfo = Boolean(p.district || p.settlement || p.metroStation || p.streetAddress || (Number.isFinite(Number(p.latitude)) && Number.isFinite(Number(p.longitude))));
             locationSection?.classList.toggle('hidden', !hasLocationInfo);
