@@ -32,14 +32,6 @@ function parseDuration(value, fallback = DEFAULT_SLIDE_DURATION) {
   return parseRangeInteger(value, fallback, MIN_SLIDE_DURATION, MAX_SLIDE_DURATION);
 }
 
-function localizedStrings(body, field, existing = {}) {
-  return {
-    [`${field}Az`]: String(body[`${field}_az`] ?? body[`${field}Az`] ?? existing[`${field}Az`] ?? '').trim(),
-    [`${field}En`]: String(body[`${field}_en`] ?? body[`${field}En`] ?? existing[`${field}En`] ?? '').trim(),
-    [`${field}Ru`]: String(body[`${field}_ru`] ?? body[`${field}Ru`] ?? existing[`${field}Ru`] ?? '').trim(),
-    [`${field}Tr`]: String(body[`${field}_tr`] ?? body[`${field}Tr`] ?? existing[`${field}Tr`] ?? '').trim(),
-  };
-}
 
 function normalizeChoice(value, allowed, fallback) {
   const normalized = String(value || fallback).toLowerCase();
@@ -138,9 +130,7 @@ async function normalizePayload(body = {}, uploadedUrl = null, file = null, exis
 
   return {
     title,
-    ...localizedStrings(body, 'title', existing),
     description: slideType === 'project' ? '' : String(body.description ?? existing.description ?? '').trim(),
-    ...localizedStrings(body, 'description', existing),
     slideType,
     projectId: slideType === 'project' ? projectId : null,
     mediaType: inferMediaType(file, body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image', mediaUrl),
@@ -162,10 +152,6 @@ async function normalizePayload(body = {}, uploadedUrl = null, file = null, exis
     heroHeightTablet: 420,
     heroHeightMobile: 280,
     buttonText,
-    buttonTextAz: String(body.button_text_az ?? body.buttonTextAz ?? existing.buttonTextAz ?? '').trim(),
-    buttonTextEn: String(body.button_text_en ?? body.buttonTextEn ?? existing.buttonTextEn ?? '').trim(),
-    buttonTextRu: String(body.button_text_ru ?? body.buttonTextRu ?? existing.buttonTextRu ?? '').trim(),
-    buttonTextTr: String(body.button_text_tr ?? body.buttonTextTr ?? existing.buttonTextTr ?? '').trim(),
     buttonLink,
     displayOrder: parseInteger(body.display_order ?? body.displayOrder, existing.displayOrder ?? 0),
     slideDuration: parseDuration(body.slide_duration ?? body.slideDuration, existing.slideDuration ?? DEFAULT_SLIDE_DURATION),
@@ -183,9 +169,7 @@ function serializeHeroSlide(slide) {
   return {
     ...slide,
     title: dynamicTitle,
-    title_az: slide.titleAz, title_en: slide.titleEn, title_ru: slide.titleRu, title_tr: slide.titleTr,
     description: isProjectSlide ? '' : slide.description,
-    description_az: slide.descriptionAz, description_en: slide.descriptionEn, description_ru: slide.descriptionRu, description_tr: slide.descriptionTr,
     mediaType: isProjectSlide ? inferMediaType(null, 'image', dynamicMediaUrl) : slide.mediaType,
     mediaUrl: dynamicMediaUrl,
     buttonText: isProjectSlide ? 'Layihəyə Bax →' : slide.buttonText,
@@ -211,7 +195,6 @@ function serializeHeroSlide(slide) {
     hero_height_tablet: slide.heroHeightTablet,
     hero_height_mobile: slide.heroHeightMobile,
     button_text: isProjectSlide ? 'Layihəyə Bax →' : slide.buttonText,
-    button_text_az: slide.buttonTextAz, button_text_en: slide.buttonTextEn, button_text_ru: slide.buttonTextRu, button_text_tr: slide.buttonTextTr,
     button_link: dynamicButtonLink,
     display_order: slide.displayOrder,
     slide_duration: slide.slideDuration ?? DEFAULT_SLIDE_DURATION,

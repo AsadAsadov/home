@@ -45,14 +45,6 @@ function toBool(value) {
   return ['true', '1', 'yes', 'on', 'aktiv'].includes(String(value).toLowerCase());
 }
 
-function localizedStrings(body, field) {
-  return {
-    [`${field}Az`]: cleanString(body[`${field}_az`] ?? body[`${field}Az`]),
-    [`${field}En`]: cleanString(body[`${field}_en`] ?? body[`${field}En`]),
-    [`${field}Ru`]: cleanString(body[`${field}_ru`] ?? body[`${field}Ru`]),
-    [`${field}Tr`]: cleanString(body[`${field}_tr`] ?? body[`${field}Tr`]),
-  };
-}
 
 function cleanCurrency(value) {
   if (value === undefined || value === null || value === '') return undefined;
@@ -68,8 +60,7 @@ function toDecimal(value) {
 
 const serializers = {
   project: (body) => ({
-    title: cleanString(body.title ?? body.title_az ?? body.titleAz),
-    ...localizedStrings(body, 'title'),
+    title: cleanString(body.title),
     category: cleanString(body.category),
     deliveryDate: cleanString(body.delivery_date ?? body.deliveryDate),
     floorCount: cleanString(body.floor_count ?? body.floorCount),
@@ -77,12 +68,7 @@ const serializers = {
     apartmentCount: cleanString(body.apartment_count ?? body.apartmentCount),
     repairStatus: cleanString(body.repair_status ?? body.repairStatus),
     features: Array.isArray(body.features) ? body.features.map(cleanString).filter(Boolean).join(' / ') : cleanString(body.features),
-    featuresAz: cleanString(body.features_az ?? body.featuresAz),
-    featuresEn: cleanString(body.features_en ?? body.featuresEn),
-    featuresRu: cleanString(body.features_ru ?? body.featuresRu),
-    featuresTr: cleanString(body.features_tr ?? body.featuresTr),
-    description: cleanString(body.description ?? body.description_az ?? body.descriptionAz),
-    ...localizedStrings(body, 'description'),
+    description: cleanString(body.description),
     imageUrl: cleanString(body.image_url ?? body.imageUrl),
     images: parseJsonArray(body.images),
     displayOrder: toInt(body.display_order ?? body.displayOrder),
@@ -94,8 +80,7 @@ const serializers = {
     const numericArea = toDecimal(area);
     const price = toDecimal(body.price);
     return {
-      title: cleanString(body.title ?? body.title_az ?? body.titleAz),
-      ...localizedStrings(body, 'title'),
+      title: cleanString(body.title),
       listingType: cleanString(body.listing_type ?? body.listingType),
       propertyCategory: cleanString(body.property_category ?? body.propertyCategory),
       projectName: cleanString(body.project_name ?? body.projectName),
@@ -115,10 +100,8 @@ const serializers = {
       creditMonthlyPayment: toDecimal(body.credit_monthly_payment ?? body.creditMonthlyPayment),
       creditYears: toInt(body.credit_years ?? body.creditYears),
       imageUrl: cleanString(body.image_url ?? body.imageUrl),
-      description: cleanString(body.description ?? body.description_az ?? body.descriptionAz),
-      ...localizedStrings(body, 'description'),
+      description: cleanString(body.description),
       displayOrder: toInt(body.display_order ?? body.displayOrder),
-      listingCode: toInt(body.listing_code ?? body.listingCode),
       userId: toInt(body.user_id ?? body.userId),
       status: cleanStatus(body.status),
       featured: toBool(body.featured),
@@ -126,13 +109,11 @@ const serializers = {
     };
   },
   vacancy: (body) => ({
-    title: cleanString(body.title ?? body.title_az ?? body.titleAz),
-    ...localizedStrings(body, 'title'),
+    title: cleanString(body.title),
     employmentType: cleanString(body.employment_type ?? body.employmentType),
     salary: cleanString(body.salary),
     city: cleanString(body.city),
-    description: cleanString(body.description ?? body.description_az ?? body.descriptionAz),
-    ...localizedStrings(body, 'description'),
+    description: cleanString(body.description),
     isActive: toBool(body.is_active ?? body.isActive),
     slug: cleanString(body.slug),
   }),
