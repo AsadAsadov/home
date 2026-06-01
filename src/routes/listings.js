@@ -68,15 +68,7 @@ const LISTING_INPUT_LOG_FIELDS = [
 
 const LISTING_TEXT_PAYLOAD_FIELDS = [
   'title',
-  'titleAz',
-  'titleEn',
-  'titleRu',
-  'titleTr',
   'description',
-  'descriptionAz',
-  'descriptionEn',
-  'descriptionRu',
-  'descriptionTr',
   'projectName',
   'regionType',
   'city',
@@ -357,14 +349,9 @@ function orderedListingRows(rows) {
 }
 
 
-async function nextListingCode(tx) {
+async function generateUniqueListingCode(tx = prisma) {
   const result = await tx.listing.aggregate({ _max: { listingCode: true } });
-  return Math.max(Number(result._max.listingCode || 999), 999) + 1;
-}
-
-async function ensureListingCodeForData(tx, data) {
-  if (data.listingCode != null) return;
-  data.listingCode = await nextListingCode(tx);
+  return Math.max(Number(result._max.listingCode || 0), 0) + 1;
 }
 
 
@@ -448,7 +435,8 @@ function parseListingOrder(body) {
 
 async function listListings(req, res, extraWhere) {
   const q = String(req.query.q || '').trim();
-  const code = Number.parseInt(req.query.listingCode || req.query.code || ( /^\d+$/.test(q) ? q : ''), 10);
+  const normalizedCodeQuery = String(req.query.listingCode || req.query.code || (/^BH?\d+$/i.test(q) || /^\d+$/.test(q) ? q : '')).replace(/^BH/i, '');
+  const code = Number.parseInt(normalizedCodeQuery, 10);
   const searchWhere = q || Number.isInteger(code) ? { OR: [
     ...(q ? [
       { title: { contains: q, mode: 'insensitive' } },
@@ -549,8 +537,8 @@ router.post('/:id/view', optionalAuthenticate, asyncHandler(async (req, res) => 
 }));
 
 router.get('/code/:listingCode', optionalAuthenticate, asyncHandler(async (req, res) => {
-  const listingCode = Number.parseInt(req.params.listingCode, 10);
-  if (!Number.isInteger(listingCode) || listingCode < 1000) return res.status(400).json({ message: 'Invalid listing code.' });
+  const listingCode = Number.parseInt(String(req.params.listingCode || '').replace(/^BH/i, ''), 10);
+  if (!Number.isInteger(listingCode) || listingCode < 1) return res.status(400).json({ message: 'Invalid listing code.' });
   const data = await prisma.listing.findUnique({ where: { listingCode }, include });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
   const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
@@ -610,11 +598,21 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     let listing;
     try {
-      listing = await prisma.$transaction(async (tx) => {
-        const txPayload = { ...payload };
-        await ensureListingCodeForData(tx, txPayload);
-        return tx.listing.create({ data: txPayload, include });
-      });
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        try {
+          listing = await prisma.$transaction(async (tx) => {
+            const txPayload = { ...payload };
+            delete txPayload.listingCode;
+            txPayload.listingCode = await generateUniqueListingCode(tx);
+            return tx.listing.create({ data: txPayload, include });
+          });
+          break;
+        } catch (error) {
+          const isListingCodeDuplicate = error.code === 'P2002' && String(error.meta?.target || '').includes('listing_code');
+          if (!isListingCodeDuplicate || attempt === 3) throw error;
+          console.warn('[listings] listing_code duplicate during create, retrying', { attempt, code: error.code, meta: error.meta });
+        }
+      }
       createArgs.data = { ...payload, listingCode: listing.listingCode };
       console.log('LISTING INSERT OK', listing);
     } catch (error) {

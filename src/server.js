@@ -116,7 +116,7 @@ async function ensureSeoIdentifiers() {
     }
 
     const listings = await prisma.listing.findMany({ where: { listingCode: null }, orderBy: { id: 'asc' } });
-    let maxCode = Math.max(999, Number((await prisma.listing.aggregate({ _max: { listingCode: true } }))._max.listingCode || 999));
+    let maxCode = Math.max(0, Number((await prisma.listing.aggregate({ _max: { listingCode: true } }))._max.listingCode || 0));
     for (const listing of listings) {
       maxCode += 1;
       await prisma.listing.update({ where: { id: listing.id }, data: { listingCode: maxCode } });
