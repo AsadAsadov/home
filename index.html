@@ -136,8 +136,8 @@
             right: 1rem;
             bottom: 5rem;
             z-index: 61;
-            width: 4.15rem;
-            height: 4.15rem;
+            width: 3.15rem;
+            height: 3.15rem;
             border-radius: 9999px;
             display: none;
             align-items: center;
@@ -150,21 +150,27 @@
             font-weight: 900;
             letter-spacing: -.02em;
         }
-        .add-listing-fab span:first-child { font-size: 1.35rem; line-height: 1; }
-        .add-listing-fab span:last-child { font-size: .68rem; line-height: 1; }
+        .add-listing-fab span:first-child { font-size: 1rem; line-height: 1; }
+        .add-listing-fab span:last-child { font-size: .56rem; line-height: 1; }
         .add-listing-fab.is-visible { display: inline-flex; }
         @media (min-width: 768px) { .add-listing-fab { display: none !important; } }
         .public-listing-shell { max-width: 1200px; margin: 0 auto; }
         .public-form-card { background: rgba(255,255,255,.97); border: 1px solid rgba(207,207,255,.85); box-shadow: 0 24px 70px rgba(79,70,229,.13); }
+        .public-form-field { min-width: 0; }
         .public-form-label { display:block; font-size:12px; line-height:1.15; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.35rem; }
         .public-form-input { width:100%; height:2.75rem; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:0 .85rem; font-size:.86rem; color:#0f172a; outline:none; }
         .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(127,127,255,.14); }
+        .public-section-box { border-radius:1.5rem; border:1px solid #e2e8f0; background:#f8fafc; padding:1rem; }
+        .public-checkbox-pill { display:inline-flex; width:max-content; max-width:100%; align-items:center; gap:.5rem; border-radius:.85rem; border:1px solid rgba(220,38,38,.28); background:rgba(220,38,38,.08); color:#111827; padding:.62rem .85rem; font-size:.78rem; font-weight:900; white-space:nowrap; }
+        .public-checkbox-pill--document { border-color:rgba(16,185,129,.32); background:rgba(16,185,129,.10); }
+        .public-calc-box { border-radius:.9rem; border:1px solid rgba(127,127,255,.22); background:rgba(127,127,255,.10); padding:.85rem; font-size:.8rem; color:#0f172a; }
         .public-location-suggestions, .fullscreen-location-suggestions { max-height:260px; overflow-y:auto; scrollbar-width:thin; }
         .public-location-suggestion { display:block; width:100%; text-align:left; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:.75rem .85rem; color:#0f172a; transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease; }
         .public-location-suggestion:hover, .public-location-suggestion:focus-visible { background:#f4f4ff; border-color:var(--color-primary-border); transform:translateX(2px); outline:none; }
         .public-location-map { width:100%; height:320px; min-height:260px; border-radius:1.25rem; overflow:hidden; background:#e5e7eb; }
         .public-floor-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:.65rem; }
-        @media (min-width: 768px) { .public-floor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .public-form-label { font-size:13px; } }
+        .public-floor-grid > label { min-width:0; }
+        @media (min-width: 768px) { .public-floor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap:.75rem; } }
         .fullscreen-map-search { position:absolute; left:1rem; right:1rem; top:1rem; z-index:1001; max-width:680px; margin:0 auto; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -493,6 +499,26 @@
         main {
             color: var(--color-text-primary);
         }
+        .header-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+            min-height: 2.5rem;
+            padding: .625rem 1rem;
+            border-radius: .75rem;
+            font-size: .75rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--color-text-secondary) !important;
+            background: rgba(127,127,255,.10) !important;
+            border: 1px solid rgba(127,127,255,.16);
+            transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
+        }
+        .header-action-btn:hover { color:#fff !important; background: var(--color-primary) !important; border-color: var(--color-primary); transform: translateY(-1px); }
+        .header-action-btn--primary { color:#fff !important; background: var(--color-primary) !important; border-color: var(--color-primary); }
+        .header-action-btn--primary:hover { background: var(--color-primary-hover) !important; }
+        .nav-link { display:inline-flex; align-items:center; min-height:2.5rem; }
         .nav-link,
         #mobile-menu button,
         .text-gray-300,
@@ -5349,30 +5375,46 @@ Title: Park Villas
                 <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
                     <form onsubmit="submitPublicListing(event)" class="space-y-5">
+                        <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            <label><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
-                            <label><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
-                            <label><span class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
-                            <label><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <label><span class="public-form-label">Kateqoriya</span><select id="pl-category" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
-                            <label><span class="public-form-label">Elan növü</span><select id="pl-listing-type" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
-                            <label><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required class="public-form-input" placeholder="Məs: 185000"></label>
+                            <label class="public-form-field"><span class="public-form-label">Növ</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
+                            <label class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon / Layihə</span><select id="pl-district" class="public-form-input"></select></label>
                         </div>
                         <div class="public-floor-grid">
-                            <label><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
-                            <label><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required class="public-form-input" placeholder="m²"></label>
-                            <label><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
-                            <label><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
+                            <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
+                            <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
+                            <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
+                            <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
                         </div>
-                        <label><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="5" class="public-form-input h-auto py-3" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
-                        <div class="rounded-3xl bg-slate-50 border border-slate-200 p-3 md:p-4 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
+                            <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
+                        </div>
+                        <label class="public-checkbox-pill"><input type="checkbox" id="pl-is-credit" onchange="togglePublicCreditFields()" class="accent-red-600"><span>Kredit</span></label>
+                        <div id="pl-credit-fields" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3 public-section-box">
+                            <label class="public-form-field"><span class="public-form-label">İlkin ödəniş</span><input type="number" id="pl-credit-down" min="0" class="public-form-input"></label>
+                            <label class="public-form-field"><span class="public-form-label">Aylıq ödəniş</span><input type="number" id="pl-credit-monthly" min="0" class="public-form-input"></label>
+                            <label class="public-form-field"><span class="public-form-label">Müddət (il)</span><input type="number" id="pl-credit-years" min="1" class="public-form-input"></label>
+                        </div>
+                        <div id="pl-calc-result-box" class="public-calc-box"><strong>1 m² üçün qiymət:</strong> <span id="pl-calc-val">0 ₼</span></div>
+                        <div class="public-section-box space-y-3">
                             <input type="hidden" id="pl-settlement"><input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
-                            <label class="relative block"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
+                            <span class="public-form-label">Ünvan və xəritə</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
+                                <label class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
+                            </div>
+                            <label class="relative block public-form-field"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div>
                         </div>
-                        <div class="rounded-3xl bg-slate-50 border border-slate-200 p-4"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <div class="public-section-box"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <label class="public-form-field block"><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="5" class="public-form-input h-auto py-3" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
+                            <label class="public-form-field min-w-0"><span class="public-form-label">Elan sahibi</span><select id="pl-owner-type" class="public-form-input"><option value="owner">Əmlak sahibi</option><option value="agent">Vasitəçi</option></select></label>
+                            <label class="public-checkbox-pill public-checkbox-pill--document h-[2.75rem]"><input type="checkbox" id="pl-has-document" class="accent-emerald-500 shrink-0"><span>Kupça / Çıxarış var</span></label>
+                        </div>
                         <button id="pl-submit-btn" type="submit" class="async-submit-btn w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black py-4 transition"><span id="pl-submit-spinner" class="button-spinner hidden"></span><span id="pl-submit-text">Yerləşdir</span></button>
                     </form>
                 </div>`;
@@ -5388,6 +5430,8 @@ Title: Park Villas
             let options = region === 'seabreeze' ? getOfficialProjects().map(p=>p.title).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : SUMQAYIT_DISTRICTS));
             district.innerHTML = options.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
             document.getElementById('pl-metro')?.closest('label')?.classList.toggle('hidden', city !== 'Bakı' && region !== 'seabreeze');
+            const districtLabel = document.getElementById('pl-district-label');
+            if (districtLabel) districtLabel.textContent = region === 'seabreeze' ? 'Rayon / Layihə' : 'Rayon / Layihə';
             if (publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), 12);
         }
 
@@ -5471,6 +5515,28 @@ Title: Park Villas
         function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); const input=document.getElementById('pl-location-search'); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
         function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'◌ Elan göndərilir…':'Yerləşdir'; }
+        function togglePublicCreditFields() {
+            const enabled = document.getElementById('pl-is-credit')?.checked;
+            document.getElementById('pl-credit-fields')?.classList.toggle('hidden', !enabled);
+        }
+        function calculatePublicSqPrice() {
+            const area = parseFloat(document.getElementById('pl-area')?.value);
+            const price = parseFloat(document.getElementById('pl-price')?.value);
+            const listingType = document.getElementById('pl-listing-type')?.value || 'Satis';
+            const calcBox = document.getElementById('pl-calc-result-box');
+            if (!calcBox) return;
+            if (!isSaleListing(listingType)) {
+                calcBox.classList.add('hidden');
+                return;
+            }
+            calcBox.classList.remove('hidden');
+            const calcVal = document.getElementById('pl-calc-val');
+            if (area > 0 && price > 0 && calcVal) {
+                calcVal.textContent = formatPrice(Math.round(price / area), document.getElementById('pl-currency')?.value || 'AZN');
+            } else if (calcVal) {
+                calcVal.textContent = '0 ₼';
+            }
+        }
         async function submitPublicListing(event) {
             event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
             publicListingSubmitting=true; setPublicSubmitLoading(true);
@@ -5478,7 +5544,8 @@ Title: Park Villas
                 const regionType=document.getElementById('pl-region-type').value;
                 const city=document.getElementById('pl-city').value;
                 const district=document.getElementById('pl-district').value;
-                const payload={ title:[city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, ownerType:'owner', hasDocument:false };
+                const isCredit = document.getElementById('pl-is-credit')?.checked || false;
+                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file));
                 const saved = await apiRequest('/api/listings', 'POST', formData); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
@@ -5505,12 +5572,11 @@ Title: Park Villas
             if (activeUser) {
                 const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (İstifadəçi)`;
                 container.innerHTML = `
-                    <span class="text-xs text-gray-400">Xoş gəldiniz: <strong class="text-white">${welcomeName}</strong></span>
-                    <button onclick="navigateToCreateListing()" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1"><span>➕</span><span>Elan əlavə et</span></button>
-                    <button onclick="switchTab('admin-dashboard')" class="bg-white/10 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center space-x-1">
-                        <i class="fa-solid fa-chart-line"></i> <span>Kabinet</span>
-                    </button>
-                    <button onclick="logoutAdmin()" class="text-gray-400 hover:text-red-400 text-xs"><i class="fa-solid fa-sign-out-alt"></i></button>
+                    <span class="hidden xl:inline text-xs text-slate-500">Xoş gəldiniz: <strong class="text-slate-900">${welcomeName}</strong></span>
+                    <button onclick="navigateToMyListings()" class="header-action-btn"><span>❤️</span><span>Seçilmişlər</span></button>
+                    <button onclick="switchTab('admin-dashboard')" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Kabinet</span></button>
+                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
+                    <button onclick="logoutAdmin()" class="header-action-btn !px-3" aria-label="Çıxış"><i class="fa-solid fa-sign-out-alt"></i></button>
                 `;
                 mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${(activeUser.name || 'U')[0]}</div>`;
                 mobileActions.innerHTML = `
@@ -5520,7 +5586,7 @@ Title: Park Villas
                     <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
                 `;
             } else {
-                const btn = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md px-4 py-2 text-xs transition"><i class="fa-solid fa-sign-in-alt mr-1"></i> Giriş</button>`;
+                const btn = `<button onclick="switchTab('admin-login')" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-sign-in-alt"></i><span>Giriş</span></button>`;
                 container.innerHTML = btn;
                 mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
                 mobileActions.innerHTML = `<button onclick="switchTab('admin-login'); toggleMobileMenu()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md text-xs transition">Daxil Ol</button>`;
