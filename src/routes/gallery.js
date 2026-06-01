@@ -28,6 +28,14 @@ function mediaFiles(req) {
   return Object.values(req.files).flat();
 }
 
+const MEDIA_POSITION_X = new Set(['left', 'center', 'right']);
+const MEDIA_POSITION_Y = new Set(['top', 'center', 'bottom']);
+
+function normalizeMediaPosition(value, allowed, fallback = 'center') {
+  const normalized = String(value || '').trim().toLowerCase();
+  return allowed.has(normalized) ? normalized : fallback;
+}
+
 function localUploadUrl(file) {
   return file?.filename ? `/uploads/${file.filename}` : null;
 }
@@ -52,7 +60,7 @@ async function uploadGalleryFileWithFallback(file) {
   }
 }
 
-async function payload(req) {
+async function payload(req, existing = {}) {
   const { body } = req;
   const files = mediaFiles(req);
   const uploadedPairs = await Promise.all(files.map(async (file) => ({ file, url: await uploadGalleryFileWithFallback(file) })));
@@ -81,7 +89,24 @@ async function payload(req) {
     mediaUrls: mediaUrls.length ? mediaUrls : undefined,
     videoUrl: mediaType === 'video' ? (normalized.videoUrl ?? originalVideoUrl) : undefined,
     thumbnailUrl,
+    mediaPositionX: normalizeMediaPosition(body.media_position_x ?? body.mediaPositionX ?? existing.mediaPositionX, MEDIA_POSITION_X),
+    mediaPositionY: normalizeMediaPosition(body.media_position_y ?? body.mediaPositionY ?? existing.mediaPositionY, MEDIA_POSITION_Y),
   }).filter(([, v]) => v !== undefined));
+}
+
+function serializeGallery(item) {
+  if (!item) return item;
+  const mediaPositionX = item.mediaPositionX || 'center';
+  const mediaPositionY = item.mediaPositionY || 'center';
+  return {
+    ...item,
+    mediaPositionX,
+    mediaPositionY,
+    media_position_x: mediaPositionX,
+    media_position_y: mediaPositionY,
+    objectPosition: `${mediaPositionX} ${mediaPositionY}`,
+    preview: { objectPosition: `${mediaPositionX} ${mediaPositionY}`, updatesInstantly: true },
+  };
 }
 
 function positiveInt(value, fallback, max = 100) {
@@ -98,13 +123,13 @@ router.get('/', asyncHandler(async (req, res) => {
     prisma.gallery.findMany({ orderBy: { createdAt: 'desc' }, skip, take: limit }),
     prisma.gallery.count(),
   ]);
-  res.json({ items, total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
+  res.json({ items: items.map(serializeGallery), total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const data = await prisma.gallery.findUnique({ where: { id: Number(req.params.id) } });
   if (!data) return res.status(404).json({ message: 'Gallery item not found.' });
-  return res.json(data);
+  return res.json(serializeGallery(data));
 }));
 
 router.post('/', authenticate, authorize('admin'), upload.fields([
@@ -113,7 +138,7 @@ router.post('/', authenticate, authorize('admin'), upload.fields([
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
   const created = await prisma.gallery.create({ data: await payload(req) });
-  res.status(201).json(created);
+  res.status(201).json(serializeGallery(created));
 }));
 
 router.put('/:id', authenticate, authorize('admin'), upload.fields([
@@ -121,8 +146,11 @@ router.put('/:id', authenticate, authorize('admin'), upload.fields([
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
-  const updated = await prisma.gallery.update({ where: { id: Number(req.params.id) }, data: await payload(req) });
-  res.json(updated);
+  const id = Number(req.params.id);
+  const existing = await prisma.gallery.findUnique({ where: { id } });
+  if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
+  const updated = await prisma.gallery.update({ where: { id }, data: await payload(req, existing) });
+  res.json(serializeGallery(updated));
 }));
 
 router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {

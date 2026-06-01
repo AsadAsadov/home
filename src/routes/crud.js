@@ -39,6 +39,13 @@ function cleanStatus(value) {
   return ['pending', 'approved', 'rejected'].includes(normalized) ? normalized : undefined;
 }
 
+function cleanOwnerType(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (['owner', 'sahib', 'sahibinden', 'sahibindən', 'əmlak sahibi', 'emlak sahibi'].includes(normalized)) return 'owner';
+  if (['agent', 'vasitəçi', 'vasiteci', 'broker', 'realtor'].includes(normalized)) return 'agent';
+  return undefined;
+}
+
 function toBool(value) {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'boolean') return value;
@@ -83,6 +90,7 @@ const serializers = {
       title: cleanString(body.title),
       listingType: cleanString(body.listing_type ?? body.listingType),
       propertyCategory: cleanString(body.property_category ?? body.propertyCategory),
+      propertySubtype: cleanString(body.property_subtype ?? body.propertySubtype),
       projectName: cleanString(body.project_name ?? body.projectName),
       regionType: cleanString(body.region_type ?? body.regionType),
       city: cleanString(body.city),
@@ -96,6 +104,8 @@ const serializers = {
       pricePerM2: toDecimal(body.price_per_m2 ?? body.pricePerM2) ?? (numericArea && price ? price / numericArea : undefined),
       currency: cleanCurrency(body.currency),
       isCredit: toBool(body.is_credit ?? body.isCredit),
+      ownerType: cleanOwnerType(body.owner_type ?? body.ownerType),
+      hasDocument: toBool(body.has_document ?? body.hasDocument),
       creditDownPayment: toDecimal(body.credit_down_payment ?? body.creditDownPayment),
       creditMonthlyPayment: toDecimal(body.credit_monthly_payment ?? body.creditMonthlyPayment),
       creditYears: toInt(body.credit_years ?? body.creditYears),

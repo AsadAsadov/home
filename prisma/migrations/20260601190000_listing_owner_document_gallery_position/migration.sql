@@ -1,0 +1,8 @@
+ALTER TABLE "listings"
+  ADD COLUMN IF NOT EXISTS "owner_type" VARCHAR(20) NOT NULL DEFAULT 'owner',
+  ADD COLUMN IF NOT EXISTS "has_document" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "property_subtype" VARCHAR(30);
+
+ALTER TABLE "gallery"
+  ADD COLUMN IF NOT EXISTS "media_position_x" VARCHAR(20) NOT NULL DEFAULT 'center',
+  ADD COLUMN IF NOT EXISTS "media_position_y" VARCHAR(20) NOT NULL DEFAULT 'center';

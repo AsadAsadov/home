@@ -10,8 +10,8 @@ const router = express.Router();
 const POSITIONS = new Set(['left', 'right', 'both']);
 const MEDIA_TYPES = new Set(['image', 'gif', 'video']);
 const OBJECT_FITS = new Set(['cover', 'contain', 'fill']);
-const DEFAULT_AD_WIDTH = 180;
-const DEFAULT_AD_HEIGHT = 320;
+const DEFAULT_AD_WIDTH = 220;
+const DEFAULT_AD_HEIGHT = 550;
 const MIN_AD_WIDTH = 80;
 const MIN_AD_HEIGHT = 80;
 const MAX_AD_WIDTH = 1000;
@@ -101,6 +101,27 @@ function normalizePayload(body, uploadedUrl = null, existing = {}) {
 }
 
 
+function responsiveAdSizing(widthPx, heightPx) {
+  const ratio = Number((widthPx / heightPx).toFixed(4));
+  return {
+    baseWidthPx: widthPx,
+    baseHeightPx: heightPx,
+    aspectRatio: ratio,
+    css: {
+      width: 'clamp(220px, 15.625vw, 340px)',
+      height: 'clamp(550px, 33.854vw, 750px)',
+      maxWidth: 'min(100%, clamp(220px, 15.625vw, 340px))',
+    },
+    breakpoints: [
+      { viewportWidth: 1366, widthPx: 220, heightPx: 550 },
+      { viewportWidth: 1600, widthPx: 260, heightPx: 600 },
+      { viewportWidth: 1920, widthPx: 300, heightPx: 650 },
+      { viewportWidth: 2560, widthPx: 340, heightPx: 750 },
+    ],
+    layoutRules: { preserveAspectRatio: true, balancedSideColumns: true, noHorizontalScroll: true, noOverlap: true },
+  };
+}
+
 function serializeSiteAd(ad) {
   if (!ad) return ad;
   const widthPx = ad.widthPx ?? DEFAULT_AD_WIDTH;
@@ -123,6 +144,7 @@ function serializeSiteAd(ad) {
     width_px: widthPx,
     height_px: heightPx,
     object_fit: objectFit,
+    responsive: responsiveAdSizing(widthPx, heightPx),
   };
 }
 
