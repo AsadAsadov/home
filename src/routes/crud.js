@@ -65,6 +65,12 @@ function toDecimal(value) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function toCoordinate(value, min, max) {
+  const parsed = toDecimal(value);
+  if (parsed === undefined) return undefined;
+  return parsed >= min && parsed <= max ? parsed : undefined;
+}
+
 const serializers = {
   project: (body) => ({
     title: cleanString(body.title),
@@ -95,7 +101,12 @@ const serializers = {
       regionType: cleanString(body.region_type ?? body.regionType),
       city: cleanString(body.city),
       district: cleanString(body.district),
+      settlement: cleanString(body.settlement),
       neighborhood: cleanString(body.neighborhood),
+      metroStation: cleanString(body.metro_station ?? body.metroStation),
+      streetAddress: cleanString(body.street_address ?? body.streetAddress),
+      latitude: toCoordinate(body.latitude, -90, 90),
+      longitude: toCoordinate(body.longitude, -180, 180),
       roomCount: toInt(body.room_count ?? body.roomCount),
       area,
       floorNumber: toInt(body.floor_number ?? body.floorNumber),

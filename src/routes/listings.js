@@ -57,7 +57,12 @@ const LISTING_INPUT_LOG_FIELDS = [
   ['region_type', (body) => body.region_type ?? body.regionType],
   ['city', (body) => body.city],
   ['district', (body) => body.district],
+  ['settlement', (body) => body.settlement],
   ['neighborhood', (body) => body.neighborhood],
+  ['metro_station', (body) => body.metro_station ?? body.metroStation],
+  ['street_address', (body) => body.street_address ?? body.streetAddress],
+  ['latitude', (body) => body.latitude],
+  ['longitude', (body) => body.longitude],
   ['listing_type', (body) => body.listing_type ?? body.listingType],
   ['property_category', (body) => body.property_category ?? body.propertyCategory],
   ['property_subtype', (body) => body.property_subtype ?? body.propertySubtype],
@@ -76,7 +81,10 @@ const LISTING_TEXT_PAYLOAD_FIELDS = [
   'regionType',
   'city',
   'district',
+  'settlement',
   'neighborhood',
+  'metroStation',
+  'streetAddress',
   'listingType',
   'propertyCategory',
   'propertySubtype',
@@ -315,6 +323,11 @@ function compareListingFieldNames(body) {
     ['project_name', 'projectName'],
     ['region_type', 'regionType'],
     ['district', 'district'],
+    ['settlement', 'settlement'],
+    ['metro_station', 'metroStation'],
+    ['street_address', 'streetAddress'],
+    ['latitude', 'latitude'],
+    ['longitude', 'longitude'],
     ['room_count', 'roomCount'],
     ['area', 'area'],
     ['floor_number', 'floorNumber'],
@@ -355,9 +368,27 @@ async function attachListingUsers(listings) {
 function listingLocationLabel(listing) {
   if (!listing) return '';
   if (listing.regionType === 'seabreeze') {
-    return listing.projectName || listing.district || 'Sea Breeze';
+    return listing.projectName || listing.district || listing.settlement || 'Sea Breeze';
   }
-  return listing.neighborhood || listing.district || listing.city || listing.projectName || 'Digər ərazilər';
+  return listing.settlement || listing.neighborhood || listing.district || listing.city || listing.projectName || 'Digər ərazilər';
+}
+
+function listingLocationSummary(listing) {
+  const primary = listing?.settlement || listing?.district || listing?.neighborhood || listing?.city || listing?.projectName || '';
+  return {
+    primary,
+    district: listing?.district || '',
+    settlement: listing?.settlement || '',
+    metroStation: listing?.metroStation || '',
+    streetAddress: listing?.streetAddress || '',
+    latitude: listing?.latitude ?? null,
+    longitude: listing?.longitude ?? null,
+    hasCoordinates: Number.isFinite(Number(listing?.latitude)) && Number.isFinite(Number(listing?.longitude)),
+    cardLines: [
+      ...(primary ? [{ icon: '📍', label: primary }] : []),
+      ...(listing?.metroStation ? [{ icon: '🚇', label: listing.metroStation }] : []),
+    ],
+  };
 }
 
 function listingBadges(listing) {
@@ -383,6 +414,7 @@ function decorateListingUi(listings) {
   const rows = Array.isArray(listings) ? listings : [listings].filter(Boolean);
   rows.forEach((listing) => {
     listing.locationLabel = listingLocationLabel(listing);
+    listing.locationSummary = listingLocationSummary(listing);
     listing.badges = listingBadges(listing);
   });
   return listings;
@@ -414,6 +446,15 @@ const LISTING_CARD_CONTRACT = {
   hiddenFields: ['descriptionPreview'],
   badgeLayout: { position: 'top-right', direction: 'vertical', gapPx: 6, noOverlap: true },
 };
+
+const BAKU_METRO_STATIONS = [
+  '28 May', 'Nizami', 'Sahil', 'İçərişəhər', 'Gənclik', 'Nəriman Nərimanov', 'Ulduz',
+  'Koroğlu', 'Qara Qarayev', 'Neftçilər', 'Xalqlar Dostluğu', 'Əhmədli', 'Həzi Aslanov',
+  'Xətai', 'Cəfər Cabbarlı', 'Elmlər Akademiyası', 'İnşaatçılar', '20 Yanvar',
+  'Memar Əcəmi', 'Nəsimi', 'Azadlıq Prospekti', 'Dərnəgül', 'Avtovağzal', '8 Noyabr',
+];
+const BAKU_DISTRICTS = ['Yasamal', 'Binəqədi', 'Nərimanov', 'Nəsimi', 'Xətai', 'Sabunçu', 'Suraxanı', 'Qaradağ', 'Pirallahı', 'Səbail'];
+const SETTLEMENTS = ['Bilgəh', 'Mərdəkan', 'Buzovna', 'Hövsan', 'Masazır', 'Mehdiabad', 'Novxanı', 'Ramana', 'Zabrat', 'Kürdəxanı', 'Türkan', 'Şüvəlan'];
 
 function normalizeRegionType(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -499,6 +540,11 @@ async function listListings(req, res, extraWhere) {
       { title: { contains: q, mode: 'insensitive' } },
       { projectName: { contains: q, mode: 'insensitive' } },
       { description: { contains: q, mode: 'insensitive' } },
+      { city: { contains: q, mode: 'insensitive' } },
+      { district: { contains: q, mode: 'insensitive' } },
+      { settlement: { contains: q, mode: 'insensitive' } },
+      { metroStation: { contains: q, mode: 'insensitive' } },
+      { streetAddress: { contains: q, mode: 'insensitive' } },
     ] : []),
     ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
   ] } : undefined;
@@ -529,6 +575,15 @@ router.get('/options', (_req, res) => {
     ],
     documentField: { name: 'has_document', label: 'Kupça / Çıxarış var' },
     card: LISTING_CARD_CONTRACT,
+    location: {
+      mapProvider: 'OpenStreetMap + Leaflet',
+      searchProvider: 'Nominatim',
+      fields: ['district', 'settlement', 'metro_station', 'street_address', 'latitude', 'longitude'],
+      metroStations: BAKU_METRO_STATIONS,
+      districts: BAKU_DISTRICTS,
+      settlements: SETTLEMENTS,
+      mapHeights: { desktop: 400, mobile: 280 },
+    },
   });
 });
 
