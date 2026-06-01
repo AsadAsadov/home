@@ -133,11 +133,11 @@
 
         .add-listing-fab {
             position: fixed;
-            right: 1rem;
-            bottom: 5rem;
+            right: 20px;
+            bottom: 20px;
             z-index: 61;
-            width: 3.15rem;
-            height: 3.15rem;
+            width: 58px;
+            height: 58px;
             border-radius: 9999px;
             display: none;
             align-items: center;
@@ -151,12 +151,16 @@
             letter-spacing: -.02em;
         }
         .add-listing-fab span:first-child { font-size: 1rem; line-height: 1; }
-        .add-listing-fab span:last-child { font-size: .56rem; line-height: 1; }
+        .add-listing-fab span:last-child { font-size: .52rem; line-height: 1; }
         .add-listing-fab.is-visible { display: inline-flex; }
         @media (min-width: 768px) { .add-listing-fab { display: none !important; } }
         .public-listing-shell { max-width: 1200px; margin: 0 auto; }
         .public-form-card { background: rgba(255,255,255,.97); border: 1px solid rgba(207,207,255,.85); box-shadow: 0 24px 70px rgba(79,70,229,.13); }
         .public-form-field { min-width: 0; }
+        .public-form-grid { display:grid; grid-template-columns: minmax(0, 1fr); gap:.75rem; }
+        @media (min-width: 768px) { .public-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .public-form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .header-actions-row { display:flex; align-items:center; gap:12px; flex-wrap:nowrap; white-space:nowrap; min-width:max-content; }
         .public-form-label { display:block; font-size:12px; line-height:1.15; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.35rem; }
         .public-form-input { width:100%; height:2.75rem; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:0 .85rem; font-size:.86rem; color:#0f172a; outline:none; }
         .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(127,127,255,.14); }
@@ -513,9 +517,9 @@
             color: var(--color-text-secondary) !important;
             background: rgba(127,127,255,.10) !important;
             border: 1px solid rgba(127,127,255,.16);
-            transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
+            transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
         }
-        .header-action-btn:hover { color:#fff !important; background: var(--color-primary) !important; border-color: var(--color-primary); transform: translateY(-1px); }
+        .header-action-btn:hover { color:#fff !important; background: rgba(107,107,255,.92) !important; border-color: rgba(107,107,255,.95); transform: translateY(-1px); box-shadow:0 10px 22px rgba(127,127,255,.18); }
         .header-action-btn--primary { color:#fff !important; background: var(--color-primary) !important; border-color: var(--color-primary); }
         .header-action-btn--primary:hover { background: var(--color-primary-hover) !important; }
         .nav-link { display:inline-flex; align-items:center; min-height:2.5rem; }
@@ -1387,11 +1391,12 @@
                 </div>
 
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Sea Breeze Layihələri</button>
-                    <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya & Video</button>
-                    <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka Kalkulyatoru</button>
-                    <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
+                <div class="hidden md:flex items-center gap-6 whitespace-nowrap">
+                    <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">🏡 SeaBreeze Layihələri</button>
+                    <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">🏠 Elanlar</button>
+                    <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">🎥 Qalereya & Video</button>
+                    <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">🧮 İpoteka Kalkulyatoru</button>
+                    <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">ℹ️ Haqqımızda</button>
                     <button onclick="switchTab('career')" class="nav-link vacancy-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200" id="nav-career">
                         <span>Vakansiya</span>
                         <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
@@ -1400,8 +1405,8 @@
 
 
                 <!-- Session status -->
-                <div class="hidden md:flex items-center space-x-4">
-                    <div id="header-user-status" class="flex items-center space-x-3"></div>
+                <div class="hidden md:flex items-center flex-none">
+                    <div id="header-user-status" class="header-actions-row"></div>
                 </div>
 
                 <!-- Mobile Menu Button -->
@@ -1416,10 +1421,11 @@
 
         <!-- Mobile Dropdown Menu -->
         <div class="hidden md:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
-            <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Sea Breeze Layihələri</button>
-            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Qalereya & Video</button>
-            <button onclick="switchTab('mortgage'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">İpoteka Kalkulyatoru</button>
-            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">Haqqımızda</button>
+            <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🏡 SeaBreeze Layihələri</button>
+            <button onclick="switchTab('listings'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🏠 Elanlar</button>
+            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🎥 Qalereya & Video</button>
+            <button onclick="switchTab('mortgage'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🧮 İpoteka Kalkulyatoru</button>
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">ℹ️ Haqqımızda</button>
             <button onclick="switchTab('career'); toggleMobileMenu()" class="vacancy-cta flex w-full items-center justify-center gap-2 px-4 py-3 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200">
                 <span>Vakansiya</span>
                 <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
@@ -1497,12 +1503,21 @@
                 <div id="projects-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
             </div>
 
+        </section>
+
+        <!-- 2. LISTINGS SECTION -->
+        <section id="tab-listings" class="tab-content hidden space-y-8">
+            <div class="text-center md:text-left space-y-2">
+                <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Satış • Kirayə • Günlük kirayə</span>
+                <h1 class="text-3xl md:text-4xl font-black text-gray-900">🏠 Elanlar</h1>
+                <p class="text-gray-700 text-sm font-medium max-w-2xl">Bütün təsdiqlənmiş əmlak kartları bu ayrıca bölmədə toplanıb.</p>
+            </div>
             <!-- Agent Digər əraziləri Grid -->
-            <div class="space-y-6 pt-12 border-t border-white/5" id="agent-listings-area">
+            <div class="space-y-6 " id="agent-listings-area">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-white">Satış və Kirayə Digər əraziləri</h2>
-                        <p class="text-gray-400 text-xs font-light">Komandamızın təqdim etdiyi aktual, yoxlanılmış satış və kirayə elanları</p>
+                        <h2 class="text-2xl font-extrabold text-gray-900">Satış və Kirayə Elanları</h2>
+                        <p class="text-gray-600 text-xs font-light">Komandamızın təqdim etdiyi aktual, yoxlanılmış satış və kirayə elanları</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
@@ -1534,6 +1549,7 @@
                 </div>
                 <div id="listings-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
             </div>
+
         </section>
 
         <!-- 2. PORTFOLIO SECTION -->
@@ -2669,8 +2685,8 @@ Title: Park Villas
                         <button type="button" onclick="switchTab('seabreeze'); setTimeout(() => document.getElementById('agent-listings-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)" class="block text-left text-gray-600 hover:text-brand-600 transition">Satış və Kirayə</button>
                         <button type="button" onclick="switchTab('portfolio')" class="block text-left text-gray-600 hover:text-brand-600 transition">Qalereya</button>
                         <button type="button" onclick="switchTab('career')" class="block text-left text-gray-600 hover:text-brand-600 transition">Vakansiya</button>
-                        <button type="button" onclick="switchTab('home')" class="block text-left text-gray-600 hover:text-brand-600 transition">Haqqımızda</button>
-                        <button type="button" onclick="switchTab('mortgage')" class="block text-left text-gray-600 hover:text-brand-600 transition">İpoteka Kalkulyatoru</button>
+                        <button type="button" onclick="switchTab('home')" class="block text-left text-gray-600 hover:text-brand-600 transition">ℹ️ Haqqımızda</button>
+                        <button type="button" onclick="switchTab('mortgage')" class="block text-left text-gray-600 hover:text-brand-600 transition">🧮 İpoteka Kalkulyatoru</button>
                     </nav>
                 </div>
 
@@ -4466,7 +4482,7 @@ Title: Park Villas
                 const listings = await apiRequest('/api/listings?page=1&limit=100');
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
                 cacheData('listings', listingRows.map(dbListingToUi));
-                if (isTabAktiv('seabreeze')) renderSeaBreeze();
+                if (isTabAktiv('listings')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Digər ərazilər oxunmadı, cache istifadə olunur:', error.message);
             }
@@ -4479,7 +4495,7 @@ Title: Park Villas
             try {
                 const favorites = await apiRequest('/api/favorites').catch(() => []);
                 appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
-                if (isTabAktiv('seabreeze')) renderSeaBreeze();
+                if (isTabAktiv('listings')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Favoritlər oxunmadı:', error.message);
             }
@@ -5376,21 +5392,21 @@ Title: Park Villas
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
                     <form onsubmit="submitPublicListing(event)" class="space-y-5">
                         <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            <label class="public-form-field"><span class="public-form-label">Növ</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
-                            <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
+                        <div class="public-form-grid">
                             <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
-                            <label class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon / Layihə</span><select id="pl-district" class="public-form-input"></select></label>
-                        </div>
-                        <div class="public-floor-grid">
+                            <label class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
+                            <label class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Qəsəbə</span><input id="pl-settlement" type="text" class="public-form-input" placeholder="Qəsəbə / mikrorayon"></label>
+                            <label class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
+                            <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" onchange="togglePublicLandField()" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Elan növü</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
+                            <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
                             <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
                             <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
                             <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
-                            <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
+                            <label id="pl-land-wrap" class="public-form-field"><span class="public-form-label">Torpaq sahəsi (Sot)</span><input id="pl-land" type="number" min="0" step="any" class="public-form-input" placeholder="Məs: 4.5"></label>
                         </div>
                         <label class="public-checkbox-pill"><input type="checkbox" id="pl-is-credit" onchange="togglePublicCreditFields()" class="accent-red-600"><span>Kredit</span></label>
                         <div id="pl-credit-fields" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3 public-section-box">
@@ -5400,12 +5416,8 @@ Title: Park Villas
                         </div>
                         <div id="pl-calc-result-box" class="public-calc-box"><strong>1 m² üçün qiymət:</strong> <span id="pl-calc-val">0 ₼</span></div>
                         <div class="public-section-box space-y-3">
-                            <input type="hidden" id="pl-settlement"><input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
+                            <input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
                             <span class="public-form-label">Ünvan və xəritə</span>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <label class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
-                                <label class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
-                            </div>
                             <label class="relative block public-form-field"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div>
                         </div>
@@ -5419,6 +5431,7 @@ Title: Park Villas
                     </form>
                 </div>`;
             handlePublicListingRegionChange();
+            togglePublicLandField();
             setTimeout(initPublicListingMap, 120);
         }
 
@@ -5515,6 +5528,11 @@ Title: Park Villas
         function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); const input=document.getElementById('pl-location-search'); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
         function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'◌ Elan göndərilir…':'Yerləşdir'; }
+        function togglePublicLandField() {
+            const category = document.getElementById('pl-category')?.value || '';
+            const wrap = document.getElementById('pl-land-wrap');
+            if (wrap) wrap.classList.toggle('hidden', !['LandSale', 'Villa', 'Townhouse'].includes(category));
+        }
         function togglePublicCreditFields() {
             const enabled = document.getElementById('pl-is-credit')?.checked;
             document.getElementById('pl-credit-fields')?.classList.toggle('hidden', !enabled);
@@ -5545,7 +5563,7 @@ Title: Park Villas
                 const city=document.getElementById('pl-city').value;
                 const district=document.getElementById('pl-district').value;
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
-                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
+                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file));
                 const saved = await apiRequest('/api/listings', 'POST', formData); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
@@ -5570,9 +5588,7 @@ Title: Park Villas
             document.getElementById('add-listing-fab')?.classList.toggle('is-visible', Boolean(activeUser));
 
             if (activeUser) {
-                const welcomeName = activeUser.role === 'admin' ? 'Admin' : `${activeUser.name} (İstifadəçi)`;
                 container.innerHTML = `
-                    <span class="hidden xl:inline text-xs text-slate-500">Xoş gəldiniz: <strong class="text-slate-900">${welcomeName}</strong></span>
                     <button onclick="navigateToMyListings()" class="header-action-btn"><span>❤️</span><span>Seçilmişlər</span></button>
                     <button onclick="switchTab('admin-dashboard')" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Kabinet</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
@@ -5623,6 +5639,7 @@ Title: Park Villas
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
                 setupHomepageLazyLoaders();
+            } else if (tabId === 'listings') {
                 if (homepageHydration.listings) renderSeaBreeze();
             } else if (tabId === 'portfolio') {
                 renderPortfolio();
@@ -5641,8 +5658,8 @@ Title: Park Villas
                 loadAdminBackground();
             }
 
-            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : (tabId === 'create-listing' ? '/elan-elave-et' : (tabId === 'my-listings' ? '/menim-elanlarim' : '/'))));
-            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : (tabId === 'create-listing' ? 'Elan əlavə et' : (tabId === 'my-listings' ? 'Elanlarım' : SITE_NAME)))), path: routePath });
+            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : (tabId === 'listings' ? '/elanlar' : (tabId === 'create-listing' ? '/elan-elave-et' : (tabId === 'my-listings' ? '/menim-elanlarim' : '/')))));
+            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : (tabId === 'listings' ? 'Elanlar' : (tabId === 'create-listing' ? 'Elan əlavə et' : (tabId === 'my-listings' ? 'Elanlarım' : SITE_NAME))))), path: routePath });
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
@@ -9226,6 +9243,11 @@ Təşəkkür edirəm. 🙏`;
             if (userListingsMatch) { await renderPublicProfile(userListingsMatch[1], true); return; }
             const userMatch = path.match(/^\/user\/(\d+)\/?$/);
             if (userMatch) { await renderPublicProfile(userMatch[1], false); return; }
+            if (path === '/elanlar') {
+                switchTab('listings', { skipPush: true });
+                updateSeo({ title: 'Elanlar', path });
+                return;
+            }
             if (path === '/projects') {
                 switchTab('seabreeze', { skipPush: true });
                 document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -9250,7 +9272,7 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (path.startsWith('/listing/')) {
-                switchTab('seabreeze', { skipPush: true });
+                switchTab('listings', { skipPush: true });
                 const code = currentRouteValue();
                 let listing = appData.listings.find(item => String(item.listingCode || item.id) === String(code));
                 if (!listing) {
