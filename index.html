@@ -3684,51 +3684,196 @@ Title: Park Villas
             };
         }
 
-        async function hydrateFromDatabase() {
-            bootstrapCachedData();
+        const homepageHydration = {
+            critical: false,
+            observersReady: false,
+            projects: false,
+            heroSlides: false,
+            listings: false,
+            favorites: false,
+            gallery: false,
+            vacancies: false,
+            ads: false,
+            admin: false,
+            rawHeroSlides: null
+        };
+
+        function scheduleIdleTask(callback, timeout = 1200) {
+            if (typeof window.requestIdleCallback === 'function') {
+                return window.requestIdleCallback(callback, { timeout });
+            }
+            return window.setTimeout(() => callback({ didTimeout: true, timeRemaining: () => 0 }), Math.min(timeout, 300));
+        }
+
+        function runWhenSectionVisible(target, callback, options = {}) {
+            const element = typeof target === 'string' ? document.querySelector(target) : target;
+            if (!element) {
+                scheduleIdleTask(callback);
+                return;
+            }
+            if (typeof IntersectionObserver !== 'function') {
+                scheduleIdleTask(callback);
+                return;
+            }
+            let hasRun = false;
+            const observer = new IntersectionObserver((entries) => {
+                if (hasRun || !entries.some(entry => entry.isIntersecting)) return;
+                hasRun = true;
+                observer.disconnect();
+                callback();
+            }, { rootMargin: options.rootMargin || '350px 0px', threshold: options.threshold ?? 0.01 });
+            observer.observe(element);
+        }
+
+        function isTabActive(tabId) {
+            return !document.getElementById(`tab-${tabId}`)?.classList.contains('hidden');
+        }
+
+        async function loadHeroSlidesPriority() {
+            if (homepageHydration.heroSlides) return;
             try {
-                const [projects, listings, vacancies, gallery, heroSlides, applications, users, dashboardStats, favorites, ads, adStats] = await Promise.all([
-                    apiRequest('/api/projects?page=1&limit=100'),
-                    apiRequest('/api/listings?page=1&limit=100'),
-                    apiRequest('/api/vacancies'),
-                    apiRequest('/api/gallery?page=1&limit=18'),
-                    apiRequest('/api/hero-slides').catch(() => []),
-                    getAuthToken() ? apiRequest('/api/applications').catch(() => []) : Promise.resolve([]),
-                    getAuthToken() ? apiRequest('/api/users').catch(() => []) : Promise.resolve([]),
-                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null)),
-                    getAuthToken() ? apiRequest('/api/favorites').catch(() => []) : Promise.resolve([]),
-                    apiRequest('/api/site-ads').catch(() => []),
-                    activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
-                ]);
-                const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
-                const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
-                cacheData('projects', projectRows.map(dbProjectToUi));
-                cacheData('listings', listingRows.map(dbListingToUi));
-                cacheData('vacancies', vacancies.map(dbVacancyToUi));
-                const galleryRows = Array.isArray(gallery) ? gallery : (gallery.items || []);
-                galleryPagination = Array.isArray(gallery) ? { page: 1, limit: galleryRows.length || 18, total: galleryRows.length, totalPages: 1 } : { page: gallery.page || 1, limit: 18, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
-                cacheData('gallery', galleryRows.map(dbGalleryToUi));
+                const heroSlides = await apiRequest('/api/hero-slides').catch(() => []);
+                homepageHydration.rawHeroSlides = heroSlides;
                 cacheData('heroSlides', normalizeHeroSlides(heroSlides, false));
                 isHeroSlidesLoaded = true;
                 appData.heroSection = getRenderableHeroSlides()[0] || null;
+            } catch (error) {
+                console.warn('Hero slaydları oxunmadı, cache istifadə olunur:', error.message);
+                isHeroSlidesLoaded = appData.heroSlides.length > 0;
+            } finally {
+                homepageHydration.heroSlides = true;
+            }
+        }
+
+        async function loadProjectsPriority() {
+            if (homepageHydration.projects) return;
+            try {
+                const projects = await apiRequest('/api/projects?page=1&limit=100');
+                const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
+                cacheData('projects', projectRows.map(dbProjectToUi));
+            } catch (error) {
+                console.warn('Layihələr oxunmadı, cache istifadə olunur:', error.message);
+            } finally {
+                homepageHydration.projects = true;
+            }
+        }
+
+        async function loadListingsLazy() {
+            if (homepageHydration.listings) return;
+            homepageHydration.listings = true;
+            try {
+                const listings = await apiRequest('/api/listings?page=1&limit=100');
+                const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
+                cacheData('listings', listingRows.map(dbListingToUi));
+                if (isTabActive('seabreeze')) renderSeaBreeze();
+            } catch (error) {
+                console.warn('Elanlar oxunmadı, cache istifadə olunur:', error.message);
+            }
+            scheduleIdleTask(loadFavoritesLazy, 800);
+        }
+
+        async function loadFavoritesLazy() {
+            if (homepageHydration.favorites || !getAuthToken()) return;
+            homepageHydration.favorites = true;
+            try {
+                const favorites = await apiRequest('/api/favorites').catch(() => []);
+                appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
+                if (isTabActive('seabreeze')) renderSeaBreeze();
+            } catch (error) {
+                console.warn('Favoritlər oxunmadı:', error.message);
+            }
+        }
+
+        async function loadGalleryBackground() {
+            if (homepageHydration.gallery) return;
+            homepageHydration.gallery = true;
+            try {
+                const gallery = await apiRequest('/api/gallery?page=1&limit=18');
+                const galleryRows = Array.isArray(gallery) ? gallery : (gallery.items || []);
+                galleryPagination = Array.isArray(gallery)
+                    ? { page: 1, limit: galleryRows.length || 18, total: galleryRows.length, totalPages: 1 }
+                    : { page: gallery.page || 1, limit: 18, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
+                cacheData('gallery', galleryRows.map(dbGalleryToUi));
+                if (isTabActive('portfolio')) renderPortfolio();
+            } catch (error) {
+                console.warn('Qalereya oxunmadı, cache istifadə olunur:', error.message);
+            }
+        }
+
+        async function loadVacanciesBackground() {
+            if (homepageHydration.vacancies) return;
+            homepageHydration.vacancies = true;
+            try {
+                const vacancies = await apiRequest('/api/vacancies');
+                cacheData('vacancies', vacancies.map(dbVacancyToUi));
+                if (isTabActive('career')) renderCareerSection();
+            } catch (error) {
+                console.warn('Vakansiyalar oxunmadı, cache istifadə olunur:', error.message);
+            }
+        }
+
+        async function loadAdsBackground() {
+            if (homepageHydration.ads) return;
+            homepageHydration.ads = true;
+            try {
+                const [ads, adStats] = await Promise.all([
+                    apiRequest('/api/site-ads').catch(() => []),
+                    activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
+                ]);
+                cacheData('ads', (ads || []).map(dbAdToUi));
+                appData.adStats = adStats;
+                renderDesktopAds();
+            } catch (error) {
+                console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
+                renderDesktopAds();
+            }
+        }
+
+        async function loadAdminBackground() {
+            if (homepageHydration.admin || !getAuthToken()) return;
+            homepageHydration.admin = true;
+            try {
+                const [applications, users, dashboardStats] = await Promise.all([
+                    apiRequest('/api/applications').catch(() => []),
+                    apiRequest('/api/users').catch(() => []),
+                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
+                ]);
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
-                appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
-                cacheData('ads', (ads || []).map(dbAdToUi));
-                appData.adStats = adStats;
+                if (isTabActive('admin-dashboard')) renderAdminDashboard();
+            } catch (error) {
+                console.warn('Kabinet məlumatları oxunmadı:', error.message);
+            }
+        }
+
+        function setupHomepageLazyLoaders() {
+            if (homepageHydration.observersReady) return;
+            homepageHydration.observersReady = true;
+            scheduleIdleTask(loadAdsBackground, 700);
+            scheduleIdleTask(loadVacanciesBackground, 1200);
+            scheduleIdleTask(loadAdminBackground, 1600);
+            runWhenSectionVisible('#agent-listings-area', loadListingsLazy, { rootMargin: '500px 0px' });
+            runWhenSectionVisible('#tab-portfolio', loadGalleryBackground, { rootMargin: '500px 0px' });
+            runWhenSectionVisible('#tab-career', loadVacanciesBackground, { rootMargin: '500px 0px' });
+        }
+
+        async function hydrateFromDatabase() {
+            bootstrapCachedData();
+            renderOfficialProjectOptions();
+            try {
+                await Promise.all([loadHeroSlidesPriority(), loadProjectsPriority()]);
+            } finally {
+                if (homepageHydration.rawHeroSlides) {
+                    cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
+                    isHeroSlidesLoaded = true;
+                    appData.heroSection = getRenderableHeroSlides()[0] || null;
+                }
+                homepageHydration.critical = true;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
-                renderSeaBreeze();
-                renderPortfolio();
-                renderCareerSection();
-                renderDesktopAds();
-            } catch (error) {
-                console.warn('API məlumatları oxunmadı, yalnız lokal cache göstərilir:', error.message);
-                isHeroSlidesLoaded = false;
-                renderSeaBreezeHero();
-                renderDesktopAds();
+                setupHomepageLazyLoaders();
             }
         }
 
@@ -4020,15 +4165,19 @@ Title: Park Villas
             if (tabId === 'seabreeze') {
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
-                renderSeaBreeze();
+                setupHomepageLazyLoaders();
+                if (homepageHydration.listings) renderSeaBreeze();
             } else if (tabId === 'portfolio') {
                 renderPortfolio();
+                loadGalleryBackground();
             } else if (tabId === 'career') {
                 renderCareerSection();
+                loadVacanciesBackground();
             } else if (tabId === 'mortgage') {
                 calculateMortgage();
             } else if (tabId === 'admin-dashboard') {
                 renderAdminDashboard();
+                loadAdminBackground();
             }
 
             const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : '/'));
