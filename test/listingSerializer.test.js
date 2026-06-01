@@ -52,3 +52,28 @@ test('listing serializer maps region fields', () => {
   assert.equal(data.regionType, 'baki');
   assert.equal(data.district, 'Yasamal');
 });
+
+
+test('listing serializer maps owner, document, and subtype fields', () => {
+  const data = compact(serializers.listing({
+    title: 'Kupçalı vasitəçi elanı',
+    owner_type: 'Vasitəçi',
+    has_document: 'true',
+    property_subtype: 'Yeni tikili',
+  }));
+
+  assert.equal(data.ownerType, 'agent');
+  assert.equal(data.hasDocument, true);
+  assert.equal(data.propertySubtype, 'Yeni tikili');
+});
+
+test('listing serializer maps unchecked document flag to false', () => {
+  const data = compact(serializers.listing({
+    title: 'Kupçasız sahib elanı',
+    ownerType: 'Əmlak sahibi',
+    hasDocument: 'false',
+  }));
+
+  assert.equal(data.ownerType, 'owner');
+  assert.equal(data.hasDocument, false);
+});

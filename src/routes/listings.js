@@ -60,6 +60,9 @@ const LISTING_INPUT_LOG_FIELDS = [
   ['neighborhood', (body) => body.neighborhood],
   ['listing_type', (body) => body.listing_type ?? body.listingType],
   ['property_category', (body) => body.property_category ?? body.propertyCategory],
+  ['property_subtype', (body) => body.property_subtype ?? body.propertySubtype],
+  ['owner_type', (body) => body.owner_type ?? body.ownerType],
+  ['has_document', (body) => body.has_document ?? body.hasDocument],
   ['image_url', (body) => body.image_url ?? body.imageUrl],
   ['area', (body) => body.area],
   ['floor_count', (body) => body.floor_count ?? body.floorCount],
@@ -76,6 +79,8 @@ const LISTING_TEXT_PAYLOAD_FIELDS = [
   'neighborhood',
   'listingType',
   'propertyCategory',
+  'propertySubtype',
+  'ownerType',
   'imageUrl',
   'area',
   'floorCount',
@@ -304,6 +309,9 @@ function compareListingFieldNames(body) {
     ['title', 'title'],
     ['listing_type', 'listingType'],
     ['property_category', 'propertyCategory'],
+    ['property_subtype', 'propertySubtype'],
+    ['owner_type', 'ownerType'],
+    ['has_document', 'hasDocument'],
     ['project_name', 'projectName'],
     ['region_type', 'regionType'],
     ['district', 'district'],
@@ -344,6 +352,42 @@ async function attachListingUsers(listings) {
   return listings;
 }
 
+function listingLocationLabel(listing) {
+  if (!listing) return '';
+  if (listing.regionType === 'seabreeze') {
+    return listing.projectName || listing.district || 'Sea Breeze';
+  }
+  return listing.neighborhood || listing.district || listing.city || listing.projectName || 'Digər ərazilər';
+}
+
+function listingBadges(listing) {
+  const badges = [];
+  if (listing?.listingType) {
+    badges.push({ key: 'listing_type', label: String(listing.listingType).toUpperCase(), background: '#111827', color: '#FFFFFF', fontWeight: 700 });
+  }
+  if (listing?.isCredit) {
+    badges.push({ key: 'credit', label: 'KREDİTLƏ', background: '#DC2626', color: '#FFFFFF', fontWeight: 600 });
+  }
+  if (listing?.hasDocument) {
+    badges.push({ key: 'document', label: 'KUPÇA VAR', background: '#16A34A', color: '#FFFFFF', fontWeight: 600 });
+  }
+  if (listing?.ownerType === 'agent') {
+    badges.push({ key: 'owner_type', label: 'VASİTƏÇİ', background: '#F59E0B', color: '#111827', fontWeight: 600 });
+  } else {
+    badges.push({ key: 'owner_type', label: 'SAHİBİNDƏN', background: '#2563EB', color: '#FFFFFF', fontWeight: 600 });
+  }
+  return badges.map((badge, index) => ({ ...badge, stackIndex: index }));
+}
+
+function decorateListingUi(listings) {
+  const rows = Array.isArray(listings) ? listings : [listings].filter(Boolean);
+  rows.forEach((listing) => {
+    listing.locationLabel = listingLocationLabel(listing);
+    listing.badges = listingBadges(listing);
+  });
+  return listings;
+}
+
 function orderedListingRows(rows) {
   return [...rows].sort((a, b) => (listingSortValue(a.displayOrder, listingSortValue(a.id)) - listingSortValue(b.displayOrder, listingSortValue(b.id))) || (listingSortValue(a.id) - listingSortValue(b.id)));
 }
@@ -356,12 +400,25 @@ async function generateUniqueListingCode(tx = prisma) {
 
 
 const REGION_TYPES = new Set(['seabreeze', 'general', 'baki', 'absheron', 'sumqayit']);
-const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Ümumi', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
+const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Digər ərazilər', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
+const REGION_SELECTOR_OPTIONS = [
+  { value: 'seabreeze', label: 'Sea Breeze', categories: ['Mənzil', 'Villa', 'Townhouse', 'Penthouse'] },
+  { value: 'general', label: 'Digər ərazilər', cities: [
+    { value: 'baki', label: 'Bakı' },
+    { value: 'absheron', label: 'Abşeron' },
+    { value: 'sumqayit', label: 'Sumqayıt' },
+  ], categories: ['Yeni tikili', 'Köhnə tikili', 'Həyət evi', 'Villa', 'Obyekt', 'Ofis', 'Torpaq'] },
+];
+const LISTING_CARD_CONTRACT = {
+  visibleFields: ['image', 'price', 'area', 'rooms', 'location', 'badges'],
+  hiddenFields: ['descriptionPreview'],
+  badgeLayout: { position: 'top-right', direction: 'vertical', gapPx: 6, noOverlap: true },
+};
 
 function normalizeRegionType(value) {
   const normalized = String(value || '').trim().toLowerCase();
   if (['sea breeze', 'sea-breeze', 'seabreeze'].includes(normalized)) return 'seabreeze';
-  if (['general', 'umumi', 'ümumi'].includes(normalized)) return 'general';
+  if (['general', 'elanlar', 'digər ərazilər', 'diger eraziler', 'umumi', 'ümumi'].includes(normalized)) return 'general';
   if (['baki', 'bakı'].includes(normalized)) return 'baki';
   if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
   if (['sumqayit', 'sumqayıt'].includes(normalized)) return 'sumqayit';
@@ -458,8 +515,22 @@ async function listListings(req, res, extraWhere) {
     prisma.listing.count({ where }),
   ]);
   await attachListingUsers(data);
+  decorateListingUi(data);
   res.json({ data: orderedListingRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
 }
+
+
+router.get('/options', (_req, res) => {
+  res.json({
+    regions: REGION_SELECTOR_OPTIONS,
+    ownerTypes: [
+      { value: 'owner', label: 'Əmlak sahibi', badge: 'SAHİBİNDƏN' },
+      { value: 'agent', label: 'Vasitəçi', badge: 'VASİTƏÇİ' },
+    ],
+    documentField: { name: 'has_document', label: 'Kupça / Çıxarış var' },
+    card: LISTING_CARD_CONTRACT,
+  });
+});
 
 router.get('/', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res)));
 router.get('/sea-breeze', optionalAuthenticate, asyncHandler(async (req, res) => listListings(req, res, { regionType: 'seabreeze' })));
@@ -478,6 +549,7 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 
   const data = await prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include });
   await attachListingUsers(data);
+  decorateListingUi(data);
   res.json({ ok: true, data: orderedListingRows(data) });
 }));
 
@@ -491,6 +563,7 @@ router.patch('/:id/approve', authenticate, authorize('admin'), asyncHandler(asyn
     include,
   });
   await attachListingUsers(updated);
+  decorateListingUi(updated);
   res.json(updated);
 }));
 
@@ -503,6 +576,7 @@ router.patch('/:id/reject', authenticate, authorize('admin'), asyncHandler(async
     include,
   });
   await attachListingUsers(updated);
+  decorateListingUi(updated);
   res.json(updated);
 }));
 
@@ -515,6 +589,7 @@ router.patch('/:id/deactivate', authenticate, authorize('admin'), asyncHandler(a
     include,
   });
   await attachListingUsers(updated);
+  decorateListingUi(updated);
   res.json(updated);
 }));
 
@@ -544,7 +619,38 @@ router.get('/code/:listingCode', optionalAuthenticate, asyncHandler(async (req, 
   const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
   if (!canSee) return res.status(404).json({ message: 'Record not found.' });
   await attachListingUsers(data);
+  decorateListingUi(data);
   return res.json(data);
+}));
+
+
+router.get('/:id/navigation', optionalAuthenticate, asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const regionWhere = listingRegionFilterWhere(req.query);
+  const q = String(req.query.q || '').trim();
+  const searchWhere = q ? { OR: [
+    { title: { contains: q, mode: 'insensitive' } },
+    { projectName: { contains: q, mode: 'insensitive' } },
+    { description: { contains: q, mode: 'insensitive' } },
+  ] } : undefined;
+  const creditValue = req.query.credit ?? req.query.is_credit ?? req.query.isCredit;
+  const creditWhere = ['true', '1', 'yes', 'on'].includes(String(creditValue || '').toLowerCase()) ? { isCredit: true } : undefined;
+  const pieces = [regionWhere, searchWhere, creditWhere].filter(Boolean);
+  const where = listingVisibilityWhere(req, pieces.length ? { AND: pieces } : undefined);
+  const rows = await prisma.listing.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include, take: 1000 });
+  await attachListingUsers(rows);
+  decorateListingUi(rows);
+  const ordered = orderedListingRows(rows);
+  const index = ordered.findIndex((listing) => String(listing.id) === String(id));
+  if (index === -1) return res.status(404).json({ message: 'Record not found in current listing set.' });
+  res.json({
+    currentIndex: index,
+    total: ordered.length,
+    previous: index > 0 ? ordered[index - 1] : null,
+    next: index < ordered.length - 1 ? ordered[index + 1] : null,
+    navigation: { desktop: 'side', mobile: 'bottom', keyboard: { previous: 'ArrowLeft', next: 'ArrowRight' }, reload: false, transition: 'smooth' },
+  });
 }));
 
 router.get('/:id', optionalAuthenticate, asyncHandler(async (req, res) => {
@@ -555,6 +661,7 @@ router.get('/:id', optionalAuthenticate, asyncHandler(async (req, res) => {
   const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
   if (!canSee) return res.status(404).json({ message: 'Record not found.' });
   await attachListingUsers(data);
+  decorateListingUi(data);
   return res.json(data);
 }));
 
@@ -645,6 +752,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
     await logUserActivity(prisma, req.auth.id, 'create_listing');
     await attachListingUsers(savedListing || listing);
+    decorateListingUi(savedListing || listing);
     return res.status(201).json(savedListing || listing);
   } catch (error) {
     logListingApiError(error);
@@ -700,6 +808,7 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
   });
   await logUserActivity(prisma, req.auth.id, 'edit_listing');
   await attachListingUsers(updated);
+  decorateListingUi(updated);
   res.json(updated);
 }));
 

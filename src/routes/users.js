@@ -145,11 +145,30 @@ router.delete('/me/avatar', authenticate, asyncHandler(async (req, res) => {
   res.json({ user: publicUser(user) });
 }));
 
-router.get('/', authenticate, authorize('admin'), asyncHandler(async (_req, res) => {
-  const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+router.get('/', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const q = String(req.query.q || req.query.search || '').trim();
+  const users = await prisma.user.findMany({
+    where: q ? { OR: [
+      { fullname: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+    ] } : undefined,
+    orderBy: { createdAt: 'desc' },
+  });
   const safeUsers = users.map(publicUser);
   await attachUserStats(safeUsers);
-  safeUsers.forEach((user) => { user.profileCompletion = profileCompletion(user); });
+  safeUsers.forEach((user) => {
+    user.profileCompletion = profileCompletion(user);
+    user.crmCard = {
+      name: user.fullname,
+      phone: user.phone,
+      email: user.email,
+      registrationDate: user.createdAt,
+      lastLogin: user.lastLogin,
+      role: user.role,
+      activeStatus: user.isActive ? 'active' : 'inactive',
+    };
+  });
   res.json(safeUsers);
 }));
 

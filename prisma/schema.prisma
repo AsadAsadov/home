@@ -8,22 +8,22 @@ datasource db {
 }
 
 model Project {
-  id             Int      @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   title          String
   category       String?
-  deliveryDate   String?  @map("delivery_date")
-  floorCount     String?  @map("floor_count")
+  deliveryDate   String?     @map("delivery_date")
+  floorCount     String?     @map("floor_count")
   area           String?
-  apartmentCount String?  @map("apartment_count")
-  repairStatus   String?  @map("repair_status")
+  apartmentCount String?     @map("apartment_count")
+  repairStatus   String?     @map("repair_status")
   features       String?
-  description    String?  @db.Text
-  imageUrl       String?  @map("image_url") @db.Text
+  description    String?     @db.Text
+  imageUrl       String?     @map("image_url") @db.Text
   images         Json?
-  displayOrder   Int?     @map("display_order")
-  slug           String?  @unique
-  featuredInHero Boolean  @default(false) @map("featured_in_hero")
-  createdAt      DateTime @default(now()) @map("created_at")
+  displayOrder   Int?        @map("display_order")
+  slug           String?     @unique
+  featuredInHero Boolean     @default(false) @map("featured_in_hero")
+  createdAt      DateTime    @default(now()) @map("created_at")
   heroSlides     HeroSlide[]
 
   @@index([displayOrder, id])
@@ -31,42 +31,45 @@ model Project {
 }
 
 model Listing {
-  id               BigInt         @id @default(autoincrement())
-  title            String
-  listingType      String?        @map("listing_type")
-  propertyCategory String?        @map("property_category")
-  projectName      String?        @map("project_name")
-  regionType       String?        @map("region_type")
-  city             String?
-  district         String?
-  neighborhood     String?
-  roomCount        Int?           @map("room_count")
-  area             String?
-  floorNumber      Int?           @map("floor_number")
-  floorCount       String?        @map("floor_count")
-  price            Decimal?       @db.Decimal(14, 2)
-  pricePerM2       Decimal?       @map("price_per_m2") @db.Decimal(12, 2)
-  currency         String         @default("AZN")
-  isCredit         Boolean        @default(false) @map("is_credit")
-  creditDownPayment Decimal?      @map("credit_down_payment") @db.Decimal(14, 2)
-  creditMonthlyPayment Decimal?   @map("credit_monthly_payment") @db.Decimal(14, 2)
-  creditYears      Int?           @map("credit_years")
-  imageUrl         String?        @map("image_url") @db.Text
-  description      String?        @db.Text
-  displayOrder     Int?           @map("display_order")
-  listingCode      Int?           @unique @map("listing_code")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  userId           BigInt?        @map("user_id")
-  status           String         @default("pending")
-  approvedAt       DateTime?      @map("approved_at")
-  approvedBy       BigInt?        @map("approved_by")
-  viewCount        Int            @default(0) @map("view_count")
-  favoritesCount   Int            @default(0) @map("favorites_count")
-  featured         Boolean        @default(false)
-  vip              Boolean        @default(false)
-  images           ListingImage[]
-  views            ListingView[]
-  favorites        Favorite[]
+  id                   BigInt         @id @default(autoincrement())
+  title                String
+  listingType          String?        @map("listing_type")
+  propertyCategory     String?        @map("property_category")
+  propertySubtype      String?        @map("property_subtype")
+  projectName          String?        @map("project_name")
+  regionType           String?        @map("region_type")
+  city                 String?
+  district             String?
+  neighborhood         String?
+  roomCount            Int?           @map("room_count")
+  area                 String?
+  floorNumber          Int?           @map("floor_number")
+  floorCount           String?        @map("floor_count")
+  price                Decimal?       @db.Decimal(14, 2)
+  pricePerM2           Decimal?       @map("price_per_m2") @db.Decimal(12, 2)
+  currency             String         @default("AZN")
+  isCredit             Boolean        @default(false) @map("is_credit")
+  ownerType            String         @default("owner") @map("owner_type")
+  hasDocument          Boolean        @default(false) @map("has_document")
+  creditDownPayment    Decimal?       @map("credit_down_payment") @db.Decimal(14, 2)
+  creditMonthlyPayment Decimal?       @map("credit_monthly_payment") @db.Decimal(14, 2)
+  creditYears          Int?           @map("credit_years")
+  imageUrl             String?        @map("image_url") @db.Text
+  description          String?        @db.Text
+  displayOrder         Int?           @map("display_order")
+  listingCode          Int?           @unique @map("listing_code")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  userId               BigInt?        @map("user_id")
+  status               String         @default("pending")
+  approvedAt           DateTime?      @map("approved_at")
+  approvedBy           BigInt?        @map("approved_by")
+  viewCount            Int            @default(0) @map("view_count")
+  favoritesCount       Int            @default(0) @map("favorites_count")
+  featured             Boolean        @default(false)
+  vip                  Boolean        @default(false)
+  images               ListingImage[]
+  views                ListingView[]
+  favorites            Favorite[]
 
   @@index([displayOrder, id])
   @@index([status], map: "idx_listings_status")
@@ -140,16 +143,18 @@ model Application {
 }
 
 model Gallery {
-  id           Int       @id @default(autoincrement())
-  title        String
-  description  String?   @db.Text
-  mediaType    MediaType @map("media_type")
-  imageUrl     String?   @map("image_url") @db.Text
-  videoUrl     String?   @map("video_url") @db.Text
-  thumbnailUrl String?   @map("thumbnail_url") @db.Text
-  mediaUrls    Json?     @map("media_urls")
-  images       Json?
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String?   @db.Text
+  mediaType      MediaType @map("media_type")
+  imageUrl       String?   @map("image_url") @db.Text
+  videoUrl       String?   @map("video_url") @db.Text
+  thumbnailUrl   String?   @map("thumbnail_url") @db.Text
+  mediaUrls      Json?     @map("media_urls")
+  images         Json?
+  mediaPositionX String    @default("center") @map("media_position_x")
+  mediaPositionY String    @default("center") @map("media_position_y")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   @@map("gallery")
 }
@@ -223,36 +228,36 @@ model HeroSection {
 }
 
 model HeroSlide {
-  id                    Int      @id @default(autoincrement())
-  title                 String
-  description           String?  @db.Text
-  slideType             String   @default("custom") @map("slide_type")
-  projectId             Int?     @map("project_id")
-  mediaType             String   @default("image") @map("media_type")
-  mediaUrl              String   @map("media_url") @db.Text
-  badgeText             String?  @map("badge_text")
-  badgeColor            String?  @default("#FFFFFF") @map("badge_color")
-  badgeBackground       String?  @default("rgba(127,127,255,0.92)") @map("badge_background")
-  titleColor            String?  @default("#FFFFFF") @map("title_color")
-  titleFontSize         Int      @default(48) @map("title_font_size")
-  descriptionColor      String?  @default("#F8FAFC") @map("description_color")
-  descriptionFontSize   Int      @default(18) @map("description_font_size")
-  buttonColor           String?  @default("#7F7FFF") @map("button_color")
-  buttonTextColor       String?  @default("#FFFFFF") @map("button_text_color")
-  panelBackground       String?  @default("#111827") @map("panel_background")
-  panelBlur             Int      @default(18) @map("panel_blur")
-  panelOpacity          Int      @default(72) @map("panel_opacity")
-  panelPosition         String   @default("bottom-center") @map("panel_position")
-  heroHeightDesktop     Int      @default(560) @map("hero_height_desktop")
-  heroHeightTablet      Int      @default(420) @map("hero_height_tablet")
-  heroHeightMobile      Int      @default(320) @map("hero_height_mobile")
-  buttonText            String?  @map("button_text")
-  buttonLink            String?  @map("button_link") @db.Text
-  displayOrder          Int      @default(0) @map("display_order")
-  slideDuration         Int      @default(10) @map("slide_duration")
-  isActive              Boolean  @default(true) @map("is_active")
-  createdAt             DateTime @default(now()) @map("created_at")
-  project               Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  id                  Int      @id @default(autoincrement())
+  title               String
+  description         String?  @db.Text
+  slideType           String   @default("custom") @map("slide_type")
+  projectId           Int?     @map("project_id")
+  mediaType           String   @default("image") @map("media_type")
+  mediaUrl            String   @map("media_url") @db.Text
+  badgeText           String?  @map("badge_text")
+  badgeColor          String?  @default("#FFFFFF") @map("badge_color")
+  badgeBackground     String?  @default("rgba(127,127,255,0.92)") @map("badge_background")
+  titleColor          String?  @default("#FFFFFF") @map("title_color")
+  titleFontSize       Int      @default(48) @map("title_font_size")
+  descriptionColor    String?  @default("#F8FAFC") @map("description_color")
+  descriptionFontSize Int      @default(18) @map("description_font_size")
+  buttonColor         String?  @default("#7F7FFF") @map("button_color")
+  buttonTextColor     String?  @default("#FFFFFF") @map("button_text_color")
+  panelBackground     String?  @default("#111827") @map("panel_background")
+  panelBlur           Int      @default(18) @map("panel_blur")
+  panelOpacity        Int      @default(72) @map("panel_opacity")
+  panelPosition       String   @default("bottom-center") @map("panel_position")
+  heroHeightDesktop   Int      @default(560) @map("hero_height_desktop")
+  heroHeightTablet    Int      @default(420) @map("hero_height_tablet")
+  heroHeightMobile    Int      @default(320) @map("hero_height_mobile")
+  buttonText          String?  @map("button_text")
+  buttonLink          String?  @map("button_link") @db.Text
+  displayOrder        Int      @default(0) @map("display_order")
+  slideDuration       Int      @default(10) @map("slide_duration")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  project             Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([isActive, displayOrder, id], map: "idx_hero_slides_active_order")
   @@index([slideType, projectId], map: "idx_hero_slides_slide_type_project")
