@@ -370,11 +370,11 @@ function listingLocationLabel(listing) {
   if (listing.regionType === 'seabreeze') {
     return listing.projectName || listing.district || listing.settlement || 'Sea Breeze';
   }
-  return listing.settlement || listing.neighborhood || listing.district || listing.city || listing.projectName || 'Digər ərazilər';
+  return listing.district || listing.city || listing.projectName || 'Digər ərazilər';
 }
 
 function listingLocationSummary(listing) {
-  const primary = listing?.settlement || listing?.district || listing?.neighborhood || listing?.city || listing?.projectName || '';
+  const primary = listing?.district || listing?.projectName || listing?.city || '';
   return {
     primary,
     district: listing?.district || '',
@@ -448,10 +448,11 @@ const LISTING_CARD_CONTRACT = {
 };
 
 const BAKU_METRO_STATIONS = [
-  '28 May', 'Nizami', 'Sahil', 'İçərişəhər', 'Gənclik', 'Nəriman Nərimanov', 'Ulduz',
-  'Koroğlu', 'Qara Qarayev', 'Neftçilər', 'Xalqlar Dostluğu', 'Əhmədli', 'Həzi Aslanov',
-  'Xətai', 'Cəfər Cabbarlı', 'Elmlər Akademiyası', 'İnşaatçılar', '20 Yanvar',
-  'Memar Əcəmi', 'Nəsimi', 'Azadlıq Prospekti', 'Dərnəgül', 'Avtovağzal', '8 Noyabr',
+  '28 May', 'Nizami', 'Gənclik', 'Nərimanov', 'Nəsimi', 'Dərnəgül', 'Həzi Aslanov',
+  'Ulduz', 'Avtovağzal', 'Xocasən', 'Xətai', 'İnşaatçılar', 'Elmlər Akademiyası',
+  'Memar Əcəmi', 'Azadlıq Prospekti', 'Neftçilər', 'Qara Qarayev', 'Xalqlar Dostluğu',
+  'Əhmədli', 'Koroğlu', 'İçərişəhər', 'Sahil', 'Cəfər Cabbarlı', '20 Yanvar',
+  '8 Noyabr', 'Bakmil', 'Memar Əcəmi-2',
 ];
 const BAKU_DISTRICTS = ['Yasamal', 'Binəqədi', 'Nərimanov', 'Nəsimi', 'Xətai', 'Sabunçu', 'Suraxanı', 'Qaradağ', 'Pirallahı', 'Səbail'];
 const SETTLEMENTS = ['Bilgəh', 'Mərdəkan', 'Buzovna', 'Hövsan', 'Masazır', 'Mehdiabad', 'Novxanı', 'Ramana', 'Zabrat', 'Kürdəxanı', 'Türkan', 'Şüvəlan'];
@@ -582,7 +583,7 @@ router.get('/options', (_req, res) => {
       metroStations: BAKU_METRO_STATIONS,
       districts: BAKU_DISTRICTS,
       settlements: SETTLEMENTS,
-      mapHeights: { desktop: 400, mobile: 280 },
+      mapHeights: { desktop: 280, mobile: 220 },
     },
   });
 });
