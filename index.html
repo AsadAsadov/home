@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- OpenStreetMap + Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1551,37 +1552,30 @@
                         </div>
 
                         <div class="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                            <div class="flex items-center justify-between gap-2">
-                                <h4 class="text-sm font-black text-white">📍 Ünvan və xəritə</h4>
-                                <span class="text-[10px] text-gray-400">OpenStreetMap + Leaflet</span>
-                            </div>
+                            <h4 class="text-sm font-black text-white">📍 Ünvan və xəritə</h4>
                             <input type="hidden" id="sb-settlement">
                             <input type="hidden" id="sb-street-address">
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_220px] gap-3">
-                                <label class="space-y-1">
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">📍 Ünvan və ya metro axtar</span>
-                                    <input type="search" id="sb-location-search" list="location-search-examples" onkeydown="if(event.key==='Enter'){event.preventDefault(); searchAdminListingLocation();}" placeholder="28 May, Nizami metrosu, Yasamal, Masazır, Həsən Əliyev 15" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
-                                </label>
-                                <label id="sb-metro-wrap" class="space-y-1">
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🚇 Metro stansiyası (istəyə bağlı)</span>
-                                    <select id="sb-metro" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
-                                        <option value="">Metro seçilməyib</option>
-                                    </select>
-                                </label>
-                            </div>
-                            <div id="sb-location-results" class="hidden space-y-1 text-xs"></div>
+                            <input type="hidden" id="sb-latitude">
+                            <input type="hidden" id="sb-longitude">
+                            <label class="relative block space-y-1">
+                                <span class="sr-only">Ünvan, metro və ya məkan axtar</span>
+                                <input type="search" id="sb-location-search" list="location-search-examples" onkeydown="if(event.key==='Enter'){event.preventDefault(); searchAdminListingLocation();}" placeholder="🔍 Ünvan, metro və ya məkan axtar" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                <div id="sb-location-results" class="hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-white/10 bg-[#0f172a]/95 p-2 text-xs shadow-2xl backdrop-blur"></div>
+                            </label>
                             <div id="sb-location-map" class="admin-location-map"></div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <input type="number" step="any" id="sb-latitude" placeholder="Latitude" readonly class="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-[11px] text-gray-300">
-                                <input type="number" step="any" id="sb-longitude" placeholder="Longitude" readonly class="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-[11px] text-gray-300">
-                            </div>
+                            <label id="sb-metro-wrap" class="block space-y-1">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🚇 Metro stansiyası (istəyə bağlı)</span>
+                                <select id="sb-metro" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
+                                    <option value="">Metro seçilməyib</option>
+                                </select>
+                            </label>
                         </div>
 
                         <datalist id="settlement-options">
                             <option value="Bilgəh"><option value="Mərdəkan"><option value="Buzovna"><option value="Hövsan"><option value="Masazır"><option value="Mehdiabad"><option value="Novxanı"><option value="Ramana"><option value="Zabrat"><option value="Kürdəxanı"><option value="Türkan"><option value="Şüvəlan">
                         </datalist>
                         <datalist id="location-search-examples">
-                            <option value="28 May"><option value="Nizami"><option value="Nərimanov"><option value="Yasamal"><option value="Masazır"><option value="Xırdalan">
+                            <option value="28 May"><option value="Nizami"><option value="Yasamal"><option value="Masazır"><option value="Həsən Əliyev 15"><option value="Nizami küçəsi 24">
                         </datalist>
 
                         <div class="space-y-2">
@@ -4440,7 +4434,7 @@ Title: Park Villas
             return [40.4093, 49.8671];
         }
 
-        function setAdminListingCoordinates(lat, lng, { moveMap = true, reverse = true } = {}) {
+        function setAdminListingCoordinates(lat, lng, { moveMap = true, reverse = true, zoom = 16 } = {}) {
             const latNum = Number(lat);
             const lngNum = Number(lng);
             if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
@@ -4457,7 +4451,7 @@ Title: Park Villas
                 } else {
                     adminListingMarker.setLatLng(point);
                 }
-                if (moveMap) adminListingMap.setView(point, Math.max(adminListingMap.getZoom(), 14));
+                if (moveMap) adminListingMap.setView(point, Math.max(adminListingMap.getZoom(), zoom));
             }
             if (reverse) reverseGeocodeAdminListingLocation(latNum, lngNum);
         }
@@ -4539,8 +4533,11 @@ Title: Park Villas
         function selectAdminLocationResult(index, { keepResults = false } = {}) {
             const item = (window.__lastAdminLocationResults || [])[index];
             if (!item) return;
-            setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false });
+            const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
+            setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false, zoom });
             fillLocationFieldsFromAddress(item.address || {}, item.display_name || '');
+            const searchInput = document.getElementById('sb-location-search');
+            if (searchInput) searchInput.value = item.display_name || searchInput.value;
             if (!keepResults) document.getElementById('sb-location-results')?.classList.add('hidden');
         }
 
