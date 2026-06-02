@@ -1121,6 +1121,157 @@
             box-shadow: 0 12px 30px rgba(127, 127, 255, .24);
             opacity: 1;
         }
+
+        .property-lightbox {
+            z-index: 70;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 220ms ease, visibility 220ms ease;
+        }
+        .property-lightbox:not(.hidden) {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .property-lightbox.is-closing {
+            display: flex;
+            opacity: 0;
+            visibility: visible;
+            pointer-events: none;
+        }
+        .property-lightbox__panel {
+            width: 100vw;
+            height: 100dvh;
+            max-width: 100vw;
+            max-height: 100dvh;
+            background: radial-gradient(circle at top, rgba(30,41,59,.72), rgba(2,6,23,.96) 58%);
+            transform: scale(.985);
+            transition: transform 220ms ease;
+        }
+        .property-lightbox:not(.hidden) .property-lightbox__panel { transform: scale(1); }
+        .property-lightbox__stage {
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            padding: clamp(4.5rem, 8vh, 5.75rem) clamp(.75rem, 2vw, 1.5rem) clamp(6.75rem, 15vh, 8.5rem);
+        }
+        .property-lightbox__image-wrap {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .property-lightbox__image {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: min(95vw, var(--natural-width, 95vw));
+            max-height: min(90vh, var(--natural-height, 90vh));
+            object-fit: contain;
+            image-rendering: auto;
+            box-shadow: 0 26px 80px rgba(0,0,0,.42);
+            opacity: 0;
+            transform: translateY(8px) scale(.992);
+            transition: opacity 180ms ease, transform 180ms ease;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .property-lightbox__image.is-loaded { opacity: 1; transform: translateY(0) scale(1); }
+        .property-lightbox__thumbs {
+            position: absolute;
+            left: max(.75rem, env(safe-area-inset-left));
+            right: max(.75rem, env(safe-area-inset-right));
+            bottom: max(.75rem, env(safe-area-inset-bottom));
+            display: flex;
+            gap: .55rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: .6rem;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 1.25rem;
+            background: rgba(2,6,23,.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,.38) transparent;
+        }
+        .property-lightbox__thumb {
+            width: 82px;
+            height: 60px;
+            flex: 0 0 82px;
+            border-radius: .85rem;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,.14);
+            opacity: .66;
+            transform: translateY(0);
+            transition: border-color 160ms ease, opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+        }
+        .property-lightbox__thumb:hover,
+        .property-lightbox__thumb.is-active {
+            opacity: 1;
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 34px rgba(127,127,255,.32);
+        }
+        .property-lightbox__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .property-lightbox__nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(2.75rem, 5vw, 3.5rem);
+            height: clamp(2.75rem, 5vw, 3.5rem);
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            background: rgba(15,23,42,.62);
+            border: 1px solid rgba(255,255,255,.16);
+            box-shadow: 0 18px 42px rgba(0,0,0,.28);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: transform 160ms ease, background-color 160ms ease, opacity 160ms ease;
+        }
+        .property-lightbox__nav:hover { background: var(--color-primary); transform: translateY(-50%) scale(1.06); }
+        .property-lightbox__nav--prev { left: clamp(.75rem, 2.4vw, 2rem); }
+        .property-lightbox__nav--next { right: clamp(.75rem, 2.4vw, 2rem); }
+        .property-lightbox__topbar {
+            position: absolute;
+            top: max(.75rem, env(safe-area-inset-top));
+            left: max(.75rem, env(safe-area-inset-left));
+            right: max(.75rem, env(safe-area-inset-right));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .property-lightbox__title,
+        .property-lightbox__close {
+            pointer-events: auto;
+            border: 1px solid rgba(255,255,255,.14);
+            background: rgba(2,6,23,.64);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #fff;
+            box-shadow: 0 16px 38px rgba(0,0,0,.24);
+        }
+        .property-lightbox__title { min-width: 0; max-width: min(720px, calc(100vw - 6.5rem)); }
+        @media (max-width: 767px) {
+            .property-lightbox__stage { padding: 4rem 0 6.25rem; }
+            .property-lightbox__image { max-width: min(100vw, var(--natural-width, 100vw)); max-height: min(calc(100dvh - 10.25rem), var(--natural-height, calc(100dvh - 10.25rem))); box-shadow: none; }
+            .property-lightbox__nav { width: 2.55rem; height: 2.55rem; background: rgba(15,23,42,.5); }
+            .property-lightbox__nav--prev { left: .35rem; }
+            .property-lightbox__nav--next { right: .35rem; }
+            .property-lightbox__thumbs { left: .4rem; right: .4rem; bottom: max(.45rem, env(safe-area-inset-bottom)); border-radius: 1rem; padding: .45rem; gap: .45rem; }
+            .property-lightbox__thumb { width: 68px; height: 52px; flex-basis: 68px; border-radius: .7rem; }
+        }
+
         .admin-notebook-fields {
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
@@ -2535,7 +2686,7 @@ Title: Park Villas
                             <img id="p-modal-img" class="w-full h-full object-cover cursor-zoom-in" src="" alt="Elan şəkli">
                             <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/55 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">1 / 1</div>
                             <button type="button" id="p-modal-gallery-button" class="absolute bottom-4 right-4 bg-white/95 hover:bg-brand-500 hover:text-white text-gray-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl transition">
-                                <i class="fa-solid fa-expand mr-2"></i>Şəkli böyüt
+                                <i class="fa-solid fa-images mr-2"></i>Qalereyanı aç
                             </button>
                         </div>
                         <div id="p-modal-thumbnails" class="listing-detail-thumbnail-strip"></div>
@@ -2738,6 +2889,32 @@ Title: Park Villas
             </div>
             <div id="fullscreen-map-canvas"></div>
             <div id="fullscreen-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
+        </div>
+    </div>
+
+    <div id="property-lightbox" class="property-lightbox hidden fixed inset-0 z-[70] items-center justify-center bg-slate-950/95 backdrop-blur-lg" role="dialog" aria-modal="true" aria-label="Elan şəkil qalereyası">
+        <div class="property-lightbox__panel relative overflow-hidden">
+            <div class="property-lightbox__topbar">
+                <div class="property-lightbox__title rounded-2xl px-4 py-3">
+                    <p id="property-lightbox-title" class="truncate text-sm md:text-base font-black text-white">Elan şəkilləri</p>
+                    <p id="property-lightbox-counter" class="text-[11px] font-bold text-slate-300">1 / 1</p>
+                </div>
+                <button type="button" onclick="closePropertyLightbox()" class="property-lightbox__close w-11 h-11 rounded-full text-xl hover:bg-brand-500 transition" aria-label="Qalereyanı bağla">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="property-lightbox__stage">
+                <div class="property-lightbox__image-wrap">
+                    <img id="property-lightbox-img" class="property-lightbox__image" src="" alt="Elan şəkli">
+                </div>
+            </div>
+            <button type="button" id="property-lightbox-prev" onclick="changePropertyLightboxImage(-1)" class="property-lightbox__nav property-lightbox__nav--prev" aria-label="Əvvəlki şəkil">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button type="button" id="property-lightbox-next" onclick="changePropertyLightboxImage(1)" class="property-lightbox__nav property-lightbox__nav--next" aria-label="Növbəti şəkil">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <div id="property-lightbox-thumbnails" class="property-lightbox__thumbs" aria-label="Şəkil miniatürləri"></div>
         </div>
     </div>
 
@@ -6614,12 +6791,92 @@ Təşəkkür edirəm. 🙏`;
             });
         }
 
+        function isPropertyLightboxOpen() {
+            const modal = document.getElementById('property-lightbox');
+            return Boolean(modal && !modal.classList.contains('hidden'));
+        }
+
+        function setPropertyLightboxImage(index) {
+            if (!activePropertyImages.length) return;
+            activePropertyImageIndex = (index + activePropertyImages.length) % activePropertyImages.length;
+            const selectedUrl = activePropertyImages[activePropertyImageIndex];
+            const lightboxImg = document.getElementById('property-lightbox-img');
+            const counter = document.getElementById('property-lightbox-counter');
+            const title = document.getElementById('property-lightbox-title');
+
+            if (title) title.textContent = document.getElementById('p-modal-title')?.textContent || 'Elan şəkilləri';
+            if (counter) counter.textContent = `${activePropertyImageIndex + 1} / ${activePropertyImages.length}`;
+            if (lightboxImg) {
+                lightboxImg.classList.remove('is-loaded');
+                lightboxImg.style.removeProperty('--natural-width');
+                lightboxImg.style.removeProperty('--natural-height');
+                lightboxImg.onload = () => {
+                    if (lightboxImg.naturalWidth) lightboxImg.style.setProperty('--natural-width', `${lightboxImg.naturalWidth}px`);
+                    if (lightboxImg.naturalHeight) lightboxImg.style.setProperty('--natural-height', `${lightboxImg.naturalHeight}px`);
+                    lightboxImg.classList.add('is-loaded');
+                };
+                lightboxImg.src = selectedUrl;
+                lightboxImg.alt = `${title?.textContent || 'Elan şəkli'} - ${activePropertyImageIndex + 1}`;
+            }
+
+            document.querySelectorAll('.property-lightbox__thumb').forEach((btn, idx) => {
+                const active = idx === activePropertyImageIndex;
+                btn.classList.toggle('is-active', active);
+                btn.setAttribute('aria-current', active ? 'true' : 'false');
+                if (active) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            });
+            setPropertyMainImage(activePropertyImageIndex);
+        }
+
+        function renderPropertyLightboxThumbnails() {
+            const strip = document.getElementById('property-lightbox-thumbnails');
+            if (!strip) return;
+            strip.innerHTML = activePropertyImages.map((url, index) => `
+                <button type="button" onclick="setPropertyLightboxImage(${index})" class="property-lightbox__thumb ${index === activePropertyImageIndex ? 'is-active' : ''}" aria-label="${index + 1}-ci şəkli aç" aria-current="${index === activePropertyImageIndex ? 'true' : 'false'}">
+                    <img src="${escapeHtml(url)}" loading="lazy" decoding="async" alt="Elan miniaturu ${index + 1}">
+                </button>
+            `).join('');
+        }
+
+        function updatePropertyLightboxControls() {
+            const hasMany = activePropertyImages.length > 1;
+            ['property-lightbox-prev', 'property-lightbox-next'].forEach((id) => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.toggle('hidden', !hasMany);
+            });
+            document.getElementById('property-lightbox-thumbnails')?.classList.toggle('hidden', activePropertyImages.length <= 1);
+        }
+
         function openPropertyLightbox(index = 0) {
             if (!activePropertyImages.length) return;
-            openEventLightbox(encodeURIComponent(JSON.stringify(activePropertyImages)), document.getElementById('p-modal-title').textContent || 'Elan şəkilləri');
-            lightboxIndex = index;
-            activeModalMediaIndex = index;
-            renderModalMedia();
+            activePropertyImageIndex = Math.max(0, Math.min(index, activePropertyImages.length - 1));
+            renderPropertyLightboxThumbnails();
+            updatePropertyLightboxControls();
+            const modal = document.getElementById('property-lightbox');
+            modal?.classList.remove('is-closing', 'hidden');
+            setModalOpenState(true);
+            setPropertyLightboxImage(activePropertyImageIndex);
+        }
+
+        function closePropertyLightbox() {
+            const modal = document.getElementById('property-lightbox');
+            if (!modal || modal.classList.contains('hidden')) return;
+            modal.classList.add('is-closing');
+            window.setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('is-closing');
+                const lightboxImg = document.getElementById('property-lightbox-img');
+                if (lightboxImg) {
+                    lightboxImg.removeAttribute('src');
+                    lightboxImg.classList.remove('is-loaded');
+                }
+                syncModalOpenState();
+            }, 200);
+        }
+
+        function changePropertyLightboxImage(dir) {
+            if (!activePropertyImages.length) return;
+            setPropertyLightboxImage(activePropertyImageIndex + dir);
         }
 
         async function shareListing(p) {
@@ -6739,6 +6996,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function closePropertyModal() {
+            if (isPropertyLightboxOpen()) closePropertyLightbox();
             document.getElementById('property-detail-modal').classList.add('hidden');
             syncModalOpenState();
             if (detailListingMap) setTimeout(() => detailListingMap.invalidateSize(), 50);
@@ -9661,6 +9919,10 @@ Təşəkkür edirəm. 🙏`;
             const deltaY = touch.clientY - touchStartY;
             if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
+            if (isPropertyLightboxOpen() && activePropertyImages.length > 1) {
+                changePropertyLightboxImage(deltaX > 0 ? -1 : 1);
+                return;
+            }
             if (!document.getElementById('media-modal').classList.contains('hidden') && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) {
                 changeModalImage(deltaX > 0 ? -1 : 1);
                 return;
@@ -9671,21 +9933,25 @@ Təşəkkür edirəm. 🙏`;
         }
 
         document.addEventListener('keydown', (event) => {
+            const propertyLightboxOpen = isPropertyLightboxOpen();
             const mediaOpen = !document.getElementById('media-modal').classList.contains('hidden');
             const projectOpen = !document.getElementById('project-detail-modal-official').classList.contains('hidden');
             const propertyOpen = !document.getElementById('property-detail-modal').classList.contains('hidden');
 
             if (event.key === 'Escape') {
+                if (propertyLightboxOpen) { closePropertyLightbox(); return; }
                 if (mediaOpen) closeModal();
                 if (projectOpen) closeOfficialProjectModal();
                 if (propertyOpen) closePropertyModal();
                 return;
             }
             if (event.key === 'ArrowLeft') {
+                if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(-1); return; }
                 if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(-1);
                 if (projectOpen && officialProjectImages.length > 1) changeOfficialProjectImage(-1);
             }
             if (event.key === 'ArrowRight') {
+                if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(1); return; }
                 if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(1);
                 if (projectOpen && officialProjectImages.length > 1) changeOfficialProjectImage(1);
             }
@@ -9693,7 +9959,7 @@ Təşəkkür edirəm. 🙏`;
 
         document.getElementById('modal-content')?.addEventListener('dblclick', toggleLightboxZoom);
 
-        ['media-modal', 'project-detail-modal-official'].forEach((id) => {
+        ['media-modal', 'project-detail-modal-official', 'property-lightbox'].forEach((id) => {
             const modal = document.getElementById(id);
             if (modal) {
                 modal.addEventListener('touchstart', handleModalTouchStart, { passive: true });
