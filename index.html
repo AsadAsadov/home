@@ -62,6 +62,10 @@
             --color-text-primary: #1F2937;
             --color-text-secondary: #6B7280;
         }
+
+        html, body { max-width: 100%; overflow-x: hidden; }
+        *, *::before, *::after { box-sizing: border-box; }
+        img, video, iframe, canvas, svg { max-width: 100%; }
         .glass-card {
             background: rgba(255, 255, 255, 0.94);
             backdrop-filter: blur(12px);
@@ -133,7 +137,8 @@
 
         .add-listing-fab {
             position: fixed;
-            right: 20px;
+            left: 20px;
+            right: auto;
             bottom: 20px;
             z-index: 61;
             width: 58px;
@@ -176,6 +181,18 @@
         .public-floor-grid > label { min-width:0; }
         @media (min-width: 768px) { .public-floor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap:.75rem; } }
         .fullscreen-map-search { position:absolute; left:1rem; right:1rem; top:1rem; z-index:1001; max-width:680px; margin:0 auto; }
+
+        .listing-detail-card,
+        .listing-detail-gallery-card,
+        .listing-detail-section,
+        .listing-detail-content,
+        .listing-detail-map-card,
+        #listing-detail-root,
+        #property-detail-modal,
+        #property-detail-modal * { max-width: 100%; }
+        .listing-detail-card,
+        .listing-detail-section,
+        .listing-detail-gallery-card { overflow-x: hidden; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
 
@@ -1763,6 +1780,7 @@
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
                 <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
                 <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Advertisement Management</button>
+                <button onclick="switchAdminSubtab('site-settings')" id="subtab-btn-site-settings" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Sayt Ayarları</button>
             </div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
@@ -1997,6 +2015,38 @@
                 </div>
             </div>
 
+
+            <!-- SUBTAB: SITE SETTINGS (Admin only) -->
+            <div id="admin-subtab-site-settings" class="hidden">
+                <div class="glass-card p-6 rounded-2xl space-y-5 max-w-3xl">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-brand-500"></i> Admin → Sayt Ayarları</h3>
+                        <p class="text-xs text-gray-400 mt-1">Lokasiya və filtr görünürlüğünü kod dəyişikliyi etmədən idarə edin. Məlumatlar silinmir, yalnız UI-dan gizlədilir.</p>
+                    </div>
+                    <form onsubmit="saveSiteSettings(event)" class="space-y-5">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                            <h4 class="text-sm font-black text-white uppercase tracking-wide">Region görünürlüğü</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-baki" class="accent-brand-500"> Bakı göstər</label>
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-sumqayit" class="accent-brand-500"> Sumqayıt göstər</label>
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-absheron" class="accent-brand-500"> Abşeron göstər</label>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+                            <h4 class="text-sm font-black text-white uppercase tracking-wide">Filter və forma sahələri</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-metro" class="accent-brand-500"> Metro göstər</label>
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-rayon" class="accent-brand-500"> Rayon göstər</label>
+                                <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-qesebe" class="accent-brand-500"> Qəsəbə göstər</label>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button type="submit" id="site-settings-save-btn" class="async-submit-btn bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl text-sm">Yadda saxla</button>
+                            <span id="site-settings-status" class="text-xs text-gray-400"></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <!-- SUBTAB 2: OFFICIAL PROJECTS MANAGER (Admin only) -->
             <div id="admin-subtab-projects-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
@@ -2682,7 +2732,8 @@ Title: Park Villas
                     <h3 class="text-gray-900 font-extrabold mb-4">Sürətli Keçidlər</h3>
                     <nav class="space-y-3 text-sm font-semibold" aria-label="Footer sürətli keçidlər">
                         <button type="button" onclick="switchTab('seabreeze')" class="block text-left text-gray-600 hover:text-brand-600 transition">Sea Breeze Layihələri</button>
-                        <button type="button" onclick="switchTab('seabreeze'); setTimeout(() => document.getElementById('agent-listings-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250)" class="block text-left text-gray-600 hover:text-brand-600 transition">Satış və Kirayə</button>
+                        <button type="button" onclick="navigateListingsType('satis')" class="block text-left text-gray-600 hover:text-brand-600 transition">Satış</button>
+                        <button type="button" onclick="navigateListingsType('kiraye')" class="block text-left text-gray-600 hover:text-brand-600 transition">Kirayə</button>
                         <button type="button" onclick="switchTab('portfolio')" class="block text-left text-gray-600 hover:text-brand-600 transition">Qalereya</button>
                         <button type="button" onclick="switchTab('career')" class="block text-left text-gray-600 hover:text-brand-600 transition">Vakansiya</button>
                         <button type="button" onclick="switchTab('home')" class="block text-left text-gray-600 hover:text-brand-600 transition">ℹ️ Haqqımızda</button>
@@ -2836,6 +2887,120 @@ Title: Park Villas
         function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getOfficialProjects().map(p => p.title).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : (region === 'sumqayit' ? SUMQAYIT_DISTRICTS : []))); }
         function cityToLegacyRegion(city) { const n = String(city || '').trim().toLowerCase(); if (['baki', 'bakı'].includes(n)) return 'baki'; if (['absheron', 'abşeron', 'abseron'].includes(n)) return 'absheron'; if (['sumqayit', 'sumqayıt'].includes(n)) return 'sumqayit'; return ''; }
         function legacyRegionToCity(region) { return region === 'baki' ? 'Bakı' : (region === 'absheron' ? 'Abşeron' : (region === 'sumqayit' ? 'Sumqayıt' : '')); }
+
+
+        const DEFAULT_SITE_SETTINGS = {
+            showBaki: true,
+            showSumqayit: true,
+            showAbsheron: true,
+            showMetroFilter: true,
+            showRayonFilter: true,
+            showQesebeFilter: true
+        };
+        const REGION_SETTING_KEYS = { baki: 'showBaki', sumqayit: 'showSumqayit', absheron: 'showAbsheron' };
+        const GENERAL_CITY_META = [
+            { value: 'Bakı', region: 'baki', label: 'Bakı' },
+            { value: 'Abşeron', region: 'absheron', label: 'Abşeron' },
+            { value: 'Sumqayıt', region: 'sumqayit', label: 'Sumqayıt' }
+        ];
+
+        function normalizeSiteSettings(settings = {}) {
+            return {
+                showBaki: Boolean(settings.showBaki ?? settings.show_baki ?? DEFAULT_SITE_SETTINGS.showBaki),
+                showSumqayit: Boolean(settings.showSumqayit ?? settings.show_sumqayit ?? DEFAULT_SITE_SETTINGS.showSumqayit),
+                showAbsheron: Boolean(settings.showAbsheron ?? settings.show_absheron ?? DEFAULT_SITE_SETTINGS.showAbsheron),
+                showMetroFilter: Boolean(settings.showMetroFilter ?? settings.show_metro_filter ?? DEFAULT_SITE_SETTINGS.showMetroFilter),
+                showRayonFilter: Boolean(settings.showRayonFilter ?? settings.show_rayon_filter ?? DEFAULT_SITE_SETTINGS.showRayonFilter),
+                showQesebeFilter: Boolean(settings.showQesebeFilter ?? settings.show_qesebe_filter ?? DEFAULT_SITE_SETTINGS.showQesebeFilter)
+            };
+        }
+
+        function currentSiteSettings() { return normalizeSiteSettings(appData.siteSettings || DEFAULT_SITE_SETTINGS); }
+        function isRegionVisible(region) {
+            if (region === 'seabreeze' || region === 'general' || region === 'all') return true;
+            const key = REGION_SETTING_KEYS[region];
+            return key ? currentSiteSettings()[key] !== false : true;
+        }
+        function getVisibleGeneralCities() { return GENERAL_CITY_META.filter(item => isRegionVisible(item.region)); }
+        function isListingLocationVisible(listing = {}) { return isRegionVisible(getListingRegionType(listing)); }
+        function settingPayloadFromForm() {
+            return {
+                showBaki: document.getElementById('setting-show-baki')?.checked ?? true,
+                showSumqayit: document.getElementById('setting-show-sumqayit')?.checked ?? true,
+                showAbsheron: document.getElementById('setting-show-absheron')?.checked ?? true,
+                showMetroFilter: document.getElementById('setting-show-metro')?.checked ?? true,
+                showRayonFilter: document.getElementById('setting-show-rayon')?.checked ?? true,
+                showQesebeFilter: document.getElementById('setting-show-qesebe')?.checked ?? true
+            };
+        }
+
+        function fillSiteSettingsForm() {
+            const settings = currentSiteSettings();
+            const pairs = [
+                ['setting-show-baki', settings.showBaki], ['setting-show-sumqayit', settings.showSumqayit], ['setting-show-absheron', settings.showAbsheron],
+                ['setting-show-metro', settings.showMetroFilter], ['setting-show-rayon', settings.showRayonFilter], ['setting-show-qesebe', settings.showQesebeFilter]
+            ];
+            pairs.forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.checked = value; });
+        }
+
+        function renderRegionOptionsForSelect(select) {
+            if (!select) return;
+            const selected = select.value || 'all';
+            const rows = [{ value: 'all', label: 'Bütün regionlar' }, { value: 'seabreeze', label: 'Sea Breeze' }]
+                .concat(GENERAL_CITY_META.filter(item => isRegionVisible(item.region)).map(item => ({ value: item.region, label: item.label })));
+            select.innerHTML = rows.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+            select.value = rows.some(item => item.value === selected) ? selected : 'all';
+        }
+
+        function renderRegionFilterOptions() {
+            renderRegionOptionsForSelect(document.getElementById('filter-sb-region'));
+            renderRegionOptionsForSelect(document.getElementById('admin-listing-region-filter'));
+        }
+
+        function applySiteSettingsToUi() {
+            renderRegionFilterOptions();
+            const settings = currentSiteSettings();
+            document.getElementById('filter-sb-project')?.classList.toggle('hidden', settings.showRayonFilter === false);
+            document.getElementById('admin-listing-district-filter')?.classList.toggle('hidden', settings.showRayonFilter === false);
+            if (settings.showRayonFilter === false && document.getElementById('filter-sb-project')) document.getElementById('filter-sb-project').value = 'all';
+            if (settings.showRayonFilter === false && document.getElementById('admin-listing-district-filter')) document.getElementById('admin-listing-district-filter').value = 'all';
+            renderOfficialProjectOptions();
+            if (isTabAktiv('listings')) renderSeaBreeze();
+            if (isTabAktiv('create-listing')) handlePublicListingRegionChange();
+            if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
+        }
+
+        async function loadSiteSettingsPriority() {
+            try {
+                const settings = await apiRequest('/api/site-settings').catch(() => DEFAULT_SITE_SETTINGS);
+                cacheData('siteSettings', normalizeSiteSettings(settings));
+            } catch (error) {
+                console.warn('Sayt ayarları oxunmadı, cache istifadə olunur:', error.message);
+            } finally {
+                appData.siteSettings = normalizeSiteSettings(appData.siteSettings || DEFAULT_SITE_SETTINGS);
+                applySiteSettingsToUi();
+            }
+        }
+
+        async function saveSiteSettings(event) {
+            event.preventDefault();
+            const btn = document.getElementById('site-settings-save-btn');
+            const status = document.getElementById('site-settings-status');
+            const payload = settingPayloadFromForm();
+            btn?.classList.add('is-loading');
+            if (status) status.textContent = 'Yadda saxlanılır…';
+            try {
+                const saved = await apiRequest('/api/site-settings', { method: 'PUT', body: JSON.stringify(payload) });
+                cacheData('siteSettings', normalizeSiteSettings(saved));
+                fillSiteSettingsForm();
+                applySiteSettingsToUi();
+                if (status) status.textContent = 'Ayarlar tətbiq olundu.';
+            } catch (error) {
+                if (status) status.textContent = `Xəta: ${error.message}`;
+            } finally {
+                btn?.classList.remove('is-loading');
+            }
+        }
 
         // OFFICIAL SEA BREEZE 10 PROJECTS DATA WITH CAT & DETAILED SPECS
         const officialSeaBreezeProjects = [
@@ -3771,6 +3936,7 @@ Title: Park Villas
             heroSection: null,
             ads: [],
             adStats: null,
+            siteSettings: null,
             careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
         };
 
@@ -3784,7 +3950,8 @@ Title: Park Villas
             heroSlides: 'besthome_hero_slides',
             heroSection: 'besthome_hero_sea_breeze',
             careerText: 'besthome_career_text',
-            ads: 'besthome_site_ads'
+            ads: 'besthome_site_ads',
+            siteSettings: 'besthome_site_settings'
         };
 
         function readCache(key, fallback) {
@@ -3817,6 +3984,7 @@ Title: Park Villas
             appData.heroSection = appData.heroSlides[0] || null;
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
             appData.ads = readCache(CACHE_KEYS.ads, []);
+            appData.siteSettings = normalizeSiteSettings(readCache(CACHE_KEYS.siteSettings, DEFAULT_SITE_SETTINGS));
         }
 
         function normalizeHeroSlide(slide = {}) {
@@ -4579,7 +4747,7 @@ Title: Park Villas
             bootstrapCachedData();
             renderOfficialProjectOptions();
             try {
-                await Promise.all([loadHeroSlidesPriority(), loadProjectsPriority()]);
+                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority(), loadProjectsPriority()]);
             } finally {
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
@@ -4699,7 +4867,7 @@ Title: Park Villas
         }
 
         function buildDistrictOptionHtml(region, includeAll = false) {
-            const options = region === 'city' ? GENERAL_CITIES : getDistrictOptionsForRegion(region);
+            const options = region === 'city' ? getVisibleGeneralCities().map(item => item.value) : getDistrictOptionsForRegion(region);
             const first = includeAll ? '<option value="all">Bütün layihə/rayonlar</option>' : '';
             const suffix = region === 'seabreeze' && !options.includes('Digər') ? '<option value="Digər">Digər Rezidensiya</option>' : '';
             return first + options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('') + suffix;
@@ -4709,7 +4877,7 @@ Title: Park Villas
             if (!select) return;
             const selected = select.value || (includeAll ? 'all' : '');
             const wrapper = select.id === 'sb-project' ? document.getElementById('sb-district-wrap') : select;
-            const hide = (!region && !includeAll);
+            const hide = (!region && !includeAll) || (includeAll && select.id === 'filter-sb-project' && currentSiteSettings().showRayonFilter === false);
             wrapper?.classList.toggle('hidden', hide);
             if (hide) return;
             select.innerHTML = buildDistrictOptionHtml(region || 'seabreeze', includeAll);
@@ -4750,7 +4918,7 @@ Title: Park Villas
             const wrap = document.getElementById('sb-general-district-wrap');
             const select = document.getElementById('sb-general-district');
             const hidden = document.getElementById('sb-district');
-            const shouldShow = regionType === 'general' && Boolean(districtRegion);
+            const shouldShow = regionType === 'general' && Boolean(districtRegion) && currentSiteSettings().showRayonFilter !== false;
             wrap?.classList.toggle('hidden', !shouldShow);
             if (!select || !hidden) return;
             if (!shouldShow) {
@@ -4809,7 +4977,11 @@ Title: Park Villas
 
         function toggleMetroFieldForCity() {
             populateMetroSelect();
-            document.getElementById('sb-metro-wrap')?.classList.remove('hidden');
+            const city = document.getElementById('sb-project')?.value || '';
+            const isBaku = city === 'Bakı' || city === 'Sea Breeze' || city === '';
+            const showMetro = currentSiteSettings().showMetroFilter !== false && isBaku;
+            document.getElementById('sb-metro-wrap')?.classList.toggle('hidden', !showMetro);
+            if (!showMetro && document.getElementById('sb-metro')) document.getElementById('sb-metro').value = '';
         }
         function setMapLoading(target, isLoading) {
             const overlay = document.getElementById(target);
@@ -5372,6 +5544,21 @@ Title: Park Villas
             spaNavigate('/menim-elanlarim');
         }
 
+        function navigateListingsType(type = '') {
+            const normalized = String(type || '').toLowerCase();
+            const queryType = normalized === 'kiraye' ? 'kiraye' : (normalized === 'satis' ? 'satis' : '');
+            spaNavigate(queryType ? `/elanlar?type=${queryType}` : '/elanlar');
+        }
+
+        function applyListingsRouteFilters() {
+            const type = new URLSearchParams(window.location.search).get('type');
+            const select = document.getElementById('filter-sb-type');
+            if (!select) return;
+            const mapped = type === 'satis' ? 'Satis' : (type === 'kiraye' ? 'Kiraye' : 'all');
+            select.value = mapped;
+            listingPage = 1;
+        }
+
         function renderPublicListingForm(success = false) {
             const root = document.getElementById('public-listing-root');
             if (!root) return;
@@ -5394,10 +5581,10 @@ Title: Park Villas
                         <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
                         <div class="public-form-grid">
                             <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
-                            <label class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"><option>Bakı</option><option>Abşeron</option><option>Sumqayıt</option></select></label>
-                            <label class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
-                            <label class="public-form-field"><span class="public-form-label">Qəsəbə</span><input id="pl-settlement" type="text" class="public-form-input" placeholder="Qəsəbə / mikrorayon"></label>
-                            <label class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
+                            <label id="pl-city-wrap" class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"></select></label>
+                            <label id="pl-district-wrap" class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
+                            <label id="pl-settlement-wrap" class="public-form-field"><span class="public-form-label">Qəsəbə</span><input id="pl-settlement" type="text" class="public-form-input" placeholder="Qəsəbə / mikrorayon"></label>
+                            <label id="pl-metro-wrap" class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
                             <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" onchange="togglePublicLandField()" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Elan növü</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
@@ -5436,20 +5623,39 @@ Title: Park Villas
         }
 
         function handlePublicListingRegionChange() {
+            const settings = currentSiteSettings();
             const region = document.getElementById('pl-region-type')?.value || 'general';
-            const city = document.getElementById('pl-city')?.value || 'Bakı';
+            const citySelect = document.getElementById('pl-city');
+            const previousCity = citySelect?.value || 'Bakı';
+            const visibleCities = getVisibleGeneralCities();
+            if (citySelect) {
+                citySelect.innerHTML = visibleCities.length
+                    ? visibleCities.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('')
+                    : '<option value="">Şəhər deaktivdir</option>';
+                citySelect.value = visibleCities.some(item => item.value === previousCity) ? previousCity : (visibleCities[0]?.value || '');
+            }
+            const city = citySelect?.value || '';
             const district = document.getElementById('pl-district');
             if (!district) return;
-            let options = region === 'seabreeze' ? getOfficialProjects().map(p=>p.title).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : SUMQAYIT_DISTRICTS));
+            let options = region === 'seabreeze' ? getOfficialProjects().map(p=>p.title).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : (city === 'Sumqayıt' ? SUMQAYIT_DISTRICTS : [])));
             district.innerHTML = options.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-            document.getElementById('pl-metro')?.closest('label')?.classList.toggle('hidden', city !== 'Bakı' && region !== 'seabreeze');
+            const showDistrict = settings.showRayonFilter !== false;
+            const showSettlement = settings.showQesebeFilter !== false && region !== 'seabreeze';
+            const showMetro = settings.showMetroFilter !== false && (city === 'Bakı' || region === 'seabreeze');
+            document.getElementById('pl-city-wrap')?.classList.toggle('hidden', region === 'seabreeze');
+            document.getElementById('pl-district-wrap')?.classList.toggle('hidden', !showDistrict);
+            document.getElementById('pl-settlement-wrap')?.classList.toggle('hidden', !showSettlement);
+            document.getElementById('pl-metro-wrap')?.classList.toggle('hidden', !showMetro);
+            if (!showDistrict) district.value = '';
+            if (!showSettlement && document.getElementById('pl-settlement')) document.getElementById('pl-settlement').value = '';
+            if (!showMetro && document.getElementById('pl-metro')) document.getElementById('pl-metro').value = '';
             const districtLabel = document.getElementById('pl-district-label');
             if (districtLabel) districtLabel.textContent = region === 'seabreeze' ? 'Rayon / Layihə' : 'Rayon / Layihə';
             if (publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), 12);
         }
 
         function publicMapDefaultCenter() {
-            const city = document.getElementById('pl-city')?.value || 'Bakı';
+            const city = document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı';
             if (city === 'Abşeron') return [40.457, 49.75];
             if (city === 'Sumqayıt') return [40.585, 49.631];
             return [40.4093, 49.8671];
@@ -5508,7 +5714,7 @@ Title: Park Villas
             if (preview) preview.innerHTML = publicListingImageFiles.map(file => `<div class="aspect-square rounded-2xl overflow-hidden bg-slate-100"><img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""></div>`).join('');
         }
 
-        function publicLocationCity() { return document.getElementById('pl-city')?.value || 'Bakı'; }
+        function publicLocationCity() { return document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı'; }
         function renderPublicLocationResults(rows, query, target='pl') {
             const el = document.getElementById(target === 'fullscreen' ? 'fullscreen-location-results' : 'pl-location-results');
             if (!el) return;
@@ -5560,10 +5766,10 @@ Title: Park Villas
             publicListingSubmitting=true; setPublicSubmitLoading(true);
             try {
                 const regionType=document.getElementById('pl-region-type').value;
-                const city=document.getElementById('pl-city').value;
-                const district=document.getElementById('pl-district').value;
+                const city=document.getElementById('pl-city')?.value || '';
+                const district=document.getElementById('pl-district')?.value || '';
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
-                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro').value, settlement:document.getElementById('pl-settlement').value, streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
+                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file));
                 const saved = await apiRequest('/api/listings', 'POST', formData); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
@@ -5641,6 +5847,7 @@ Title: Park Villas
                 setupHomepageLazyLoaders();
             } else if (tabId === 'listings') {
                 if (homepageHydration.listings) renderSeaBreeze();
+                else loadListingsLazy();
             } else if (tabId === 'portfolio') {
                 renderPortfolio();
                 loadGalleryBackground();
@@ -5761,28 +5968,35 @@ Title: Park Villas
         }
 
         function getListingLocationLabel(listing = {}) {
+            const settings = currentSiteSettings();
             const region = getListingRegionType(listing);
-            if (region === 'seabreeze') return listing.project || listing.district || listing.settlement || 'Sea Breeze';
-            return listing.settlement || listing.neighborhood || listing.district || listing.city || 'Digər ərazilər';
+            if (!isRegionVisible(region)) return '';
+            if (region === 'seabreeze') return listing.project || (settings.showRayonFilter !== false ? listing.district : '') || (settings.showQesebeFilter !== false ? listing.settlement : '') || 'Sea Breeze';
+            return (settings.showQesebeFilter !== false ? (listing.settlement || listing.neighborhood) : '') || (settings.showRayonFilter !== false ? listing.district : '') || listing.city || 'Digər ərazilər';
         }
 
         function listingLocationPrimary(listing = {}) {
+            const settings = currentSiteSettings();
+            if (!isListingLocationVisible(listing)) return '';
+            if (settings.showRayonFilter === false) return listing.project || listing.city || '';
             return listing.district || listing.project || listing.city || '';
         }
 
         function renderListingLocationLines(listing = {}) {
+            const settings = currentSiteSettings();
             const primary = listingLocationPrimary(listing);
             const rows = [];
             if (primary) rows.push(['📍', primary]);
-            if (listing.metroStation) rows.push(['🚇', listing.metroStation]);
+            if (settings.showMetroFilter !== false && listing.metroStation && isListingLocationVisible(listing)) rows.push(['🚇', listing.metroStation]);
             return rows.length ? `<div class="listing-location-lines">${rows.map(([icon, label]) => `<div class="listing-location-lines__row"><span>${icon}</span><span>${escapeHtml(label)}</span></div>`).join('')}</div>` : '';
         }
 
         function renderLocationBadges(listing = {}) {
+            const settings = currentSiteSettings();
             const rows = [];
             const primary = listingLocationPrimary(listing);
             if (primary) rows.push(['📍', primary]);
-            if (listing.metroStation) rows.push(['🚇', listing.metroStation]);
+            if (settings.showMetroFilter !== false && listing.metroStation && isListingLocationVisible(listing)) rows.push(['🚇', listing.metroStation]);
             return rows.length ? rows.map(([icon, label]) => `<span class="location-badge"><span>${icon}</span>${escapeHtml(label)}</span>`).join('') : '';
         }
 
@@ -6143,20 +6357,19 @@ Təşəkkür edirəm. 🙏`;
                 const cardHtml = `
                     <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
                         <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative min-w-0 max-w-full">
-                            <img src="${mainImage}" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                            <img src="${mainImage}" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
                             <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
                             <div class="space-y-1.5">
-                                ${locationLinesHtml || `<p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>`}
+                                ${locationLinesHtml || (locationLabel ? `<p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>` : '')}
                                 <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base leading-snug truncate">${escapeHtml(listingTitle)}</h4>
                             </div>
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
                                 <strong class="text-xl md:text-2xl font-black text-gray-950 tracking-tight">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /gün</span>' : ''}</strong>
                             </div>
-                            ${renderListingCardImageStrip(p)}
                             <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
                             ${infoRowHtml}
                             <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
@@ -6313,11 +6526,12 @@ Təşəkkür edirəm. 🙏`;
                 sqPriceEl.classList.add('hidden');
             }
 
-            const compactStreetAddress = p.streetAddress || getListingLocationLabel(p) || 'Bakı, Azərbaycan';
-            document.getElementById('p-modal-street-address').textContent = `📌 ${compactStreetAddress}`;
+            const visibleLocationLabel = getListingLocationLabel(p);
+            const compactStreetAddress = isListingLocationVisible(p) ? (p.streetAddress || visibleLocationLabel || '') : '';
+            document.getElementById('p-modal-street-address').textContent = compactStreetAddress ? `📌 ${compactStreetAddress}` : '';
             const locationSection = document.getElementById('p-modal-location-section');
-            locationSection?.classList.remove('hidden');
-            renderListingDetailMap(p);
+            locationSection?.classList.toggle('hidden', !compactStreetAddress && !renderLocationBadges(p));
+            if (isListingLocationVisible(p)) renderListingDetailMap(p);
 
             const creditPanel = document.getElementById('p-modal-credit');
             if (creditPanel) {
@@ -6872,7 +7086,7 @@ Təşəkkür edirəm. 🙏`;
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -6885,6 +7099,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-site-settings').classList.add('hidden');
             document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
@@ -6893,7 +7108,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -6907,6 +7122,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'seabreeze-manager') { toggleMetroFieldForCity(); setTimeout(initAdminListingMap, 80); }
             if (subtab === 'ads-manager') { loadAdminAds(); }
+            if (subtab === 'site-settings') { fillSiteSettingsForm(); }
             if (subtab === 'user-profile') { fillProfileForm(); }
             if (subtab === 'hero-sections') {
                 loadAdminHeroSlides();
@@ -9186,17 +9402,17 @@ Təşəkkür edirəm. 🙏`;
             const isRent = canonicalType === 'Kiraye';
             const isDailyRent = canonicalType === 'GunlukKiraye';
             const formattedPrice = formatPrice(p.price, p.currency);
-            const locationLinesHtml = renderListingLocationLines(p) || `<p class="text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(getListingLocationLabel(p))}</p>`;
+            const publicLocationLabel = getListingLocationLabel(p);
+            const locationLinesHtml = renderListingLocationLines(p) || (publicLocationLabel ? `<p class="text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(publicLocationLabel)}</p>` : '');
             const roomFact = p.rooms != null && p.rooms !== '' ? `${p.rooms} otaq` : '— otaq';
             const areaFact = formatOptionalNumber(p.area, ' m²');
             const floorFact = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
             return `<a href="${listingPath(p)}" class="sea-breeze-listing-card rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
-                <div class="h-48 overflow-hidden relative"><img src="${escapeHtml(mainImage)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}"></div>
+                <div class="h-48 overflow-hidden relative"><img src="${escapeHtml(mainImage)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}"></div>
                 <div class="p-4 md:p-5 space-y-3 flex-1">
                     ${locationLinesHtml}
                     <h4 class="text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h4>
                     <strong class="block text-xl font-black text-gray-950">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="text-sm"> /gün</span>' : ''}</strong>
-                    ${renderListingCardImageStrip(p)}
                     <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
                     <div class="listing-info-row"><span class="listing-info-row__item">🛏 <strong>${escapeHtml(roomFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">📐 <strong>${escapeHtml(areaFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">🏢 <strong>${escapeHtml(floorFact)}</strong></span></div>
                     <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100"><span class="text-[11px] font-bold text-brand-700 truncate">${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span><span class="text-[10px] font-black text-brand-700 whitespace-nowrap">Kod: ${formatListingCode(p.listingCode)}</span></div>
@@ -9245,7 +9461,9 @@ Təşəkkür edirəm. 🙏`;
             if (userMatch) { await renderPublicProfile(userMatch[1], false); return; }
             if (path === '/elanlar') {
                 switchTab('listings', { skipPush: true });
-                updateSeo({ title: 'Elanlar', path });
+                applyListingsRouteFilters();
+                if (homepageHydration.listings) renderSeaBreeze();
+                updateSeo({ title: 'Elanlar', path: `${path}${window.location.search}` });
                 return;
             }
             if (path === '/projects') {

@@ -60,6 +60,7 @@ app.use('/api/applications', require('./routes/applications'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/uploads', require('./routes/uploads'));
 app.use('/api/site-ads', require('./routes/siteAds'));
+app.use('/api/site-settings', require('./routes/siteSettings'));
 app.use('/api/sync', require('./routes/sync'));
 
 app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found.' }));
