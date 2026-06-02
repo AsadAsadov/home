@@ -2697,6 +2697,7 @@ Title: Park Villas
                     </div>
 
                     <div class="listing-detail-content md:p-6 lg:p-8">
+                        <div id="p-modal-preview-banner" class="hidden rounded-2xl border border-amber-200 bg-amber-50 text-amber-800 px-4 py-3 text-sm font-black shadow-sm">📄 Önizləmə rejimi — elan moderator təsdiqindən sonra ümumi siyahıda görünəcək.</div>
                         <div class="listing-detail-header">
                             <div class="listing-detail-top-badges flex flex-wrap items-center gap-2">
                                 <span id="p-modal-type" class="bg-emerald-500/10 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-emerald-200"></span>
@@ -5858,6 +5859,21 @@ Title: Park Villas
             spaNavigate('/menim-elanlarim');
         }
 
+        function navigateToListingPreview(listingKey) {
+            if (!listingKey) { navigateToMyListings(); return; }
+            spaNavigate(`/listing/${encodeURIComponent(String(listingKey))}`);
+        }
+
+        function navigateToFavorites() {
+            if (!activeUser) { switchTab('admin-login'); return; }
+            spaNavigate('/favoriler');
+        }
+
+        function navigateToProfileSettings() {
+            if (!activeUser) { switchTab('admin-login'); return; }
+            switchTab('admin-dashboard');
+        }
+
         function navigateListingsType(type = '') {
             const normalized = String(type || '').toLowerCase();
             const queryType = normalized === 'kiraye' ? 'kiraye' : (normalized === 'satis' ? 'satis' : '');
@@ -5873,18 +5889,22 @@ Title: Park Villas
             listingPage = 1;
         }
 
-        function renderPublicListingForm(success = false) {
+        function renderPublicListingForm(success = false, createdListing = null) {
             const root = document.getElementById('public-listing-root');
             if (!root) return;
             if (!activeUser) { switchTab('admin-login'); return; }
             updateSeo({ title: 'Elan əlavə et', path: '/elan-elave-et' });
             if (success) {
+                const createdListingKey = createdListing ? String(createdListing.listingCode || createdListing.listing_code || createdListing.code || createdListing.id || '') : '';
+                const viewButton = createdListingKey
+                    ? `<button onclick="navigateToListingPreview('${escapeHtml(createdListingKey)}')" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📄 Elana bax</button>`
+                    : `<button onclick="navigateToMyListings()" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📄 Elanı önizlə</button>`;
                 root.innerHTML = `<div class="public-form-card rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
                     <div class="text-5xl mb-4">✅</div><h1 class="text-3xl md:text-4xl font-black text-slate-950">Elanınız qəbul edildi</h1>
                     <p class="mt-3 text-slate-600 font-semibold">Moderator təsdiqindən sonra saytda görünəcək.</p>
                     <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
                         <button onclick="switchTab('seabreeze')" class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 font-black transition">🏠 Ana səhifəyə qayıt</button>
-                        <button onclick="navigateToMyListings()" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📋 Elanlarım</button>
+                        ${viewButton}
                     </div></div>`;
                 return;
             }
@@ -6110,19 +6130,62 @@ Title: Park Villas
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
                 const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
-                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
+                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true, savedUi);
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
             finally { publicListingSubmitting=false; setPublicSubmitLoading(false); }
         }
 
         async function renderMyListingsPage() {
             const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
-            updateSeo({ title:'Elanlarım', path:'/menim-elanlarim' });
+            updateSeo({ title:'Mənim elanlarım', path:'/menim-elanlarim' });
             root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Elanlar yüklənir...</div>';
-            try { const rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi); const filtered = rows.filter(x=> myListingsFilter==='all' || normalizeListingStatus(x.status)===myListingsFilter);
+            try {
+                const rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi);
+                cacheData('listings', [...rows, ...(appData.listings || []).filter(existing => !rows.some(row => String(row.id) === String(existing.id)))]);
+                const filtered = rows.filter(x=> myListingsFilter==='all' || normalizeListingStatus(x.status)===myListingsFilter);
                 const buttons=[['all','Hamısı'],['pending','Gözləyən'],['approved','Təsdiqlənən'],['rejected','İmtina edilən']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
-                root.innerHTML=`<div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4"><div><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Pending, approved və rejected elanlarınız.</p></div><button onclick="navigateToCreateListing()" class="rounded-2xl bg-brand-600 text-white px-5 py-3 font-black">➕ Elan əlavə et</button></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${filtered.length?filtered.map(p=>`<article class="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden"><img src="${escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80')}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></article>`).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>`;
+                root.innerHTML=`<div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4"><div><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><button onclick="navigateToCreateListing()" class="rounded-2xl bg-brand-600 text-white px-5 py-3 font-black">➕ Elan əlavə et</button></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${filtered.length?filtered.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>`;
             } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Elanlar açılmadı: ${escapeHtml(error.message)}</div>`; }
+        }
+
+        function renderMyListingCard(p = {}) {
+            const image = escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80');
+            return `<article class="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition"><button type="button" onclick="openMyListingDetail('${p.id}')" class="block w-full text-left"><img src="${image}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></button><div class="px-4 pb-4 grid grid-cols-3 gap-2"><button type="button" onclick="openMyListingDetail('${p.id}')" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 text-xs font-black transition">Elana bax</button><button type="button" onclick="editMyListing('${p.id}')" class="rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 text-xs font-black transition">Redaktə et</button><button type="button" onclick="deleteMyListing('${p.id}')" class="rounded-xl bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-black transition">Sil</button></div></article>`;
+        }
+
+        function openMyListingDetail(id) {
+            const listing = appData.listings.find(item => String(item.id) === String(id));
+            if (listing) openPropertyModal(listing.id, true);
+        }
+
+        function editMyListing(id) {
+            const listing = appData.listings.find(item => String(item.id) === String(id));
+            if (!listing) return;
+            switchTab('admin-dashboard');
+            setTimeout(() => editSeaBreezeItem(listing.id), 120);
+        }
+
+        async function deleteMyListing(id) {
+            if (!confirm('Elanı silmək istədiyinizə əminsiniz?')) return;
+            try {
+                await apiRequest(`/api/listings/${id}`, { method: 'DELETE' });
+                cacheData('listings', appData.listings.filter(x => String(x.id) !== String(id)));
+                await renderMyListingsPage();
+            } catch (error) {
+                alert('Elan silinmədi: ' + error.message);
+            }
+        }
+
+        async function renderFavoritesPage() {
+            const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
+            updateSeo({ title:'Favorilər', path:'/favoriler' });
+            root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Favorilər yüklənir...</div>';
+            try {
+                const favorites = await apiRequest('/api/favorites');
+                const listings = (favorites || []).map(f => dbListingToUi(f.listing || f)).filter(item => item && item.id);
+                cacheData('listings', [...listings, ...(appData.listings || []).filter(existing => !listings.some(row => String(row.id) === String(existing.id)))]);
+                root.innerHTML=`<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">❤️ Favorilər</h1><p class="text-slate-600 font-semibold mt-1">Seçdiyiniz elanlar.</p></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${listings.length?listings.map(p=>`<article onclick="openPropertyModal('${p.id}', true)" class="cursor-pointer rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden"><img src="${escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80')}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p></div></article>`).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Favori elan yoxdur.</div>'}</div>`;
+            } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Favorilər açılmadı: ${escapeHtml(error.message)}</div>`; }
         }
 
         function updateHeaderUI() {
@@ -6133,18 +6196,28 @@ Title: Park Villas
             document.getElementById('add-listing-fab')?.classList.toggle('is-visible', Boolean(activeUser));
 
             if (activeUser) {
+                const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
-                    <button onclick="navigateToMyListings()" class="header-action-btn"><span>❤️</span><span>Seçilmişlər</span></button>
-                    <button onclick="switchTab('admin-dashboard')" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Kabinet</span></button>
+                    <div class="relative group">
+                        <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                        <div class="absolute right-0 top-full z-50 hidden min-w-[210px] pt-2 group-hover:block group-focus-within:block">
+                            <div class="rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl text-slate-800">
+                                <button onclick="navigateToMyListings()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">📋 Mənim elanlarım</button>
+                                <button onclick="navigateToFavorites()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">❤️ Favorilər</button>
+                                <button onclick="navigateToProfileSettings()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">⚙️ Parametrlər</button>
+                                <button onclick="logoutAdmin()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black text-red-600 hover:bg-red-50">🚪 Çıxış</button>
+                            </div>
+                        </div>
+                    </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
-                    <button onclick="logoutAdmin()" class="header-action-btn !px-3" aria-label="Çıxış"><i class="fa-solid fa-sign-out-alt"></i></button>
                 `;
-                mobileIcon.innerHTML = `<div onclick="switchTab('admin-dashboard')" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${(activeUser.name || 'U')[0]}</div>`;
+                mobileIcon.innerHTML = `<div onclick="navigateToProfileSettings()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div>`;
                 mobileActions.innerHTML = `
                     <button onclick="navigateToCreateListing(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">➕ Elan əlavə et</button>
-                    <button onclick="navigateToMyListings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">📋 Elanlarım</button>
-                    <button onclick="switchTab('admin-dashboard'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">Kabinetə Keç</button>
-                    <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">Çıxış Et</button>
+                    <button onclick="navigateToMyListings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">📋 Mənim elanlarım</button>
+                    <button onclick="navigateToFavorites(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">❤️ Favorilər</button>
+                    <button onclick="navigateToProfileSettings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">⚙️ Parametrlər</button>
+                    <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">🚪 Çıxış</button>
                 `;
             } else {
                 const btn = `<button onclick="switchTab('admin-login')" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-sign-in-alt"></i><span>Giriş</span></button>`;
@@ -6194,6 +6267,8 @@ Title: Park Villas
                 renderPublicListingForm(false);
             } else if (tabId === 'my-listings') {
                 renderMyListingsPage();
+            } else if (tabId === 'favorites') {
+                renderFavoritesPage();
             } else if (tabId === 'career') {
                 renderCareerSection();
                 loadVacanciesBackground();
@@ -6204,8 +6279,10 @@ Title: Park Villas
                 loadAdminBackground();
             }
 
-            const routePath = tabId === 'mortgage' ? '/ipoteka-kalkulyatoru' : (tabId === 'career' ? '/vacancies' : (tabId === 'portfolio' ? '/gallery' : (tabId === 'listings' ? '/elanlar' : (tabId === 'create-listing' ? '/elan-elave-et' : (tabId === 'my-listings' ? '/menim-elanlarim' : '/')))));
-            updateSeo({ title: tabId === 'mortgage' ? 'İpoteka Kalkulyatoru' : (tabId === 'career' ? 'Vakansiyalar' : (tabId === 'portfolio' ? 'Qalereya' : (tabId === 'listings' ? 'Elanlar' : (tabId === 'create-listing' ? 'Elan əlavə et' : (tabId === 'my-listings' ? 'Elanlarım' : SITE_NAME))))), path: routePath });
+            const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/menim-elanlarim', favorites: '/favoriler' };
+            const routeTitles = { mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər' };
+            const routePath = routePaths[tabId] || '/';
+            updateSeo({ title: routeTitles[tabId] || SITE_NAME, path: routePath });
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
@@ -7020,10 +7097,12 @@ Təşəkkür edirəm. 🙏`;
                 callBtn.href = `tel:${normalizedPhone}`;
             }
             document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
+            const previewBanner = document.getElementById('p-modal-preview-banner');
+            if (previewBanner) previewBanner.classList.toggle('hidden', normalizeListingStatus(p.status) === 'approved');
 
             document.getElementById('property-detail-modal').classList.remove('hidden');
             setModalOpenState(true);
-            await trackListingView(id);
+            if (normalizeListingStatus(p.status) === 'approved') await trackListingView(id);
         }
 
         function closePropertyModal() {
@@ -9214,7 +9293,7 @@ Təşəkkür edirəm. 🙏`;
 
         function editSeaBreezeItem(id) {
             const list = appData.listings;
-            const p = list.find(x => x.id === id);
+            const p = list.find(x => String(x.id) === String(id));
             if (p) {
                 document.getElementById('edit-sb-id').value = p.id;
                 document.getElementById('sb-title').value = p.title;
@@ -10072,6 +10151,11 @@ Təşəkkür edirəm. 🙏`;
             if (path === '/menim-elanlarim') {
                 if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
                 switchTab('my-listings', { skipPush: true });
+                return;
+            }
+            if (path === '/favoriler') {
+                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
+                switchTab('favorites', { skipPush: true });
                 return;
             }
             const userListingsMatch = path.match(/^\/user\/(\d+)\/listings\/?$/);
