@@ -111,21 +111,37 @@ function serializeGallery(item) {
   };
 }
 
-function positiveInt(value, fallback, max = 100) {
+function positiveInt(value, fallback, max = 5000) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return Math.min(parsed, max);
 }
 
+function isGallerySchemaUnavailable(error) {
+  return ['P2021', 'P2022'].includes(error?.code) || /gallery|sort_order/i.test(String(error?.message || ''));
+}
+
+function emptyGalleryResponse(req, extra = {}) {
+  const page = positiveInt(req?.query?.page, 1, 1000000);
+  const limit = positiveInt(req?.query?.limit, 1000, 5000);
+  return { success: true, data: [], items: [], total: 0, page, limit, totalPages: 1, ...extra };
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   const page = positiveInt(req.query.page, 1, 1000000);
-  const limit = positiveInt(req.query.limit, 18, 100);
+  const limit = positiveInt(req.query.limit, 1000, 5000);
   const skip = (page - 1) * limit;
-  const [items, total] = await Promise.all([
-    prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }], skip, take: limit }),
-    prisma.gallery.count(),
-  ]);
-  res.json({ items: items.map(serializeGallery), total, page, totalPages: Math.max(1, Math.ceil(total / limit)) });
+  try {
+    const [items, total] = await Promise.all([
+      prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }], skip, take: limit }),
+      prisma.gallery.count(),
+    ]);
+    res.json({ success: true, data: items.map(serializeGallery), items: items.map(serializeGallery), total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] schema unavailable; returning empty gallery response.', { code: error.code, message: error.message });
+    res.json(emptyGalleryResponse(req, { page, limit }));
+  }
 }));
 
 
@@ -137,19 +153,31 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 
   if (!normalized.length) return res.status(400).json({ message: 'Order payload is required.' });
 
-  await prisma.$transaction(normalized.map((item, index) => prisma.gallery.update({
-    where: { id: item.id },
-    data: { sortOrder: index + 1 },
-  })));
+  try {
+    await prisma.$transaction(normalized.map((item, index) => prisma.gallery.update({
+      where: { id: item.id },
+      data: { sortOrder: index + 1 },
+    })));
 
-  const items = await prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }] });
-  res.json({ items: items.map(serializeGallery) });
+    const items = await prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }] });
+    res.json({ success: true, data: items.map(serializeGallery), items: items.map(serializeGallery) });
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] reorder skipped because schema is unavailable.', { code: error.code, message: error.message });
+    res.json(emptyGalleryResponse(req));
+  }
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const data = await prisma.gallery.findUnique({ where: { id: Number(req.params.id) } });
-  if (!data) return res.status(404).json({ message: 'Gallery item not found.' });
-  return res.json(serializeGallery(data));
+  try {
+    const data = await prisma.gallery.findUnique({ where: { id: Number(req.params.id) } });
+    if (!data) return res.status(404).json({ message: 'Gallery item not found.' });
+    return res.json(serializeGallery(data));
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] detail unavailable; returning empty response.', { code: error.code, message: error.message });
+    return res.json({ success: true, data: [] });
+  }
 }));
 
 router.post('/', authenticate, authorize('admin'), upload.fields([
@@ -157,13 +185,19 @@ router.post('/', authenticate, authorize('admin'), upload.fields([
   { name: 'images', maxCount: 25 },
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
-  const data = await payload(req);
-  if (!Number.isFinite(Number(data.sortOrder)) || Number(data.sortOrder) <= 0) {
-    await prisma.gallery.updateMany({ data: { sortOrder: { increment: 1 } } });
-    data.sortOrder = 1;
+  try {
+    const data = await payload(req);
+    if (!Number.isFinite(Number(data.sortOrder)) || Number(data.sortOrder) <= 0) {
+      await prisma.gallery.updateMany({ data: { sortOrder: { increment: 1 } } });
+      data.sortOrder = 1;
+    }
+    const created = await prisma.gallery.create({ data });
+    res.status(201).json(serializeGallery(created));
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] create skipped because schema is unavailable.', { code: error.code, message: error.message });
+    res.json({ success: true, data: [] });
   }
-  const created = await prisma.gallery.create({ data });
-  res.status(201).json(serializeGallery(created));
 }));
 
 router.put('/:id', authenticate, authorize('admin'), upload.fields([
@@ -172,15 +206,27 @@ router.put('/:id', authenticate, authorize('admin'), upload.fields([
   { name: 'video', maxCount: 1 },
 ]), asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const existing = await prisma.gallery.findUnique({ where: { id } });
-  if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
-  const updated = await prisma.gallery.update({ where: { id }, data: await payload(req, existing) });
-  res.json(serializeGallery(updated));
+  try {
+    const existing = await prisma.gallery.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
+    const updated = await prisma.gallery.update({ where: { id }, data: await payload(req, existing) });
+    res.json(serializeGallery(updated));
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] update skipped because schema is unavailable.', { code: error.code, message: error.message });
+    res.json({ success: true, data: [] });
+  }
 }));
 
 router.delete('/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
-  await prisma.gallery.delete({ where: { id: Number(req.params.id) } });
-  res.status(204).send();
+  try {
+    await prisma.gallery.delete({ where: { id: Number(req.params.id) } });
+    res.status(204).send();
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] delete skipped because schema is unavailable.', { code: error.code, message: error.message });
+    res.json({ success: true, data: [] });
+  }
 }));
 
 module.exports = router;

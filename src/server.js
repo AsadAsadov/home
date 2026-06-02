@@ -88,13 +88,13 @@ app.use((err, _req, res, _next) => {
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ success: false, error: 'Request entity too large.', message: 'Request entity too large.' });
   }
+  const isPrismaError = typeof err.code === 'string' && /^P\d{4}$/.test(err.code);
   const status = err.status || (err.code === 'P2025' ? 404 : 500);
-  const message = err.message || 'Unexpected server error.';
+  const message = isPrismaError ? 'Server database error.' : (err.message || 'Unexpected server error.');
   return res.status(status).json({
     success: false,
     error: message,
     message,
-    details: { name: err.name, code: err.code, meta: err.meta },
   });
 });
 

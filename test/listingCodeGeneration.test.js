@@ -9,9 +9,9 @@ test('listing code formatter logs BH-prefixed six digit codes', () => {
 });
 
 test('raw SELECT MAX(listing_code) result is parsed before next code generation', () => {
-  assert.equal(maxListingCodeFromRawRows([{ max_code: 12 }]), 12);
-  assert.equal(maxListingCodeFromRawRows([{ max_code: 12n }]), 12);
-  assert.equal(maxListingCodeFromRawRows([{ max_code: null }]), 0);
+  assert.equal(maxListingCodeFromRawRows([{ max_code: 12 }]), 12n);
+  assert.equal(maxListingCodeFromRawRows([{ max_code: 12n }]), 12n);
+  assert.equal(maxListingCodeFromRawRows([{ max_code: null }]), 0n);
 });
 
 
@@ -20,7 +20,7 @@ test('locked listing code generation queries advisory lock before MAX(listing_co
   const calls = [];
   const tx = {
     $executeRaw(strings, value) {
-      calls.push(['lock', strings.join('?'), value]);
+      calls.push(['execute', strings.join('?'), value]);
       return Promise.resolve();
     },
     $queryRaw(strings) {
@@ -31,8 +31,8 @@ test('locked listing code generation queries advisory lock before MAX(listing_co
 
   const generated = await generateNextListingCodeInLockedTransaction(tx, 3);
 
-  assert.equal(generated, 13);
-  assert.deepEqual(calls.map(([type]) => type), ['lock', 'max']);
+  assert.equal(generated, 13n);
   assert.match(calls[0][1], /pg_advisory_xact_lock/);
-  assert.match(calls[1][1], /MAX\(listing_code\)/);
+  assert.ok(calls.some(([type, sql]) => type === 'max' && /MAX\(listing_code\)/.test(sql)));
+  assert.match(calls.at(-1)[1], /UPDATE listing_code_sequence/);
 });

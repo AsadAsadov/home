@@ -10,6 +10,7 @@ const {
   LISTING_CODE_MAX_RETRIES,
   LISTING_CODE_ERROR_RESPONSE,
   generateNextListingCodeInLockedTransaction,
+  reserveTimestampListingCodeInLockedTransaction,
   isListingCodeCollision,
 } = require('../utils/listingCode');
 
@@ -575,8 +576,8 @@ function parseListingOrder(body) {
 async function listListings(req, res, extraWhere) {
   const q = String(req.query.q || '').trim();
   const normalizedCodeQuery = String(req.query.listingCode || req.query.code || (/^BH?\d+$/i.test(q) || /^\d+$/.test(q) ? q : '')).replace(/^BH/i, '');
-  const code = Number.parseInt(normalizedCodeQuery, 10);
-  const searchWhere = q || Number.isInteger(code) ? { OR: [
+  const code = /^\d+$/.test(normalizedCodeQuery) ? BigInt(normalizedCodeQuery) : null;
+  const searchWhere = q || code !== null ? { OR: [
     ...(q ? [
       { title: { contains: q, mode: 'insensitive' } },
       { projectName: { contains: q, mode: 'insensitive' } },
@@ -587,7 +588,7 @@ async function listListings(req, res, extraWhere) {
       { metroStation: { contains: q, mode: 'insensitive' } },
       { streetAddress: { contains: q, mode: 'insensitive' } },
     ] : []),
-    ...(Number.isInteger(code) ? [{ listingCode: code }] : []),
+    ...(code !== null ? [{ listingCode: code }] : []),
   ] } : undefined;
   const regionWhere = listingRegionFilterWhere(req.query);
   const creditValue = req.query.credit ?? req.query.is_credit ?? req.query.isCredit;
@@ -717,8 +718,9 @@ router.post('/:id/view', optionalAuthenticate, asyncHandler(async (req, res) => 
 }));
 
 router.get('/code/:listingCode', optionalAuthenticate, asyncHandler(async (req, res) => {
-  const listingCode = Number.parseInt(String(req.params.listingCode || '').replace(/^BH/i, ''), 10);
-  if (!Number.isInteger(listingCode) || listingCode < 1) return res.status(400).json({ message: 'Invalid listing code.' });
+  const normalizedListingCode = String(req.params.listingCode || '').replace(/^BH/i, '');
+  if (!/^\d+$/.test(normalizedListingCode) || BigInt(normalizedListingCode) < 1n) return res.status(400).json({ message: 'Invalid listing code.' });
+  const listingCode = BigInt(normalizedListingCode);
   const data = await prisma.listing.findUnique({ where: { listingCode }, include });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
   const canSee = data.status === 'approved' || req.auth?.role === 'admin' || (req.auth?.role === 'user' && sameId(data.userId, req.auth.id));
@@ -831,8 +833,16 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
             code: error.code,
             meta: error.meta,
           });
-          if (!isListingCodeDuplicate || attempt === LISTING_CODE_MAX_RETRIES) throw error;
+          if (!isListingCodeDuplicate) throw error;
         }
+      }
+      if (!listing) {
+        listing = await prisma.$transaction(async (tx) => {
+          const txPayload = { ...payload };
+          delete txPayload.listingCode;
+          txPayload.listingCode = await reserveTimestampListingCodeInLockedTransaction(tx);
+          return tx.listing.create({ data: txPayload, include });
+        });
       }
       createArgs.data = { ...payload, listingCode: listing.listingCode };
       console.log('LISTING INSERT OK', listing);
@@ -842,7 +852,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
         meta: error.meta,
         stack: error.stack,
       });
-      throw error;
+      return res.status(500).json(LISTING_CODE_ERROR_RESPONSE);
     }
 
     if (listingImagesPayload.length) {
@@ -857,7 +867,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
           meta: error.meta,
           stack: error.stack,
         });
-        throw error;
+        return res.status(500).json({ success: false, message: 'Elan şəkilləri yadda saxlanılarkən xəta baş verdi.' });
       }
     } else {
       console.log('LISTING_IMAGES INSERT OK', { count: 0 });
