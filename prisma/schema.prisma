@@ -302,12 +302,15 @@ model SiteAd {
 
 model SiteSettings {
   id               Int      @id @default(1)
+
   showBaki         Boolean  @default(true) @map("show_baki")
   showSumqayit     Boolean  @default(true) @map("show_sumqayit")
   showAbsheron     Boolean  @default(true) @map("show_absheron")
-  showMetroFilter  Boolean  @default(true) @map("show_metro_filter")
-  showRayonFilter  Boolean  @default(true) @map("show_rayon_filter")
-  showQesebeFilter Boolean  @default(true) @map("show_qesebe_filter")
+
+  showMetroFilter  Boolean  @default(true) @map("show_metro")
+  showRayonFilter  Boolean  @default(true) @map("show_rayon")
+  showQesebeFilter Boolean  @default(true) @map("show_qesebe")
+
   updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("site_settings")
