@@ -1127,7 +1127,8 @@
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            transition: opacity 220ms ease, visibility 220ms ease;
+            background: rgba(2, 6, 23, .96);
+            transition: opacity 240ms ease, visibility 240ms ease;
         }
         .property-lightbox:not(.hidden) {
             display: flex;
@@ -1146,16 +1147,18 @@
             height: 100dvh;
             max-width: 100vw;
             max-height: 100dvh;
-            background: radial-gradient(circle at top, rgba(30,41,59,.72), rgba(2,6,23,.96) 58%);
-            transform: scale(.985);
-            transition: transform 220ms ease;
+            background:
+                radial-gradient(circle at 50% 4%, rgba(127,127,255,.18), transparent 28%),
+                linear-gradient(180deg, rgba(15,23,42,.98), rgba(2,6,23,.98));
+            transform: translateY(10px) scale(.985);
+            transition: transform 240ms cubic-bezier(.2,.8,.2,1);
         }
-        .property-lightbox:not(.hidden) .property-lightbox__panel { transform: scale(1); }
+        .property-lightbox:not(.hidden) .property-lightbox__panel { transform: translateY(0) scale(1); }
         .property-lightbox__stage {
             min-height: 0;
             width: 100%;
             height: 100%;
-            padding: clamp(4.5rem, 8vh, 5.75rem) clamp(.75rem, 2vw, 1.5rem) clamp(6.75rem, 15vh, 8.5rem);
+            padding: clamp(4.25rem, 7vh, 5.5rem) clamp(.75rem, 2vw, 1.5rem) clamp(6rem, 12vh, 7.75rem);
         }
         .property-lightbox__image-wrap {
             width: 100%;
@@ -1164,19 +1167,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
         .property-lightbox__image {
             display: block;
-            width: auto;
-            height: auto;
-            max-width: min(95vw, var(--natural-width, 95vw));
-            max-height: min(90vh, var(--natural-height, 90vh));
+            width: min(var(--fit-width, 95vw), 95vw);
+            height: min(var(--fit-height, 90vh), 90vh);
+            max-width: 95vw;
+            max-height: 90vh;
             object-fit: contain;
             image-rendering: auto;
-            box-shadow: 0 26px 80px rgba(0,0,0,.42);
+            box-shadow: 0 30px 90px rgba(0,0,0,.5);
             opacity: 0;
-            transform: translateY(8px) scale(.992);
-            transition: opacity 180ms ease, transform 180ms ease;
+            transform: translateY(10px) scale(.985);
+            transition: opacity 180ms ease, transform 220ms cubic-bezier(.2,.8,.2,1);
             user-select: none;
             -webkit-user-drag: none;
         }
@@ -1263,8 +1267,8 @@
         }
         .property-lightbox__title { min-width: 0; max-width: min(720px, calc(100vw - 6.5rem)); }
         @media (max-width: 767px) {
-            .property-lightbox__stage { padding: 4rem 0 6.25rem; }
-            .property-lightbox__image { max-width: min(100vw, var(--natural-width, 100vw)); max-height: min(calc(100dvh - 10.25rem), var(--natural-height, calc(100dvh - 10.25rem))); box-shadow: none; }
+            .property-lightbox__stage { padding: 3.75rem 0 5.75rem; }
+            .property-lightbox__image { width: min(var(--fit-width, 100vw), 100vw); height: min(var(--fit-height, calc(100dvh - 9.5rem)), 90vh); max-width: 100vw; max-height: 90vh; box-shadow: none; }
             .property-lightbox__nav { width: 2.55rem; height: 2.55rem; background: rgba(15,23,42,.5); }
             .property-lightbox__nav--prev { left: .35rem; }
             .property-lightbox__nav--next { right: .35rem; }
@@ -2892,7 +2896,7 @@ Title: Park Villas
         </div>
     </div>
 
-    <div id="property-lightbox" class="property-lightbox hidden fixed inset-0 z-[70] items-center justify-center bg-slate-950/95 backdrop-blur-lg" role="dialog" aria-modal="true" aria-label="Elan şəkil qalereyası">
+    <div id="property-lightbox" class="property-lightbox hidden fixed inset-0 z-[70] items-center justify-center bg-slate-950/95 backdrop-blur-lg" role="dialog" aria-modal="true" aria-label="Elan şəkil qalereyası" onclick="if (event.target === this) closePropertyLightbox()">
         <div class="property-lightbox__panel relative overflow-hidden">
             <div class="property-lightbox__topbar">
                 <div class="property-lightbox__title rounded-2xl px-4 py-3">
@@ -6796,6 +6800,28 @@ Təşəkkür edirəm. 🙏`;
             return Boolean(modal && !modal.classList.contains('hidden'));
         }
 
+        function applyPropertyLightboxImageFit(img) {
+            if (!img?.naturalWidth || !img?.naturalHeight) return;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1280;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 720;
+            const maxWidth = viewportWidth * (viewportWidth < 768 ? 1 : 0.95);
+            const maxHeight = viewportHeight * 0.9;
+            const containScale = Math.min(maxWidth / img.naturalWidth, maxHeight / img.naturalHeight);
+            const upscaleLimit = Math.min(containScale, 1.45);
+            const scale = containScale > 1 ? upscaleLimit : containScale;
+            const fittedWidth = Math.max(1, Math.round(img.naturalWidth * scale));
+            const fittedHeight = Math.max(1, Math.round(img.naturalHeight * scale));
+
+            img.style.setProperty('--fit-width', `${fittedWidth}px`);
+            img.style.setProperty('--fit-height', `${fittedHeight}px`);
+        }
+
+        function resetPropertyLightboxImageFit(img) {
+            if (!img) return;
+            img.style.removeProperty('--fit-width');
+            img.style.removeProperty('--fit-height');
+        }
+
         function setPropertyLightboxImage(index) {
             if (!activePropertyImages.length) return;
             activePropertyImageIndex = (index + activePropertyImages.length) % activePropertyImages.length;
@@ -6808,15 +6834,18 @@ Təşəkkür edirəm. 🙏`;
             if (counter) counter.textContent = `${activePropertyImageIndex + 1} / ${activePropertyImages.length}`;
             if (lightboxImg) {
                 lightboxImg.classList.remove('is-loaded');
-                lightboxImg.style.removeProperty('--natural-width');
-                lightboxImg.style.removeProperty('--natural-height');
+                resetPropertyLightboxImageFit(lightboxImg);
                 lightboxImg.onload = () => {
-                    if (lightboxImg.naturalWidth) lightboxImg.style.setProperty('--natural-width', `${lightboxImg.naturalWidth}px`);
-                    if (lightboxImg.naturalHeight) lightboxImg.style.setProperty('--natural-height', `${lightboxImg.naturalHeight}px`);
+                    applyPropertyLightboxImageFit(lightboxImg);
+                    lightboxImg.classList.add('is-loaded');
+                };
+                lightboxImg.onerror = () => {
+                    resetPropertyLightboxImageFit(lightboxImg);
                     lightboxImg.classList.add('is-loaded');
                 };
                 lightboxImg.src = selectedUrl;
                 lightboxImg.alt = `${title?.textContent || 'Elan şəkli'} - ${activePropertyImageIndex + 1}`;
+                if (lightboxImg.complete && lightboxImg.naturalWidth) lightboxImg.onload();
             }
 
             document.querySelectorAll('.property-lightbox__thumb').forEach((btn, idx) => {
@@ -6856,6 +6885,7 @@ Təşəkkür edirəm. 🙏`;
             modal?.classList.remove('is-closing', 'hidden');
             setModalOpenState(true);
             setPropertyLightboxImage(activePropertyImageIndex);
+            window.setTimeout(() => applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img')), 0);
         }
 
         function closePropertyLightbox() {
@@ -6868,6 +6898,7 @@ Təşəkkür edirəm. 🙏`;
                 const lightboxImg = document.getElementById('property-lightbox-img');
                 if (lightboxImg) {
                     lightboxImg.removeAttribute('src');
+                    resetPropertyLightboxImageFit(lightboxImg);
                     lightboxImg.classList.remove('is-loaded');
                 }
                 syncModalOpenState();
@@ -9958,6 +9989,9 @@ Təşəkkür edirəm. 🙏`;
         });
 
         document.getElementById('modal-content')?.addEventListener('dblclick', toggleLightboxZoom);
+        window.addEventListener('resize', () => {
+            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+        });
 
         ['media-modal', 'project-detail-modal-official', 'property-lightbox'].forEach((id) => {
             const modal = document.getElementById(id);
