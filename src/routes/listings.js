@@ -267,6 +267,46 @@ function parseExistingImageUrls(body) {
   return [];
 }
 
+
+function parseImageOrder(body) {
+  const raw = body.image_order ?? body.imageOrder;
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function orderedListingImageUrls(uploadedImageUrls, submittedExistingUrls, directImageUrl, body) {
+  const order = parseImageOrder(body);
+  if (!order.length) return [...uploadedImageUrls, ...submittedExistingUrls, directImageUrl].filter(Boolean);
+  const remainingUploads = [...uploadedImageUrls];
+  const remainingUrls = new Set(submittedExistingUrls);
+  if (directImageUrl) remainingUrls.add(directImageUrl);
+  const ordered = [];
+  order.forEach((item) => {
+    if (!item || typeof item !== 'object') return;
+    if (item.type === 'file') {
+      const idx = Number.parseInt(item.fileIndex, 10);
+      const url = Number.isInteger(idx) ? uploadedImageUrls[idx] : remainingUploads.shift();
+      if (url) ordered.push(url);
+    } else if (item.type === 'url') {
+      const url = sanitizeText(item.url);
+      if (url && remainingUrls.has(url)) {
+        ordered.push(url);
+        remainingUrls.delete(url);
+      }
+    }
+  });
+  uploadedImageUrls.forEach((url) => { if (url && !ordered.includes(url)) ordered.push(url); });
+  submittedExistingUrls.forEach((url) => { if (url && !ordered.includes(url)) ordered.push(url); });
+  if (directImageUrl && !ordered.includes(directImageUrl)) ordered.push(directImageUrl);
+  return ordered;
+}
+
 function listingFiles(req) {
   if (Array.isArray(req.files)) return req.files;
   if (!req.files) return [];
@@ -426,8 +466,18 @@ function orderedListingRows(rows) {
 
 
 async function generateUniqueListingCode(tx = prisma) {
+  if (typeof tx.$executeRawUnsafe === 'function') {
+    await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock(424242001)');
+  }
   const result = await tx.listing.aggregate({ _max: { listingCode: true } });
   return Math.max(Number(result._max.listingCode || 0), 0) + 1;
+}
+
+function isListingCodeCollision(error) {
+  if (error?.code !== 'P2002') return false;
+  const target = error.meta?.target;
+  if (Array.isArray(target)) return target.includes('listing_code') || target.includes('listingCode');
+  return String(target || '').includes('listing_code') || String(target || '').includes('listingCode');
 }
 
 
@@ -744,7 +794,9 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     console.log('[listings] field name comparison', compareListingFieldNames(req.body));
     fileOriginalNames.forEach((originalname) => console.log('file.originalname', originalname));
     const uploadedImageUrls = await uploadListingFiles(files);
-    const rawImageUrls = [...uploadedImageUrls, ...parseExistingImageUrls(req.body), req.body.image_url ?? req.body.imageUrl].filter(Boolean);
+    const submittedExistingUrls = parseExistingImageUrls(req.body);
+    const directImageUrl = req.body.image_url ?? req.body.imageUrl;
+    const rawImageUrls = orderedListingImageUrls(uploadedImageUrls, submittedExistingUrls, directImageUrl, req.body);
     logListingInputSanitization(req.body, rawImageUrls);
     const imageUrls = sanitizeImageUrls(rawImageUrls);
     const data = normalizeListingRegionData(sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req))), req.body);
@@ -770,7 +822,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     let listing;
     try {
-      for (let attempt = 1; attempt <= 3; attempt += 1) {
+      for (let attempt = 1; attempt <= 7; attempt += 1) {
         try {
           listing = await prisma.$transaction(async (tx) => {
             const txPayload = { ...payload };
@@ -780,8 +832,8 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
           });
           break;
         } catch (error) {
-          const isListingCodeDuplicate = error.code === 'P2002' && String(error.meta?.target || '').includes('listing_code');
-          if (!isListingCodeDuplicate || attempt === 3) throw error;
+          const isListingCodeDuplicate = isListingCodeCollision(error);
+          if (!isListingCodeDuplicate || attempt === 7) throw error;
           console.warn('[listings] listing_code duplicate during create, retrying', { attempt, code: error.code, meta: error.meta });
         }
       }
@@ -841,10 +893,11 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
 
   const uploadedImageUrls = await uploadListingFiles(listingFiles(req));
   const submittedExistingUrls = parseExistingImageUrls(req.body);
-  const keepCurrentImages = !uploadedImageUrls.length && !submittedExistingUrls.length && !req.body.image_url && !req.body.imageUrl;
+  const directImageUrl = req.body.image_url ?? req.body.imageUrl;
+  const keepCurrentImages = !uploadedImageUrls.length && !submittedExistingUrls.length && !directImageUrl;
   const imageUrls = keepCurrentImages
     ? sanitizeImageUrls(existing.images.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.imageUrl))
-    : sanitizeImageUrls([...uploadedImageUrls, ...submittedExistingUrls, req.body.image_url ?? req.body.imageUrl].filter(Boolean));
+    : sanitizeImageUrls(orderedListingImageUrls(uploadedImageUrls, submittedExistingUrls, directImageUrl, req.body));
 
   const data = normalizeListingRegionData(sanitizeListingPayload(compact(serializers.listing({ ...req.body, image_url: imageUrls[0] || req.body.image_url || req.body.imageUrl }, req))), req.body, existing);
   if (req.auth.role === 'user') {
