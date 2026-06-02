@@ -141,8 +141,8 @@
             right: auto;
             bottom: 20px;
             z-index: 61;
-            width: 58px;
-            height: 58px;
+            width: 48px;
+            height: 48px;
             border-radius: 9999px;
             display: none;
             align-items: center;
@@ -155,8 +155,8 @@
             font-weight: 900;
             letter-spacing: -.02em;
         }
-        .add-listing-fab span:first-child { font-size: 1rem; line-height: 1; }
-        .add-listing-fab span:last-child { font-size: .52rem; line-height: 1; }
+        .add-listing-fab span:first-child { font-size: .86rem; line-height: 1; }
+        .add-listing-fab span:last-child { font-size: .45rem; line-height: 1; }
         .add-listing-fab.is-visible { display: inline-flex; }
         @media (min-width: 768px) { .add-listing-fab { display: none !important; } }
         .public-listing-shell { max-width: 1200px; margin: 0 auto; }
@@ -193,6 +193,9 @@
         .listing-detail-card,
         .listing-detail-section,
         .listing-detail-gallery-card { overflow-x: hidden; }
+        body.modal-open { overflow: hidden; }
+        .listing-detail-shell { max-height: 90vh; }
+        .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
 
@@ -933,7 +936,7 @@
         .listing-detail-badge-stack {
             display: flex;
             flex-wrap: wrap;
-            gap: .5rem;
+            gap: .35rem;
         }
         .sea-breeze-listing-card__body,
         .sea-breeze-listing-card__footer {
@@ -1051,6 +1054,21 @@
             background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
             box-shadow: 0 30px 90px rgba(15, 23, 42, .32);
         }
+        .listing-detail-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .listing-detail-content > * { margin-top: 0 !important; margin-bottom: 0 !important; }
+        .listing-detail-header { display: grid; gap: .55rem; }
+        .listing-detail-top-badges { gap: .4rem; }
+        .listing-detail-top-badges > span { padding: .22rem .58rem; line-height: 1.1; }
+        .listing-detail-price-panel,
+        .listing-detail-credit-panel,
+        .listing-detail-location-section,
+        .listing-detail-agent-panel { border-radius: 1.25rem; padding: 1rem; }
+        .listing-detail-stats-grid { gap: .55rem; }
         .listing-detail-gallery-card {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
@@ -1181,8 +1199,8 @@
         .listing-detail-stat {
             background: rgba(248, 250, 252, .92);
             border: 1px solid rgba(226, 232, 240, .9);
-            border-radius: 1rem;
-            padding: .95rem;
+            border-radius: .9rem;
+            padding: .7rem;
         }
         .listing-detail-action {
             box-shadow: 0 14px 30px rgba(15, 23, 42, .12);
@@ -1230,19 +1248,27 @@
         .location-badge-row {
             display: flex;
             flex-wrap: wrap;
-            gap: .5rem;
+            align-items: center;
+            gap: .35rem;
         }
         .location-badge {
             display: inline-flex;
             align-items: center;
-            gap: .35rem;
+            gap: .28rem;
+            min-height: 1.65rem;
             border-radius: 999px;
             border: 1px solid #dbeafe;
             background: #eff6ff;
             color: #1e3a8a;
-            padding: .35rem .7rem;
-            font-size: .72rem;
+            padding: .24rem .58rem;
+            font-size: .68rem;
+            line-height: 1.1;
             font-weight: 900;
+        }
+        .location-badge--code {
+            border-color: #cfcfff;
+            background: rgba(127,127,255,.10);
+            color: #4338ca;
         }
         .map-frame {
             position: relative;
@@ -1343,6 +1369,27 @@
             }
         }
         @media (max-width: 767.98px) {
+            #property-detail-modal { padding: 0; align-items: stretch; justify-content: stretch; }
+            .listing-detail-shell {
+                width: 100vw;
+                height: 100dvh;
+                max-height: 100dvh;
+                border-radius: 0;
+            }
+            .listing-detail-scroll { height: 100%; max-height: 100dvh; padding-bottom: 120px; }
+            .listing-detail-content { padding: .85rem; gap: .75rem; }
+            .listing-detail-header { gap: .42rem; padding-right: 2.6rem; }
+            .listing-detail-gallery-card { padding: .7rem !important; gap: .55rem; }
+            .listing-detail-main-image { height: 235px; min-height: 235px; max-height: 235px; border-radius: 1rem; }
+            .listing-detail-thumbnail { width: 58px; height: 46px; flex-basis: 58px; border-radius: .75rem; }
+            .listing-detail-price-panel,
+            .listing-detail-credit-panel,
+            .listing-detail-location-section,
+            .listing-detail-agent-panel { padding: .82rem; border-radius: 1rem; }
+            .listing-detail-location-section { gap: .65rem; }
+            .listing-detail-stat { padding: .55rem .6rem; border-radius: .75rem; }
+            .listing-detail-contact-actions { gap: .5rem; }
+            .listing-detail-action { min-height: 42px !important; padding: .62rem .75rem !important; border-radius: .9rem !important; font-size: .78rem !important; }
             .listing-location-map {
                 height: 180px;
                 min-height: 180px;
@@ -2469,11 +2516,11 @@ Title: Park Villas
 
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
     <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
-        <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative max-h-[92vh] flex flex-col">
+        <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
             <button onclick="closePropertyModal()" class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 text-gray-800 hover:text-white hover:bg-brand-500 shadow-xl text-xl z-30 transition">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <div class="overflow-y-auto">
+            <div class="listing-detail-scroll">
                 <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-0">
                     <div class="bg-slate-950 p-3 md:p-5 listing-detail-gallery-sticky listing-detail-gallery-card">
                         <div class="relative overflow-hidden rounded-[1.5rem] bg-slate-900 listing-detail-main-image">
@@ -2486,9 +2533,9 @@ Title: Park Villas
                         <div id="p-modal-thumbnails" class="listing-detail-thumbnail-strip"></div>
                     </div>
 
-                    <div class="p-4 md:p-6 lg:p-8 space-y-7">
-                        <div class="space-y-3">
-                            <div class="flex flex-wrap items-center gap-2">
+                    <div class="listing-detail-content md:p-6 lg:p-8">
+                        <div class="listing-detail-header">
+                            <div class="listing-detail-top-badges flex flex-wrap items-center gap-2">
                                 <span id="p-modal-type" class="bg-emerald-500/10 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-emerald-200"></span>
                                 <span id="p-modal-category" class="bg-brand-500/10 text-brand-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-brand-200"></span>
                                 <span id="p-modal-project" class="bg-slate-100 text-slate-600 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200"></span>
@@ -2496,11 +2543,10 @@ Title: Park Villas
                             <div id="p-modal-badges" class="listing-detail-badge-stack"></div>
                             <h3 id="p-modal-title" class="text-2xl md:text-4xl font-black text-gray-950 leading-tight"></h3>
                             <div id="p-modal-location-badges" class="location-badge-row"></div>
-                            <span id="p-modal-code" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <p id="p-modal-date" class="text-xs text-gray-500 font-semibold"><i class="fa-regular fa-calendar mr-1"></i></p>
                         </div>
 
-                        <div class="rounded-[1.5rem] bg-gradient-to-br from-brand-50 to-white border border-brand-100 p-5 flex flex-wrap items-end justify-between gap-4 shadow-sm">
+                        <div class="listing-detail-price-panel bg-gradient-to-br from-brand-50 to-white border border-brand-100 flex flex-wrap items-end justify-between gap-3 shadow-sm">
                             <div>
                                 <span class="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-black">Qiymət</span>
                                 <div id="p-modal-price" class="text-3xl md:text-4xl font-black text-gray-950 mt-1"></div>
@@ -2508,7 +2554,7 @@ Title: Park Villas
                             <div id="p-modal-sqprice" class="text-sm text-black font-semibold bg-white/80 px-4 py-2 rounded-full border border-brand-100"></div>
                         </div>
 
-                        <div id="p-modal-credit" class="hidden credit-info-panel rounded-[1.5rem] p-5 space-y-3 shadow-sm">
+                        <div id="p-modal-credit" class="hidden credit-info-panel listing-detail-credit-panel space-y-3 shadow-sm">
                             <div class="flex items-center justify-between gap-3"><h4 class="text-sm font-black text-red-700 uppercase tracking-wider">Kredit Məlumatları</h4><span class="credit-badge text-[10px] font-semibold px-3 py-1 rounded-full uppercase">KREDİT</span></div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                 <div><span class="block text-[10px] uppercase font-black text-gray-400">İlkin ödəniş:</span><strong id="p-modal-credit-down" class="text-gray-950 text-lg"></strong></div>
@@ -2517,13 +2563,13 @@ Title: Park Villas
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                        <div class="listing-detail-stats-grid grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Otaq sayı</span><strong id="p-modal-rooms" class="text-gray-950 text-lg"></strong></div>
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Sahə</span><strong id="p-modal-area" class="text-gray-950 text-lg"></strong></div>
                             <div class="listing-detail-stat"><span class="block text-[10px] uppercase font-black text-gray-400">Mərtəbə</span><strong id="p-modal-floor" class="text-gray-950 text-lg"></strong></div>
                         </div>
 
-                        <div id="p-modal-location-section" class="rounded-[1.5rem] bg-slate-50 border border-slate-200 p-4 md:p-5 space-y-4">
+                        <div id="p-modal-location-section" class="listing-detail-location-section bg-slate-50 border border-slate-200 space-y-3">
                             <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">📍 Ünvan</h4>
                             <div class="text-sm">
                                 <div class="rounded-2xl bg-white border border-slate-200 px-4 py-3 shadow-sm"><strong id="p-modal-street-address" class="text-gray-950">—</strong></div>
@@ -2539,7 +2585,7 @@ Title: Park Villas
                             <p id="p-modal-desc" class="text-gray-700 text-sm md:text-base font-medium leading-7 whitespace-pre-line"></p>
                         </div>
 
-                        <div class="rounded-[1.5rem] bg-slate-50 border border-slate-200 p-4 md:p-5 space-y-4">
+                        <div class="listing-detail-agent-panel bg-slate-50 border border-slate-200 space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl">
                                     <i class="fa-solid fa-user-tie"></i>
@@ -2674,8 +2720,8 @@ Title: Park Villas
                 <input type="search" id="fullscreen-location-search" oninput="debouncedFullscreenLocationSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" placeholder="🔍 Ünvan, metro və ya rayon axtar…" class="w-full h-12 rounded-2xl border border-white/20 bg-white/95 px-4 pr-12 text-sm font-bold text-slate-900 shadow-2xl focus:outline-none focus:border-brand-500">
                 <div id="fullscreen-location-results" class="fullscreen-location-suggestions hidden mt-2 space-y-1 rounded-2xl border border-white/20 bg-white/95 p-2 text-xs shadow-2xl backdrop-blur"></div>
             </div>
-            <button type="button" onclick="closeFullscreenMap()" class="absolute top-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">✕ Bağla</button>
-            <div class="fullscreen-map-search space-y-2">
+            <button id="fullscreen-map-close-btn" type="button" onclick="closeFullscreenMap()" ontouchstart="event.preventDefault(); closeFullscreenMap()" class="absolute top-4 right-4 z-[1000] rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">✕ Bağla</button>
+            <div id="fullscreen-map-search-panel" class="fullscreen-map-search space-y-2 hidden">
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input id="fullscreen-map-search-input" type="search" oninput="debouncedFullscreenMapSearch()" onfocus="showFullscreenMapSuggestions()" placeholder="🔍 Ünvan, metro və ya rayon axtar…" class="w-full h-12 rounded-2xl border border-white/70 bg-white/95 pl-11 pr-4 text-sm font-bold text-slate-900 shadow-2xl outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/20">
@@ -5210,6 +5256,7 @@ Title: Park Villas
         }
 
         function showFullscreenMapSuggestions() {
+            if (!['admin','public'].includes(fullscreenMapSource)) return;
             const query = (document.getElementById('fullscreen-map-search-input')?.value || '').trim();
             const resultsEl = document.getElementById('fullscreen-map-results');
             if (query && resultsEl) resultsEl.classList.remove('hidden');
@@ -5217,6 +5264,7 @@ Title: Park Villas
 
         function debouncedFullscreenMapSearch() {
             clearTimeout(window.__fullscreenMapSearchTimer);
+            if (!['admin','public'].includes(fullscreenMapSource)) return;
             const query = (document.getElementById('fullscreen-map-search-input')?.value || '').trim();
             const resultsEl = document.getElementById('fullscreen-map-results');
             if (!query) {
@@ -5230,6 +5278,7 @@ Title: Park Villas
         }
 
         async function searchFullscreenMapLocation() {
+            if (!['admin','public'].includes(fullscreenMapSource)) return;
             const query = (document.getElementById('fullscreen-map-search-input')?.value || '').trim();
             const resultsEl = document.getElementById('fullscreen-map-results');
             if (!query || !resultsEl) return;
@@ -5294,8 +5343,13 @@ Title: Park Villas
                 fillLocationFieldsFromAddress(item.address || {}, address);
                 updateFullscreenMarker(point, true);
                 fullscreenMap?.setView(point, zoom);
+            } else if (fullscreenMapSource === 'public') {
+                setPublicListingCoordinates(point[0], point[1], { moveMap: true, reverse: false, zoom });
+                fillPublicLocationFieldsFromAddress(item.address || {}, address);
+                updateFullscreenMarker(point, true);
+                fullscreenMap?.setView(point, zoom);
             } else {
-                setDetailMapPoint(point, zoom, address);
+                return;
             }
             const input = document.getElementById('fullscreen-map-search-input');
             if (input) input.value = address || input.value;
@@ -5307,6 +5361,23 @@ Title: Park Villas
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
         }
+
+        function setModalOpenState(isOpen) {
+            document.body.classList.toggle('modal-open', Boolean(isOpen));
+            document.documentElement.style.overflow = isOpen ? 'hidden' : '';
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
+
+        function isElementVisibleById(id) {
+            const el = document.getElementById(id);
+            return Boolean(el && !el.classList.contains('hidden'));
+        }
+
+        function syncModalOpenState() {
+            setModalOpenState(isElementVisibleById('property-detail-modal') || isElementVisibleById('fullscreen-map-modal'));
+        }
+
+        let fullscreenMapCloseCleanup = null;
 
         function renderListingDetailMap(listing = {}) {
             const mapEl = document.getElementById('p-modal-location-map');
@@ -5372,7 +5443,12 @@ Title: Park Villas
             if (!modal || !canvas) return;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            document.getElementById('fullscreen-map-search-wrap')?.classList.toggle('hidden', !['admin','public'].includes(source));
+            setModalOpenState(true);
+            fullscreenMapCloseCleanup?.();
+            fullscreenMapCloseCleanup = attachFullscreenMapCloseHandlers();
+            const isEditableMap = ['admin','public'].includes(source);
+            document.getElementById('fullscreen-map-search-wrap')?.classList.toggle('hidden', !isEditableMap);
+            document.getElementById('fullscreen-map-search-panel')?.classList.toggle('hidden', !isEditableMap);
             const fsInput = document.getElementById('fullscreen-location-search'); if (fsInput) fsInput.value = '';
             document.getElementById('fullscreen-location-results')?.classList.add('hidden');
             const { point, zoom, hasMarker } = currentMapPoint(source);
@@ -5395,7 +5471,8 @@ Title: Park Villas
                 else clearFullscreenMarker();
                 const input = document.getElementById('fullscreen-map-search-input');
                 const results = document.getElementById('fullscreen-map-results');
-                if (input) input.value = source === 'admin' ? (document.getElementById('sb-location-search')?.value || '') : '';
+                if (input) input.value = source === 'admin' ? (document.getElementById('sb-location-search')?.value || '') : (source === 'public' ? (document.getElementById('pl-location-search')?.value || '') : '');
+                if (!['admin','public'].includes(source) && document.activeElement === input) input?.blur();
                 if (results) {
                     results.innerHTML = '';
                     results.classList.add('hidden');
@@ -5427,14 +5504,53 @@ Title: Park Villas
             }
         }
 
+        function attachFullscreenMapCloseHandlers() {
+            const modal = document.getElementById('fullscreen-map-modal');
+            const closeBtn = document.getElementById('fullscreen-map-close-btn');
+            const handleClose = event => {
+                event?.preventDefault?.();
+                event?.stopPropagation?.();
+                closeFullscreenMap();
+            };
+            const handleKeydown = event => {
+                if (event.key === 'Escape') closeFullscreenMap();
+            };
+            const handleBackdropTouch = event => {
+                if (event.target === modal) handleClose(event);
+            };
+            closeBtn?.addEventListener('click', handleClose);
+            closeBtn?.addEventListener('touchstart', handleClose, { passive: false });
+            modal?.addEventListener('touchstart', handleBackdropTouch, { passive: false });
+            document.addEventListener('keydown', handleKeydown);
+            return () => {
+                closeBtn?.removeEventListener('click', handleClose);
+                closeBtn?.removeEventListener('touchstart', handleClose);
+                modal?.removeEventListener('touchstart', handleBackdropTouch);
+                document.removeEventListener('keydown', handleKeydown);
+            };
+        }
+
         function closeFullscreenMap() {
             const modal = document.getElementById('fullscreen-map-modal');
             modal?.classList.add('hidden');
             modal?.classList.remove('flex');
+            document.getElementById('fullscreen-map-search-wrap')?.classList.add('hidden');
+            document.getElementById('fullscreen-map-search-panel')?.classList.add('hidden');
+            document.getElementById('fullscreen-location-results')?.classList.add('hidden');
+            document.getElementById('fullscreen-map-results')?.classList.add('hidden');
+            clearTimeout(window.__fullscreenLocationTimer);
+            clearTimeout(window.__fullscreenMapSearchTimer);
+            fullscreenMapCloseCleanup?.();
+            fullscreenMapCloseCleanup = null;
+            document.body.classList.remove('modal-open');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
             setTimeout(() => {
                 fullscreenMap?.invalidateSize();
                 adminListingMap?.invalidateSize?.();
+                publicListingMap?.invalidateSize?.();
                 detailListingMap?.invalidateSize?.();
+                syncModalOpenState();
             }, 80);
         }
 
@@ -6509,8 +6625,8 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('p-modal-project').textContent = getListingLocationLabel(p);
             document.getElementById('p-modal-badges').innerHTML = renderListingBadgeStack(p, true);
             document.getElementById('p-modal-title').textContent = listingTitle;
-            document.getElementById('p-modal-location-badges').innerHTML = renderLocationBadges(p);
-            document.getElementById('p-modal-code').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
+            const codeBadgeHtml = `<span id="p-modal-code" class="location-badge location-badge--code">Elan kodu: ${escapeHtml(formatListingCode(p.listingCode))}</span>`;
+            document.getElementById('p-modal-location-badges').innerHTML = `${renderLocationBadges(p)}${codeBadgeHtml}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = listingDesc || 'Təsvir əlavə edilməyib.';
             document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${formatPrice(price, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
@@ -6577,11 +6693,13 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
 
             document.getElementById('property-detail-modal').classList.remove('hidden');
+            setModalOpenState(true);
             await trackListingView(id);
         }
 
         function closePropertyModal() {
             document.getElementById('property-detail-modal').classList.add('hidden');
+            syncModalOpenState();
             if (detailListingMap) setTimeout(() => detailListingMap.invalidateSize(), 50);
             if (window.location.pathname.startsWith('/listing/')) {
                 history.pushState({ tabId: 'seabreeze' }, '', '/');
