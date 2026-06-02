@@ -137,9 +137,9 @@
 
         .add-listing-fab {
             position: fixed;
-            left: 20px;
+            left: max(16px, env(safe-area-inset-left));
             right: auto;
-            bottom: 20px;
+            bottom: max(18px, env(safe-area-inset-bottom));
             z-index: 61;
             width: 48px;
             height: 48px;
@@ -177,6 +177,11 @@
         .public-location-suggestion { display:block; width:100%; text-align:left; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:.75rem .85rem; color:#0f172a; transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease; }
         .public-location-suggestion:hover, .public-location-suggestion:focus-visible { background:#f4f4ff; border-color:var(--color-primary-border); transform:translateX(2px); outline:none; }
         .public-location-map { width:100%; height:320px; min-height:260px; border-radius:1.25rem; overflow:hidden; background:#e5e7eb; }
+        .listing-upload-progress { height:.45rem; border-radius:999px; background:rgba(148,163,184,.22); overflow:hidden; }
+        .listing-upload-progress__bar { height:100%; width:0%; border-radius:inherit; background:linear-gradient(90deg,var(--color-primary),#22c55e); transition:width 180ms ease; }
+        .listing-sortable-thumb { touch-action:none; cursor:grab; user-select:none; }
+        .listing-sortable-thumb.is-dragging { opacity:.55; transform:scale(.96); cursor:grabbing; }
+        .listing-sortable-thumb.is-drag-over { outline:3px solid var(--color-primary); outline-offset:2px; }
         .public-floor-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:.65rem; }
         .public-floor-grid > label { min-width:0; }
         @media (min-width: 768px) { .public-floor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap:.75rem; } }
@@ -195,6 +200,7 @@
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
         .listing-detail-shell { max-height: 90vh; }
+        .listing-detail-close { position: sticky; top: 1rem; margin-left: auto; margin-right: 1rem; flex: 0 0 auto; z-index: 80; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -352,7 +358,7 @@
             .desktop-ad-rail {
                 display: flex;
                 position: sticky;
-                top: 7rem;
+                top: 20px;
                 width: var(--ad-width);
                 max-width: 100%;
                 flex-direction: column;
@@ -1376,6 +1382,7 @@
                 max-height: 100dvh;
                 border-radius: 0;
             }
+            .listing-detail-close { top: .75rem; margin-right: .75rem; }
             .listing-detail-scroll { height: 100%; max-height: 100dvh; padding-bottom: 120px; }
             .listing-detail-content { padding: .85rem; gap: .75rem; }
             .listing-detail-header { gap: .42rem; padding-right: 2.6rem; }
@@ -1967,7 +1974,8 @@
                                     <span class="text-xs text-gray-400" id="sb-images-count">0 şəkil seçildi</span>
                                     <input type="url" id="sb-img-url" placeholder="Yaxud cover şəkil URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                                 </div>
-                                <p class="text-[10px] text-gray-500 mt-2">Drag/drop dəstəklənir. Soldan sağa düzülüş sort_order kimi saxlanılır.</p>
+                                <p class="text-[10px] text-gray-500 mt-2">Drag/drop və mobil toxunuş düymələri dəstəklənir. Soldan sağa düzülüş sort_order kimi saxlanılır.</p>
+                                <div id="sb-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-gray-400 font-bold">0%</div></div>
                                 <div id="sb-images-preview" class="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-3"></div>
                             </div>
                             <input type="hidden" id="sb-img-preview-val" value="">
@@ -2517,7 +2525,7 @@ Title: Park Villas
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
     <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
         <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
-            <button onclick="closePropertyModal()" class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 text-gray-800 hover:text-white hover:bg-brand-500 shadow-xl text-xl z-30 transition">
+            <button onclick="closePropertyModal()" class="listing-detail-close w-11 h-11 rounded-full bg-white/95 text-gray-800 hover:text-white hover:bg-brand-500 shadow-xl text-xl transition" aria-label="Elan detalını bağla">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="listing-detail-scroll">
@@ -4794,7 +4802,7 @@ Title: Park Villas
             bootstrapCachedData();
             renderOfficialProjectOptions();
             try {
-                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority(), loadProjectsPriority()]);
+                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority()]);
             } finally {
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
@@ -4805,6 +4813,7 @@ Title: Park Villas
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
+                scheduleIdleTask(loadProjectsPriority, 250);
                 setupHomepageLazyLoaders();
             }
         }
@@ -5691,6 +5700,7 @@ Title: Park Villas
                     </div></div>`;
                 return;
             }
+            publicListingImageFiles = [];
             root.innerHTML = `<div class="mb-6"><button onclick="switchTab('seabreeze')" class="text-sm font-black text-brand-700 hover:underline">← Ana səhifə</button></div>
                 <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
@@ -5725,7 +5735,7 @@ Title: Park Villas
                             <label class="relative block public-form-field"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();}" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div>
                         </div>
-                        <div class="public-section-box"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><p class="mt-2 text-[10px] font-bold text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
                         <label class="public-form-field block"><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="5" class="public-form-input h-auto py-3" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
                         <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
                             <label class="public-form-field min-w-0"><span class="public-form-label">Elan sahibi</span><select id="pl-owner-type" class="public-form-input"><option value="owner">Əmlak sahibi</option><option value="agent">Vasitəçi</option></select></label>
@@ -5825,10 +5835,34 @@ Title: Park Villas
             try { const data = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`, { headers:{Accept:'application/json'} }).then(r=>r.json()); fillPublicLocationFieldsFromAddress(data.address||{}, data.display_name||''); } catch(e) { console.warn('Reverse geocoding alınmadı:', e.message); }
         }
 
-        function handlePublicListingImages(files) {
-            publicListingImageFiles = Array.from(files || []).filter(f => f.type?.startsWith('image/'));
+        async function handlePublicListingImages(files) {
+            const compressed = await compressListingImages(files, 'pl-upload-progress');
+            publicListingImageFiles.push(...compressed);
+            const input = document.getElementById('pl-images');
+            if (input) input.value = '';
+            renderPublicListingImagesPreview();
+        }
+
+        function renderPublicListingImagesPreview() {
             const preview = document.getElementById('pl-images-preview');
-            if (preview) preview.innerHTML = publicListingImageFiles.map(file => `<div class="aspect-square rounded-2xl overflow-hidden bg-slate-100"><img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt=""></div>`).join('');
+            if (!preview) return;
+            preview.innerHTML = publicListingImageFiles.map((file, idx) => `<div class="listing-sortable-thumb relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group" data-index="${idx}" draggable="true" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'public')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)" ondragstart="handleListingSortDragStart(event, ${idx})" ondragover="handleListingSortDragOver(event, ${idx})" ondragleave="handleListingSortDragLeave(event)" ondrop="handleListingSortDrop(event, ${idx}, 'public')" ondragend="handleListingSortDragEnd(event)"><img src="${URL.createObjectURL(file)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕</span>'}<button type="button" onclick="deletePublicListingPhoto(${idx})" class="absolute right-1 top-1 w-6 h-6 rounded-full bg-red-600/90 text-white text-xs">×</button><div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100"><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx - 1})">←</button><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx + 1})">→</button></div></div>`).join('');
+        }
+
+        function deletePublicListingPhoto(index) {
+            publicListingImageFiles.splice(index, 1);
+            renderPublicListingImagesPreview();
+        }
+
+        function movePublicListingPhoto(fromIndex, toIndex) {
+            reorderArrayItem(publicListingImageFiles, fromIndex, toIndex);
+            renderPublicListingImagesPreview();
+        }
+
+        function handlePublicListingImagesDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-brand-500', 'bg-brand-500/10');
+            handlePublicListingImages(event.dataTransfer?.files);
         }
 
         function publicLocationCity() { return document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı'; }
@@ -5887,8 +5921,8 @@ Title: Park Villas
                 const district=document.getElementById('pl-district')?.value || '';
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
                 const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
-                const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file));
-                const saved = await apiRequest('/api/listings', 'POST', formData); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
+                const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
+                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true);
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
             finally { publicListingSubmitting=false; setPublicSubmitLoading(false); }
         }
@@ -7313,8 +7347,148 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
-        function handleListingImageSelection(fileList) {
-            const files = Array.from(fileList || []).filter(file => file.type && file.type.startsWith('image/'));
+
+        const LISTING_IMAGE_MAX_WIDTH = 1920;
+        const LISTING_IMAGE_QUALITY = 0.78;
+        const LISTING_IMAGE_MIME = 'image/webp';
+
+        function setListingUploadProgress(targetId, percent, label = '') {
+            const root = document.getElementById(targetId);
+            if (!root) return;
+            root.classList.remove('hidden');
+            const bar = root.querySelector('.listing-upload-progress__bar');
+            const text = root.querySelector('.listing-upload-progress__text');
+            const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+            if (bar) bar.style.width = `${safePercent}%`;
+            if (text) text.textContent = label || `${Math.round(safePercent)}%`;
+        }
+
+        function resetListingUploadProgress(targetId) {
+            const root = document.getElementById(targetId);
+            if (!root) return;
+            root.classList.add('hidden');
+            const bar = root.querySelector('.listing-upload-progress__bar');
+            if (bar) bar.style.width = '0%';
+        }
+
+        async function compressListingImage(file) {
+            if (!file?.type?.startsWith('image/')) return file;
+            if (file.type === LISTING_IMAGE_MIME && file.size <= 1024 * 1024) return file;
+            const bitmap = await createImageBitmap(file);
+            const scale = Math.min(1, LISTING_IMAGE_MAX_WIDTH / Math.max(bitmap.width, bitmap.height));
+            const width = Math.max(1, Math.round(bitmap.width * scale));
+            const height = Math.max(1, Math.round(bitmap.height * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d', { alpha: false });
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(bitmap, 0, 0, width, height);
+            bitmap.close?.();
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, LISTING_IMAGE_MIME, LISTING_IMAGE_QUALITY));
+            if (!blob) return file;
+            const baseName = String(file.name || 'listing-image').replace(/\.[^.]+$/, '');
+            return new File([blob], `${baseName}.webp`, { type: LISTING_IMAGE_MIME, lastModified: Date.now() });
+        }
+
+        async function compressListingImages(files, progressId) {
+            const imageFiles = Array.from(files || []).filter(file => file.type && file.type.startsWith('image/'));
+            const compressed = [];
+            for (let i = 0; i < imageFiles.length; i += 1) {
+                setListingUploadProgress(progressId, (i / Math.max(imageFiles.length, 1)) * 100, `Şəkil sıxılır ${i + 1}/${imageFiles.length}…`);
+                compressed.push(await compressListingImage(imageFiles[i]));
+            }
+            if (imageFiles.length) setListingUploadProgress(progressId, 100, 'Sıxılma tamamlandı');
+            return compressed;
+        }
+
+        function uploadFormDataWithProgress(url, formData, progressId, method = 'POST') {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open(method, url.startsWith('http') ? url : `${API_BASE}${url}`);
+                const token = getAuthToken();
+                if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+                xhr.upload.onprogress = (event) => {
+                    if (!event.lengthComputable) return;
+                    setListingUploadProgress(progressId, Math.round((event.loaded / event.total) * 100), `Yüklənir ${Math.round((event.loaded / event.total) * 100)}%`);
+                };
+                xhr.onload = () => {
+                    let body = null;
+                    try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_error) { body = null; }
+                    if (xhr.status === 401) {
+                        if (getAuthToken()) redirectToLoginOnAuthFailure();
+                        reject(new Error(body?.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.'));
+                    } else if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(xhr.status === 204 ? null : body);
+                    } else {
+                        reject(new Error(body?.message || 'API sorğusu uğursuz oldu'));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Şəbəkə xətası baş verdi'));
+                xhr.send(formData);
+            });
+        }
+
+        function reorderArrayItem(items, fromIndex, toIndex) {
+            if (!Array.isArray(items) || fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) return;
+            const [item] = items.splice(fromIndex, 1);
+            items.splice(toIndex, 0, item);
+        }
+
+        let listingSortDragIndex = null;
+        function handleListingSortDragStart(event, index) {
+            listingSortDragIndex = index;
+            event.currentTarget.classList.add('is-dragging');
+            event.dataTransfer?.setData('text/plain', String(index));
+            if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+        }
+        function handleListingSortDragOver(event, index) {
+            event.preventDefault();
+            event.currentTarget.classList.add('is-drag-over');
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+        }
+        function handleListingSortDragLeave(event) { event.currentTarget.classList.remove('is-drag-over'); }
+        function handleListingSortDrop(event, index, scope = 'admin') {
+            event.preventDefault();
+            event.currentTarget.classList.remove('is-drag-over');
+            const from = Number(event.dataTransfer?.getData('text/plain') || listingSortDragIndex);
+            if (scope === 'public') movePublicListingPhoto(from, index);
+            else moveListingPhotoToIndex(from, index);
+        }
+        function handleListingSortDragEnd(event) {
+            event.currentTarget.classList.remove('is-dragging');
+            document.querySelectorAll('.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-drag-over'));
+            listingSortDragIndex = null;
+        }
+
+        let listingPointerSort = null;
+        function handleListingSortPointerDown(event, index, scope = 'admin') {
+            if (event.target.closest('button')) return;
+            listingPointerSort = { index, scope, pointerId: event.pointerId };
+            event.currentTarget.setPointerCapture?.(event.pointerId);
+            event.currentTarget.classList.add('is-dragging');
+        }
+        function handleListingSortPointerMove(event) {
+            if (!listingPointerSort) return;
+            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.listing-sortable-thumb');
+            document.querySelectorAll('.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-drag-over'));
+            target?.classList.add('is-drag-over');
+        }
+        function handleListingSortPointerUp(event) {
+            if (!listingPointerSort) return;
+            const { index, scope } = listingPointerSort;
+            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.listing-sortable-thumb');
+            const toIndex = Number(target?.dataset.index);
+            document.querySelectorAll('.listing-sortable-thumb.is-dragging,.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-dragging', 'is-drag-over'));
+            listingPointerSort = null;
+            if (!Number.isInteger(toIndex)) return;
+            if (scope === 'public') movePublicListingPhoto(index, toIndex);
+            else moveListingPhotoToIndex(index, toIndex);
+        }
+
+        async function handleListingImageSelection(fileList) {
+            const files = await compressListingImages(fileList, 'sb-upload-progress');
             files.forEach(file => {
                 uploadedListingImageFiles.push(file);
                 uploadedListingImages.push(URL.createObjectURL(file));
@@ -7334,11 +7508,11 @@ Təşəkkür edirəm. 🙏`;
             const fileNameText = document.getElementById('sb-file-name-text');
             if (fileNameText && firstName) fileNameText.textContent = firstName;
             container.innerHTML = uploadedListingImages.map((img, idx) => `
-                <div class="relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5">
-                    <img src="${img}" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">
-                    ${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>' : ''}
+                <div class="listing-sortable-thumb relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5" data-index="${idx}" draggable="true" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'admin')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)" ondragstart="handleListingSortDragStart(event, ${idx})" ondragover="handleListingSortDragOver(event, ${idx})" ondragleave="handleListingSortDragLeave(event)" ondrop="handleListingSortDrop(event, ${idx}, 'admin')" ondragend="handleListingSortDragEnd(event)">
+                    <img src="${img}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">
+                    ${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕ Sırala</span>'}
                     <button type="button" onclick="deleteListingPhotoTemp(${idx})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] z-10"><i class="fa-solid fa-xmark"></i></button>
-                    <div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-0 group-hover:opacity-100 transition">
+                    <div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100 transition">
                         <button type="button" onclick="moveListingPhotoTemp(${idx}, -1)" aria-label="Sola çək"><i class="fa-solid fa-arrow-left"></i></button>
                         <button type="button" onclick="moveListingPhotoTemp(${idx}, 1)" aria-label="Sağa çək"><i class="fa-solid fa-arrow-right"></i></button>
                     </div>
@@ -7357,6 +7531,12 @@ Təşəkkür edirəm. 🙏`;
             if (newIndex < 0 || newIndex >= uploadedListingImages.length) return;
             [uploadedListingImages[index], uploadedListingImages[newIndex]] = [uploadedListingImages[newIndex], uploadedListingImages[index]];
             [uploadedListingImageFiles[index], uploadedListingImageFiles[newIndex]] = [uploadedListingImageFiles[newIndex], uploadedListingImageFiles[index]];
+            renderListingImagesPreview();
+        }
+
+        function moveListingPhotoToIndex(fromIndex, toIndex) {
+            reorderArrayItem(uploadedListingImages, fromIndex, toIndex);
+            reorderArrayItem(uploadedListingImageFiles, fromIndex, toIndex);
             renderListingImagesPreview();
         }
 
@@ -8698,14 +8878,26 @@ Təşəkkür edirəm. 🙏`;
             Object.entries(apiPayload).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && key !== 'images') formData.append(key, value);
             });
-            uploadedListingImageFiles.forEach(file => formData.append('images', file));
+            const orderedFiles = [];
+            const imageOrder = [];
+            uploadedListingImages.forEach((src, index) => {
+                const file = uploadedListingImageFiles[index];
+                if (file) {
+                    imageOrder.push({ type: 'file', fileIndex: orderedFiles.length });
+                    orderedFiles.push(file);
+                } else if (src && !String(src).startsWith('blob:')) {
+                    imageOrder.push({ type: 'url', url: src });
+                }
+            });
+            orderedFiles.forEach(file => formData.append('images', file));
             if (existingImageUrls.length) formData.append('existing_images', JSON.stringify(existingImageUrls));
+            if (imageOrder.length) formData.append('image_order', JSON.stringify(imageOrder));
             if (urlImg) formData.append('image_url', urlImg);
 
             try {
                 const saved = editId
-                    ? await apiRequest(`/api/listings/${editId}`, 'PUT', formData)
-                    : await apiRequest('/api/listings', 'POST', formData);
+                    ? await uploadFormDataWithProgress(`/api/listings/${editId}`, formData, 'sb-upload-progress', 'PUT')
+                    : await uploadFormDataWithProgress('/api/listings', formData, 'sb-upload-progress', 'POST');
                 const savedUi = dbListingToUi(saved);
                 const idx = list.findIndex(x => String(x.id) === String(editId));
                 if (idx > -1) list[idx] = savedUi;
@@ -8762,8 +8954,8 @@ Təşəkkür edirəm. 🙏`;
                 document.getElementById('sb-credit-years').value = p.creditYears || '';
                 document.getElementById('sb-desc').value = p.desc;
 
-                uploadedListingImageFiles = [];
                 uploadedListingImages = Array.isArray(p.images) && p.images.length ? [...p.images] : (p.img ? [p.img] : []);
+                uploadedListingImageFiles = uploadedListingImages.map(() => null);
             document.getElementById('sb-img-url').value = '';
                 document.getElementById('sb-img-preview-val').value = '';
                 renderListingImagesPreview();
