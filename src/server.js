@@ -11,6 +11,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const prisma = require('./lib/prisma');
 const { makeUniqueSlug } = require('./utils/seo');
+const { generateNextListingCodeInLockedTransaction } = require('./utils/listingCode');
 
 const app = express();
 app.set('json replacer', (_key, value) => {
@@ -117,10 +118,11 @@ async function ensureSeoIdentifiers() {
     }
 
     const listings = await prisma.listing.findMany({ where: { listingCode: null }, orderBy: { id: 'asc' } });
-    let maxCode = Math.max(0, Number((await prisma.listing.aggregate({ _max: { listingCode: true } }))._max.listingCode || 0));
-    for (const listing of listings) {
-      maxCode += 1;
-      await prisma.listing.update({ where: { id: listing.id }, data: { listingCode: maxCode } });
+    for (const [index, listing] of listings.entries()) {
+      await prisma.$transaction(async (tx) => {
+        const listingCode = await generateNextListingCodeInLockedTransaction(tx, index);
+        await tx.listing.update({ where: { id: listing.id }, data: { listingCode } });
+      });
     }
   } catch (error) {
     if (['P2022', 'P2021'].includes(error.code)) {

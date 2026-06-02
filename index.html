@@ -63,7 +63,7 @@
             --color-text-secondary: #6B7280;
         }
 
-        html, body { max-width: 100%; overflow-x: hidden; }
+        html, body { max-width: 100%; overflow-x: clip; }
         *, *::before, *::after { box-sizing: border-box; }
         img, video, iframe, canvas, svg { max-width: 100%; }
         .glass-card {
@@ -344,7 +344,6 @@
                 max-width: min(100vw, 2040px);
                 margin: 0 auto;
                 padding: 0 clamp(0.5rem, 1vw, 1rem);
-                overflow-x: clip;
                 box-sizing: border-box;
             }
             .desktop-ad-layout > main {
@@ -5846,7 +5845,7 @@ Title: Park Villas
         function renderPublicListingImagesPreview() {
             const preview = document.getElementById('pl-images-preview');
             if (!preview) return;
-            preview.innerHTML = publicListingImageFiles.map((file, idx) => `<div class="listing-sortable-thumb relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group" data-index="${idx}" draggable="true" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'public')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)" ondragstart="handleListingSortDragStart(event, ${idx})" ondragover="handleListingSortDragOver(event, ${idx})" ondragleave="handleListingSortDragLeave(event)" ondrop="handleListingSortDrop(event, ${idx}, 'public')" ondragend="handleListingSortDragEnd(event)"><img src="${URL.createObjectURL(file)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕</span>'}<button type="button" onclick="deletePublicListingPhoto(${idx})" class="absolute right-1 top-1 w-6 h-6 rounded-full bg-red-600/90 text-white text-xs">×</button><div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100"><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx - 1})">←</button><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx + 1})">→</button></div></div>`).join('');
+            preview.innerHTML = publicListingImageFiles.map((file, idx) => `<div class="listing-sortable-thumb relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group" data-index="${idx}" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'public')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)"><img src="${URL.createObjectURL(file)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕</span>'}<button type="button" onclick="deletePublicListingPhoto(${idx})" class="absolute right-1 top-1 w-6 h-6 rounded-full bg-red-600/90 text-white text-xs">×</button><div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100"><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx - 1})">←</button><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx + 1})">→</button></div></div>`).join('');
         }
 
         function deletePublicListingPhoto(index) {
@@ -7465,6 +7464,7 @@ Təşəkkür edirəm. 🙏`;
         let listingPointerSort = null;
         function handleListingSortPointerDown(event, index, scope = 'admin') {
             if (event.target.closest('button')) return;
+            event.preventDefault();
             listingPointerSort = { index, scope, pointerId: event.pointerId };
             event.currentTarget.setPointerCapture?.(event.pointerId);
             event.currentTarget.classList.add('is-dragging');
@@ -7482,7 +7482,7 @@ Təşəkkür edirəm. 🙏`;
             const toIndex = Number(target?.dataset.index);
             document.querySelectorAll('.listing-sortable-thumb.is-dragging,.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-dragging', 'is-drag-over'));
             listingPointerSort = null;
-            if (!Number.isInteger(toIndex)) return;
+            if (!Number.isInteger(toIndex) || toIndex === index) return;
             if (scope === 'public') movePublicListingPhoto(index, toIndex);
             else moveListingPhotoToIndex(index, toIndex);
         }
@@ -7508,7 +7508,7 @@ Təşəkkür edirəm. 🙏`;
             const fileNameText = document.getElementById('sb-file-name-text');
             if (fileNameText && firstName) fileNameText.textContent = firstName;
             container.innerHTML = uploadedListingImages.map((img, idx) => `
-                <div class="listing-sortable-thumb relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5" data-index="${idx}" draggable="true" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'admin')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)" ondragstart="handleListingSortDragStart(event, ${idx})" ondragover="handleListingSortDragOver(event, ${idx})" ondragleave="handleListingSortDragLeave(event)" ondrop="handleListingSortDrop(event, ${idx}, 'admin')" ondragend="handleListingSortDragEnd(event)">
+                <div class="listing-sortable-thumb relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5" data-index="${idx}" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'admin')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)">
                     <img src="${img}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">
                     ${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕ Sırala</span>'}
                     <button type="button" onclick="deleteListingPhotoTemp(${idx})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] z-10"><i class="fa-solid fa-xmark"></i></button>
