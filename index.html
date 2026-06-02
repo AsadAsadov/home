@@ -110,7 +110,7 @@
             box-shadow: 0 12px 30px rgba(127, 127, 255, 0.10);
         }
         .site-logo {
-            height: 60px;
+            height: 68px;
             width: auto;
             max-height: 100%;
             object-fit: contain;
@@ -245,7 +245,7 @@
         }
         @media (min-width: 768px) {
             .site-logo {
-                height: 80px;
+                height: 90px;
             }
             .site-footer-logo {
                 height: 110px;
@@ -563,21 +563,24 @@
         }
         button.vacancy-cta,
         #mobile-menu button.vacancy-cta {
-            background-color: #dc2626 !important;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
             color: #ffffff !important;
+            border: 1px solid rgba(148, 163, 184, .42);
+            box-shadow: 0 12px 28px rgba(71, 85, 105, .20) !important;
         }
         button.vacancy-cta:hover {
-            background-color: #b91c1c !important;
+            background: linear-gradient(135deg, #52637a 0%, #334155 100%) !important;
             color: #ffffff !important;
             transform: translateY(-1px);
+            box-shadow: 0 16px 34px rgba(51, 65, 85, .26) !important;
         }
         #mobile-menu .vacancy-cta:hover {
-            background-color: #b91c1c !important;
+            background: linear-gradient(135deg, #52637a 0%, #334155 100%) !important;
             color: #ffffff !important;
         }
         .vacancy-badge {
-            background-color: #facc15 !important;
-            color: #000000 !important;
+            background-color: #e0e7ff !important;
+            color: #334155 !important;
         }
         .text-white,
         .text-gray-100 {
@@ -595,7 +598,7 @@
         }
         .sea-breeze-hero.glass-card {
             width: 100%;
-            height: var(--hero-height-desktop, 520px);
+            height: var(--hero-height-desktop, 430px);
             min-height: 0;
             border-radius: 28px;
             background: #0f172a;
@@ -603,10 +606,10 @@
             box-shadow: 0 30px 90px rgba(15, 23, 42, 0.20);
         }
         @media (max-width: 1023px) {
-            .sea-breeze-hero.glass-card { height: var(--hero-height-tablet, 420px); }
+            .sea-breeze-hero.glass-card { height: var(--hero-height-tablet, 350px); }
         }
         @media (max-width: 640px) {
-            .sea-breeze-hero.glass-card { height: var(--hero-height-mobile, 280px); border-radius: 20px; }
+            .sea-breeze-hero.glass-card { height: var(--hero-height-mobile, 240px); border-radius: 20px; }
         }
         .hero-slide-media {
             opacity: 0;
@@ -656,6 +659,91 @@
             from { opacity: 0; transform: translateY(18px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .premium-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            gap: .75rem;
+            width: 100%;
+            padding: .8rem;
+            border-radius: 1.4rem;
+            border: 1px solid rgba(207, 207, 255, .75);
+            background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(248,250,255,.88));
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .08);
+        }
+        .premium-filter-field {
+            min-width: min(100%, 180px);
+            flex: 1 1 190px;
+        }
+        .premium-filter-field--search { flex: 1.6 1 280px; }
+        .premium-filter-field--compact { flex: .9 1 150px; }
+        .premium-filter-label {
+            display: block;
+            margin-bottom: .38rem;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+        .premium-filter-control {
+            width: 100%;
+            height: 46px;
+            border-radius: 1rem;
+            border: 1px solid rgba(226, 232, 240, .95);
+            background: #ffffff !important;
+            color: #0f172a !important;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .04);
+            transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        }
+        .premium-filter-control:focus {
+            border-color: rgba(127,127,255,.72);
+            box-shadow: 0 0 0 4px rgba(127,127,255,.14), 0 10px 24px rgba(15,23,42,.06);
+            outline: none;
+        }
+        .premium-filter-search { padding-left: 2.55rem !important; }
+        .premium-filter-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .55rem;
+            min-height: 46px;
+            width: 100%;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, .28);
+            background: rgba(241, 245, 249, .86);
+            color: #334155;
+            font-size: .82rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+        }
+        .premium-filter-check:hover { background: #eef2ff; border-color: rgba(127,127,255,.36); color: #334155; transform: translateY(-1px); }
+        .premium-filter-check input { accent-color: var(--color-primary); }
+        .project-filter-panel { max-width: none; }
+        .project-category-segment {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            align-items: center;
+        }
+        .project-category-segment .project-cat-btn {
+            padding: .82rem 1rem;
+            border-radius: .95rem;
+            white-space: nowrap;
+            box-shadow: none;
+        }
+        @media (min-width: 1024px) {
+            .premium-filter-bar { flex-wrap: nowrap; align-items: flex-end; }
+            .project-category-segment { flex-wrap: nowrap; }
+        }
+        @media (max-width: 767.98px) {
+            .premium-filter-bar { padding: .7rem; border-radius: 1.1rem; gap: .65rem; }
+            .premium-filter-field { flex-basis: 100%; }
+            .project-category-segment .project-cat-btn { flex: 1 1 100%; justify-content: center; }
+        }
+
         .bg-brand-500 {
             background-color: var(--color-primary) !important;
         }
@@ -1572,6 +1660,72 @@
                 grid-template-columns: minmax(0, 1fr) !important;
             }
         }
+
+        .sea-breeze-listing-card {
+            border: 1px solid rgba(226, 232, 240, .95);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, .08);
+            transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
+            will-change: transform;
+        }
+        .sea-breeze-listing-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(127, 127, 255, .42);
+            box-shadow: 0 28px 64px rgba(15, 23, 42, .16), 0 14px 34px rgba(127, 127, 255, .14);
+        }
+        .sea-breeze-listing-card__image {
+            transition: transform 280ms ease, filter 280ms ease;
+            transform-origin: center;
+        }
+        .sea-breeze-listing-card:hover .sea-breeze-listing-card__image {
+            transform: scale(1.055);
+            filter: saturate(1.04);
+        }
+        .sea-breeze-project-card {
+            transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
+        }
+        .sea-breeze-project-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(127, 127, 255, .44);
+            box-shadow: 0 26px 58px rgba(15, 23, 42, .14);
+        }
+        .sea-breeze-project-card__image img,
+        .sea-breeze-project-card__image picture,
+        .sea-breeze-project-card__image video {
+            transition: transform 280ms ease;
+        }
+        .sea-breeze-project-card:hover .sea-breeze-project-card__image img,
+        .sea-breeze-project-card:hover .sea-breeze-project-card__image picture,
+        .sea-breeze-project-card:hover .sea-breeze-project-card__image video { transform: scale(1.04); }
+        .listing-detail-gallery-card {
+            padding: 0 !important;
+            gap: .7rem;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+        .listing-detail-main-image {
+            overflow: hidden;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+        .listing-detail-main-image img,
+        #p-modal-img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+            background: transparent !important;
+            border: 0 !important;
+            margin: 0 !important;
+        }
+        .listing-detail-thumbnail {
+            overflow: hidden;
+            background: transparent !important;
+            border-color: transparent;
+        }
+
         .listing-card-badge-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
         .listing-card-badge-row .sea-breeze-listing-card__badge { box-shadow: none; }
         .listing-info-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .55rem; color: #334155; font-size: 12px; font-weight: 800; }
@@ -1692,34 +1846,41 @@
                     <p class="text-gray-700 text-xs font-medium">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
                 </div>
 
-                <!-- 3-lü Bölmə Filtri -->
-                <div class="flex flex-wrap justify-center md:justify-start gap-4" id="project-category-filters">
-                    <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-500 text-white transition duration-200">
-                        <i class="fa-solid fa-building mr-2"></i> Mənzillər (Apartments)
-                    </button>
-                    <button onclick="switchProjectCategory('Villa')" id="p-cat-Villa" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200">
-                        <i class="fa-solid fa-tents mr-2"></i> Şəxsi Villalar
-                    </button>
-                    <button onclick="switchProjectCategory('Townhouse')" id="p-cat-Townhouse" class="project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200">
-                        <i class="fa-solid fa-house-flag mr-2"></i> Taunhauslar
-                    </button>
-                </div>
-
-                <div class="max-w-md">
-                    <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Layihə axtarışı</label>
-                    <div class="relative mt-2">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-                        <input id="project-live-search" type="search" oninput="handleProjectSearchInput()" placeholder="Layihə adına görə axtarın..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 transition">
+                <!-- Premium single-row project filter bar -->
+                <div class="premium-filter-bar project-filter-panel" aria-label="Sea Breeze layihə filterləri">
+                    <div class="premium-filter-field premium-filter-field--search">
+                        <label class="premium-filter-label" for="project-live-search">Axtarış</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input id="project-live-search" type="search" oninput="handleProjectSearchInput()" placeholder="Layihə adına görə axtarın..." class="premium-filter-control premium-filter-search pr-4 text-sm">
+                        </div>
                     </div>
-                </div>
-
-                <!-- Layihələr Siyahısı (Grid) -->
-                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 max-w-3xl">
-                    <div class="w-full sm:w-52">
-                        <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Təhvil ili</label>
-                        <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects(); fetchProjectsBySearch()" class="mt-2 w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none">
+                    <div class="premium-filter-field">
+                        <span class="premium-filter-label">Əmlak tipi</span>
+                        <div class="project-category-segment" id="project-category-filters">
+                            <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn inline-flex items-center bg-brand-500 text-white transition duration-200 font-bold text-sm">
+                                <i class="fa-solid fa-building mr-2"></i> Mənzillər
+                            </button>
+                            <button onclick="switchProjectCategory('Villa')" id="p-cat-Villa" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
+                                <i class="fa-solid fa-tents mr-2"></i> Villalar
+                            </button>
+                            <button onclick="switchProjectCategory('Townhouse')" id="p-cat-Townhouse" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
+                                <i class="fa-solid fa-house-flag mr-2"></i> Taunhauslar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="premium-filter-field premium-filter-field--compact">
+                        <label class="premium-filter-label" for="project-delivery-year-filter">Təhvil ili</label>
+                        <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects(); fetchProjectsBySearch()" class="premium-filter-control px-4 text-sm">
                             <option value="all">Bütün illər</option>
                         </select>
+                    </div>
+                    <div class="premium-filter-field premium-filter-field--compact">
+                        <span class="premium-filter-label">Digər filterlər</span>
+                        <button type="button" onclick="document.getElementById('project-live-search')?.focus()" class="premium-filter-check">
+                            <i class="fa-solid fa-sliders text-brand-600"></i>
+                            <span>Uyğun layihələri tap</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1740,33 +1901,52 @@
             </div>
             <!-- Agent Digər əraziləri Grid -->
             <div class="space-y-6 " id="agent-listings-area">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-4">
                     <div>
                         <h2 class="text-2xl font-extrabold text-gray-900">Satış və Kirayə Elanları</h2>
                         <p class="text-gray-600 text-xs font-light">Komandamızın təqdim etdiyi aktual, yoxlanılmış satış və kirayə elanları</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3">
-                        <select id="filter-sb-type" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option value="all">Bütün növlər (Satış/Kirayə/Günlük Kirayə)</option>
-                            <option value="Satis">Satış</option>
-                            <option value="Kiraye">Kirayə</option>
-                            <option value="GunlukKiraye">Günlük Kirayə</option>
-                        </select>
-                        <select id="filter-sb-region" onchange="handlePublicRegionFilterChange()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option value="all">Bütün regionlar</option>
-                            <option value="seabreeze">Sea Breeze</option>
-                            <option value="baki">Bakı</option>
-                            <option value="absheron">Abşeron</option>
-                            <option value="sumqayit">Sumqayıt</option>
-                        </select>
-                        <select id="filter-sb-project" onchange="listingPage = 1; renderSeaBreeze()" class="bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                            <option value="all">Bütün layihə/rayonlar</option>
-                        </select>
-                        <label class="inline-flex items-center gap-2 bg-red-600 border border-red-700 rounded-xl px-4 py-2.5 text-sm text-black font-bold cursor-pointer">
-                            <input type="checkbox" id="filter-sb-credit" onchange="listingPage = 1; renderSeaBreeze()" class="accent-black">
-                            <span>Kreditlə satılır</span>
-                        </label>
+                    <div class="premium-filter-bar" aria-label="Elan filterləri">
+                        <div class="premium-filter-field premium-filter-field--search">
+                            <label class="premium-filter-label" for="filter-sb-search">Axtarış</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input id="filter-sb-search" type="search" oninput="listingPage = 1; renderSeaBreeze()" placeholder="Kod, başlıq, lokasiya üzrə axtarın..." class="premium-filter-control premium-filter-search pr-4 text-sm">
+                            </div>
+                        </div>
+                        <div class="premium-filter-field">
+                            <label class="premium-filter-label" for="filter-sb-type">Əmlak tipi</label>
+                            <select id="filter-sb-type" onchange="listingPage = 1; renderSeaBreeze()" class="premium-filter-control px-4 text-sm">
+                                <option value="all">Bütün növlər</option>
+                                <option value="Satis">Satış</option>
+                                <option value="Kiraye">Kirayə</option>
+                                <option value="GunlukKiraye">Günlük Kirayə</option>
+                            </select>
+                        </div>
+                        <div class="premium-filter-field premium-filter-field--compact">
+                            <label class="premium-filter-label" for="filter-sb-region">Region</label>
+                            <select id="filter-sb-region" onchange="handlePublicRegionFilterChange()" class="premium-filter-control px-4 text-sm">
+                                <option value="all">Bütün regionlar</option>
+                                <option value="seabreeze">Sea Breeze</option>
+                                <option value="baki">Bakı</option>
+                                <option value="absheron">Abşeron</option>
+                                <option value="sumqayit">Sumqayıt</option>
+                            </select>
+                        </div>
+                        <div class="premium-filter-field">
+                            <label class="premium-filter-label" for="filter-sb-project">Layihə / Rayon</label>
+                            <select id="filter-sb-project" onchange="listingPage = 1; renderSeaBreeze()" class="premium-filter-control px-4 text-sm">
+                                <option value="all">Bütün layihə/rayonlar</option>
+                            </select>
+                        </div>
+                        <div class="premium-filter-field premium-filter-field--compact">
+                            <span class="premium-filter-label">Digər filterlər</span>
+                            <label class="premium-filter-check">
+                                <input type="checkbox" id="filter-sb-credit" onchange="listingPage = 1; renderSeaBreeze()">
+                                <span>Kreditlə satılır</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -6306,10 +6486,10 @@ Title: Park Villas
             selectedProjectCategory = cat;
             projectPage = 1;
             document.querySelectorAll('.project-cat-btn').forEach(btn => {
-                btn.className = "project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200";
+                btn.className = "project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm";
             });
             const activeBtn = document.getElementById('p-cat-' + cat);
-            if (activeBtn) activeBtn.className = "project-cat-btn px-6 py-3 rounded-xl font-bold text-sm bg-brand-500 text-white transition duration-200";
+            if (activeBtn) activeBtn.className = "project-cat-btn inline-flex items-center bg-brand-500 text-white transition duration-200 font-bold text-sm";
 
             renderOfficialProjects();
         }
@@ -6711,6 +6891,7 @@ Təşəkkür edirəm. 🙏`;
             const projectFilter = document.getElementById('filter-sb-project')?.value || 'all';
             const typeFilter = document.getElementById('filter-sb-type').value;
             const creditOnly = document.getElementById('filter-sb-credit')?.checked;
+            const searchQuery = (document.getElementById('filter-sb-search')?.value || '').trim().toLowerCase();
 
             const filtered = properties.filter(p => {
                 if (normalizeListingStatus(p.status) !== 'approved') return false;
@@ -6720,6 +6901,21 @@ Təşəkkür edirəm. 🙏`;
                 if (projectFilter !== 'all' && listingDistrict !== projectFilter) return false;
                 if (typeFilter !== 'all' && canonicalListingType(p.listingType) !== typeFilter) return false;
                 if (creditOnly && !p.isCredit) return false;
+                if (searchQuery) {
+                    const searchable = [
+                        p.title,
+                        p.desc,
+                        p.project,
+                        p.district,
+                        p.city,
+                        p.settlement,
+                        p.streetAddress,
+                        p.listingCode,
+                        getListingLocationLabel(p),
+                        listingTypeLabel(p.listingType)
+                    ].map(value => String(value || '').toLowerCase()).join(' ');
+                    if (!searchable.includes(searchQuery)) return false;
+                }
                 return true;
             });
             const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
