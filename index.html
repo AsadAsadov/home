@@ -2535,7 +2535,6 @@ Title: Park Villas
                         </div>
 
                         <div class="space-y-2">
-                            <span id="p-modal-code-description" class="inline-flex w-fit items-center rounded-full bg-brand-500/10 text-brand-700 border border-brand-200 px-3 py-1 text-xs font-black"></span>
                             <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">Təsvir</h4>
                             <p id="p-modal-desc" class="text-gray-700 text-sm md:text-base font-medium leading-7 whitespace-pre-line"></p>
                         </div>
@@ -2990,13 +2989,15 @@ Title: Park Villas
             btn?.classList.add('is-loading');
             if (status) status.textContent = 'Yadda saxlanılır…';
             try {
-                const saved = await apiRequest('/api/site-settings', { method: 'PUT', body: JSON.stringify(payload) });
+                const response = await apiRequest('/api/site-settings', { method: 'PUT', body: JSON.stringify(payload) });
+                const saved = response?.settings || response;
                 cacheData('siteSettings', normalizeSiteSettings(saved));
                 fillSiteSettingsForm();
                 applySiteSettingsToUi();
                 if (status) status.textContent = 'Ayarlar tətbiq olundu.';
             } catch (error) {
-                if (status) status.textContent = `Xəta: ${error.message}`;
+                console.error('Sayt ayarları yadda saxlanılmadı:', error);
+                if (status) status.textContent = 'Xəta: Ayarlar yadda saxlanılmadı. Zəhmət olmasa yenidən cəhd edin.';
             } finally {
                 btn?.classList.remove('is-loading');
             }
@@ -6510,7 +6511,6 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('p-modal-title').textContent = listingTitle;
             document.getElementById('p-modal-location-badges').innerHTML = renderLocationBadges(p);
             document.getElementById('p-modal-code').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
-            document.getElementById('p-modal-code-description').textContent = `Elan kodu: ${formatListingCode(p.listingCode)}`;
             document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
             document.getElementById('p-modal-desc').textContent = listingDesc || 'Təsvir əlavə edilməyib.';
             document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${formatPrice(price, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
