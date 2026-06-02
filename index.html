@@ -199,7 +199,7 @@
         .listing-detail-section,
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
-        .listing-detail-shell { max-height: 90vh; }
+        .listing-detail-shell { max-height: 90vh; height: auto; }
         .listing-detail-close { position: sticky; top: 1rem; margin-left: auto; margin-right: 1rem; flex: 0 0 auto; z-index: 80; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -357,7 +357,7 @@
             .desktop-ad-rail {
                 display: flex;
                 position: sticky;
-                top: 20px;
+                top: var(--desktop-ad-sticky-top, 100px);
                 width: var(--ad-width);
                 max-width: 100%;
                 flex-direction: column;
@@ -1058,6 +1058,7 @@
         .listing-detail-shell {
             background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
             box-shadow: 0 30px 90px rgba(15, 23, 42, .32);
+            min-height: 0;
         }
         .listing-detail-content {
             padding: 1rem;
@@ -1382,7 +1383,7 @@
                 border-radius: 0;
             }
             .listing-detail-close { top: .75rem; margin-right: .75rem; }
-            .listing-detail-scroll { height: 100%; max-height: 100dvh; padding-bottom: 120px; }
+            .listing-detail-scroll { height: 100%; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
             .listing-detail-content { padding: .85rem; gap: .75rem; }
             .listing-detail-header { gap: .42rem; padding-right: 2.6rem; }
             .listing-detail-gallery-card { padding: .7rem !important; gap: .55rem; }
@@ -1452,7 +1453,7 @@
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
 
     <!-- NAVIGATION BAR -->
-    <nav class="glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-300">
+    <nav class="site-header glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20 md:h-24">
                 <!-- Logo -->
@@ -2921,6 +2922,7 @@ Title: Park Villas
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1366;
+        window.addEventListener('resize', () => { updateDesktopAdStickyOffset(); renderDesktopAds({ force: true }); });
         const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '' };
 
         function normalizeRegionType(value, projectName = '') {
@@ -3883,10 +3885,16 @@ Title: Park Villas
             if (clickUrl) window.open(clickUrl, '_blank', 'noopener,noreferrer');
         }
 
+        function updateDesktopAdStickyOffset() {
+            const headerHeight = document.querySelector('.site-header')?.offsetHeight || 80;
+            document.documentElement.style.setProperty('--desktop-ad-sticky-top', `${headerHeight + 20}px`);
+        }
+
         function renderDesktopAds(options = {}) {
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
+            updateDesktopAdStickyOffset();
             if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
                 left.innerHTML = '';
                 right.innerHTML = '';
@@ -4727,11 +4735,11 @@ Title: Park Villas
             if (homepageHydration.gallery) return;
             homepageHydration.gallery = true;
             try {
-                const gallery = await apiRequest('/api/gallery?page=1&limit=18');
-                const galleryRows = Array.isArray(gallery) ? gallery : (gallery.items || []);
+                const gallery = await apiRequest('/api/gallery?page=1&limit=5000');
+                const galleryRows = Array.isArray(gallery) ? gallery : (gallery.data || gallery.items || []);
                 galleryPagination = Array.isArray(gallery)
-                    ? { page: 1, limit: galleryRows.length || 18, total: galleryRows.length, totalPages: 1 }
-                    : { page: gallery.page || 1, limit: 18, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
+                    ? { page: 1, limit: galleryRows.length || 5000, total: galleryRows.length, totalPages: 1 }
+                    : { page: gallery.page || 1, limit: gallery.limit || 5000, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
                 cacheData('gallery', galleryRows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
                 if (isTabAktiv('portfolio')) renderPortfolio();
             } catch (error) {
@@ -5845,7 +5853,7 @@ Title: Park Villas
         function renderPublicListingImagesPreview() {
             const preview = document.getElementById('pl-images-preview');
             if (!preview) return;
-            preview.innerHTML = publicListingImageFiles.map((file, idx) => `<div class="listing-sortable-thumb relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group" data-index="${idx}" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'public')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)"><img src="${URL.createObjectURL(file)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕</span>'}<button type="button" onclick="deletePublicListingPhoto(${idx})" class="absolute right-1 top-1 w-6 h-6 rounded-full bg-red-600/90 text-white text-xs">×</button><div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100"><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx - 1})">←</button><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx + 1})">→</button></div></div>`).join('');
+            preview.innerHTML = publicListingImageFiles.map((file, idx) => `<div class="listing-sortable-thumb relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group" data-index="${idx}" data-sort-scope="public" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'public')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)"><img src="${URL.createObjectURL(file)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕</span>'}<button type="button" onclick="deletePublicListingPhoto(${idx})" class="absolute right-1 top-1 w-6 h-6 rounded-full bg-red-600/90 text-white text-xs">×</button><div class="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 flex justify-around text-[10px] text-white opacity-100 sm:opacity-0 group-hover:opacity-100"><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx - 1})">←</button><button type="button" onclick="movePublicListingPhoto(${idx}, ${idx + 1})">→</button></div></div>`).join('');
         }
 
         function deletePublicListingPhoto(index) {
@@ -6742,7 +6750,7 @@ Təşəkkür edirəm. 🙏`;
 
         // PORTFOLIO AND LIGHTBOX ENGINE
         let currentFilter = 'all';
-        const GALLERY_PAGE_LIMIT = 18;
+        const GALLERY_PAGE_LIMIT = 5000;
         let galleryPagination = { page: 1, limit: GALLERY_PAGE_LIMIT, total: 0, totalPages: 1 };
         let activeModalGalleryItems = [];
         let activeModalGalleryIndex = 0;
@@ -6796,7 +6804,7 @@ Təşəkkür edirəm. 🙏`;
         async function loadGalleryPage(page = 1) {
             try {
                 const result = await apiRequest(`/api/gallery?page=${page}&limit=${GALLERY_PAGE_LIMIT}`);
-                const rows = Array.isArray(result) ? result : (result.items || []);
+                const rows = Array.isArray(result) ? result : (result.data || result.items || []);
                 galleryPagination = Array.isArray(result)
                     ? { page: 1, limit: rows.length || GALLERY_PAGE_LIMIT, total: rows.length, totalPages: 1 }
                     : { page: result.page || page, limit: GALLERY_PAGE_LIMIT, total: result.total || rows.length, totalPages: result.totalPages || 1 };
@@ -7465,20 +7473,21 @@ Təşəkkür edirəm. 🙏`;
         function handleListingSortPointerDown(event, index, scope = 'admin') {
             if (event.target.closest('button')) return;
             event.preventDefault();
-            listingPointerSort = { index, scope, pointerId: event.pointerId };
+            listingPointerSort = { index, scope, pointerId: event.pointerId, sourceEl: event.currentTarget };
             event.currentTarget.setPointerCapture?.(event.pointerId);
             event.currentTarget.classList.add('is-dragging');
         }
         function handleListingSortPointerMove(event) {
             if (!listingPointerSort) return;
-            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.listing-sortable-thumb');
+            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(`.listing-sortable-thumb[data-sort-scope="${listingPointerSort.scope}"]`);
             document.querySelectorAll('.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-drag-over'));
             target?.classList.add('is-drag-over');
         }
         function handleListingSortPointerUp(event) {
             if (!listingPointerSort) return;
-            const { index, scope } = listingPointerSort;
-            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.listing-sortable-thumb');
+            const { index, scope, pointerId, sourceEl } = listingPointerSort;
+            sourceEl?.releasePointerCapture?.(pointerId);
+            const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(`.listing-sortable-thumb[data-sort-scope="${scope}"]`);
             const toIndex = Number(target?.dataset.index);
             document.querySelectorAll('.listing-sortable-thumb.is-dragging,.listing-sortable-thumb.is-drag-over').forEach(el => el.classList.remove('is-dragging', 'is-drag-over'));
             listingPointerSort = null;
@@ -7508,7 +7517,7 @@ Təşəkkür edirəm. 🙏`;
             const fileNameText = document.getElementById('sb-file-name-text');
             if (fileNameText && firstName) fileNameText.textContent = firstName;
             container.innerHTML = uploadedListingImages.map((img, idx) => `
-                <div class="listing-sortable-thumb relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5" data-index="${idx}" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'admin')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)">
+                <div class="listing-sortable-thumb relative aspect-square rounded-xl overflow-hidden border border-white/10 group bg-white/5" data-index="${idx}" data-sort-scope="admin" draggable="false" onpointerdown="handleListingSortPointerDown(event, ${idx}, 'admin')" onpointermove="handleListingSortPointerMove(event)" onpointerup="handleListingSortPointerUp(event)" onpointercancel="handleListingSortPointerUp(event)">
                     <img src="${img}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Elan şəkli ${idx + 1}">
                     ${idx === 0 ? '<span class="absolute left-1 top-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>' : '<span class="absolute left-1 top-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">↕ Sırala</span>'}
                     <button type="button" onclick="deleteListingPhotoTemp(${idx})" class="absolute top-1 right-1 bg-red-600/80 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] z-10"><i class="fa-solid fa-xmark"></i></button>

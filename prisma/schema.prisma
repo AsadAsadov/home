@@ -62,7 +62,7 @@ model Listing {
   imageUrl             String?        @map("image_url") @db.Text
   description          String?        @db.Text
   displayOrder         Int?           @map("display_order")
-  listingCode          Int?           @unique @map("listing_code")
+  listingCode          BigInt?        @unique @map("listing_code")
   createdAt            DateTime       @default(now()) @map("created_at")
   userId               BigInt?        @map("user_id")
   status               String         @default("pending")
