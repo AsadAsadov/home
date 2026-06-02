@@ -6,6 +6,12 @@ const { authenticate, optionalAuthenticate, authorize } = require('../middleware
 const { serializers, compact } = require('./crud');
 const { assertValidListingImage, sanitizeText, uploadListingImage } = require('../utils/supabaseStorage');
 const { logUserActivity } = require('../utils/activity');
+const {
+  LISTING_CODE_MAX_RETRIES,
+  LISTING_CODE_ERROR_RESPONSE,
+  generateNextListingCodeInLockedTransaction,
+  isListingCodeCollision,
+} = require('../utils/listingCode');
 
 const router = express.Router();
 
@@ -465,22 +471,6 @@ function orderedListingRows(rows) {
 }
 
 
-async function generateUniqueListingCode(tx = prisma) {
-  if (typeof tx.$executeRawUnsafe === 'function') {
-    await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock(424242001)');
-  }
-  const result = await tx.listing.aggregate({ _max: { listingCode: true } });
-  return Math.max(Number(result._max.listingCode || 0), 0) + 1;
-}
-
-function isListingCodeCollision(error) {
-  if (error?.code !== 'P2002') return false;
-  const target = error.meta?.target;
-  if (Array.isArray(target)) return target.includes('listing_code') || target.includes('listingCode');
-  return String(target || '').includes('listing_code') || String(target || '').includes('listingCode');
-}
-
-
 const REGION_TYPES = new Set(['seabreeze', 'general', 'baki', 'absheron', 'sumqayit']);
 const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Digər ərazilər', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt' };
 const REGION_SELECTOR_OPTIONS = [
@@ -822,19 +812,26 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     let listing;
     try {
-      for (let attempt = 1; attempt <= 7; attempt += 1) {
+      for (let attempt = 1; attempt <= LISTING_CODE_MAX_RETRIES; attempt += 1) {
+        const retryCount = attempt - 1;
         try {
           listing = await prisma.$transaction(async (tx) => {
             const txPayload = { ...payload };
             delete txPayload.listingCode;
-            txPayload.listingCode = await generateUniqueListingCode(tx);
+            txPayload.listingCode = await generateNextListingCodeInLockedTransaction(tx, retryCount);
             return tx.listing.create({ data: txPayload, include });
           });
           break;
         } catch (error) {
           const isListingCodeDuplicate = isListingCodeCollision(error);
-          if (!isListingCodeDuplicate || attempt === 7) throw error;
-          console.warn('[listings] listing_code duplicate during create, retrying', { attempt, code: error.code, meta: error.meta });
+          console.warn('[listings] listing_code create attempt failed', {
+            attempt,
+            retryCount,
+            isListingCodeDuplicate,
+            code: error.code,
+            meta: error.meta,
+          });
+          if (!isListingCodeDuplicate || attempt === LISTING_CODE_MAX_RETRIES) throw error;
         }
       }
       createArgs.data = { ...payload, listingCode: listing.listingCode };
@@ -873,11 +870,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     return res.status(201).json(savedListing || listing);
   } catch (error) {
     logListingApiError(error);
-    return res.status(500).json({
-      message: error.message,
-      code: error.code,
-      meta: error.meta,
-    });
+    if (isListingCodeCollision(error)) {
+      return res.status(500).json(LISTING_CODE_ERROR_RESPONSE);
+    }
+    return res.status(500).json({ success: false, message: 'Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.' });
   }
 }));
 
