@@ -13,6 +13,9 @@ const PASSWORD_RESET_TTL_MINUTES = 60;
 const RESEND_VERIFICATION_WINDOW_MS = 60 * 1000;
 const FORGOT_PASSWORD_WINDOW_MS = 60 * 60 * 1000;
 const FORGOT_PASSWORD_LIMIT = 5;
+const LOGIN_LOCK_ATTEMPTS = 5;
+const LOGIN_LOCK_MINUTES = 15;
+const GOOGLE_REAUTH_TTL_MINUTES = 10;
 const resendVerificationAttempts = new Map();
 const forgotPasswordAttempts = new Map();
 
@@ -22,10 +25,22 @@ function clean(value) {
   return trimmed === '' ? undefined : trimmed;
 }
 
+function providerInfo(user) {
+  const provider = user?.provider === 'google' ? 'google' : 'local';
+  return {
+    provider,
+    registrationTypeTitle: 'Qeydiyyat növü:',
+    registrationTypeLabel: provider === 'google' ? '🔵 Google hesabı' : '📧 Email hesabı',
+    passwordSettings: provider === 'google'
+      ? { available: false, message: 'Google hesabı ilə giriş edilir.' }
+      : { available: true, label: '🔒 Şifrəni dəyiş' },
+  };
+}
+
 function publicUser(user) {
   if (!user) return null;
-  const { passwordHash, ...safe } = user;
-  return safe;
+  const { passwordHash, failedLoginAttempts, lockedUntil, ...safe } = user;
+  return { ...safe, ...providerInfo(user) };
 }
 
 function tokenPayload(user) {
@@ -72,6 +87,22 @@ function verifyGoogleState(state) {
   if (signature.length !== expected.length) return {};
   if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return {};
   return JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+}
+
+function signGoogleReauthToken(user) {
+  return signGoogleState({ type: 'google_reauth', userId: Number(user.id), email: user.email, exp: addMinutes(new Date(), GOOGLE_REAUTH_TTL_MINUTES).getTime() });
+}
+
+function verifyGoogleReauthToken(token, user) {
+  try {
+    const payload = verifyGoogleState(token);
+    return payload.type === 'google_reauth'
+      && Number(payload.userId) === Number(user.id)
+      && payload.email === user.email
+      && Number(payload.exp) > Date.now();
+  } catch (_error) {
+    return false;
+  }
 }
 
 function tokenHash(token) {
@@ -229,11 +260,54 @@ async function sendPasswordResetEmail(user) {
   return url;
 }
 
+async function createEmailChangeToken(userId, newEmail, tx = prisma) {
+  const { token, hash } = generateTokenPair();
+  await tx.emailChangeToken.create({
+    data: { userId: Number(userId), token: hash, newEmail, expiresAt: addHours(new Date(), VERIFICATION_TTL_HOURS) },
+  });
+  return token;
+}
+
+async function sendEmailChangeVerification(user, newEmail) {
+  const token = await createEmailChangeToken(user.id, newEmail);
+  const url = appUrl('/verify-email-change', { token });
+  await sendEmail({
+    to: newEmail,
+    subject: 'Best Home yeni email təsdiqi',
+    text: `Yeni email ünvanınızı təsdiqləmək üçün bu linkə keçin: ${url}`,
+    html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Yeni email ünvanını təsdiqləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">📧 Yeni emaili təsdiqlə</a></p><p>Link 24 saat qüvvədədir.</p>`,
+  });
+  return url;
+}
+
+async function verifyRecaptcha(req, res) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return true;
+  const token = clean(req.body.recaptchaToken ?? req.body.recaptcha_token ?? req.body['g-recaptcha-response']);
+  if (!token) {
+    res.status(400).json({ success: false, code: 'RECAPTCHA_REQUIRED', message: 'reCAPTCHA təsdiqi tələb olunur.' });
+    return false;
+  }
+  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ secret, response: token, remoteip: requestIp(req) || '' }),
+  });
+  const body = await response.json().catch(() => ({}));
+  const minScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
+  if (!body.success || (typeof body.score === 'number' && body.score < minScore)) {
+    res.status(400).json({ success: false, code: 'RECAPTCHA_FAILED', message: 'reCAPTCHA təsdiqi uğursuz oldu.' });
+    return false;
+  }
+  return true;
+}
+
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
 
 router.post('/register', authRoute(async (req, res) => {
+  if (!(await verifyRecaptcha(req, res))) return;
   const fullname = clean(req.body.fullname ?? req.body.name);
   const email = clean(req.body.email)?.toLowerCase();
   const phone = clean(req.body.phone);
@@ -265,13 +339,38 @@ router.post('/register', authRoute(async (req, res) => {
 }));
 
 router.post('/login', authRoute(async (req, res) => {
+  if (!(await verifyRecaptcha(req, res))) return;
   const email = clean(req.body.email)?.toLowerCase();
   const password = String(req.body.password || '');
   const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+  const invalid = { success: false, error: 'Invalid email or password.', message: 'Invalid email or password.' };
 
-  if (!user || !user.passwordHash) return res.status(401).json({ success: false, error: 'Invalid email or password.', message: 'Invalid email or password.' });
+  if (!user || !user.passwordHash) return res.status(401).json(invalid);
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    return res.status(423).json({
+      success: false,
+      code: 'ACCOUNT_LOCKED',
+      lockedUntil: user.lockedUntil,
+      message: '5 uğursuz cəhddən sonra hesab 15 dəqiqəlik kilidləndi.',
+    });
+  }
+
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-  if (!passwordMatches) return res.status(401).json({ success: false, error: 'Invalid email or password.', message: 'Invalid email or password.' });
+  if (!passwordMatches) {
+    const failedLoginAttempts = Number(user.failedLoginAttempts || 0) + 1;
+    const lockedUntil = failedLoginAttempts >= LOGIN_LOCK_ATTEMPTS ? addMinutes(new Date(), LOGIN_LOCK_MINUTES) : null;
+    await prisma.user.update({ where: { id: user.id }, data: { failedLoginAttempts, lockedUntil } });
+    await logUserActivity(prisma, user.id, 'login_failed', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
+    if (lockedUntil) {
+      return res.status(423).json({
+        success: false,
+        code: 'ACCOUNT_LOCKED',
+        lockedUntil,
+        message: '5 uğursuz cəhddən sonra hesab 15 dəqiqəlik kilidləndi.',
+      });
+    }
+    return res.status(401).json(invalid);
+  }
   if (user.isActive === false) return res.status(403).json({ success: false, error: 'User account is blocked.', message: 'User account is blocked.' });
   if (user.emailVerified === false) {
     return res.status(403).json({
@@ -283,14 +382,17 @@ router.post('/login', authRoute(async (req, res) => {
     });
   }
 
-  const updatedUser = await prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
-  await logUserActivity(prisma, user.id, 'login');
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: { failedLoginAttempts: 0, lockedUntil: null, lastLogin: new Date(), lastLoginIp: requestIp(req), lastLoginUserAgent: req.headers['user-agent'] || null },
+  });
+  await logUserActivity(prisma, user.id, 'login', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
   return issueAuthResponse(req, res, updatedUser);
 }));
 
 router.post('/logout', authenticate, authRoute(async (req, res) => {
   if (req.authToken) await prisma.userSession.deleteMany({ where: { token: req.authToken } });
-  await logUserActivity(prisma, req.auth.id, 'logout');
+  await logUserActivity(prisma, req.auth.id, 'logout', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
   res.json({ success: true, ok: true });
 }));
 
@@ -336,6 +438,7 @@ router.post('/resend-verification', authRoute(async (req, res) => {
 }));
 
 router.post('/forgot-password', authRoute(async (req, res) => {
+  if (!(await verifyRecaptcha(req, res))) return;
   const email = clean(req.body.email)?.toLowerCase();
   if (email) {
     const rate = hitFixedWindow(forgotPasswordAttempts, rateLimitKey('forgot', email), FORGOT_PASSWORD_WINDOW_MS, FORGOT_PASSWORD_LIMIT);
@@ -387,7 +490,8 @@ function googleConfig() {
 router.get('/google', authRoute(async (req, res) => {
   const { clientId, redirectUri } = googleConfig();
   const redirect = safeRedirect(clean(req.query.redirect) || appUrl('/'));
-  const statePayload = signGoogleState({ redirect, nonce: crypto.randomBytes(12).toString('hex') });
+  const action = clean(req.query.action);
+  const statePayload = signGoogleState({ redirect, action, nonce: crypto.randomBytes(12).toString('hex') });
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', redirectUri);
@@ -434,18 +538,28 @@ router.get('/google/callback', authRoute(async (req, res) => {
     await logUserActivity(prisma, user.id, 'google_register');
   }
 
+  const state = verifyGoogleState(req.query.state);
+  if (state.action === 'reauth_delete') {
+    let redirect = safeRedirect(state.redirect || appUrl('/'));
+    const redirectUrl = new URL(redirect);
+    redirectUrl.searchParams.set('auth', 'google_reauth_success');
+    redirectUrl.searchParams.set('googleReauthToken', signGoogleReauthToken(user));
+    return res.redirect(redirectUrl.toString());
+  }
+
   const jwtToken = signToken(tokenPayload(user));
   await createSession(req, user, jwtToken);
+  await logUserActivity(prisma, user.id, 'login', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
   let redirect = appUrl('/', { auth: 'google_success' });
   try {
-    const state = verifyGoogleState(req.query.state);
     redirect = safeRedirect(state.redirect || redirect);
     const redirectUrl = new URL(redirect);
     redirectUrl.searchParams.set('auth', 'google_success');
+    redirectUrl.searchParams.set('message', '✅ Google hesabı ilə uğurla daxil oldunuz');
     redirectUrl.searchParams.set('token', jwtToken);
     redirect = redirectUrl.toString();
   } catch (_error) {
-    redirect = appUrl('/', { auth: 'google_success', token: jwtToken });
+    redirect = appUrl('/', { auth: 'google_success', message: '✅ Google hesabı ilə uğurla daxil oldunuz', token: jwtToken });
   }
   res.redirect(redirect);
 }));
@@ -482,10 +596,134 @@ router.put('/me/password', authenticate, authRoute(async (req, res) => {
   if (!newPassword || newPassword.length < 6) return res.status(400).json({ success: false, error: 'New password must be at least 6 characters.', message: 'New password must be at least 6 characters.' });
   const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) } });
   if (!user) return res.status(404).json({ success: false, error: 'User not found.', message: 'User not found.' });
-  if (user.provider === 'local' && currentPassword && user.passwordHash && !(await bcrypt.compare(currentPassword, user.passwordHash))) return res.status(400).json({ success: false, error: 'Current password is incorrect.', message: 'Current password is incorrect.' });
+  if (user.provider === 'google') return res.status(403).json({ success: false, code: 'GOOGLE_PASSWORD_UNAVAILABLE', message: 'Google hesabı ilə giriş edilir.' });
+  if (!currentPassword || !user.passwordHash || !(await bcrypt.compare(currentPassword, user.passwordHash))) return res.status(400).json({ success: false, error: 'Current password is incorrect.', message: 'Current password is incorrect.' });
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 12), provider: user.provider || 'local' } });
-  await logUserActivity(prisma, user.id, 'change_password');
-  res.json({ success: true, ok: true });
+  await prisma.userSession.deleteMany({ where: { userId: user.id, token: { not: req.authToken } } });
+  await logUserActivity(prisma, user.id, 'password_change', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
+  res.json({ success: true, ok: true, message: '🔒 Şifrəni dəyiş əməliyyatı tamamlandı.' });
 }));
+
+router.get('/me/security', authenticate, authRoute(async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) } });
+  if (!user) return res.status(404).json({ success: false, error: 'User not found.', message: 'User not found.' });
+  const [sessions, auditLogs] = await Promise.all([
+    prisma.userSession.findMany({ where: { userId: user.id, expiresAt: { gt: new Date() } }, orderBy: { lastActiveAt: 'desc' }, take: 25 }),
+    prisma.userActivityLog.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, take: 50 }),
+  ]);
+  res.json({
+    success: true,
+    title: '🛡 Təhlükəsizlik',
+    security: {
+      lastLogin: user.lastLogin,
+      registrationDate: user.createdAt,
+      provider: providerInfo(user).registrationTypeLabel,
+      providerKey: providerInfo(user).provider,
+      verified: Boolean(user.emailVerified),
+      verifiedStatus: user.emailVerified ? 'Təsdiqlənib' : 'Təsdiqlənməyib',
+      passwordSettings: providerInfo(user).passwordSettings,
+    },
+    sessions: sessions.map((session) => ({
+      id: session.id,
+      device: parseDevice(session.userAgent),
+      browser: parseBrowser(session.userAgent),
+      ip: session.ipAddress,
+      lastActive: session.lastActiveAt || session.createdAt,
+      current: session.token === req.authToken,
+    })),
+    auditLogs,
+  });
+}));
+
+router.get('/me/sessions', authenticate, authRoute(async (req, res) => {
+  const sessions = await prisma.userSession.findMany({ where: { userId: Number(req.auth.id), expiresAt: { gt: new Date() } }, orderBy: { lastActiveAt: 'desc' } });
+  res.json({
+    success: true,
+    title: 'Aktiv cihazlar',
+    sessions: sessions.map((session) => ({ id: session.id, device: parseDevice(session.userAgent), browser: parseBrowser(session.userAgent), ip: session.ipAddress, lastActive: session.lastActiveAt || session.createdAt, current: session.token === req.authToken })),
+  });
+}));
+
+router.delete('/me/sessions', authenticate, authRoute(async (req, res) => {
+  await prisma.userSession.deleteMany({ where: { userId: Number(req.auth.id) } });
+  await logUserActivity(prisma, req.auth.id, 'logout_all_devices', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
+  res.json({ success: true, message: '🚪 Bütün cihazlardan çıxış et əməliyyatı tamamlandı.' });
+}));
+
+router.post('/me/email', authenticate, authRoute(async (req, res) => {
+  const newEmail = clean(req.body.email ?? req.body.newEmail ?? req.body.new_email)?.toLowerCase();
+  if (!newEmail) return res.status(400).json({ success: false, message: 'Yeni email tələb olunur.' });
+  const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) } });
+  if (!user) return res.status(404).json({ success: false, error: 'User not found.', message: 'User not found.' });
+  if (newEmail === user.email) return res.status(400).json({ success: false, message: 'Yeni email hazırkı email ilə eynidir.' });
+  const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+  if (existing) return res.status(409).json({ success: false, message: 'Email is already registered.' });
+  await sendEmailChangeVerification(user, newEmail);
+  res.json({ success: true, message: 'Yeni email ünvanına təsdiqləmə linki göndərildi.' });
+}));
+
+async function verifyEmailChange(rawToken) {
+  const stored = await prisma.emailChangeToken.findUnique({ where: { token: tokenHash(rawToken) }, include: { user: true } });
+  if (!stored) return { status: 400, body: { success: false, code: 'EMAIL_CHANGE_FAILED', message: 'Email dəyişmə linki yanlışdır.' } };
+  if (stored.used) return { status: 400, body: { success: false, code: 'EMAIL_CHANGE_USED', message: 'Bu email dəyişmə linki artıq istifadə edilib.' } };
+  if (stored.expiresAt <= new Date()) return { status: 400, body: { success: false, code: 'EMAIL_CHANGE_EXPIRED', message: 'Email dəyişmə linkinin vaxtı bitib.' } };
+  const existing = await prisma.user.findUnique({ where: { email: stored.newEmail } });
+  if (existing && existing.id !== stored.userId) return { status: 409, body: { success: false, message: 'Email is already registered.' } };
+  const user = await prisma.$transaction(async (tx) => {
+    await tx.emailChangeToken.update({ where: { id: stored.id }, data: { used: true } });
+    return tx.user.update({ where: { id: stored.userId }, data: { email: stored.newEmail, emailVerified: true } });
+  });
+  await logUserActivity(prisma, user.id, 'email_change');
+  const token = signToken(tokenPayload(user));
+  await prisma.userSession.create({ data: { userId: user.id, token, expiresAt: tokenExpiresAt(token) } });
+  return { status: 200, body: { success: true, token, user: publicUser(user), message: 'Email uğurla dəyişdirildi ✅' } };
+}
+
+router.post('/me/email/verify', authRoute(async (req, res) => {
+  const rawToken = clean(req.body.token ?? req.query.token);
+  if (!rawToken) return res.status(400).json({ success: false, code: 'TOKEN_REQUIRED', message: 'Email dəyişmə tokeni tələb olunur.' });
+  const result = await verifyEmailChange(rawToken);
+  res.status(result.status).json(result.body);
+}));
+
+router.get('/me/email/verify', authRoute(async (req, res) => {
+  const rawToken = clean(req.query.token);
+  if (!rawToken) return res.status(400).json({ success: false, code: 'TOKEN_REQUIRED', message: 'Email dəyişmə tokeni tələb olunur.' });
+  const result = await verifyEmailChange(rawToken);
+  res.status(result.status).json(result.body);
+}));
+
+router.delete('/me', authenticate, authRoute(async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) } });
+  if (!user) return res.status(404).json({ success: false, error: 'User not found.', message: 'User not found.' });
+  if (user.provider === 'google') {
+    const googleReauthToken = clean(req.body.googleReauthToken ?? req.body.google_reauth_token);
+    if (!googleReauthToken || !verifyGoogleReauthToken(googleReauthToken, user)) {
+      return res.status(403).json({ success: false, code: 'GOOGLE_REAUTH_REQUIRED', message: 'Google hesabını silmək üçün Google ilə yenidən təsdiqləmə tələb olunur.' });
+    }
+  } else {
+    const password = String(req.body.password || '');
+    if (!password || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) return res.status(403).json({ success: false, code: 'PASSWORD_CONFIRMATION_REQUIRED', message: 'Hesabı silmək üçün şifrə təsdiqi tələb olunur.' });
+  }
+  await logUserActivity(prisma, user.id, 'account_deletion', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
+  await prisma.user.delete({ where: { id: user.id } });
+  res.json({ success: true, message: '🗑 Hesabı sil əməliyyatı tamamlandı.' });
+}));
+
+function parseBrowser(userAgent) {
+  const ua = String(userAgent || '');
+  if (/Edg\//.test(ua)) return 'Microsoft Edge';
+  if (/Chrome\//.test(ua) && !/Chromium\//.test(ua)) return 'Chrome';
+  if (/Firefox\//.test(ua)) return 'Firefox';
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari';
+  return ua ? 'Unknown browser' : 'Unknown';
+}
+
+function parseDevice(userAgent) {
+  const ua = String(userAgent || '');
+  if (/Mobile|Android|iPhone|iPad/i.test(ua)) return 'Mobile';
+  if (/Windows|Macintosh|Linux/i.test(ua)) return 'Desktop';
+  return ua ? 'Unknown device' : 'Unknown';
+}
 
 module.exports = router;

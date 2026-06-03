@@ -1,8 +1,15 @@
-async function logUserActivity(prisma, userId, action) {
+async function logUserActivity(prisma, userId, action, details = {}) {
   if (!userId || !action) return null;
-  console.log('AUTH ACTIVITY LOG START', { user_id: Number(userId), action });
+  const data = {
+    userId: Number(userId),
+    action,
+    ipAddress: details.ipAddress || null,
+    userAgent: details.userAgent || null,
+    metadata: details.metadata || undefined,
+  };
+  console.log('AUTH ACTIVITY LOG START', { user_id: data.userId, action, ip_address: data.ipAddress });
   try {
-    const activity = await prisma.userActivityLog.create({ data: { userId: Number(userId), action } });
+    const activity = await prisma.userActivityLog.create({ data });
     console.log('AUTH ACTIVITY LOG SUCCESS', { id: activity.id, user_id: activity.userId, action: activity.action });
     return activity;
   } catch (error) {
