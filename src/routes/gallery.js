@@ -31,6 +31,12 @@ function mediaFiles(req) {
 const MEDIA_POSITION_X = new Set(['left', 'center', 'right']);
 const MEDIA_POSITION_Y = new Set(['top', 'center', 'bottom']);
 
+function toBool(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value === 'boolean') return value;
+  return ['true', '1', 'yes', 'on', 'aktiv'].includes(String(value).trim().toLowerCase());
+}
+
 function normalizeMediaPosition(value, allowed, fallback = 'center') {
   const normalized = String(value || '').trim().toLowerCase();
   return allowed.has(normalized) ? normalized : fallback;
@@ -91,6 +97,7 @@ async function payload(req, existing = {}) {
     thumbnailUrl,
     mediaPositionX: normalizeMediaPosition(body.media_position_x ?? body.mediaPositionX ?? existing.mediaPositionX, MEDIA_POSITION_X),
     mediaPositionY: normalizeMediaPosition(body.media_position_y ?? body.mediaPositionY ?? existing.mediaPositionY, MEDIA_POSITION_Y),
+    isFeatured: mediaType === 'video' ? (toBool(body.is_featured ?? body.isFeatured) ?? existing.isFeatured ?? false) : false,
     sortOrder: Number.isFinite(Number(body.sort_order ?? body.sortOrder)) ? Number(body.sort_order ?? body.sortOrder) : existing.sortOrder,
   }).filter(([, v]) => v !== undefined));
 }
@@ -107,6 +114,7 @@ function serializeGallery(item) {
     media_position_y: mediaPositionY,
     objectPosition: `${mediaPositionX} ${mediaPositionY}`,
     sort_order: item.sortOrder ?? item.sort_order ?? 0,
+    is_featured: Boolean(item.isFeatured ?? item.is_featured),
     preview: { objectPosition: `${mediaPositionX} ${mediaPositionY}`, updatesInstantly: true },
   };
 }
@@ -118,7 +126,7 @@ function positiveInt(value, fallback, max = 5000) {
 }
 
 function isGallerySchemaUnavailable(error) {
-  return ['P2021', 'P2022'].includes(error?.code) || /gallery|sort_order/i.test(String(error?.message || ''));
+  return ['P2021', 'P2022'].includes(error?.code) || /gallery|sort_order|is_featured/i.test(String(error?.message || ''));
 }
 
 function emptyGalleryResponse(req, extra = {}) {
