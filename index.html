@@ -707,6 +707,8 @@
         }
         .sea-breeze-hero .text-white,
         .sea-breeze-hero .text-gray-100,
+        .listing-hero .text-white,
+        .listing-hero .text-gray-100,
         .bg-brand-500.text-white,
         .bg-brand-600.text-white,
         button.bg-brand-500,
@@ -730,6 +732,84 @@
         @media (max-width: 640px) {
             .sea-breeze-hero.glass-card { height: var(--hero-height-mobile, 240px); border-radius: 20px; }
         }
+        .listing-hero.glass-card {
+            width: 100%;
+            height: var(--hero-height-desktop, 520px);
+            min-height: 0;
+            border-radius: 28px;
+            background: #0f172a;
+            border: none;
+            box-shadow: 0 30px 90px rgba(15, 23, 42, 0.20);
+        }
+        @media (max-width: 1023px) { .listing-hero.glass-card { height: var(--hero-height-tablet, 420px); } }
+        @media (max-width: 640px) { .listing-hero.glass-card { height: var(--hero-height-mobile, 280px); border-radius: 20px; } }
+        .listing-hero-premium-badge {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            z-index: 20;
+            color: #fff !important;
+            background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+            border: 1px solid rgba(255,255,255,.28);
+            box-shadow: 0 18px 46px rgba(0,0,0,.22);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            text-shadow: 0 2px 14px rgba(0,0,0,.45);
+        }
+        .listing-hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            color: #fff;
+        }
+        .listing-hero-stats span {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border-radius: 999px;
+            padding: .42rem .72rem;
+            background: rgba(15,23,42,.38);
+            border: 1px solid rgba(255,255,255,.16);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .hero-nav-arrow {
+            position: absolute;
+            top: 50%;
+            z-index: 25;
+            transform: translateY(-50%);
+            width: 42px; height: 42px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.22);
+            color: #fff;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 14px 34px rgba(0,0,0,.18);
+        }
+        .hero-nav-arrow:hover { background: rgba(255,255,255,.24); }
+        .hero-nav-arrow--prev { left: 1rem; }
+        .hero-nav-arrow--next { right: 1rem; }
+        .hero-indicators {
+            position: absolute;
+            left: 50%;
+            bottom: 1rem;
+            transform: translateX(-50%);
+            display: flex;
+            gap: .45rem;
+            z-index: 24;
+        }
+        .hero-indicator {
+            width: 9px; height: 9px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.45);
+            border: 1px solid rgba(255,255,255,.35);
+            transition: width 260ms ease, background 260ms ease;
+        }
+        .hero-indicator.is-active { width: 28px; background: #fff; }
+
         .hero-slide-media {
             opacity: 0;
             transition: opacity 600ms ease;
@@ -2125,6 +2205,24 @@
                 </div>
             </div>
 
+            <!-- Premium Listing Hero banner -->
+            <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
+                <div id="listing-hero-media" class="absolute inset-0" role="img" aria-label="BestHome premium elan vitrini"></div>
+                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,.18);"></div>
+                <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.32));"></div>
+                <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em]"></span>
+                <div id="listing-hero-panel" class="hero-glass-panel relative z-10 rounded-2xl p-5 sm:p-6 text-left space-y-3 mb-5 sm:mb-8 ml-4 sm:ml-8 mr-auto">
+                    <h1 id="listing-hero-title" class="text-2xl sm:text-4xl font-semibold leading-tight tracking-[0.08em] uppercase drop-shadow-xl"></h1>
+                    <p id="listing-hero-description" class="hidden text-sm font-medium leading-relaxed text-white/85 max-w-xl"></p>
+                    <p id="listing-hero-price" class="text-2xl sm:text-3xl font-black text-white drop-shadow-xl"></p>
+                    <div id="listing-hero-stats" class="listing-hero-stats"></div>
+                    <button id="listing-hero-button" type="button" class="hero-luxury-link hero-button-animated inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase transition duration-300">Elana Bax →</button>
+                </div>
+                <button id="listing-hero-prev" type="button" class="hero-nav-arrow hero-nav-arrow--prev hidden" aria-label="Əvvəlki premium elan">‹</button>
+                <button id="listing-hero-next" type="button" class="hero-nav-arrow hero-nav-arrow--next hidden" aria-label="Növbəti premium elan">›</button>
+                <div id="listing-hero-indicators" class="hero-indicators"></div>
+            </div>
+
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
             <div class="space-y-6">
                 <div class="text-center md:text-left">
@@ -2449,7 +2547,8 @@
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Digər ərazilərim</button>
                 <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
-                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Hero Slaydlar</button>
+                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Layihə Hero</button>
+                <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Elan Hero</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
@@ -2962,6 +3061,36 @@ Title: Park Villas
                         </div>
                     </div>
                     <div id="admin-hero-slides-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+
+
+            <!-- SUBTAB: LISTING HERO MANAGER -->
+            <div id="admin-subtab-listing-hero" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-4 glass-card p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-star text-amber-400"></i><span>⭐ Elan Hero</span></h3>
+                    <p class="text-xs text-gray-400">Premium elan vitrininin badge, müddət, custom mətn və media ayarları.</p>
+                    <form onsubmit="handleSaveListingHeroItem(event)" class="space-y-3">
+                        <input type="hidden" id="listing-hero-item-id" value="">
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">⭐ Badge text</span><input type="text" id="listing-hero-badge-input" placeholder="🔥 Premium Elan" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">⏱ Slide duration</span><input type="number" min="1" id="listing-hero-duration-input" value="10" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">📝 Custom title</span><input type="text" id="listing-hero-title-input" placeholder="Boşdursa elan başlığı" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">📄 Custom description</span><textarea rows="3" id="listing-hero-description-input" placeholder="Boşdursa elan təsviri" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">🎬 Hero media URL</span><input type="url" id="listing-hero-media-input" placeholder="Şəkil və ya video URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="listing-hero-active-input" checked class="w-4 h-4"> Aktiv</label>
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
+                            <button type="button" onclick="resetListingHeroForm()" class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300">Təmizlə</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="glass-card p-5 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
+                        <div><h3 class="font-bold text-white">Hero elanları</h3><p class="text-xs text-gray-400">Drag & drop və ya oxlarla sıranı dəyişin. Aktiv vitrin maksimum 10 elan göstərir.</p></div>
+                        <button onclick="loadAdminListingHeroItems()" class="bg-white/5 text-gray-300 text-xs font-bold px-3 py-2 rounded-xl">Yenilə</button>
+                    </div>
+                    <div id="admin-listing-hero-list" class="space-y-3"></div>
                 </div>
             </div>
 
@@ -3552,6 +3681,10 @@ Title: Park Villas
         };
         let heroSliderTimer = null;
         let heroSliderIndex = 0;
+        let listingHeroTimer = null;
+        let listingHeroIndex = 0;
+        let listingHeroPaused = false;
+        let listingHeroTouchStartX = 0;
         let isHeroSlidesLoaded = false;
         let heroPreviewObjectUrl = '';
 
@@ -4653,6 +4786,7 @@ Title: Park Villas
             agents: defaultAgents,
             heroSlides: [],
             heroSection: null,
+            listingHeroItems: [],
             ads: [],
             adStats: null,
             siteSettings: null,
@@ -4668,6 +4802,7 @@ Title: Park Villas
             agents: 'besthome_agents',
             heroSlides: 'besthome_hero_slides',
             heroSection: 'besthome_hero_sea_breeze',
+            listingHeroItems: 'besthome_listing_hero_items',
             careerText: 'besthome_career_text',
             ads: 'besthome_site_ads',
             siteSettings: 'besthome_site_settings'
@@ -4701,6 +4836,7 @@ Title: Park Villas
             appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
             appData.heroSlides = normalizeHeroSlides(readCache(CACHE_KEYS.heroSlides, []), false);
             appData.heroSection = appData.heroSlides[0] || null;
+            appData.listingHeroItems = normalizeListingHeroItems(readCache(CACHE_KEYS.listingHeroItems, []));
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
             appData.ads = readCache(CACHE_KEYS.ads, []);
             appData.siteSettings = normalizeSiteSettings(readCache(CACHE_KEYS.siteSettings, DEFAULT_SITE_SETTINGS));
@@ -4935,6 +5071,109 @@ Title: Park Villas
             if (slides.length <= 1) return;
             const duration = Math.max(1, Number(slides[heroSliderIndex]?.slide_duration || 10)) * 1000;
             heroSliderTimer = setTimeout(() => renderSeaBreezeHero(heroSliderIndex + 1), duration);
+        }
+
+
+
+        function getActiveListingHeroItems() {
+            return normalizeListingHeroItems(appData.listingHeroItems || []).filter(item => item.is_active && item.media_url && item.listing_id).slice(0, 10);
+        }
+
+        function listingHeroListing(item) {
+            return item.listing || (appData.listings || []).find(listing => String(listing.id) === String(item.listing_id)) || {};
+        }
+
+        function renderHeroIndicators(containerId, slides, activeIndex, handlerName) {
+            const wrap = document.getElementById(containerId);
+            if (!wrap) return;
+            wrap.innerHTML = slides.length > 1 ? slides.map((_, index) => `<button type="button" onclick="${handlerName}(${index})" class="hero-indicator ${index === activeIndex ? 'is-active' : ''}" aria-label="Slayd ${index + 1}"></button>`).join('') : '';
+        }
+
+        function renderListingHero(activeIndex = listingHeroIndex) {
+            const slides = getActiveListingHeroItems();
+            const slider = document.getElementById('listing-hero-slider');
+            if (!slides.length) {
+                clearTimeout(listingHeroTimer);
+                if (slider) { slider.classList.add('hidden'); slider.style.display = 'none'; }
+                return;
+            }
+            listingHeroIndex = ((activeIndex % slides.length) + slides.length) % slides.length;
+            const hero = slides[listingHeroIndex];
+            const listing = listingHeroListing(hero);
+            if (slider) {
+                slider.classList.remove('hidden');
+                slider.style.display = '';
+                slider.style.cursor = 'pointer';
+                slider.onclick = (event) => { if (!event.target.closest('button,a')) openListingModal(hero.listing_id); };
+            }
+            const mediaWrap = document.getElementById('listing-hero-media');
+            if (mediaWrap) {
+                mediaWrap.innerHTML = '';
+                slides.forEach((slide, index) => {
+                    const el = createHeroMediaElement(slide);
+                    el.setAttribute('loading', 'lazy');
+                    if (index === listingHeroIndex) el.classList.add('is-active');
+                    mediaWrap.appendChild(el);
+                    if (slide.media_type === 'video' && index === listingHeroIndex) el.play?.().catch(() => {});
+                });
+            }
+            const title = document.getElementById('listing-hero-title');
+            const desc = document.getElementById('listing-hero-description');
+            const badge = document.getElementById('listing-hero-badge');
+            const price = document.getElementById('listing-hero-price');
+            const stats = document.getElementById('listing-hero-stats');
+            const panel = document.getElementById('listing-hero-panel');
+            const btn = document.getElementById('listing-hero-button');
+            if (title) title.innerHTML = formatHeroTitle(hero.title || listing.title || 'Premium elan');
+            if (desc) { desc.textContent = hero.description || listing.desc || ''; desc.classList.toggle('hidden', !(hero.description || listing.desc)); }
+            if (badge) { badge.textContent = hero.badge_text || ''; badge.classList.toggle('hidden', !hero.badge_text); }
+            if (price) price.textContent = formatPrice(listing.price, listing.currency || 'AZN');
+            if (stats) {
+                stats.innerHTML = [
+                    hero.region || listing.district || listing.city ? `📍 ${escapeHtml(hero.region || listing.district || listing.city)}` : '',
+                    listing.rooms ? `🛏 ${listing.rooms} otaq` : '',
+                    listing.area ? `📐 ${listing.area} m²` : '',
+                    `👁 ${Number(listing.viewCount || 0).toLocaleString('az-AZ')} baxış`
+                ].filter(Boolean).map(value => `<span>${value}</span>`).join('');
+            }
+            applyHeroVisualStyles(slider, panel, title, desc, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
+            if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
+            const prev = document.getElementById('listing-hero-prev');
+            const next = document.getElementById('listing-hero-next');
+            [prev, next].forEach(button => button?.classList.toggle('hidden', slides.length <= 1));
+            if (prev) prev.onclick = (event) => { event.stopPropagation(); moveListingHero(-1); };
+            if (next) next.onclick = (event) => { event.stopPropagation(); moveListingHero(1); };
+            renderHeroIndicators('listing-hero-indicators', slides, listingHeroIndex, 'goToListingHero');
+            setupListingHeroInteractions();
+            startListingHeroTimer(slides);
+        }
+
+        function startListingHeroTimer(slides = getActiveListingHeroItems()) {
+            clearTimeout(listingHeroTimer);
+            if (listingHeroPaused || slides.length <= 1) return;
+            const duration = Math.max(1, Number(slides[listingHeroIndex]?.slide_duration || 10)) * 1000;
+            listingHeroTimer = setTimeout(() => renderListingHero(listingHeroIndex + 1), duration);
+        }
+
+        function goToListingHero(index) { listingHeroPaused = false; renderListingHero(index); }
+        function moveListingHero(delta) { listingHeroPaused = false; renderListingHero(listingHeroIndex + delta); }
+
+        function setupListingHeroInteractions() {
+            const slider = document.getElementById('listing-hero-slider');
+            if (!slider || slider.dataset.heroReady) return;
+            slider.dataset.heroReady = '1';
+            slider.addEventListener('mouseenter', () => { listingHeroPaused = true; clearTimeout(listingHeroTimer); });
+            slider.addEventListener('mouseleave', () => { listingHeroPaused = false; startListingHeroTimer(); });
+            slider.addEventListener('touchstart', (event) => { listingHeroPaused = true; clearTimeout(listingHeroTimer); listingHeroTouchStartX = event.changedTouches?.[0]?.clientX || 0; }, { passive: true });
+            slider.addEventListener('touchend', (event) => {
+                const delta = (event.changedTouches?.[0]?.clientX || 0) - listingHeroTouchStartX;
+                listingHeroPaused = false;
+                if (Math.abs(delta) > 45) moveListingHero(delta > 0 ? -1 : 1); else startListingHeroTimer();
+            }, { passive: true });
+        }
+
+        function openListingModal(listingId) {
+            return openPropertyModal(String(listingId), false);
         }
 
         function fillHeroAdminForm(slide = null) {
@@ -5181,6 +5420,157 @@ Title: Park Villas
             }
         }
 
+
+
+        async function loadAdminListingHeroItems() {
+            try {
+                const items = await apiRequest('/api/listing-hero-items?admin=1').catch(() => appData.listingHeroItems || []);
+                cacheData('listingHeroItems', normalizeListingHeroItems(items));
+                renderAdminListingHeroItems();
+                renderAdminDashboard();
+                renderListingHero(0);
+            } catch (error) {
+                alert('Elan hero siyahısı oxunmadı: ' + error.message);
+            }
+        }
+
+        function listingHeroItemForListing(listingId) {
+            return (appData.listingHeroItems || []).find(item => String(item.listing_id) === String(listingId));
+        }
+
+        function fillListingHeroForm(item = null) {
+            const fields = {
+                'listing-hero-item-id': item?.id || '',
+                'listing-hero-badge-input': item?.badge_text || '',
+                'listing-hero-duration-input': item?.slide_duration || 10,
+                'listing-hero-title-input': item?.custom_title || '',
+                'listing-hero-description-input': item?.custom_description || '',
+                'listing-hero-media-input': item?.hero_media_url || '',
+            };
+            Object.entries(fields).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.value = value; });
+            const active = document.getElementById('listing-hero-active-input');
+            if (active) active.checked = item?.is_active ?? true;
+        }
+
+        function resetListingHeroForm() { fillListingHeroForm(null); }
+
+        function editListingHeroItem(id) {
+            const item = (appData.listingHeroItems || []).find(row => String(row.id) === String(id));
+            if (item) fillListingHeroForm(item);
+        }
+
+        async function handleSaveListingHeroItem(event) {
+            event.preventDefault();
+            const id = document.getElementById('listing-hero-item-id')?.value;
+            if (!id) return alert('Əvvəlcə siyahıdan hero elanı redaktə edin və ya elan idarəsində “Hero əlavə et” seçin.');
+            const payload = {
+                badge_text: document.getElementById('listing-hero-badge-input')?.value || '',
+                slide_duration: Number(document.getElementById('listing-hero-duration-input')?.value || 10),
+                custom_title: document.getElementById('listing-hero-title-input')?.value || '',
+                custom_description: document.getElementById('listing-hero-description-input')?.value || '',
+                hero_media_url: document.getElementById('listing-hero-media-input')?.value || '',
+                is_active: document.getElementById('listing-hero-active-input')?.checked ?? true,
+            };
+            try {
+                await apiRequest(`/api/listing-hero-items/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+                await loadAdminListingHeroItems();
+                resetListingHeroForm();
+            } catch (error) {
+                alert('Elan hero saxlanılmadı: ' + error.message);
+            }
+        }
+
+        async function addListingToHero(listingId) {
+            try {
+                const created = await apiRequest('/api/listing-hero-items', { method: 'POST', body: JSON.stringify({ listing_id: listingId, badge_text: '🔥 Premium Elan', slide_duration: 10, is_active: true }) });
+                await loadAdminListingHeroItems();
+                fillListingHeroForm(normalizeListingHeroItem(created));
+            } catch (error) {
+                alert('Elan hero-ya əlavə olunmadı: ' + error.message);
+            }
+        }
+
+        async function removeListingFromHero(listingIdOrItemId, byItem = false) {
+            if (!confirm('Bu elanı hero-dan çıxarmaq istəyirsiniz?')) return;
+            try {
+                const url = byItem ? `/api/listing-hero-items/${listingIdOrItemId}` : `/api/listing-hero-items/listing/${listingIdOrItemId}`;
+                await apiRequest(url, { method: 'DELETE' });
+                await loadAdminListingHeroItems();
+                resetListingHeroForm();
+            } catch (error) {
+                alert('Elan hero-dan çıxarılmadı: ' + error.message);
+            }
+        }
+
+        async function toggleListingHeroItem(id, isActive) {
+            try {
+                await apiRequest(`/api/listing-hero-items/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: isActive }) });
+                await loadAdminListingHeroItems();
+            } catch (error) {
+                alert('Elan hero statusu dəyişmədi: ' + error.message);
+            }
+        }
+
+        async function moveListingHeroItem(id, direction) {
+            const items = normalizeListingHeroItems(appData.listingHeroItems || []);
+            const index = items.findIndex(item => String(item.id) === String(id));
+            const nextIndex = index + direction;
+            if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return;
+            [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
+            await saveListingHeroOrder(items);
+        }
+
+        async function saveListingHeroOrder(items) {
+            try {
+                const saved = await apiRequest('/api/listing-hero-items/reorder', { method: 'PATCH', body: JSON.stringify({ items: items.map((item, index) => ({ id: item.id, sort_order: index + 1 })) }) });
+                cacheData('listingHeroItems', normalizeListingHeroItems(saved));
+                renderAdminListingHeroItems();
+                renderListingHero(0);
+            } catch (error) {
+                alert('Elan hero sırası dəyişmədi: ' + error.message);
+            }
+        }
+
+        function renderAdminListingHeroItems() {
+            const list = document.getElementById('admin-listing-hero-list');
+            if (!list) return;
+            const items = normalizeListingHeroItems(appData.listingHeroItems || []);
+            list.innerHTML = items.length ? items.map((item, index) => {
+                const listing = listingHeroListing(item);
+                const image = item.media_url || listing.img || listing.images?.[0] || '';
+                return `<div draggable="true" ondragstart="this.dataset.dragging='1'; window.__listingHeroDrag='${item.id}'" ondragover="event.preventDefault()" ondrop="handleListingHeroDrop(event, '${item.id}')" class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${item.is_active ? '' : 'opacity-55 grayscale'}">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-[96px] h-[68px] rounded-xl overflow-hidden bg-white/5 shrink-0">${item.media_type === 'video' ? `<video src="${escapeHtml(image)}" class="w-full h-full object-cover" muted playsinline></video>` : `<img src="${escapeHtml(image)}" class="w-full h-full object-cover" loading="lazy" alt="">`}</div>
+                        <div class="min-w-0 space-y-1">
+                            <h4 class="font-bold text-white truncate">${escapeHtml(item.title || listing.title || '—')}</h4>
+                            <div class="text-gray-400">Kod: ${formatListingCode(listing.listingCode)} • ${formatPrice(listing.price, listing.currency || 'AZN')} • ${item.region || '—'} • ${item.slide_duration}s</div>
+                            <div class="text-gray-500">${escapeHtml(item.badge_text || 'Badge yoxdur')} • ${item.is_active ? 'Aktiv' : 'Deaktiv'}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="moveListingHeroItem('${item.id}', -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬆️</button>
+                        <button onclick="moveListingHeroItem('${item.id}', 1)" ${index === items.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬇️</button>
+                        <button onclick="editListingHeroItem('${item.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">✏️ Redaktə et</button>
+                        <button onclick="toggleListingHeroItem('${item.id}', ${!item.is_active})" class="${item.is_active ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${item.is_active ? 'Aktiv' : 'Deaktiv'}</button>
+                        <button onclick="removeListingFromHero('${item.id}', true)" class="text-red-400 px-2 py-1 bg-red-500/10 rounded">❌ Hero-dan çıxar</button>
+                    </div>
+                </div>`;
+            }).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Elan hero boşdur. Elan idarəsində “⭐ Hero əlavə et” düyməsindən istifadə edin.</div>';
+        }
+
+        function handleListingHeroDrop(event, targetId) {
+            event.preventDefault();
+            const sourceId = window.__listingHeroDrag;
+            if (!sourceId || sourceId === targetId) return;
+            const items = normalizeListingHeroItems(appData.listingHeroItems || []);
+            const from = items.findIndex(item => String(item.id) === String(sourceId));
+            const to = items.findIndex(item => String(item.id) === String(targetId));
+            if (from < 0 || to < 0) return;
+            const [moved] = items.splice(from, 1);
+            items.splice(to, 0, moved);
+            saveListingHeroOrder(items);
+        }
+
         function uiProjectToApi(p) {
             return {
                 title: p.title,
@@ -5293,13 +5683,15 @@ Title: Park Villas
             observersReady: false,
             projects: false,
             heroSlides: false,
+            listingHero: false,
             listings: false,
             favorites: false,
             gallery: false,
             vacancies: false,
             ads: false,
             admin: false,
-            rawHeroSlides: null
+            rawHeroSlides: null,
+            rawListingHeroItems: null
         };
 
         function scheduleIdleTask(callback, timeout = 1200) {
@@ -5331,6 +5723,46 @@ Title: Park Villas
 
         function isTabAktiv(tabId) {
             return !document.getElementById(`tab-${tabId}`)?.classList.contains('hidden');
+        }
+
+        function normalizeListingHeroItem(item = {}) {
+            const listing = item.listing ? dbListingToUi(item.listing) : (appData.listings || []).find(x => String(x.id) === String(item.listing_id ?? item.listingId ?? ''));
+            const mediaUrl = String(item.media_url ?? item.mediaUrl ?? item.hero_media_url ?? item.heroMediaUrl ?? listing?.img ?? listing?.images?.[0] ?? '').trim();
+            return {
+                id: item.id,
+                listing_id: item.listing_id ?? item.listingId ?? listing?.id ?? '',
+                listing,
+                title: item.title || item.custom_title || item.customTitle || listing?.title || '',
+                description: item.description || item.custom_description || item.customDescription || listing?.desc || '',
+                media_type: String(item.media_type ?? item.mediaType ?? (/\.(mp4|webm|mov)(\?|#|$)/i.test(mediaUrl) ? 'video' : 'image')).toLowerCase() === 'video' ? 'video' : 'image',
+                media_url: mediaUrl,
+                badge_text: item.badge_text ?? item.badgeText ?? '',
+                slide_duration: Number(item.slide_duration ?? item.slideDuration ?? 10) || 10,
+                custom_title: item.custom_title ?? item.customTitle ?? '',
+                custom_description: item.custom_description ?? item.customDescription ?? '',
+                hero_media_url: item.hero_media_url ?? item.heroMediaUrl ?? '',
+                sort_order: Number(item.sort_order ?? item.sortOrder ?? 0),
+                is_active: item.is_active ?? item.isActive ?? true,
+                region: item.region || listing?.district || listing?.city || listing?.project || '',
+            };
+        }
+
+        function normalizeListingHeroItems(items = []) {
+            const list = Array.isArray(items) ? items : [items];
+            return list.filter(Boolean).map(normalizeListingHeroItem).sort((a, b) => (a.sort_order - b.sort_order) || String(a.id || '').localeCompare(String(b.id || '')));
+        }
+
+        async function loadListingHeroPriority() {
+            if (homepageHydration.listingHero) return;
+            try {
+                const items = await apiRequest('/api/listing-hero-items').catch(() => []);
+                homepageHydration.rawListingHeroItems = items;
+                cacheData('listingHeroItems', normalizeListingHeroItems(items));
+            } catch (error) {
+                console.warn('Elan hero oxunmadı, cache istifadə olunur:', error.message);
+            } finally {
+                homepageHydration.listingHero = true;
+            }
         }
 
         async function loadHeroSlidesPriority() {
@@ -5369,6 +5801,7 @@ Title: Park Villas
                 const listings = await apiRequest('/api/listings?page=1&limit=100');
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
                 cacheData('listings', listingRows.map(dbListingToUi));
+                renderListingHero(listingHeroIndex);
                 if (isTabAktiv('listings')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Digər ərazilər oxunmadı, cache istifadə olunur:', error.message);
@@ -5382,6 +5815,7 @@ Title: Park Villas
             try {
                 const favorites = await apiRequest('/api/favorites').catch(() => []);
                 appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
+                renderListingHero(listingHeroIndex);
                 if (isTabAktiv('listings')) renderSeaBreeze();
             } catch (error) {
                 console.warn('Favoritlər oxunmadı:', error.message);
@@ -5442,6 +5876,10 @@ Title: Park Villas
                     apiRequest('/api/users').catch(() => []),
                     activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
                 ]);
+                if (activeUser?.role === 'admin') {
+                    const heroItems = await apiRequest('/api/listing-hero-items?admin=1').catch(() => appData.listingHeroItems || []);
+                    cacheData('listingHeroItems', normalizeListingHeroItems(heroItems));
+                }
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
@@ -5466,17 +5904,19 @@ Title: Park Villas
             bootstrapCachedData();
             renderOfficialProjectOptions();
             try {
-                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority()]);
+                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority(), loadListingHeroPriority()]);
             } finally {
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
                     isHeroSlidesLoaded = true;
                     appData.heroSection = getRenderableHeroSlides()[0] || null;
                 }
+                if (homepageHydration.rawListingHeroItems) cacheData('listingHeroItems', normalizeListingHeroItems(homepageHydration.rawListingHeroItems));
                 homepageHydration.critical = true;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
+                renderListingHero();
                 scheduleIdleTask(loadProjectsPriority, 250);
                 setupHomepageLazyLoaders();
             }
@@ -7382,6 +7822,7 @@ Təşəkkür edirəm. 🙏`;
                 if (idx > -1) appData.listings[idx].favoritesCount = Math.max(0, (appData.listings[idx].favoritesCount || 0) + (isFavorite ? -1 : 1));
                 if (activePropertyListing && String(activePropertyListing.id) === key) activePropertyListing.favoritesCount = Math.max(0, (activePropertyListing.favoritesCount || 0) + (isFavorite ? -1 : 1));
                 renderFavoriteControlState(key);
+                renderListingHero(listingHeroIndex);
                 if (isTabAktiv('listings')) renderSeaBreeze();
                 if (isTabAktiv('favorites')) renderFavoritesPage();
             } catch (error) {
@@ -8185,7 +8626,7 @@ Təşəkkür edirəm. 🙏`;
 
         // SUBTABS WITHIN THE DASHBOARD
         function switchAdminSubtab(subtab) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -8193,6 +8634,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
             document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
             document.getElementById('admin-subtab-hero-sections').classList.add('hidden');
+            document.getElementById('admin-subtab-listing-hero')?.classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
@@ -8207,7 +8649,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -8226,6 +8668,10 @@ Təşəkkür edirəm. 🙏`;
             if (subtab === 'hero-sections') {
                 loadAdminHeroSlides();
                 resetHeroSlideForm();
+            }
+            if (subtab === 'listing-hero') {
+                loadAdminListingHeroItems();
+                resetListingHeroForm();
             }
         }
 
@@ -9557,6 +10003,10 @@ Təşəkkür edirəm. 🙏`;
                 const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
                 const districtLabel = getListingDistrict(p) || (regionLabel === 'Unknown' ? '—' : regionLabel);
                 const adminListingTitle = p.title || '—';
+                const listingHeroItem = listingHeroItemForListing(p.id);
+                const heroAction = activeUser.role === 'admin' ? (listingHeroItem
+                    ? `<button onclick="removeListingFromHero('${p.id}')" class="bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero-dan çıxar</button>`
+                    : `<button onclick="addListingToHero('${p.id}')" class="bg-purple-500/10 text-purple-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero əlavə et</button>`) : '';
 
                 pContainer.innerHTML += `
                     <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
@@ -9582,6 +10032,7 @@ Təşəkkür edirəm. 🙏`;
                             ${activeUser.role === 'admin' && normalizedStatus !== 'rejected' ? `
                                 <button onclick="rejectListing(${p.id})" class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Reject</button>
                             ` : ''}
+                            ${heroAction}
                             <button onclick="openPropertyModal('${p.id}', true)" class="bg-white/5 text-gray-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Aç</button>
                             <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
                             <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
