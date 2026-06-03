@@ -1133,6 +1133,81 @@
             text-overflow: clip;
             line-height: 1.25;
         }
+
+        .admin-listing-management-card {
+            display: flex;
+            flex-direction: column;
+            gap: .45rem;
+            padding: .6rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .admin-listing-management-card__summary {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            min-width: 0;
+        }
+        .admin-listing-management-card__thumb {
+            width: 80px;
+            height: 80px;
+            flex: 0 0 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: rgba(255,255,255,.08);
+        }
+        .admin-listing-management-card__info {
+            min-width: 0;
+            flex: 1 1 auto;
+            display: grid;
+            gap: .18rem;
+        }
+        .admin-listing-management-card__title {
+            color: #fff;
+            font-size: .82rem;
+            line-height: 1.15;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .admin-listing-management-card__code,
+        .admin-listing-management-card__price,
+        .admin-listing-management-card__status,
+        .admin-listing-management-card__meta {
+            font-size: .68rem;
+            line-height: 1.15;
+            font-weight: 800;
+        }
+        .admin-listing-management-card__code { color: rgba(255,255,255,.74); }
+        .admin-listing-management-card__price { color: #fff; }
+        .admin-listing-management-card__status { width: max-content; max-width: 100%; }
+        .admin-listing-management-card__meta {
+            color: rgba(148,163,184,.95);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .admin-listing-management-card__actions {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-inline: contain;
+            scrollbar-width: thin;
+            padding-bottom: .15rem;
+            margin-inline: -.1rem;
+        }
+        .admin-listing-management-card__actions > button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        .admin-listing-management-card__hero-btn {
+            min-width: 120px;
+            white-space: nowrap;
+        }
+
         @media (min-width: 1024px) and (max-width: 1439px) {
             #admin-subtab-seabreeze-manager,
             #admin-subtab-projects-manager,
@@ -1875,11 +1950,28 @@
                 padding: 0;
             }
             #property-detail-modal > .listing-detail-shell {
-                width: min(1350px, calc(100vw - 80px));
-                max-width: min(1350px, calc(100vw - 80px));
-                max-height: calc(100vh - 80px);
-                margin: 40px auto;
+                width: min(1180px, calc(100vw - 160px));
+                max-width: 1180px;
+                max-height: calc(100vh - 120px);
+                margin: 60px auto;
                 border-radius: 28px;
+                overflow: hidden;
+                box-shadow:
+                    0 24px 80px rgba(0,0,0,.18),
+                    0 12px 30px rgba(0,0,0,.12) !important;
+            }
+            #property-detail-modal .listing-detail-scroll {
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+                padding-bottom: 0;
+            }
+            #property-detail-modal .listing-detail-main-image {
+                max-height: 420px;
+            }
+            #property-detail-modal .listing-detail-main-image img,
+            #property-detail-modal #p-modal-img {
+                max-height: 420px;
+                object-fit: cover !important;
             }
         }
 
@@ -10096,24 +10188,22 @@ Təşəkkür edirəm. 🙏`;
                 const adminListingTitle = p.title || '—';
                 const listingHeroItem = listingHeroItemForListing(p.id);
                 const heroAction = activeUser.role === 'admin' ? (listingHeroItem
-                    ? `<button onclick="removeListingFromHero('${p.id}')" class="bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero-dan çıxar</button>`
-                    : `<button onclick="addListingToHero('${p.id}')" class="bg-purple-500/10 text-purple-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero əlavə et</button>`) : '';
+                    ? `<button onclick="removeListingFromHero('${p.id}')" class="admin-listing-management-card__hero-btn bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero-dan çıxar</button>`
+                    : `<button onclick="addListingToHero('${p.id}')" class="admin-listing-management-card__hero-btn bg-purple-500/10 text-purple-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero əlavə et</button>`) : '';
 
                 pContainer.innerHTML += `
-                    <div class="glass-card p-4 rounded-xl flex items-center justify-between gap-4 border border-white/5">
-                        <div class="flex items-center space-x-3 truncate">
-                            <img src="${mainImage}" class="w-12 h-12 rounded-lg object-cover">
-                            <div class="truncate">
-                                <h4 class="text-xs font-bold text-white truncate">${escapeHtml(adminListingTitle)}</h4>
-                                <span class="inline-flex w-fit text-[9px] font-black px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">Kod: ${formatListingCode(p.listingCode)}</span>
-                                <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badge}">${label}</span>
-                                ${p.vip ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">VIP</span>' : ''}
-                                ${p.featured ? '<span class="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Featured</span>' : ''}
-                                ${p.isCredit ? '<span class="credit-badge text-[9px] px-2 py-0.5 rounded uppercase">KREDİT</span>' : ''}
-                                <span class="text-[10px] text-gray-400 ml-2">Region: ${regionLabel} • District: ${districtLabel} • ${formatPrice(p.price, p.currency)} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav • ${formatAzDate(p.createdAt)}</span>
+                    <div class="admin-listing-management-card glass-card">
+                        <div class="admin-listing-management-card__summary">
+                            <img src="${mainImage}" class="admin-listing-management-card__thumb" alt="${escapeHtml(adminListingTitle)}">
+                            <div class="admin-listing-management-card__info">
+                                <h4 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h4>
+                                <span class="admin-listing-management-card__code">${formatListingCode(p.listingCode)}</span>
+                                <strong class="admin-listing-management-card__price">${formatPrice(p.price, p.currency)}</strong>
+                                <span class="admin-listing-management-card__status text-[9px] px-2 py-0.5 rounded ${badge}">${label}</span>
+                                <span class="admin-listing-management-card__meta">${regionLabel} • ${districtLabel} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav</span>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="admin-listing-management-card__actions">
                             ${activeUser.role === 'admin' && !isApproved ? `
                                 <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Approve</button>
                             ` : ''}
@@ -10126,7 +10216,7 @@ Təşəkkür edirəm. 🙏`;
                             ${heroAction}
                             <button onclick="openPropertyModal('${p.id}', true)" class="bg-white/5 text-gray-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Aç</button>
                             <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
-                            <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 px-2.5 py-1.5 rounded-lg bg-red-500/10" aria-label="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 `;
