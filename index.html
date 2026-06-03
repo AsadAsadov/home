@@ -116,6 +116,39 @@
             object-fit: contain;
             image-rendering: auto;
         }
+        .site-header-inner {
+            min-height: 5rem;
+        }
+        .header-logo-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .header-mobile-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .55rem;
+        }
+        .header-whatsapp-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 28px rgba(37, 211, 102, .28);
+            transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+            flex: 0 0 auto;
+        }
+        .header-whatsapp-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 16px 34px rgba(37, 211, 102, .38);
+            filter: saturate(1.08);
+        }
+        .header-whatsapp-btn i { font-size: 1.35rem; line-height: 1; }
         .site-footer-logo {
             height: 88px;
             width: auto;
@@ -168,11 +201,6 @@
             body { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
             main.flex-grow { padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; }
             footer { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important; }
-            .whatsapp-floating-btn {
-                bottom: calc(86px + env(safe-area-inset-bottom));
-                right: max(1rem, env(safe-area-inset-right));
-                z-index: 60;
-            }
             .mobile-bottom-nav {
                 position: fixed;
                 bottom: 0;
@@ -308,56 +336,17 @@
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
 
-        .whatsapp-floating-btn {
-            position: fixed;
-            right: 1rem;
-            bottom: 1rem;
-            z-index: 60;
-            width: 3.75rem;
-            height: 3.75rem;
-            border-radius: 9999px;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 18px 35px rgba(37, 211, 102, .34);
-            transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
-        }
-        .whatsapp-floating-btn::after {
-            content: '';
-            position: absolute;
-            inset: -6px;
-            border-radius: inherit;
-            border: 1px solid rgba(37, 211, 102, .32);
-            animation: whatsappPulse 2s ease-out infinite;
-        }
-        .whatsapp-floating-btn:hover {
-            transform: translateY(-4px) scale(1.06);
-            box-shadow: 0 24px 45px rgba(37, 211, 102, .45);
-            filter: saturate(1.08);
-        }
-        .whatsapp-floating-btn i {
-            font-size: 1.85rem;
-            position: relative;
-            z-index: 1;
-        }
+        .whatsapp-floating-btn { display: none !important; }
         @keyframes whatsappPulse {
             0% { transform: scale(.9); opacity: .75; }
             80%, 100% { transform: scale(1.25); opacity: 0; }
         }
         @media (min-width: 768px) {
             .site-logo {
-                height: 90px;
+                height: 70px;
             }
             .site-footer-logo {
                 height: 110px;
-            }
-            .whatsapp-floating-btn {
-                right: 1.5rem;
-                bottom: 1.5rem;
-                width: 4rem;
-                height: 4rem;
             }
         }
 
@@ -1216,11 +1205,15 @@
             .sea-breeze-listing-card__meta,
             .sea-breeze-listing-card__description,
             .sea-breeze-listing-card__price-per-m2,
-            .sea-breeze-listing-card__favorite,
             .sea-breeze-listing-card__promo-badge,
             .sea-breeze-listing-card__price-label,
             .sea-breeze-listing-card__price-period {
                 display: none !important;
+            }
+            .sea-breeze-listing-card__favorite {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
             }
             .sea-breeze-listing-card__mobile-facts {
                 display: none;
@@ -1855,6 +1848,37 @@
         .credit-badge { background: #dc2626; color: #ffffff; font-weight: 600; box-shadow: 0 12px 28px rgba(220,38,38,.28); letter-spacing: .12em; }
         .credit-info-panel { background: linear-gradient(135deg, rgba(254,242,242,.96), rgba(255,255,255,.98)); border: 1px solid rgba(248,113,113,.28); }
         @media (max-width: 767px) {
+            .site-header-inner {
+                display: grid !important;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                justify-items: center;
+                align-content: center;
+                gap: .25rem;
+                min-height: 6.75rem;
+                height: auto !important;
+                padding: .45rem 0 .55rem;
+            }
+            .header-logo-wrap {
+                justify-content: center;
+                width: 100%;
+            }
+            .site-logo {
+                height: 58px;
+            }
+            .header-mobile-actions {
+                min-height: 44px;
+            }
+            .header-mobile-actions > button,
+            #mobile-user-status-icon > button,
+            #mobile-user-status-icon > div {
+                width: 42px !important;
+                height: 42px !important;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            main.flex-grow { padding-top: 8.25rem !important; }
             .listing-detail-main-image {
                 min-height: 220px;
                 aspect-ratio: 4 / 3;
@@ -1867,14 +1891,14 @@
     <!-- NAVIGATION BAR -->
     <nav class="site-header glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20 md:h-24">
+            <div class="site-header-inner flex items-center justify-between h-20 md:h-24">
                 <!-- Logo -->
-                <div class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
+                <div class="header-logo-wrap flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
                     <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-logo" decoding="async">
                 </div>
 
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center gap-6 whitespace-nowrap">
+                <div class="hidden lg:flex items-center gap-5 whitespace-nowrap">
                     <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">🏡 SeaBreeze Layihələri</button>
                     <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">🏠 Elanlar</button>
                     <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">🎥 Qalereya & Video</button>
@@ -1888,32 +1912,32 @@
 
 
                 <!-- Session status -->
-                <div class="hidden md:flex items-center flex-none">
+                <div class="hidden lg:flex items-center flex-none gap-3">
                     <div id="header-user-status" class="header-actions-row"></div>
+                    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn" aria-label="WhatsApp ilə əlaqə saxla">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
                 </div>
 
                 <!-- Mobile Menu Button -->
-                <div class="md:hidden flex items-center space-x-3">
+                <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
-                    <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white focus:outline-none">
-                        <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
+                    <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
+                        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
                     </button>
+                    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn" aria-label="WhatsApp ilə əlaqə saxla">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Mobile Dropdown Menu -->
-        <div class="hidden md:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
-            <button onclick="switchTab('seabreeze'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🏡 SeaBreeze Layihələri</button>
-            <button onclick="switchTab('listings'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🏠 Elanlar</button>
-            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🎥 Qalereya & Video</button>
-            <button onclick="switchTab('mortgage'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">🧮 İpoteka Kalkulyatoru</button>
-            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 hover:text-brand-500 font-medium">ℹ️ Haqqımızda</button>
-            <button onclick="switchTab('career'); toggleMobileMenu()" class="vacancy-cta flex w-full items-center justify-center gap-2 px-4 py-3 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200">
-                <span>Vakansiya</span>
-                <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
-            </button>
-            <div id="mobile-user-status-actions" class="pt-2 border-t border-white/5 space-y-2"></div>
+        <div class="hidden lg:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
+            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">🎬 Qalereya & Video</button>
+            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">💼 Vakansiya</button>
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">ℹ️ Haqqımızda</button>
+            <div id="mobile-user-status-actions" class="hidden"></div>
         </div>
     </nav>
 
@@ -3042,10 +3066,11 @@ Title: Park Villas
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
-                            <div class="listing-detail-contact-actions grid grid-cols-3 gap-3">
+                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
                                 <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
                                 <button id="p-modal-share-btn" type="button" class="listing-detail-action min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-slate-200 transition"><i class="fa-solid fa-share-nodes"></i><span>Paylaş</span></button>
+                                <button id="p-modal-favorite-btn" type="button" class="listing-detail-action min-h-[48px] bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-rose-100 transition"><i class="fa-regular fa-heart"></i><span>Favori</span></button>
                             </div>
                         </div>
                     </div>
@@ -3320,16 +3345,11 @@ Title: Park Villas
         </div>
     </footer>
 
-    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="whatsapp-floating-btn" aria-label="WhatsApp ilə əlaqə saxla">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
     <div id="mobile-profile-backdrop" class="mobile-profile-backdrop" onclick="closeMobileProfileMenu()" aria-hidden="true"></div>
     <div id="mobile-profile-sheet" class="mobile-profile-sheet" role="menu" aria-label="Profil menyusu">
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToProfileInfo(); closeMobileProfileMenu()">👤 Profil məlumatları</button>
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToMyListings(); closeMobileProfileMenu()">📋 Mənim elanlarım</button>
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToFavorites(); closeMobileProfileMenu()">❤️ Favorilər</button>
-        <button type="button" class="mobile-profile-sheet__item" onclick="navigateToProfileSettings(); closeMobileProfileMenu()">⚙️ Parametrlər</button>
         <button type="button" class="mobile-profile-sheet__item text-red-600" onclick="logoutAdmin(); closeMobileProfileMenu()">🚪 Çıxış</button>
     </div>
     <nav id="mobile-bottom-nav" class="mobile-bottom-nav" aria-label="Mobil alt naviqasiya">
@@ -6522,7 +6542,8 @@ Title: Park Villas
                 const favorites = await apiRequest('/api/favorites');
                 const listings = (favorites || []).map(f => dbListingToUi(f.listing || f)).filter(item => item && item.id);
                 cacheData('listings', [...listings, ...(appData.listings || []).filter(existing => !listings.some(row => String(row.id) === String(existing.id)))]);
-                root.innerHTML=`<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">❤️ Favorilər</h1><p class="text-slate-600 font-semibold mt-1">Seçdiyiniz elanlar.</p></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${listings.length?listings.map(p=>`<article onclick="openPropertyModal('${p.id}', true)" class="cursor-pointer rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden"><img src="${escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80')}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p></div></article>`).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Favori elan yoxdur.</div>'}</div>`;
+                appData.favoriteListingIds = new Set(listings.map(item => String(item.id)));
+                root.innerHTML=`<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">❤️ Favorilər</h1><p class="text-slate-600 font-semibold mt-1">Seçdiyiniz elanlar.</p></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${listings.length?listings.map(p=>publicListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Favori elan yoxdur.</div>'}</div>`;
             } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Favorilər açılmadı: ${escapeHtml(error.message)}</div>`; }
         }
 
@@ -6543,27 +6564,19 @@ Title: Park Villas
                                 <button onclick="navigateToProfileInfo()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">👤 Profil məlumatları</button>
                                 <button onclick="navigateToMyListings()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">📋 Mənim elanlarım</button>
                                 <button onclick="navigateToFavorites()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">❤️ Favorilər</button>
-                                <button onclick="navigateToProfileSettings()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">⚙️ Parametrlər</button>
                                 <button onclick="logoutAdmin()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black text-red-600 hover:bg-red-50">🚪 Çıxış</button>
                             </div>
                         </div>
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div onclick="navigateToProfileSettings()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div>`;
-                mobileActions.innerHTML = `
-                    <button onclick="navigateToCreateListing(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-brand-500/10 hover:bg-brand-500 text-xs font-medium">➕ Elan əlavə et</button>
-                    <button onclick="navigateToProfileInfo(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">👤 Profil məlumatları</button>
-                    <button onclick="navigateToMyListings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">📋 Mənim elanlarım</button>
-                    <button onclick="navigateToFavorites(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">❤️ Favorilər</button>
-                    <button onclick="navigateToProfileSettings(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-white bg-white/5 hover:bg-brand-500 text-xs font-medium">⚙️ Parametrlər</button>
-                    <button onclick="logoutAdmin(); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 text-xs font-medium">🚪 Çıxış</button>
-                `;
+                mobileIcon.innerHTML = `<div onclick="navigateToProfileInfo()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div>`;
+                mobileActions.innerHTML = ``;
             } else {
                 const btn = `<button onclick="switchTab('admin-login')" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-sign-in-alt"></i><span>Giriş</span></button>`;
                 container.innerHTML = btn;
                 mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
-                mobileActions.innerHTML = `<button onclick="switchTab('admin-login'); toggleMobileMenu()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md text-xs transition">Daxil Ol</button>`;
+                mobileActions.innerHTML = ``;
             }
         }
 
@@ -7134,7 +7147,7 @@ Təşəkkür edirəm. 🙏`;
                             <img src="${mainImage}" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
-                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute bottom-4 right-4 w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
                             <div class="space-y-1.5">
@@ -7163,9 +7176,25 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
+        function renderFavoriteControlState(listingId) {
+            const key = String(listingId);
+            const isFavorite = appData.favoriteListingIds?.has(key);
+            document.querySelectorAll(`button[onclick*="toggleFavorite(event, '${key}')"] i`).forEach((icon) => {
+                icon.classList.toggle('fa-solid', isFavorite);
+                icon.classList.toggle('fa-regular', !isFavorite);
+            });
+            const detailBtn = document.getElementById('p-modal-favorite-btn');
+            if (detailBtn && activePropertyListing && String(activePropertyListing.id) === key) {
+                detailBtn.innerHTML = `<i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span>${isFavorite ? 'Favoridən çıxar' : 'Favori'}</span>`;
+                detailBtn.setAttribute('aria-pressed', isFavorite ? 'true' : 'false');
+            }
+        }
+
         async function toggleFavorite(event, listingId) {
-            event?.stopPropagation();
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
             if (!getAuthToken()) {
+                showToast('Favori əlavə etmək üçün giriş edin.');
                 switchTab('admin-login');
                 return;
             }
@@ -7181,7 +7210,10 @@ Təşəkkür edirəm. 🙏`;
                 }
                 const idx = appData.listings.findIndex(item => String(item.id) === key);
                 if (idx > -1) appData.listings[idx].favoritesCount = Math.max(0, (appData.listings[idx].favoritesCount || 0) + (isFavorite ? -1 : 1));
-                renderSeaBreeze();
+                if (activePropertyListing && String(activePropertyListing.id) === key) activePropertyListing.favoritesCount = Math.max(0, (activePropertyListing.favoritesCount || 0) + (isFavorite ? -1 : 1));
+                renderFavoriteControlState(key);
+                if (isTabAktiv('listings')) renderSeaBreeze();
+                if (isTabAktiv('favorites')) renderFavoritesPage();
             } catch (error) {
                 alert('Favorit əməliyyatı alınmadı: ' + error.message);
             }
@@ -7360,6 +7392,7 @@ Təşəkkür edirəm. 🙏`;
             const list = appData.listings;
             const p = list.find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
             if (!p) return;
+            if (getAuthToken() && !homepageHydration.favorites) await loadFavoritesLazy();
             activePropertyListing = p;
 
             if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
@@ -7455,6 +7488,9 @@ Təşəkkür edirəm. 🙏`;
                 callBtn.href = `tel:${normalizedPhone}`;
             }
             document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
+            const favoriteBtn = document.getElementById('p-modal-favorite-btn');
+            if (favoriteBtn) favoriteBtn.onclick = (event) => toggleFavorite(event, p.id);
+            renderFavoriteControlState(p.id);
             const previewBanner = document.getElementById('p-modal-preview-banner');
             if (previewBanner) previewBanner.classList.toggle('hidden', normalizeListingStatus(p.status) === 'approved');
 
@@ -10459,21 +10495,26 @@ Təşəkkür edirəm. 🙏`;
             const isDailyRent = canonicalType === 'GunlukKiraye';
             const formattedPrice = formatPrice(p.price, p.currency);
             const publicLocationLabel = getListingLocationLabel(p);
-            const locationLinesHtml = renderListingLocationLines(p) || (publicLocationLabel ? `<p class="text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(publicLocationLabel)}</p>` : '');
+            const locationLinesHtml = renderListingLocationLines(p) || (publicLocationLabel ? `<p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(publicLocationLabel)}</p>` : '');
             const roomFact = p.rooms != null && p.rooms !== '' ? `${p.rooms} otaq` : '— otaq';
             const areaFact = formatOptionalNumber(p.area, ' m²');
             const floorFact = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
-            return `<a href="${listingPath(p)}" class="sea-breeze-listing-card rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
-                <div class="h-48 overflow-hidden relative"><img src="${escapeHtml(mainImage)}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}"></div>
-                <div class="p-4 md:p-5 space-y-3 flex-1">
+            const isFavorite = appData.favoriteListingIds?.has(String(p.id));
+            return `<article onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
+                <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative">
+                    <img src="${escapeHtml(mainImage)}" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}">
+                    <span class="absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full ${listingStatusBadgeClass(p.status || 'approved')}">${listingStatusLabel(p.status || 'approved')}</span>
+                    <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                </div>
+                <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1">
                     ${locationLinesHtml}
-                    <h4 class="text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h4>
-                    <strong class="block text-xl font-black text-gray-950">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="text-sm"> /gün</span>' : ''}</strong>
+                    <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h4>
+                    <strong class="block text-xl font-black text-gray-950">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /gün</span>' : ''}</strong>
                     <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
                     <div class="listing-info-row"><span class="listing-info-row__item">🛏 <strong>${escapeHtml(roomFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">📐 <strong>${escapeHtml(areaFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">🏢 <strong>${escapeHtml(floorFact)}</strong></span></div>
                     <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-100"><span class="text-[11px] font-bold text-brand-700 truncate">${escapeHtml(p.ownerName || agentNameById(ownerId) || 'BestHome Agent')}</span><span class="text-[10px] font-black text-brand-700 whitespace-nowrap">Kod: ${formatListingCode(p.listingCode)}</span></div>
                 </div>
-            </a>`;
+            </article>`;
         }
 
         async function renderPublicProfile(userId, listingsOnly = false) {
