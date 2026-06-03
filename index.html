@@ -1307,22 +1307,28 @@
             opacity: 1;
         }
         .featured-video-card {
-            border-radius: 22px;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
-            height: min(380px, 56vw);
-            max-height: 380px;
+            border-radius: 16px;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+            height: 300px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .featured-video-thumb {
+            flex: 1 1 auto;
+            min-height: 0;
         }
         .featured-video-play {
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.2);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.2);
         }
         .featured-video-card:hover .featured-video-play {
             transform: translate(-50%, -50%) scale(1.06);
         }
         .media-detail-close {
-            position: absolute;
+            position: fixed;
             top: max(16px, env(safe-area-inset-top));
             right: 16px;
-            z-index: 60;
+            z-index: 80;
             width: 40px;
             height: 40px;
             border-radius: 9999px;
@@ -1339,11 +1345,11 @@
             .media-detail-close:hover { background: rgba(241,245,249,0.98); transform: scale(1.05); }
         }
         @media (max-width: 1023px) {
-            .featured-video-card { max-height: 320px; }
+            .featured-video-card { height: 260px; }
         }
         @media (max-width: 640px) {
-            .featured-video-card { height: min(220px, 62vw); max-height: 220px; border-radius: 18px; }
-            .media-detail-close { width: 44px; height: 44px; top: max(16px, env(safe-area-inset-top)); }
+            .featured-video-card { height: 220px; }
+            .media-detail-close { width: 44px; height: 44px; top: max(12px, env(safe-area-inset-top)); right: 12px; }
         }
         .gallery-detail-title {
             font-size: 18px;
@@ -2849,12 +2855,12 @@
         </section>
 
         <!-- 2. PORTFOLIO SECTION -->
-        <section id="tab-portfolio" class="tab-content hidden space-y-8">
+        <section id="tab-portfolio" class="tab-content hidden space-y-5 md:space-y-6">
+            <div id="featured-video-section" class="space-y-3"></div>
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div class="space-y-2">
-                    <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Mətbuatda</span>
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Yeniliklər</h2>
-                    <p class="text-gray-700 text-sm font-medium max-w-2xl">Ən yeni video, mətbuat və yaddaqalan anları təmiz bir baxışda izləyin.</p>
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Qalereya</h2>
+                    <p class="text-gray-700 text-sm font-medium max-w-2xl">Fotolar və videolar eyni tanış qalereya düzülüşündə davam edir.</p>
                 </div>
                 <div class="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
                     <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">Hamısı</button>
@@ -2862,10 +2868,9 @@
                     <button onclick="filterPortfolio('video')" id="filter-video" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Videolar</button>
                 </div>
             </div>
-            <div id="featured-video-section" class="space-y-4"></div>
             <div class="space-y-4">
                 <div class="flex items-center justify-between gap-3">
-                    <h3 class="text-2xl md:text-3xl font-black text-gray-900">Yadda qalan anlar</h3>
+                    <h3 class="text-xl md:text-2xl font-black text-gray-900">Bütün media</h3>
                     <span id="gallery-items-count" class="text-xs md:text-sm font-bold text-gray-500"></span>
                 </div>
                 <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
@@ -9152,24 +9157,24 @@ Təşəkkür edirəm. 🙏`;
             featuredVideoIndex = Math.max(0, Math.min(featuredVideoIndex, videos.length - 1));
             const featuredVideo = videos[featuredVideoIndex];
             const thumb = featuredVideo.thumbnail || getYouTubeThumbnail(featuredVideo.url) || getVimeoThumbnail(featuredVideo.url) || 'https://placehold.co/1200x675/111827/ffffff?text=Video';
-            const subtitle = featuredVideo.desc ? `<p class="text-white/85 text-sm md:text-base font-medium line-clamp-2 max-w-2xl">${escapeHtml(featuredVideo.desc)}</p>` : '';
             const controls = videos.length > 1 ? `
-                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(-1)" class="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Əvvəlki hero video"><i class="fa-solid fa-chevron-left"></i></button>
-                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(1)" class="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Növbəti hero video"><i class="fa-solid fa-chevron-right"></i></button>
-                <div class="absolute right-4 bottom-4 md:right-6 md:bottom-6 rounded-full bg-white/90 px-3 py-1 text-[11px] font-black text-slate-800 shadow-lg">${featuredVideoIndex + 1} / ${videos.length}</div>
+                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(-1)" class="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Əvvəlki seçilmiş video"><i class="fa-solid fa-chevron-left"></i></button>
+                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(1)" class="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Növbəti seçilmiş video"><i class="fa-solid fa-chevron-right"></i></button>
+                <div class="absolute right-3 bottom-3 md:right-4 md:bottom-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-black text-slate-800 shadow-lg">${featuredVideoIndex + 1} / ${videos.length}</div>
             ` : '';
             section.innerHTML = `
-                <article onclick="openFeaturedVideoModal(${featuredVideoIndex})" class="featured-video-card group cursor-pointer relative overflow-hidden bg-gray-950">
-                    <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(featuredVideo.title || 'Video')}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/5"></div>
-                    <div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-20 md:h-20 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-xl md:text-3xl transition duration-300">
-                        <i class="fa-solid fa-play ml-1"></i>
+                <article onclick="openFeaturedVideoModal(${featuredVideoIndex})" class="featured-video-card group cursor-pointer bg-white border border-gray-100">
+                    <div class="featured-video-thumb media-shell bg-gray-100 media-skeleton relative overflow-hidden">
+                        <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(featuredVideo.title || 'Video')}" loading="eager" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                        <div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-xl md:text-2xl transition duration-300">
+                            <i class="fa-solid fa-play ml-1"></i>
+                        </div>
+                        ${controls}
                     </div>
-                    <div class="absolute left-4 right-16 bottom-4 md:left-6 md:right-24 md:bottom-6 flex flex-col gap-2">
-                        <h4 class="text-white text-xl md:text-3xl font-black tracking-tight drop-shadow">${escapeHtml(featuredVideo.title || 'Video')}</h4>
-                        ${subtitle}
+                    <div class="px-4 py-3 md:px-5 md:py-4">
+                        <h3 class="text-base md:text-lg font-black text-gray-950 leading-snug line-clamp-2">${escapeHtml(featuredVideo.title || 'Video')}</h3>
                     </div>
-                    ${controls}
                 </article>
             `;
         }
@@ -9190,9 +9195,8 @@ Təşəkkür edirəm. 🙏`;
 
             const heroVideos = featuredVideos();
             renderFeaturedVideoSection(heroVideos);
-            const heroVideoIds = new Set(heroVideos.map(item => String(item.id)));
 
-            const filtered = list.filter(item => (currentFilter === 'all' || item.type === currentFilter) && !heroVideoIds.has(String(item.id)));
+            const filtered = list.filter(item => currentFilter === 'all' || item.type === currentFilter);
             const countEl = document.getElementById('gallery-items-count');
             if (countEl) countEl.textContent = filtered.length ? `${filtered.length} element` : '';
 
@@ -12065,8 +12069,7 @@ Təşəkkür edirəm. 🙏`;
 
         function openGalleryDetailModal(index = 0, pushRoute = false) {
             const orderedGallery = orderedGalleryItems();
-            const heroVideoIds = new Set(featuredVideos().map(item => String(item.id)));
-            activeModalGalleryItems = orderedGallery.filter(item => (currentFilter === 'all' || item.type === currentFilter) && !heroVideoIds.has(String(item.id)));
+            activeModalGalleryItems = orderedGallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
             const clicked = orderedGallery[index];
             activeModalGalleryIndex = Math.max(0, activeModalGalleryItems.findIndex(item => String(item.id) === String(clicked?.id)));
             activeModalMediaIndex = 0;
