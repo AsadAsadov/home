@@ -499,7 +499,13 @@ router.get('/google', authRoute(async (req, res) => {
   url.searchParams.set('scope', 'openid email profile');
   url.searchParams.set('state', statePayload);
   url.searchParams.set('prompt', 'select_account');
-  res.redirect(url.toString());
+  const authUrl = url.toString();
+  console.log('GOOGLE_CLIENT_ID =', process.env.GOOGLE_CLIENT_ID);
+  console.log('APP_URL =', process.env.APP_URL);
+  console.log('GOOGLE_CALLBACK_URL =', process.env.GOOGLE_CALLBACK_URL);
+  console.log('FINAL_REDIRECT_URI =', redirectUri);
+  console.log('GOOGLE_AUTH_URL =', authUrl);
+  res.redirect(authUrl);
 }));
 
 router.get('/google/callback', authRoute(async (req, res) => {
