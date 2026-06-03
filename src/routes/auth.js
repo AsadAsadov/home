@@ -505,7 +505,13 @@ router.get('/google', authRoute(async (req, res) => {
   console.log('GOOGLE_CALLBACK_URL =', process.env.GOOGLE_CALLBACK_URL);
   console.log('FINAL_REDIRECT_URI =', redirectUri);
   console.log('GOOGLE_AUTH_URL =', authUrl);
-  res.redirect(authUrl);
+  return res.json({
+    googleClientId: process.env.GOOGLE_CLIENT_ID,
+    appUrl: process.env.APP_URL,
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+    redirectUri,
+    authUrl,
+  });
 }));
 
 router.get('/google/callback', authRoute(async (req, res) => {
