@@ -1869,6 +1869,21 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         @media (min-width: 1024px) {
+            #property-detail-modal {
+                align-items: flex-start;
+                justify-content: center;
+                padding: 0;
+            }
+            #property-detail-modal > .listing-detail-shell {
+                width: min(1350px, calc(100vw - 80px));
+                max-width: min(1350px, calc(100vw - 80px));
+                max-height: calc(100vh - 80px);
+                margin: 40px auto;
+                border-radius: 28px;
+            }
+        }
+
+        @media (min-width: 1024px) {
             .listing-detail-gallery-sticky {
                 position: sticky;
                 top: 90px;
