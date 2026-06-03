@@ -331,7 +331,6 @@
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
         .listing-detail-shell { max-height: 90vh; height: auto; }
-        .listing-detail-close { position: sticky; top: 1rem; margin-left: auto; margin-right: 1rem; flex: 0 0 auto; z-index: 80; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -1262,35 +1261,45 @@
         .listing-detail-gallery-card {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: .75rem;
+            gap: .9rem;
             min-height: 0;
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
         }
         .listing-detail-main-image {
-            aspect-ratio: auto;
-            height: clamp(320px, 48vh, 520px);
-            min-height: 320px;
-            max-height: 520px;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            min-height: 0;
+            max-height: none;
             contain: layout paint;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .12);
         }
         .listing-detail-thumbnail-strip {
             display: flex;
-            gap: .55rem;
+            gap: .7rem;
             overflow-x: auto;
             overflow-y: hidden;
             overscroll-behavior-inline: contain;
-            padding: .1rem .15rem .45rem;
+            padding: .15rem .15rem .65rem;
             scrollbar-width: thin;
             flex-wrap: nowrap;
             min-width: 0;
             max-width: 100%;
         }
         .listing-detail-thumbnail {
-            width: 76px;
-            height: 60px;
-            flex: 0 0 76px;
-            border: 2px solid rgba(255,255,255,.12);
-            transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
-            opacity: .82;
+            width: 90px;
+            height: 70px;
+            flex: 0 0 90px;
+            border: 3px solid transparent;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, .10);
+            transition: all .25s ease;
+            opacity: .86;
         }
         .listing-detail-thumbnail img {
             display: block;
@@ -1301,8 +1310,8 @@
         .listing-detail-thumbnail:hover,
         .listing-detail-thumbnail.is-active {
             transform: translateY(-2px);
-            border-color: var(--color-primary);
-            box-shadow: 0 12px 30px rgba(127, 127, 255, .24);
+            border-color: var(--primary, var(--color-primary));
+            box-shadow: 0 14px 32px rgba(127, 127, 255, .26);
             opacity: 1;
         }
 
@@ -1516,29 +1525,29 @@
         }
         @media (min-width: 1024px) {
             .listing-detail-gallery-card {
-                grid-template-columns: 88px minmax(0, 1fr);
+                grid-template-columns: minmax(0, 1fr);
                 align-items: stretch;
-                gap: .85rem;
+                gap: .9rem;
             }
             .listing-detail-main-image {
-                grid-column: 2;
+                grid-column: 1;
                 grid-row: 1;
             }
             .listing-detail-thumbnail-strip {
                 grid-column: 1;
-                grid-row: 1;
-                flex-direction: column;
-                overflow-x: hidden;
-                overflow-y: auto;
-                max-height: 520px;
-                padding: .05rem .25rem .05rem .05rem;
+                grid-row: 2;
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+                max-height: none;
+                padding: .15rem .15rem .65rem;
                 flex-wrap: nowrap;
             }
             .listing-detail-thumbnail {
-                width: 78px;
-                height: 64px;
-                flex: 0 0 64px;
-                border-radius: 1rem;
+                width: 90px;
+                height: 70px;
+                flex: 0 0 90px;
+                border-radius: 16px;
             }
         }
         .listing-detail-stat {
@@ -1721,13 +1730,15 @@
                 max-height: 100dvh;
                 border-radius: 0;
             }
-            .listing-detail-close { top: .75rem; margin-right: .75rem; }
             .listing-detail-scroll { height: 100%; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
             .listing-detail-content { padding: .85rem; gap: .75rem; }
             .listing-detail-header { gap: .42rem; padding-right: 2.6rem; }
-            .listing-detail-gallery-card { padding: .7rem !important; gap: .55rem; }
-            .listing-detail-main-image { height: 235px; min-height: 235px; max-height: 235px; border-radius: 1rem; }
-            .listing-detail-thumbnail { width: 58px; height: 46px; flex-basis: 58px; border-radius: .75rem; }
+            .listing-detail-gallery-card { padding: .75rem !important; gap: .65rem; border-radius: 1.4rem; }
+            .listing-detail-main-image { aspect-ratio: 16 / 9; height: auto; min-height: 0; max-height: none; border-radius: 1.15rem; }
+            .listing-detail-thumbnail { width: 74px; height: 58px; flex-basis: 74px; border-radius: .9rem; }
+            .listing-detail-image-actions { top: .75rem; right: .75rem; gap: .4rem; }
+            .listing-detail-image-action { min-height: 38px; padding: .56rem .72rem; font-size: .72rem; }
+            .listing-detail-image-action--close { width: 38px; padding: 0; }
             .listing-detail-price-panel,
             .listing-detail-credit-panel,
             .listing-detail-location-section,
@@ -1794,16 +1805,18 @@
         .sea-breeze-project-card:hover .sea-breeze-project-card__image video { transform: scale(1.04); }
         .listing-detail-gallery-card {
             padding: 0 !important;
-            gap: .7rem;
-            background: transparent !important;
+            gap: .9rem;
+            background: #fff !important;
             border: 0 !important;
+            border-radius: 24px;
             box-shadow: none !important;
         }
         .listing-detail-main-image {
             overflow: hidden;
-            background: transparent !important;
+            background: #fff !important;
             border: 0 !important;
-            box-shadow: none !important;
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .12) !important;
         }
         .listing-detail-main-image img,
         #p-modal-img {
@@ -1815,10 +1828,41 @@
             background: transparent !important;
             border: 0 !important;
             margin: 0 !important;
+            transition: opacity .25s ease, transform .25s ease;
         }
+        .listing-detail-main-image.is-switching img,
+        #p-modal-img.is-switching { opacity: .35; transform: scale(1.01); }
+        .listing-detail-image-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+        }
+        .listing-detail-image-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            min-height: 42px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.58);
+            background: rgba(255,255,255,.94);
+            color: #0f172a;
+            box-shadow: 0 16px 36px rgba(15,23,42,.22);
+            backdrop-filter: blur(14px);
+            font-size: .78rem;
+            font-weight: 950;
+            padding: .68rem .95rem;
+            transition: all .25s ease;
+        }
+        .listing-detail-image-action:hover { background: var(--primary, var(--color-primary)); color: #fff; transform: translateY(-1px); }
+        .listing-detail-image-action--close { width: 42px; padding: 0; font-size: 1.05rem; }
         .listing-detail-thumbnail {
             overflow: hidden;
-            background: transparent !important;
+            background: #fff !important;
             border-color: transparent;
         }
 
@@ -2995,18 +3039,16 @@ Title: Park Villas
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
     <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
         <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
-            <button onclick="closePropertyModal()" class="listing-detail-close w-11 h-11 rounded-full bg-white/95 text-gray-800 hover:text-white hover:bg-brand-500 shadow-xl text-xl transition" aria-label="Elan detalını bağla">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
             <div class="listing-detail-scroll">
-                <div class="grid lg:grid-cols-[1.15fr_.85fr] gap-0">
-                    <div class="bg-slate-950 p-3 md:p-5 listing-detail-gallery-sticky listing-detail-gallery-card">
-                        <div class="relative overflow-hidden rounded-[1.5rem] bg-slate-900 listing-detail-main-image">
+                <div class="grid grid-cols-1 gap-0">
+                    <div class="p-3 md:p-5 listing-detail-gallery-card">
+                        <div class="relative listing-detail-main-image">
                             <img id="p-modal-img" class="w-full h-full object-cover cursor-zoom-in" src="" alt="Elan şəkli">
-                            <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/55 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full">1 / 1</div>
-                            <button type="button" id="p-modal-gallery-button" class="absolute bottom-4 right-4 bg-white/95 hover:bg-brand-500 hover:text-white text-gray-900 text-xs font-extrabold px-4 py-2 rounded-full shadow-xl transition">
-                                <i class="fa-solid fa-images mr-2"></i>Qalereyanı aç
-                            </button>
+                            <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">1 / 1</div>
+                            <div class="listing-detail-image-actions">
+                                <button type="button" id="p-modal-share-top-btn" class="listing-detail-image-action" aria-label="Elanı paylaş"><i class="fa-solid fa-link"></i><span>Paylaş</span></button>
+                                <button type="button" onclick="closePropertyModal()" class="listing-detail-image-action listing-detail-image-action--close" aria-label="Elan detalını bağla"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
                         </div>
                         <div id="p-modal-thumbnails" class="listing-detail-thumbnail-strip"></div>
                     </div>
@@ -3074,10 +3116,9 @@ Title: Park Villas
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
-                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
                                 <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
-                                <button id="p-modal-share-btn" type="button" class="listing-detail-action min-h-[48px] bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-slate-200 transition"><i class="fa-solid fa-share-nodes"></i><span>Paylaş</span></button>
                                 <button id="p-modal-favorite-btn" type="button" class="listing-detail-action min-h-[48px] bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-rose-100 transition"><i class="fa-regular fa-heart"></i><span>Favori</span></button>
                             </div>
                         </div>
@@ -7251,7 +7292,16 @@ Təşəkkür edirəm. 🙏`;
             if (!activePropertyImages.length) return;
             activePropertyImageIndex = Math.max(0, Math.min(index, activePropertyImages.length - 1));
             const image = document.getElementById('p-modal-img');
+            const imageFrame = image.closest('.listing-detail-main-image');
             const selectedUrl = activePropertyImages[activePropertyImageIndex];
+            image.classList.add('is-switching');
+            imageFrame?.classList.add('is-switching');
+            const finishSwitch = () => {
+                image.classList.remove('is-switching');
+                imageFrame?.classList.remove('is-switching');
+            };
+            image.onload = finishSwitch;
+            window.setTimeout(finishSwitch, 280);
             image.src = selectedUrl;
             image.onclick = () => openPropertyLightbox(activePropertyImageIndex);
             document.getElementById('p-modal-image-counter').textContent = `${activePropertyImageIndex + 1} / ${activePropertyImages.length}`;
@@ -7263,8 +7313,8 @@ Təşəkkür edirəm. 🙏`;
             container.innerHTML = '';
             images.forEach((url, index) => {
                 container.insertAdjacentHTML('beforeend', `
-                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''} overflow-hidden rounded-2xl bg-slate-900 aspect-[4/3]">
-                        <img src="${escapeHtml(url)}" class="w-full h-full object-cover" alt="Elan şəkli ${index + 1}">
+                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}">
+                        <img src="${escapeHtml(url)}" alt="Elan şəkli ${index + 1}">
                     </button>
                 `);
             });
@@ -7413,7 +7463,6 @@ Təşəkkür edirəm. 🙏`;
             activePropertyImageIndex = 0;
             renderPropertyThumbnails(activePropertyImages);
             setPropertyMainImage(0);
-            document.getElementById('p-modal-gallery-button').onclick = () => openPropertyLightbox(activePropertyImageIndex);
 
             const listingLabel = listingTypeLabel(p.listingType);
             const isRent = canonicalListingType(p.listingType) === 'Kiraye';
@@ -7495,7 +7544,7 @@ Təşəkkür edirəm. 🙏`;
                 whatsappBtn.href = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(messageText)}`;
                 callBtn.href = `tel:${normalizedPhone}`;
             }
-            document.getElementById('p-modal-share-btn').onclick = () => shareListing(p);
+            document.getElementById('p-modal-share-top-btn').onclick = () => shareListing(p);
             const favoriteBtn = document.getElementById('p-modal-favorite-btn');
             if (favoriteBtn) favoriteBtn.onclick = (event) => toggleFavorite(event, p.id);
             renderFavoriteControlState(p.id);
