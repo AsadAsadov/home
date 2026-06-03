@@ -53,6 +53,7 @@
     <style>
         :root {
             --color-primary: #7F7FFF;
+            --primary-rgb: 127, 127, 255;
             --color-primary-hover: #6B6BFF;
             --color-primary-light: #EAEAFF;
             --color-primary-border: #CFCFFF;
@@ -296,7 +297,83 @@
         .public-form-grid { display:grid; grid-template-columns: minmax(0, 1fr); gap:.75rem; }
         @media (min-width: 768px) { .public-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (min-width: 1024px) { .public-form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        .header-actions-row { display:flex; align-items:center; gap:12px; flex-wrap:nowrap; white-space:nowrap; min-width:max-content; }
+        .desktop-header-cluster {
+            gap: 18px;
+            min-width: 0;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+        }
+        .header-actions-row { display:flex; align-items:center; gap:18px; flex-wrap:nowrap; white-space:nowrap; min-width:max-content; }
+        .profile-dropdown-shell { min-width: 220px; padding-top: 10px; }
+        .profile-dropdown-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, .95);
+            background: #fff;
+            padding: 8px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.12);
+            color: #0f172a;
+        }
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-height: 46px;
+            padding: 0 14px;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1.2;
+            transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+        }
+        .profile-dropdown-item:hover,
+        .profile-dropdown-item:focus-visible {
+            background: rgba(var(--primary-rgb), .08);
+            outline: none;
+        }
+        .profile-dropdown-item:active { transform: scale(.99); }
+        @media (min-width: 1024px) {
+            .site-header-inner {
+                gap: 18px;
+                min-height: 5.5rem;
+                height: 5.5rem !important;
+                flex-wrap: nowrap;
+            }
+            .header-logo-wrap {
+                flex: 0 0 auto;
+                min-width: 112px;
+                max-width: 138px;
+            }
+            .site-logo {
+                height: 56px !important;
+                max-width: 138px;
+            }
+            .desktop-header-cluster { gap: 16px; }
+            .desktop-header-cluster .nav-link,
+            .header-action-btn {
+                min-height: 2.45rem;
+                font-size: .72rem;
+            }
+            .desktop-header-cluster .nav-link { flex: 0 0 auto; }
+            .header-action-btn { padding: .58rem .82rem; }
+            .desktop-header-cluster .vacancy-cta { padding: .58rem .82rem !important; }
+            .header-actions-row { gap: 16px; }
+        }
+        @media (min-width: 1280px) {
+            .header-logo-wrap { min-width: 132px; max-width: 168px; }
+            .site-logo { height: 64px !important; max-width: 168px; }
+            .desktop-header-cluster { gap: 18px; }
+            .desktop-header-cluster .nav-link,
+            .header-action-btn { font-size: .75rem; }
+            .header-action-btn { padding: .625rem 1rem; }
+            .desktop-header-cluster .vacancy-cta { padding: .625rem 1.05rem !important; }
+            .header-actions-row { gap: 18px; }
+        }
         .public-form-label { display:block; font-size:12px; line-height:1.15; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.35rem; }
         .public-form-input { width:100%; height:2.75rem; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:0 .85rem; font-size:.86rem; color:#0f172a; outline:none; }
         .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(127,127,255,.14); }
@@ -2297,7 +2374,7 @@
                 </div>
 
                 <!-- Desktop Menu -->
-                <div class="hidden lg:flex items-center gap-5 whitespace-nowrap">
+                <div class="hidden lg:flex items-center whitespace-nowrap desktop-header-cluster">
                     <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">🏡 SeaBreeze Layihələri</button>
                     <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">🏠 Elanlar</button>
                     <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">🎥 Qalereya & Video</button>
@@ -2307,11 +2384,6 @@
                         <span>Vakansiya</span>
                         <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
                     </button>
-                </div>
-
-
-                <!-- Session status -->
-                <div class="hidden lg:flex items-center flex-none gap-3">
                     <div id="header-user-status" class="header-actions-row"></div>
                     <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn" aria-label="WhatsApp ilə əlaqə saxla">
                         <i class="fa-brands fa-whatsapp"></i>
@@ -3305,12 +3377,6 @@ Title: Park Villas
             <!-- SUBTAB 4: VACANCIES -->
             <div id="admin-subtab-vacancy-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="glass-card p-6 rounded-2xl space-y-3">
-                        <h4 class="text-xs font-bold text-white uppercase">Karyera giriş mətni</h4>
-                        <textarea id="admin-career-text" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white"></textarea>
-                        <button onclick="saveCareerIntroText()" class="w-full bg-brand-500 text-white text-xs py-2 rounded-xl">Yenilə</button>
-                    </div>
-
                     <div class="glass-card p-6 rounded-2xl space-y-3">
                         <h4 class="text-xs font-bold text-white uppercase" id="vac-form-title">Yeni Vakansiya</h4>
                         <form onsubmit="handleSaveVacancy(event)" class="space-y-2">
@@ -7346,12 +7412,12 @@ Title: Park Villas
                 container.innerHTML = `
                     <div class="relative group">
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
-                        <div class="absolute right-0 top-full z-50 hidden min-w-[210px] pt-2 group-hover:block group-focus-within:block">
-                            <div class="rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl text-slate-800">
-                                <button onclick="navigateToProfileInfo()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">👤 Profil məlumatları</button>
-                                <button onclick="navigateToMyListings()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">📋 Mənim elanlarım</button>
-                                <button onclick="navigateToFavorites()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black hover:bg-slate-100">❤️ Favorilər</button>
-                                <button onclick="logoutAdmin()" class="w-full rounded-xl px-3 py-2 text-left text-sm font-black text-red-600 hover:bg-red-50">🚪 Çıxış</button>
+                        <div class="profile-dropdown-shell absolute right-0 top-full z-50 hidden group-hover:block group-focus-within:block">
+                            <div class="profile-dropdown-menu" role="menu" aria-label="Profil menyusu">
+                                <button onclick="navigateToProfileInfo()" class="profile-dropdown-item" role="menuitem">👤 Profil məlumatları</button>
+                                <button onclick="navigateToMyListings()" class="profile-dropdown-item" role="menuitem">📋 Mənim elanlarım</button>
+                                <button onclick="navigateToFavorites()" class="profile-dropdown-item" role="menuitem">❤️ Favorilər</button>
+                                <button onclick="logoutAdmin()" class="profile-dropdown-item text-red-600" role="menuitem">🚪 Çıxış</button>
                             </div>
                         </div>
                     </div>
@@ -10859,9 +10925,6 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
-        function saveCareerIntroText() {
-            localStorage.setItem('besthome_career_text', document.getElementById('admin-career-text').value);
-        }
 
         // SAVE & MANAGE GALLERY (EVENTS / VIDEOS)
         function toggleGalleryTypeFields() {
