@@ -18,9 +18,28 @@ function toBigIntId(value) {
 
 const includeListing = { listing: { include: { images: { orderBy: { sortOrder: 'asc' } } } } };
 
+function logFavoritesSummary(userId, favoritesCount, validListingsCount) {
+  console.info('Favorites query summary', {
+    userId: userId?.toString(),
+    favoritesCount,
+    validListingsCount,
+    orphanFavoritesCount: Math.max(favoritesCount - validListingsCount, 0),
+  });
+}
+
 router.get('/', authenticate, asyncHandler(async (req, res) => {
   const userId = toBigIntId(req.auth.id);
-  const favorites = await prisma.favorite.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, include: includeListing });
+  const validFavoriteWhere = { userId, listing: { isNot: null } };
+  const [favoritesCount, favorites] = await Promise.all([
+    prisma.favorite.count({ where: { userId } }),
+    prisma.favorite.findMany({
+      where: validFavoriteWhere,
+      orderBy: { createdAt: 'desc' },
+      include: includeListing,
+    }),
+  ]);
+
+  logFavoritesSummary(userId, favoritesCount, favorites.length);
   res.json(favorites);
 }));
 
