@@ -139,6 +139,80 @@
         @keyframes loginSpinnerRotate {
             to { transform: rotate(360deg); }
         }
+        .listing-submission-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 110;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .listing-submission-card,
+        .listing-success-card {
+            width: min(320px, calc(100vw - 2rem));
+            border-radius: 16px;
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            text-align: center;
+        }
+        .listing-submission-card {
+            padding: 1.75rem 1.5rem;
+        }
+        .listing-submission-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e7ff;
+            border-top-color: var(--color-primary);
+            border-radius: 9999px;
+            margin: 0 auto 1rem;
+            animation: loginSpinnerRotate 720ms linear infinite;
+        }
+        .listing-success-card {
+            padding: 1.25rem;
+        }
+        .listing-success-icon {
+            width: 56px;
+            height: 56px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #ecfdf5;
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        .listing-success-thumb {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 14px;
+            margin-bottom: 0.85rem;
+            background: #f1f5f9;
+        }
+        .listing-success-actions {
+            display: grid;
+            gap: 0.65rem;
+            margin-top: 1rem;
+        }
+        .listing-success-actions button {
+            border: 0;
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease;
+        }
+        .listing-success-actions button:hover { transform: translateY(-1px); }
+        .listing-success-primary { background: var(--color-primary); color: #ffffff; }
+        .listing-success-secondary { background: #f1f5f9; color: #334155; }
+        .listing-form-disabled {
+            opacity: 0.72;
+            pointer-events: none;
+        }
         .glass-nav {
             background: rgba(255, 255, 255, 0.88);
             backdrop-filter: blur(16px);
@@ -2991,7 +3065,7 @@
                         <i class="fa-solid fa-circle-plus text-brand-500"></i>
                         <span id="sb-form-action-title">Yeni Elan Əlavə Et</span>
                     </h3>
-                    <form onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3">
+                    <form id="admin-listing-form" onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3">
                         <input type="hidden" id="edit-sb-id" value="">
                         
                         <div class="space-y-1">
@@ -4983,6 +5057,7 @@ Title: Park Villas
         }
 
         function dbListingToUi(l) {
+            l = extractListingFromResponse(l);
             const area = numericValue(l.area);
             const price = numericValue(l.price);
             const floorNumber = integerValue(l.floorNumber, l.floor_number, l.floor);
@@ -7628,7 +7703,7 @@ Title: Park Villas
             root.innerHTML = `<div class="mb-6"><button onclick="switchTab('seabreeze')" class="text-sm font-black text-brand-700 hover:underline">← Ana səhifə</button></div>
                 <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
-                    <form onsubmit="submitPublicListing(event)" class="space-y-5">
+                    <form id="public-listing-form" onsubmit="submitPublicListing(event)" class="space-y-5">
                         <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
                         <div class="public-form-grid">
                             <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
@@ -7851,9 +7926,17 @@ Title: Park Villas
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
                 const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
-                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true, savedUi);
-            } catch(error) { alert('Elan göndərilmədi: '+error.message); }
-            finally { publicListingSubmitting=false; setPublicSubmitLoading(false); }
+                setListingFormDisabled('public-listing-form', true);
+                showListingSubmissionOverlay();
+                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST');
+                const savedListing = extractListingFromResponse(saved);
+                const savedUi = dbListingToUi(savedListing);
+                cacheData('listings', [savedUi, ...(appData.listings || []).filter(x => String(x.id) !== String(savedUi.id))]);
+                renderPublicListingForm(true, savedUi);
+                hideListingSubmissionOverlay();
+                showListingSuccessPopup(savedListing);
+            } catch(error) { hideListingSubmissionOverlay(); alert('Elan göndərilmədi: '+error.message); }
+            finally { publicListingSubmitting=false; setPublicSubmitLoading(false); setListingFormDisabled('public-listing-form', false); }
         }
 
         async function renderMyListingsPage() {
@@ -9421,6 +9504,79 @@ Təşəkkür edirəm. 🙏`;
             button.innerHTML = isLoading
                 ? `<span class="button-spinner" aria-hidden="true"></span><span>${loadingText}</span>`
                 : defaultText;
+        }
+
+        function extractListingFromResponse(response) {
+            if (!response) return {};
+            return response.listing || response.data?.listing || response.data || response;
+        }
+
+        function setListingFormDisabled(formId, isDisabled) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            form.classList.toggle('listing-form-disabled', isDisabled);
+            form.setAttribute('aria-busy', isDisabled ? 'true' : 'false');
+            form.querySelectorAll('input, select, textarea, button').forEach((control) => {
+                control.disabled = isDisabled;
+            });
+        }
+
+        function hideListingSubmissionOverlay() {
+            document.getElementById('listing-submission-overlay')?.remove();
+            syncModalOpenState();
+        }
+
+        function showListingSubmissionOverlay() {
+            hideListingSubmissionOverlay();
+            document.body.insertAdjacentHTML('beforeend', `<div id="listing-submission-overlay" class="listing-submission-overlay" role="alertdialog" aria-modal="true" aria-live="assertive" aria-labelledby="listing-submission-title">
+                <div class="listing-submission-card">
+                    <div class="listing-submission-spinner" aria-hidden="true"></div>
+                    <h3 id="listing-submission-title" class="text-xl font-black">Elan yerləşdirilir...</h3>
+                    <p class="mt-2 text-sm font-semibold text-slate-600">Zəhmət olmasa gözləyin.</p>
+                </div>
+            </div>`);
+            setModalOpenState(true);
+        }
+
+        function closeListingSuccessPopup() {
+            document.getElementById('listing-success-popup')?.remove();
+            syncModalOpenState();
+        }
+
+        function viewCreatedListing(id) {
+            closeListingSuccessPopup();
+            const listing = (appData.listings || []).find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
+            if (listing) {
+                openPropertyModal(listing.id, true);
+                return;
+            }
+            window.location.href = `/listing/${encodeURIComponent(id)}`;
+        }
+
+        function showListingSuccessPopup(listingResponse) {
+            const listing = dbListingToUi(extractListingFromResponse(listingResponse));
+            if (!listing?.id) return;
+            closeListingSuccessPopup();
+            const location = getListingLocationLabel(listing) || listing.city || listing.district || '';
+            const thumb = listing.img ? `<img class="listing-success-thumb" src="${escapeHtml(listing.img)}" alt="${escapeHtml(listing.title || 'Elan şəkli')}">` : '';
+            document.body.insertAdjacentHTML('beforeend', `<div id="listing-success-popup" class="listing-submission-overlay" role="dialog" aria-modal="true" aria-labelledby="listing-success-title">
+                <div class="listing-success-card">
+                    ${thumb}
+                    <div class="listing-success-icon" aria-hidden="true">✅</div>
+                    <h3 id="listing-success-title" class="text-xl font-black">Elan uğurla yerləşdirildi</h3>
+                    <p class="mt-2 text-sm font-semibold text-slate-600">Elanınız uğurla əlavə edildi.</p>
+                    <div class="mt-4 rounded-2xl bg-slate-50 border border-slate-100 p-3 text-left">
+                        <h4 class="font-black text-slate-950 line-clamp-2">${escapeHtml(listing.title || 'Yeni elan')}</h4>
+                        <p class="mt-1 text-lg font-black text-brand-700">${escapeHtml(formatPrice(listing.price, listing.currency))}</p>
+                        ${location ? `<p class="mt-1 text-xs font-bold text-slate-500">📍 ${escapeHtml(location)}</p>` : ''}
+                    </div>
+                    <div class="listing-success-actions">
+                        <button type="button" class="listing-success-primary" onclick="viewCreatedListing('${escapeHtml(String(listing.id))}')">👁 Elana bax</button>
+                        <button type="button" class="listing-success-secondary" onclick="closeListingSuccessPopup()">Bağla</button>
+                    </div>
+                </div>
+            </div>`);
+            setModalOpenState(true);
         }
 
         function setRegisterButtonLoading(isLoading) {
@@ -11187,10 +11343,13 @@ Təşəkkür edirəm. 🙏`;
             if (urlImg) formData.append('image_url', urlImg);
 
             try {
+                setListingFormDisabled('admin-listing-form', true);
+                showListingSubmissionOverlay();
                 const saved = editId
                     ? await uploadFormDataWithProgress(`/api/listings/${editId}`, formData, 'sb-upload-progress', 'PUT')
                     : await uploadFormDataWithProgress('/api/listings', formData, 'sb-upload-progress', 'POST');
-                const savedUi = dbListingToUi(saved);
+                const savedListing = extractListingFromResponse(saved);
+                const savedUi = dbListingToUi(savedListing);
                 const idx = list.findIndex(x => String(x.id) === String(editId));
                 if (idx > -1) list[idx] = savedUi;
                 else list.unshift(savedUi);
@@ -11198,11 +11357,15 @@ Təşəkkür edirəm. 🙏`;
                 resetSeaBreezeForm();
                 renderAdminDashboard();
                 renderSeaBreeze();
+                hideListingSubmissionOverlay();
+                if (!editId) showListingSuccessPopup(savedListing);
             } catch (error) {
+                hideListingSubmissionOverlay();
                 alert('Elan API-yə yazılmadı: ' + error.message);
             } finally {
                 isListingSaveSubmitting = false;
                 setListingSaveButtonLoading(false);
+                setListingFormDisabled('admin-listing-form', false);
             }
         }
 
