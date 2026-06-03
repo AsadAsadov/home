@@ -4885,20 +4885,15 @@ Title: Park Villas
 
         async function savePhoneAndContinue(normalizedPhone) {
             const authToken = getAuthToken();
-            console.log('PHONE SAVE TOKEN', authToken);
             if (!authToken) throw new Error('Sessiya tapılmadı. Zəhmət olmasa yenidən daxil olun.');
 
             const response = await apiRequest('/api/auth/me', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${authToken}`
-                },
                 body: JSON.stringify({ phone: normalizedPhone })
             });
-            console.log(response);
-            setAuthSession(response.token || authToken, response.user);
-            syncActiveUserFromApiUser(response.user);
+            if (response?.token) setAuthSession(response.token, response.user);
+            else if (response?.user) setAuthSession(authToken, response.user);
+            syncActiveUserFromApiUser(response?.user);
             await refreshCurrentUser();
             return normalizedPhone;
         }

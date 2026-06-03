@@ -614,9 +614,8 @@ router.put('/me', authenticate, authRoute(async (req, res) => {
   }
   const compactData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
   const user = await prisma.user.update({ where: { id: Number(req.auth.id) }, data: compactData });
-  const token = signToken(tokenPayload(user));
   await logUserActivity(prisma, user.id, 'update_profile');
-  res.json({ success: true, token, user: publicUser(user) });
+  res.json({ success: true, user: publicUser(user) });
 }));
 
 router.put('/me/password', authenticate, authRoute(async (req, res) => {
