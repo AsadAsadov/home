@@ -178,9 +178,11 @@ model Gallery {
   mediaPositionX String    @default("center") @map("media_position_x")
   mediaPositionY String    @default("center") @map("media_position_y")
   sortOrder      Int       @default(0) @map("sort_order")
+  isFeatured     Boolean   @default(false) @map("is_featured")
   createdAt      DateTime  @default(now()) @map("created_at")
 
   @@index([sortOrder, id])
+  @@index([mediaType, isFeatured, sortOrder, id], map: "idx_gallery_featured_videos")
   @@map("gallery")
 }
 
