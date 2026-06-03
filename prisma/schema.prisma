@@ -75,10 +75,28 @@ model Listing {
   images               ListingImage[]
   views                ListingView[]
   favorites            Favorite[]
+  listingHeroItems     ListingHeroItem[]
 
   @@index([displayOrder, id])
   @@index([status], map: "idx_listings_status")
   @@map("listings")
+}
+
+model ListingHeroItem {
+  id                Int      @id @default(autoincrement())
+  listingId         BigInt   @map("listing_id")
+  sortOrder         Int      @default(0) @map("sort_order")
+  isActive          Boolean  @default(true) @map("is_active")
+  badgeText         String?  @map("badge_text")
+  createdAt         DateTime @default(now()) @map("created_at")
+  slideDuration     Int      @default(10) @map("slide_duration")
+  customTitle       String?  @map("custom_title")
+  customDescription String?  @map("custom_description") @db.Text
+  heroMediaUrl      String?  @map("hero_media_url") @db.Text
+  listing           Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([isActive, sortOrder, id], map: "idx_listing_hero_items_active_order")
+  @@map("listing_hero_items")
 }
 
 model ListingView {
