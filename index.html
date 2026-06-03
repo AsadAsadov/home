@@ -2840,14 +2840,17 @@
             <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
                 <h2 class="text-2xl font-bold text-white">Sistemə Giriş</h2>
                 <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs">E-poçt və ya şifrə yanlışdır!</div>
+                <div id="login-status" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
                 <form onsubmit="handleGeneralLogin(event)" class="space-y-4 text-left">
                     <input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <button type="submit" id="login-submit-btn" class="login-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Daxil ol</button>
+                    <button type="submit" id="login-submit-btn" class="login-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">📧 Email ilə daxil ol</button>
                 </form>
+                <button onclick="startGoogleLogin()" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-bold py-3.5 rounded-xl">🔵 Google ilə daxil ol</button>
+                <button id="resend-verification-btn" onclick="resendVerificationFromLogin()" class="hidden w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl">📧 Yenidən göndər</button>
                 <div class="flex justify-between text-xs text-gray-400">
                     <button onclick="switchTab('register')" class="hover:text-brand-500">Qeydiyyat</button>
-                    <button onclick="switchTab('forgot-password')" class="hover:text-brand-500">Şifrəni unutdum</button>
+                    <button onclick="switchTab('forgot-password')" class="hover:text-brand-500">Şifrəni unutmusunuz?</button>
                 </div>
             </div>
         </section>
@@ -2856,13 +2859,15 @@
             <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
                 <h2 class="text-2xl font-bold text-white">İstifadəçi Qeydiyyatı</h2>
                 <div id="register-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs"></div>
+                <div id="register-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
                 <form onsubmit="handleUserRegister(event)" class="space-y-4 text-left">
                     <input type="text" id="register-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="tel" id="register-phone" required placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="tel" id="register-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="email" id="register-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <button type="submit" id="register-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Qeydiyyatdan keç</button>
+                    <button type="submit" id="register-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">📧 Qeydiyyat</button>
                 </form>
+                <button onclick="startGoogleLogin()" class="w-full bg-white text-gray-900 hover:bg-gray-100 font-bold py-3.5 rounded-xl">🔵 Google ilə davam et</button>
                 <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Artıq hesabım var</button>
             </div>
         </section>
@@ -2876,6 +2881,19 @@
                     <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Göndər</button>
                 </form>
                 <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Girişə qayıt</button>
+            </div>
+        </section>
+
+        <section id="tab-reset-password" class="tab-content hidden max-w-md mx-auto py-12">
+            <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
+                <h2 class="text-2xl font-bold text-white">Yeni şifrə yaradın</h2>
+                <div id="reset-message" class="hidden p-3 rounded-xl text-xs"></div>
+                <form onsubmit="handleResetPassword(event)" class="space-y-4 text-left">
+                    <input type="password" id="reset-new-password" required minlength="6" placeholder="Yeni şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="password" id="reset-confirm-password" required minlength="6" placeholder="Şifrəni təkrar et" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">🔒 Şifrəni yenilə</button>
+                </form>
+                <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Daxil ol</button>
             </div>
         </section>
 
@@ -3132,6 +3150,7 @@
                         <input id="profile-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <input id="profile-email" type="email" readonly placeholder="Email" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
                         <input id="profile-avatar" type="hidden">
+                        <div id="profile-provider-label" class="hidden rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 px-3 py-2 text-xs font-bold">Google hesabı ilə qoşulub</div>
                         <textarea id="profile-bio" rows="4" placeholder="Bio" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></textarea>
                         <div><div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase"><span>Profil tamamlanması</span><span id="profile-completion-label">0%</span></div><div class="h-2 rounded-full bg-white/10 mt-1 overflow-hidden"><div id="profile-completion-bar" class="h-full bg-brand-500" style="width:0%"></div></div></div>
                         <button class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-3 rounded-xl">Profili yenilə</button>
@@ -7310,7 +7329,7 @@ Title: Park Villas
                 const result = await apiRequest('/api/auth/me');
                 const user = result.user || result;
                 const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
-                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
+                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (_error) {
                 clearAuthSession();
@@ -9025,11 +9044,13 @@ Təşəkkür edirəm. 🙏`;
             try {
                 const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
                 error.classList.add('hidden');
-                setAuthSession(result.token, result.user);
-                activeUser = { role: 'user', name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
-                updateHeaderUI();
-                await hydrateFromDatabase();
-                switchTab('admin-dashboard');
+                const success = document.getElementById('register-success');
+                success.textContent = result.message || 'Qeydiyyat tamamlandı. Email ünvanınızı təsdiqləməlisiniz.';
+                success.classList.remove('hidden');
+                e.target.reset();
+                switchTab('admin-login');
+                const status = document.getElementById('login-status');
+                if (status) { status.textContent = result.message || 'Qeydiyyat tamamlandı. Email ünvanınızı təsdiqləməlisiniz.'; status.classList.remove('hidden'); }
             } catch (apiError) {
                 error.textContent = apiError.message || 'Qeydiyyat alınmadı.';
                 error.classList.remove('hidden');
@@ -9045,6 +9066,93 @@ Təşəkkür edirəm. 🙏`;
             await apiRequest('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: document.getElementById('forgot-email').value }) });
             box.textContent = 'Əgər e-poçt mövcuddursa, bərpa təlimatı göndəriləcək.';
             box.classList.remove('hidden');
+        }
+
+
+        function currentResetToken() {
+            return new URLSearchParams(window.location.search).get('token') || '';
+        }
+
+        function startGoogleLogin() {
+            const redirect = `${window.location.origin}${window.location.pathname}`;
+            window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
+        }
+
+        async function resendVerificationFromLogin() {
+            const email = document.getElementById('login-email')?.value || '';
+            const error = document.getElementById('login-error');
+            try {
+                const result = await apiRequest('/api/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) });
+                error.textContent = result.message || 'Yeni təsdiqləmə linki göndərildi.';
+                error.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs';
+            } catch (apiError) {
+                error.textContent = apiError.message || 'Təsdiqləmə linki göndərilmədi.';
+                error.className = 'bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs';
+            }
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            const box = document.getElementById('reset-message');
+            try {
+                const result = await apiRequest('/api/auth/reset-password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        token: currentResetToken(),
+                        password: document.getElementById('reset-new-password').value,
+                        passwordConfirmation: document.getElementById('reset-confirm-password').value
+                    })
+                });
+                box.textContent = result.message || 'Şifrəniz uğurla dəyişdirildi ✅';
+                box.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs';
+                e.target.reset();
+            } catch (apiError) {
+                box.textContent = apiError.message || 'Şifrə bərpası alınmadı.';
+                box.className = 'bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs';
+            }
+        }
+
+        async function verifyEmailFromUrl() {
+            if (window.location.pathname !== '/verify-email') return false;
+            switchTab('admin-login', { skipPush: true });
+            const status = document.getElementById('login-status');
+            const error = document.getElementById('login-error');
+            try {
+                const result = await apiRequest('/api/auth/verify-email', { method: 'POST', body: JSON.stringify({ token: currentResetToken() }) });
+                status.textContent = result.message || 'Hesab uğurla təsdiqləndi ✅';
+                status.classList.remove('hidden');
+                error.classList.add('hidden');
+            } catch (apiError) {
+                error.textContent = apiError.message || 'Email təsdiqləmə alınmadı.';
+                error.className = 'bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs';
+                status.classList.add('hidden');
+            }
+            return true;
+        }
+
+        async function completeGoogleLoginFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            if (!token) return false;
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('besthome_auth_token', token);
+            params.delete('token');
+            const cleanUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
+            window.history.replaceState({}, '', cleanUrl);
+            try {
+                const result = await apiRequest('/api/auth/me');
+                setAuthSession(token, result.user);
+                const user = result.user;
+                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+                activeUser = { role, name: user.fullname || user.email, fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'google' };
+                updateHeaderUI();
+                await hydrateFromDatabase();
+                switchTab('admin-dashboard');
+                return true;
+            } catch (_error) {
+                clearAuthSession();
+                return false;
+            }
         }
 
         async function handleProfileUpdate(e) {
@@ -9078,6 +9186,8 @@ Təşəkkür edirəm. 🙏`;
             if (document.getElementById('profile-phone')) document.getElementById('profile-phone').value = merged.phone || '';
             if (document.getElementById('profile-email')) document.getElementById('profile-email').value = merged.email || '';
             if (document.getElementById('profile-avatar')) document.getElementById('profile-avatar').value = avatar;
+            const providerLabel = document.getElementById('profile-provider-label');
+            if (providerLabel) providerLabel.classList.toggle('hidden', (merged.provider || 'local') !== 'google');
             if (document.getElementById('profile-bio')) document.getElementById('profile-bio').value = merged.bio || '';
             if (document.getElementById('profile-avatar-preview')) document.getElementById('profile-avatar-preview').src = avatar || avatarFallback(merged.fullname || merged.name || 'BestHome');
             const completion = profileCompletionFor({ ...merged, avatarUrl: avatar });
@@ -9141,7 +9251,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function setRegisterButtonLoading(isLoading) {
-            setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', 'Qeydiyyatdan keç');
+            setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', '📧 Qeydiyyat');
         }
 
         function setListingSaveButtonLoading(isLoading) {
@@ -9173,7 +9283,7 @@ Təşəkkür edirəm. 🙏`;
             button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
             button.innerHTML = isLoading
                 ? '<span class="login-spinner" aria-hidden="true"></span><span>Məlumatlar yoxlanılır…</span>'
-                : 'Daxil ol';
+                : '📧 Email ilə daxil ol';
         }
 
         function setLoginButtonSuccess() {
@@ -9221,7 +9331,9 @@ Təşəkkür edirəm. 🙏`;
                 clearAuthSession();
                 activeUser = null;
                 error.textContent = apiError.message || 'E-poçt və ya şifrə yanlışdır!';
-                error.classList.remove('hidden');
+                error.className = 'bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs';
+                const resendBtn = document.getElementById('resend-verification-btn');
+                if (resendBtn) resendBtn.classList.toggle('hidden', !/təsdiqləməlisiniz|verify/i.test(error.textContent));
                 setLoginButtonLoading(false);
                 isLoginSubmitting = false;
             }
@@ -11904,6 +12016,15 @@ Təşəkkür edirəm. 🙏`;
         window.addEventListener('load', async () => {
             updateMobileModalMetrics();
                         renderProjectImageInputs(['']);
+            if (await verifyEmailFromUrl()) return;
+            if (window.location.pathname === '/reset-password') { switchTab('reset-password', { skipPush: true }); return; }
+            if (await completeGoogleLoginFromUrl()) {
+                setMobileBottomNavActive();
+                populateMetroSelect();
+                toggleMetroFieldForCity();
+                setTimeout(initAdminListingMap, 120);
+                return;
+            }
             await initializeAuth();
             await hydrateFromDatabase();
             await routeToCurrentPath();

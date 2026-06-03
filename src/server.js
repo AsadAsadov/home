@@ -141,8 +141,8 @@ async function ensureDefaultAdmin() {
 
   await prisma.user.upsert({
     where: { email },
-    update: { role: 'admin' },
-    create: { fullname: 'BestHome Admin', email, passwordHash, role: 'admin', isActive: true, emailVerified: true },
+    update: { role: 'admin', isActive: true, emailVerified: true, provider: 'local' },
+    create: { fullname: 'BestHome Admin', email, passwordHash, role: 'admin', isActive: true, emailVerified: true, provider: 'local' },
   });
 }
 
