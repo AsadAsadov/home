@@ -1020,8 +1020,8 @@
         .premium-filter-bar {
             display: flex;
             flex-wrap: wrap;
-            align-items: stretch;
-            gap: .75rem;
+            align-items: center;
+            gap: 12px;
             width: 100%;
             padding: .8rem;
             border-radius: 1.4rem;
@@ -1031,10 +1031,14 @@
         }
         .premium-filter-field {
             min-width: min(100%, 180px);
-            flex: 1 1 190px;
+            flex: 0 1 auto;
         }
-        .premium-filter-field--search { flex: 1.6 1 280px; }
-        .premium-filter-field--compact { flex: .9 1 150px; }
+        .premium-filter-field--search {
+            flex: 1 1 320px;
+            min-width: 260px;
+            max-width: 500px;
+        }
+        .premium-filter-field--compact { flex: 0 1 170px; }
         .premium-filter-label {
             display: block;
             margin-bottom: .38rem;
@@ -1046,7 +1050,7 @@
         }
         .premium-filter-control {
             width: 100%;
-            height: 46px;
+            height: 44px;
             border-radius: 1rem;
             border: 1px solid rgba(226, 232, 240, .95);
             background: #ffffff !important;
@@ -1065,7 +1069,8 @@
             align-items: center;
             justify-content: center;
             gap: .55rem;
-            min-height: 46px;
+            min-height: 44px;
+            height: 44px;
             width: 100%;
             border-radius: 1rem;
             border: 1px solid rgba(148, 163, 184, .28);
@@ -1082,18 +1087,18 @@
         .project-category-segment {
             display: flex;
             flex-wrap: wrap;
-            gap: .45rem;
+            gap: 8px;
             align-items: center;
         }
         .project-category-segment .project-cat-btn {
-            padding: .82rem 1rem;
+            min-height: 44px;
+            padding: 0 1rem;
             border-radius: .95rem;
             white-space: nowrap;
             box-shadow: none;
         }
         @media (min-width: 1024px) {
-            .premium-filter-bar { flex-wrap: nowrap; align-items: flex-end; }
-            .project-category-segment { flex-wrap: nowrap; }
+            .premium-filter-bar { align-items: center; }
         }
         @media (max-width: 767.98px) {
             .premium-filter-bar { padding: .7rem; border-radius: 1.1rem; gap: .65rem; }
@@ -5126,7 +5131,8 @@ Title: Park Villas
             listingHeroItems: 'besthome_listing_hero_items',
             careerText: 'besthome_career_text',
             ads: 'besthome_site_ads',
-            siteSettings: 'besthome_site_settings'
+            siteSettings: 'besthome_site_settings',
+            favoriteListingIds: 'besthome_favorite_listing_ids'
         };
 
         function readCache(key, fallback) {
@@ -5148,6 +5154,34 @@ Title: Park Villas
             }
         }
 
+        function extractFavoriteListingId(favorite = {}) {
+            return firstDefined(favorite.listingId, favorite.listing_id, favorite.listing?.id, favorite.id);
+        }
+
+        function favoriteIdsFromRecords(records = []) {
+            return new Set((Array.isArray(records) ? records : [])
+                .map(extractFavoriteListingId)
+                .map(id => String(id || '').trim())
+                .filter(Boolean));
+        }
+
+        function cacheFavoriteListingIds(ids = appData.favoriteListingIds) {
+            try {
+                localStorage.setItem(CACHE_KEYS.favoriteListingIds, JSON.stringify(Array.from(ids || [])));
+            } catch (_error) {
+                // Favorite IDs are also stored on the server; localStorage is a best-effort UI cache.
+            }
+        }
+
+        function readCachedFavoriteListingIds() {
+            const cached = readCache(CACHE_KEYS.favoriteListingIds, []);
+            return new Set((Array.isArray(cached) ? cached : []).map(id => String(id || '').trim()).filter(Boolean));
+        }
+
+        function logFavoritesDebug(stage, payload = {}) {
+            console.info(`[favorites] ${stage}`, payload);
+        }
+
         function bootstrapCachedData() {
             appData.projects = readCache(CACHE_KEYS.projects, officialSeaBreezeProjects);
             appData.listings = readCache(CACHE_KEYS.listings, defaultSeaBreezeListings);
@@ -5161,6 +5195,7 @@ Title: Park Villas
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
             appData.ads = readCache(CACHE_KEYS.ads, []);
             appData.siteSettings = normalizeSiteSettings(readCache(CACHE_KEYS.siteSettings, DEFAULT_SITE_SETTINGS));
+            appData.favoriteListingIds = readCachedFavoriteListingIds();
         }
 
         function normalizeHeroSlide(slide = {}) {
@@ -6062,8 +6097,12 @@ Title: Park Villas
             observer.observe(element);
         }
 
+        let activeTabId = 'seabreeze';
+
         function isTabAktiv(tabId) {
-            return !document.getElementById(`tab-${tabId}`)?.classList.contains('hidden');
+            if (tabId === activeTabId) return true;
+            const element = document.getElementById(`tab-${tabId}`);
+            return Boolean(element && !element.classList.contains('hidden'));
         }
 
         function normalizeListingHeroItem(item = {}) {
@@ -6155,9 +6194,13 @@ Title: Park Villas
             homepageHydration.favorites = true;
             try {
                 const favorites = await apiRequest('/api/favorites').catch(() => []);
-                appData.favoriteListingIds = new Set((favorites || []).map(f => String(f.listingId || f.listing_id || f.listing?.id)).filter(Boolean));
+                const favoriteIds = favoriteIdsFromRecords(favorites);
+                logFavoritesDebug('loadFavoritesLazy returned records', { records: favorites, favoriteIds: Array.from(favoriteIds) });
+                appData.favoriteListingIds = favoriteIds;
+                cacheFavoriteListingIds(favoriteIds);
                 renderListingHero(listingHeroIndex);
                 if (isTabAktiv('listings')) renderSeaBreeze();
+                if (isTabAktiv('favorites')) renderFavoritesPage();
             } catch (error) {
                 console.warn('Favoritlər oxunmadı:', error.message);
             }
@@ -7484,16 +7527,46 @@ Title: Park Villas
         }
 
         async function renderFavoritesPage() {
-            const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
-            updateSeo({ title:'Favorilər', path:'/favoriler' });
-            root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Favorilər yüklənir...</div>';
+            const root = document.getElementById('my-listings-root');
+            if (!root) return;
+            if (!activeUser) { switchTab('admin-login'); return; }
+            updateSeo({ title: 'Favorilər', path: '/favoriler' });
+            logFavoritesDebug('renderFavoritesPage called', { cachedFavoriteIds: Array.from(appData.favoriteListingIds || []) });
+            root.innerHTML = `
+                <div class="public-form-card rounded-[2rem] p-8 text-center font-black text-slate-600 flex flex-col items-center gap-3">
+                    <span class="inline-flex h-10 w-10 animate-spin rounded-full border-4 border-rose-100 border-t-rose-500" aria-hidden="true"></span>
+                    <span>❤️ Favorilər yüklənir…</span>
+                </div>
+            `;
             try {
                 const favorites = await apiRequest('/api/favorites');
-                const listings = (favorites || []).map(f => dbListingToUi(f.listing || f)).filter(item => item && item.id);
-                cacheData('listings', [...listings, ...(appData.listings || []).filter(existing => !listings.some(row => String(row.id) === String(existing.id)))]);
-                appData.favoriteListingIds = new Set(listings.map(item => String(item.id)));
-                root.innerHTML=`<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">❤️ Favorilər</h1><p class="text-slate-600 font-semibold mt-1">Seçdiyiniz elanlar.</p></div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${listings.length?listings.map(p=>publicListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Favori elan yoxdur.</div>'}</div>`;
-            } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Favorilər açılmadı: ${escapeHtml(error.message)}</div>`; }
+                const favoriteIds = favoriteIdsFromRecords(favorites);
+                logFavoritesDebug('renderFavoritesPage returned records', { records: favorites, favoriteIds: Array.from(favoriteIds) });
+                const listings = (Array.isArray(favorites) ? favorites : [])
+                    .map(favorite => {
+                        const listing = favorite?.listing || null;
+                        const listingId = extractFavoriteListingId(favorite);
+                        return listing ? dbListingToUi(listing) : (appData.listings || []).find(item => String(item.id) === String(listingId));
+                    })
+                    .filter(item => item && item.id);
+                const existingListings = appData.listings || [];
+                cacheData('listings', [...listings, ...existingListings.filter(existing => !listings.some(row => String(row.id) === String(existing.id)))]);
+                appData.favoriteListingIds = favoriteIds.size ? favoriteIds : new Set(listings.map(item => String(item.id)));
+                cacheFavoriteListingIds(appData.favoriteListingIds);
+                logFavoritesDebug('renderFavoritesPage rendering cards', { count: listings.length, favoriteIds: Array.from(appData.favoriteListingIds) });
+                root.innerHTML = `
+                    <div class="mb-6">
+                        <h1 class="text-3xl md:text-4xl font-black text-slate-950">❤️ Favorilər</h1>
+                        <p class="text-slate-600 font-semibold mt-1">Seçdiyiniz elanlar.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        ${listings.length ? listings.map(p => publicListingCard(p)).join('') : '<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-700 shadow-sm">❤️ Favori elan yoxdur</div>'}
+                    </div>
+                `;
+            } catch(error) {
+                console.error('Favorilər açılmadı:', error);
+                root.innerHTML = `<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Favorilər açılmadı: ${escapeHtml(error.message)}</div>`;
+            }
         }
 
         function updateHeaderUI() {
@@ -7542,8 +7615,10 @@ Title: Park Villas
         // TABS SWITCHER
         function switchTab(tabId, options = {}) {
             closeMobileProfileMenu();
+            activeTabId = tabId;
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            const target = document.getElementById('tab-' + tabId);
+            const targetId = tabId === 'favorites' ? 'tab-my-listings' : 'tab-' + tabId;
+            const target = document.getElementById(targetId);
             if (target) target.classList.remove('hidden');
 
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -8165,6 +8240,8 @@ Təşəkkür edirəm. 🙏`;
                     await apiRequest('/api/favorites', { method: 'POST', body: JSON.stringify({ listingId }) });
                     appData.favoriteListingIds.add(key);
                 }
+                cacheFavoriteListingIds(appData.favoriteListingIds);
+                logFavoritesDebug('toggleFavorite stored ids', { listingId: key, wasFavorite: isFavorite, favoriteIds: Array.from(appData.favoriteListingIds) });
                 const idx = appData.listings.findIndex(item => String(item.id) === key);
                 if (idx > -1) appData.listings[idx].favoritesCount = Math.max(0, (appData.listings[idx].favoritesCount || 0) + (isFavorite ? -1 : 1));
                 if (activePropertyListing && String(activePropertyListing.id) === key) activePropertyListing.favoritesCount = Math.max(0, (activePropertyListing.favoritesCount || 0) + (isFavorite ? -1 : 1));
