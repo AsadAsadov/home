@@ -333,6 +333,33 @@
         :root { --mobile-bottom-nav-height: 80px; --mobile-modal-gap: 12px; }
         .listing-detail-shell { max-height: 90vh; height: auto; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
+
+        .modal-glass-backdrop {
+            background: rgba(255,255,255,.08) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .modal-glass-panel {
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.18),
+                0 8px 20px rgba(0,0,0,.10) !important;
+            opacity: 0;
+            transform: scale(.96) !important;
+            transform-origin: center;
+            transition:
+                transform .25s ease,
+                opacity .25s ease;
+        }
+        .modal-glass-backdrop:not(.hidden) > .modal-glass-panel {
+            opacity: 1;
+            transform: scale(1) !important;
+        }
+        @starting-style {
+            .modal-glass-backdrop:not(.hidden) > .modal-glass-panel {
+                opacity: 0;
+                transform: scale(.96) !important;
+            }
+        }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
         .listing-detail-thumbnail img { width:100%; height:100%; object-fit:cover; display:block; }
 
@@ -1809,6 +1836,39 @@
                 font-size: .68rem;
             }
         }
+
+        @media (max-width: 768px) {
+            #property-detail-modal.modal-glass-backdrop,
+            #project-detail-modal-official.modal-glass-backdrop,
+            #media-modal.modal-glass-backdrop,
+            #property-lightbox.modal-glass-backdrop {
+                align-items: flex-start;
+                justify-content: center;
+                bottom: 0;
+                height: 100dvh;
+                padding: 0;
+                padding-bottom: 0;
+            }
+            .modal-glass-backdrop > .modal-glass-panel {
+                width: calc(100vw - 24px);
+                max-width: 720px;
+                margin-top: 20px;
+                margin-bottom: calc(var(--mobile-bottom-nav-height) + 20px);
+                max-height: calc(100dvh - (var(--mobile-bottom-nav-height) + 40px));
+            }
+            #property-detail-modal > .listing-detail-shell,
+            #property-lightbox > .property-lightbox__panel {
+                height: calc(100dvh - (var(--mobile-bottom-nav-height) + 40px));
+                border-radius: 1.5rem;
+            }
+            #project-detail-modal-official > .glass-card,
+            #media-modal > div {
+                height: auto;
+                max-height: calc(100dvh - (var(--mobile-bottom-nav-height) + 40px));
+                margin-bottom: calc(var(--mobile-bottom-nav-height) + 20px);
+            }
+        }
+
         @media (max-width: 480px) {
             .listing-detail-contact-actions {
                 grid-template-columns: minmax(0, 1fr) !important;
@@ -3084,8 +3144,8 @@ Title: Park Villas
     </div>
 
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
-    <div id="property-detail-modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-6">
-        <div class="listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
+    <div id="property-detail-modal" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6">
+        <div class="modal-glass-panel listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
             <div class="listing-detail-scroll">
                 <div class="grid grid-cols-1 gap-0">
                     <div class="p-3 md:p-5 listing-detail-gallery-card">
@@ -3200,8 +3260,8 @@ Title: Park Villas
     </div>
 
     <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
-    <div id="project-detail-modal-official" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-        <div class="glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
+    <div id="project-detail-modal-official" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-glass-panel glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
 
             <button onclick="shareActiveProject()" class="absolute top-4 right-16 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">
                 <i class="fa-solid fa-link"></i><span>Paylaş</span>
@@ -3301,8 +3361,8 @@ Title: Park Villas
         </div>
     </div>
 
-    <div id="property-lightbox" class="property-lightbox hidden fixed inset-0 z-[70] items-center justify-center bg-slate-950/95 backdrop-blur-lg" role="dialog" aria-modal="true" aria-label="Elan şəkil qalereyası" onclick="if (event.target === this) closePropertyLightbox()">
-        <div class="property-lightbox__panel relative overflow-hidden">
+    <div id="property-lightbox" class="modal-glass-backdrop property-lightbox hidden fixed inset-0 z-[70] items-center justify-center" role="dialog" aria-modal="true" aria-label="Elan şəkil qalereyası" onclick="if (event.target === this) closePropertyLightbox()">
+        <div class="modal-glass-panel property-lightbox__panel relative overflow-hidden">
             <div class="property-lightbox__topbar">
                 <div class="property-lightbox__title rounded-2xl px-4 py-3">
                     <p id="property-lightbox-title" class="truncate text-sm md:text-base font-black text-white">Elan şəkilləri</p>
@@ -3327,11 +3387,11 @@ Title: Park Villas
         </div>
     </div>
 
-    <div id="media-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-3 md:p-6">
+    <div id="media-modal" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6">
         <button onclick="closeModal()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-brand-500 text-3xl z-50" aria-label="Bağla">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="w-full max-w-6xl max-h-[92vh] bg-white rounded-3xl overflow-hidden shadow-2xl relative flex flex-col lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+        <div class="modal-glass-panel w-full max-w-6xl max-h-[92vh] bg-white rounded-3xl overflow-hidden relative flex flex-col lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
             <div class="relative bg-gray-100 min-h-[280px] md:min-h-[520px] flex items-center justify-center overflow-hidden">
                 <div id="modal-content" class="w-full h-full flex items-center justify-center relative"></div>
                 <div id="modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 md:px-5 pointer-events-none">
