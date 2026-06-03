@@ -52,7 +52,18 @@ function requestIp(req) {
 }
 
 function appUrl(pathname, params = {}) {
-  const baseUrl = (process.env.PUBLIC_APP_URL || process.env.FRONTEND_URL || 'https://besthome.az').replace(/\/$/, '');
+  const baseUrl = (
+    process.env.PUBLIC_APP_URL
+    || process.env.FRONTEND_URL
+    || process.env.APP_URL
+    || 'https://besthome.onrender.com'
+  ).replace(/\/$/, '');
+  console.log({
+    PUBLIC_APP_URL: process.env.PUBLIC_APP_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    APP_URL: process.env.APP_URL,
+    baseUrl,
+  });
   const url = new URL(pathname, `${baseUrl}/`);
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) url.searchParams.set(key, value);
