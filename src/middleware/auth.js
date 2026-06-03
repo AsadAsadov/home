@@ -26,6 +26,7 @@ async function isSessionValid(token, auth) {
     const session = await prisma.userSession.findUnique({ where: { token } });
     if (!session || session.expiresAt <= new Date()) return false;
     if (String(session.userId) !== String(auth.id)) return false;
+    await prisma.userSession.update({ where: { id: session.id }, data: { lastActiveAt: new Date() } });
     return true;
   } catch (error) {
     if (['P2021', 'P2022'].includes(error.code)) return true;
