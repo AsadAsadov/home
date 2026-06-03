@@ -2273,23 +2273,6 @@
                 </div>
             </div>
 
-            <!-- Premium Listing Hero banner -->
-            <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
-                <div id="listing-hero-media" class="absolute inset-0" role="img" aria-label="BestHome premium elan vitrini"></div>
-                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,.18);"></div>
-                <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.32));"></div>
-                <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
-                <div id="listing-hero-panel" class="listing-hero-panel hero-glass-panel relative z-10 rounded-2xl text-left space-y-2 mb-4 sm:mb-6 ml-4 sm:ml-8 mr-auto">
-                    <h1 id="listing-hero-title" class="listing-hero-title font-semibold leading-tight uppercase drop-shadow-xl"></h1>
-                    <p id="listing-hero-description" class="hidden text-xs sm:text-sm font-medium leading-relaxed text-white/85 max-w-sm"></p>
-                    <p id="listing-hero-price" class="listing-hero-price font-black text-white drop-shadow-xl"></p>
-                    <div id="listing-hero-stats" class="listing-hero-stats"></div>
-                    <button id="listing-hero-button" type="button" class="hero-luxury-link hero-button-animated inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase transition duration-300">Elana Bax →</button>
-                </div>
-                <button id="listing-hero-prev" type="button" class="hero-nav-arrow hero-nav-arrow--prev hidden" aria-label="Əvvəlki premium elan">‹</button>
-                <button id="listing-hero-next" type="button" class="hero-nav-arrow hero-nav-arrow--next hidden" aria-label="Növbəti premium elan">›</button>
-                <div id="listing-hero-indicators" class="hero-indicators"></div>
-            </div>
 
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
             <div class="space-y-6">
@@ -2346,6 +2329,24 @@
 
         <!-- 2. LISTINGS SECTION -->
         <section id="tab-listings" class="tab-content hidden space-y-8">
+
+            <!-- Premium Listing Hero banner -->
+            <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
+                <div id="listing-hero-media" class="absolute inset-0" role="img" aria-label="BestHome premium elan vitrini"></div>
+                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,.18);"></div>
+                <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.32));"></div>
+                <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
+                <div id="listing-hero-panel" class="listing-hero-panel hero-glass-panel relative z-10 rounded-2xl text-left space-y-2 mb-4 sm:mb-6 ml-4 sm:ml-8 mr-auto">
+                    <h1 id="listing-hero-title" class="listing-hero-title font-semibold leading-tight uppercase drop-shadow-xl"></h1>
+                    <p id="listing-hero-description" class="hidden text-xs sm:text-sm font-medium leading-relaxed text-white/85 max-w-sm"></p>
+                    <p id="listing-hero-price" class="listing-hero-price font-black text-white drop-shadow-xl"></p>
+                    <div id="listing-hero-stats" class="listing-hero-stats"></div>
+                    <button id="listing-hero-button" type="button" class="hero-luxury-link hero-button-animated inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase transition duration-300">Elana Bax →</button>
+                </div>
+                <button id="listing-hero-prev" type="button" class="hero-nav-arrow hero-nav-arrow--prev hidden" aria-label="Əvvəlki premium elan">‹</button>
+                <button id="listing-hero-next" type="button" class="hero-nav-arrow hero-nav-arrow--next hidden" aria-label="Növbəti premium elan">›</button>
+                <div id="listing-hero-indicators" class="hero-indicators"></div>
+            </div>
             <div class="text-center md:text-left space-y-2">
                 <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Satış • Kirayə • Günlük kirayə</span>
                 <h1 class="text-3xl md:text-4xl font-black text-gray-900">🏠 Elanlar</h1>
@@ -5157,12 +5158,28 @@ Title: Park Villas
             wrap.innerHTML = slides.length > 1 ? slides.map((_, index) => `<button type="button" onclick="${handlerName}(${index})" class="hero-indicator ${index === activeIndex ? 'is-active' : ''}" aria-label="Slayd ${index + 1}"></button>`).join('') : '';
         }
 
-        function renderListingHero(activeIndex = listingHeroIndex) {
-            const slides = getActiveListingHeroItems();
+        function isListingHeroRoute() {
+            return (window.location.pathname.replace(/\/+$/, '') || '/') === '/elanlar';
+        }
+
+        function hideListingHero() {
+            clearTimeout(listingHeroTimer);
             const slider = document.getElementById('listing-hero-slider');
+            if (!slider) return;
+            slider.classList.add('hidden');
+            slider.style.display = 'none';
+            slider.onclick = null;
+        }
+
+        function renderListingHero(activeIndex = listingHeroIndex) {
+            const slider = document.getElementById('listing-hero-slider');
+            if (!isListingHeroRoute()) {
+                hideListingHero();
+                return;
+            }
+            const slides = getActiveListingHeroItems();
             if (!slides.length) {
-                clearTimeout(listingHeroTimer);
-                if (slider) { slider.classList.add('hidden'); slider.style.display = 'none'; }
+                hideListingHero();
                 return;
             }
             listingHeroIndex = ((activeIndex % slides.length) + slides.length) % slides.length;
@@ -5222,7 +5239,7 @@ Title: Park Villas
 
         function startListingHeroTimer(slides = getActiveListingHeroItems()) {
             clearTimeout(listingHeroTimer);
-            if (listingHeroPaused || slides.length <= 1) return;
+            if (!isListingHeroRoute() || listingHeroPaused || slides.length <= 1) return;
             const duration = Math.max(1, Number(slides[listingHeroIndex]?.slide_duration || 10)) * 1000;
             listingHeroTimer = setTimeout(() => renderListingHero(listingHeroIndex + 1), duration);
         }
@@ -7287,6 +7304,8 @@ Title: Park Villas
                 setLoginButtonLoading(false);
             }
 
+            if (tabId !== 'listings') hideListingHero();
+
             if (tabId === 'seabreeze') {
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
@@ -7320,6 +7339,8 @@ Title: Park Villas
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
+            if (tabId === 'listings') renderListingHero(listingHeroIndex);
+            else hideListingHero();
             setMobileBottomNavActive(tabId === 'my-listings' || tabId === 'favorites' || tabId === 'admin-dashboard' ? 'profile' : null);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
