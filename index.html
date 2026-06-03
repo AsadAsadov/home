@@ -1306,6 +1306,16 @@
         .gallery-media.is-loaded {
             opacity: 1;
         }
+        .featured-video-card {
+            border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+        }
+        .featured-video-play {
+            box-shadow: 0 20px 45px rgba(239, 68, 68, 0.34);
+        }
+        .featured-video-card:hover .featured-video-play {
+            transform: translate(-50%, -50%) scale(1.06);
+        }
         .gallery-detail-title {
             font-size: 18px;
             line-height: 1.25;
@@ -2823,7 +2833,14 @@
                     <button onclick="filterPortfolio('video')" id="filter-video" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Videolar</button>
                 </div>
             </div>
-            <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            <div id="featured-video-section" class="space-y-4"></div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-2xl md:text-3xl font-black text-gray-900">📸 QALEREYA</h3>
+                    <span id="gallery-items-count" class="text-xs md:text-sm font-bold text-gray-500"></span>
+                </div>
+                <div id="portfolio-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8"></div>
+            </div>
             <div id="portfolio-pagination" class="flex flex-wrap items-center justify-center gap-2 pt-2"></div>
         </section>
 
@@ -9024,6 +9041,18 @@ Təşəkkür edirəm. 🙏`;
             renderPortfolio();
         }
 
+        const FEATURED_VIDEO_TITLE = 'Prezidentin çıxışı';
+
+        function isPresidentVideo(item) {
+            const title = String(item?.title || '').toLowerCase();
+            return item?.type === 'video' && (title.includes('prezident') || title.includes('president'));
+        }
+
+        function featuredPresidentVideo() {
+            const list = orderedGalleryItems();
+            return list.find(isPresidentVideo) || list.find(item => item?.type === 'video' && String(item?.title || '').toLowerCase().includes('çıxış')) || null;
+        }
+
         function galleryItemMediaCount(item) {
             return item.type === 'event' ? Math.max(1, item.images?.length || 0) : 1;
         }
@@ -9091,16 +9120,52 @@ Təşəkkür edirəm. 🙏`;
             container.innerHTML = buttons.join('');
         }
 
+        function renderFeaturedVideoSection(featuredVideo) {
+            const section = document.getElementById('featured-video-section');
+            if (!section) return;
+            if (!featuredVideo) {
+                section.innerHTML = '';
+                return;
+            }
+            const thumb = featuredVideo.thumbnail || getYouTubeThumbnail(featuredVideo.url) || getVimeoThumbnail(featuredVideo.url) || 'https://placehold.co/1200x675/111827/ffffff?text=Prezidentin+%C3%A7%C4%B1x%C4%B1%C5%9F%C4%B1';
+            section.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-2xl md:text-3xl font-black text-gray-900">🎥 XÜSUSİ VİDEO</h3>
+                        <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs font-black">⭐ RƏSMİ VİDEO</span>
+                    </div>
+                    <article onclick="openFeaturedVideoModal()" class="featured-video-card group cursor-pointer relative overflow-hidden bg-gray-950 aspect-video">
+                        <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(FEATURED_VIDEO_TITLE)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10"></div>
+                        <div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white text-red-600 flex items-center justify-center text-2xl md:text-4xl transition duration-300">
+                            <i class="fa-solid fa-play ml-1"></i>
+                        </div>
+                        <div class="absolute left-4 right-4 bottom-4 md:left-6 md:right-6 md:bottom-6 flex flex-col gap-3">
+                            <span class="w-max inline-flex items-center gap-1.5 rounded-full bg-amber-400 text-gray-950 px-3 py-1.5 text-[10px] md:text-xs font-black shadow-lg">⭐ RƏSMİ VİDEO</span>
+                            <h4 class="text-white text-2xl md:text-4xl font-black tracking-tight drop-shadow">${escapeHtml(FEATURED_VIDEO_TITLE)}</h4>
+                        </div>
+                    </article>
+                </div>
+            `;
+        }
+
         function renderPortfolio() {
-            const list = [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            const list = orderedGalleryItems();
             const grid = document.getElementById('portfolio-grid');
+            if (!grid) return;
             grid.innerHTML = '';
 
-            const filtered = list.filter(item => currentFilter === 'all' || item.type === currentFilter);
+            const featuredVideo = featuredPresidentVideo();
+            renderFeaturedVideoSection(featuredVideo);
+
+            const filtered = list.filter(item => (currentFilter === 'all' || item.type === currentFilter) && String(item.id) !== String(featuredVideo?.id));
+            const countEl = document.getElementById('gallery-items-count');
+            if (countEl) countEl.textContent = filtered.length ? `${filtered.length} element` : '';
 
             if (filtered.length === 0) {
                 grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-12">Hələlik heç bir media elementi yoxdur.</div>`;
                 renderPortfolioPagination();
+                observeGalleryMedia();
                 return;
             }
 
@@ -9109,23 +9174,22 @@ Təşəkkür edirəm. 🙏`;
                 if (item.type === 'event') {
                     const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-48 sm:h-56 md:h-64">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
-
                         </article>
                     `);
                 } else {
                     const thumb = item.thumbnail || getYouTubeThumbnail(item.url) || getVimeoThumbnail(item.url) || 'https://placehold.co/600x400/f3f4f6/6b7280?text=Video';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-48 sm:h-56 md:h-64">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden relative">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
                             </div>
-                            <div class="absolute top-4 left-4 bg-black/65 text-white rounded-full px-3 py-1 text-xs font-extrabold flex items-center gap-1"><i class="fa-solid fa-play"></i> Play</div>
-                            ${item.duration ? `<div class="absolute top-4 right-4 bg-black/65 text-white rounded-full px-2.5 py-1 text-xs font-bold">${escapeHtml(item.duration)}</div>` : ''}
-                            <div class="absolute left-4 bottom-4 pointer-events-none">${galleryBadge(item)}</div>
+                            <div class="absolute top-3 left-3 md:top-4 md:left-4 bg-black/65 text-white rounded-full px-3 py-1 text-xs font-extrabold flex items-center gap-1"><i class="fa-solid fa-play"></i> Play</div>
+                            ${item.duration ? `<div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/65 text-white rounded-full px-2.5 py-1 text-xs font-bold">${escapeHtml(item.duration)}</div>` : ''}
+                            <div class="absolute left-3 bottom-3 md:left-4 md:bottom-4 pointer-events-none">${galleryBadge(item)}</div>
                         </article>
                     `);
                 }
@@ -11945,9 +12009,23 @@ Təşəkkür edirəm. 🙏`;
             return [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         }
 
+        function openFeaturedVideoModal() {
+            const selected = featuredPresidentVideo();
+            if (!selected) return;
+            activeModalGalleryItems = [selected];
+            activeModalGalleryIndex = 0;
+            activeModalMediaIndex = 0;
+            lightboxScale = 1;
+            updateSeo({ title: FEATURED_VIDEO_TITLE, description: selected.desc || DEFAULT_SEO_DESCRIPTION, path: galleryPath(selected), image: selected.thumbnail || '', type: 'article' });
+            renderModalMedia();
+            document.getElementById('media-modal').classList.remove('hidden');
+            setModalOpenState(true);
+        }
+
         function openGalleryDetailModal(index = 0, pushRoute = false) {
             const orderedGallery = orderedGalleryItems();
-            activeModalGalleryItems = orderedGallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
+            const featuredVideo = featuredPresidentVideo();
+            activeModalGalleryItems = orderedGallery.filter(item => (currentFilter === 'all' || item.type === currentFilter) && String(item.id) !== String(featuredVideo?.id));
             const clicked = orderedGallery[index];
             activeModalGalleryIndex = Math.max(0, activeModalGalleryItems.findIndex(item => String(item.id) === String(clicked?.id)));
             activeModalMediaIndex = 0;
