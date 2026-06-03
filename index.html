@@ -2338,7 +2338,6 @@
                 <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
                 <div id="listing-hero-panel" class="listing-hero-panel hero-glass-panel relative z-10 rounded-2xl text-left space-y-2 mb-4 sm:mb-6 ml-4 sm:ml-8 mr-auto">
                     <h1 id="listing-hero-title" class="listing-hero-title font-semibold leading-tight uppercase drop-shadow-xl"></h1>
-                    <p id="listing-hero-description" class="hidden text-xs sm:text-sm font-medium leading-relaxed text-white/85 max-w-sm"></p>
                     <p id="listing-hero-price" class="listing-hero-price font-black text-white drop-shadow-xl"></p>
                     <div id="listing-hero-stats" class="listing-hero-stats"></div>
                     <button id="listing-hero-button" type="button" class="hero-luxury-link hero-button-animated inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase transition duration-300">Elana Bax →</button>
@@ -3145,7 +3144,6 @@ Title: Park Villas
                         <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">⭐ Badge text</span><input type="text" id="listing-hero-badge-input" placeholder="🔥 Premium Elan" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">⏱ Slide duration</span><input type="number" min="1" id="listing-hero-duration-input" value="10" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">📝 Custom title</span><input type="text" id="listing-hero-title-input" placeholder="Boşdursa elan başlığı" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">📄 Custom description</span><textarea rows="3" id="listing-hero-description-input" placeholder="Boşdursa elan təsviri" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
                         <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">🎬 Hero media URL</span><input type="url" id="listing-hero-media-input" placeholder="Şəkil və ya video URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="listing-hero-active-input" checked class="w-4 h-4"> Aktiv</label>
                         <div class="flex gap-2">
@@ -5203,14 +5201,12 @@ Title: Park Villas
                 });
             }
             const title = document.getElementById('listing-hero-title');
-            const desc = document.getElementById('listing-hero-description');
             const badge = document.getElementById('listing-hero-badge');
             const price = document.getElementById('listing-hero-price');
             const stats = document.getElementById('listing-hero-stats');
             const panel = document.getElementById('listing-hero-panel');
             const btn = document.getElementById('listing-hero-button');
             if (title) title.innerHTML = formatHeroTitle(hero.title || listing.title || 'Premium elan');
-            if (desc) { desc.textContent = hero.description || listing.desc || ''; desc.classList.toggle('hidden', !(hero.description || listing.desc)); }
             if (badge) { badge.textContent = hero.badge_text || ''; badge.classList.toggle('hidden', !hero.badge_text); }
             if (price) price.textContent = formatPrice(listing.price, listing.currency || 'AZN');
             if (stats) {
@@ -5225,7 +5221,11 @@ Title: Park Villas
                     `<span class="listing-hero-stats__views">${viewsText}</span>`
                 ].filter(Boolean).join('');
             }
-            applyHeroVisualStyles(slider, panel, title, desc, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
+            applyHeroVisualStyles(slider, panel, title, null, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
+            if (panel) {
+                panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : '380px';
+                panel.style.padding = window.innerWidth <= 640 ? '14px' : '18px 20px';
+            }
             if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
             const prev = document.getElementById('listing-hero-prev');
             const next = document.getElementById('listing-hero-next');
@@ -5533,7 +5533,6 @@ Title: Park Villas
                 'listing-hero-badge-input': item?.badge_text || '',
                 'listing-hero-duration-input': item?.slide_duration || 10,
                 'listing-hero-title-input': item?.custom_title || '',
-                'listing-hero-description-input': item?.custom_description || '',
                 'listing-hero-media-input': item?.hero_media_url || '',
             };
             Object.entries(fields).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.value = value; });
@@ -5556,7 +5555,6 @@ Title: Park Villas
                 badge_text: document.getElementById('listing-hero-badge-input')?.value || '',
                 slide_duration: Number(document.getElementById('listing-hero-duration-input')?.value || 10),
                 custom_title: document.getElementById('listing-hero-title-input')?.value || '',
-                custom_description: document.getElementById('listing-hero-description-input')?.value || '',
                 hero_media_url: document.getElementById('listing-hero-media-input')?.value || '',
                 is_active: document.getElementById('listing-hero-active-input')?.checked ?? true,
             };
@@ -5822,13 +5820,13 @@ Title: Park Villas
                 listing_id: item.listing_id ?? item.listingId ?? listing?.id ?? '',
                 listing,
                 title: item.title || item.custom_title || item.customTitle || listing?.title || '',
-                description: item.description || item.custom_description || item.customDescription || listing?.desc || '',
+                description: '',
                 media_type: String(item.media_type ?? item.mediaType ?? (/\.(mp4|webm|mov)(\?|#|$)/i.test(mediaUrl) ? 'video' : 'image')).toLowerCase() === 'video' ? 'video' : 'image',
                 media_url: mediaUrl,
                 badge_text: item.badge_text ?? item.badgeText ?? '',
                 slide_duration: Number(item.slide_duration ?? item.slideDuration ?? 10) || 10,
                 custom_title: item.custom_title ?? item.customTitle ?? '',
-                custom_description: item.custom_description ?? item.customDescription ?? '',
+                custom_description: '',
                 hero_media_url: item.hero_media_url ?? item.heroMediaUrl ?? '',
                 sort_order: Number(item.sort_order ?? item.sortOrder ?? 0),
                 is_active: item.is_active ?? item.isActive ?? true,

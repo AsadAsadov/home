@@ -50,7 +50,7 @@ function normalizePayload(body = {}, existing = {}) {
     badgeText: String(body.badge_text ?? body.badgeText ?? existing.badgeText ?? '').trim(),
     slideDuration: parseDuration(body.slide_duration ?? body.slideDuration, existing.slideDuration ?? DEFAULT_SLIDE_DURATION),
     customTitle: String(body.custom_title ?? body.customTitle ?? existing.customTitle ?? '').trim(),
-    customDescription: String(body.custom_description ?? body.customDescription ?? existing.customDescription ?? '').trim(),
+    customDescription: '',
     heroMediaUrl: String(body.hero_media_url ?? body.heroMediaUrl ?? existing.heroMediaUrl ?? '').trim(),
     sortOrder: parseInteger(body.sort_order ?? body.sortOrder, existing.sortOrder ?? 0),
     isActive: parseBool(body.is_active ?? body.isActive, existing.isActive ?? true),
@@ -67,7 +67,7 @@ function serializeListingHeroItem(item) {
   const listing = item.listing || null;
   const mediaUrl = String(item.heroMediaUrl || firstListingImage(listing) || '').trim();
   const title = String(item.customTitle || listing?.title || '').trim();
-  const description = String(item.customDescription || listing?.description || '').trim();
+  const description = '';
   return {
     ...item,
     title,
@@ -81,7 +81,7 @@ function serializeListingHeroItem(item) {
     badge_text: item.badgeText,
     slide_duration: item.slideDuration ?? DEFAULT_SLIDE_DURATION,
     custom_title: item.customTitle,
-    custom_description: item.customDescription,
+    custom_description: '',
     hero_media_url: item.heroMediaUrl,
     media_type: inferMediaType(mediaUrl),
     media_url: mediaUrl,
