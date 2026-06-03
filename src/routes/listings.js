@@ -896,9 +896,10 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
 
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
     await logUserActivity(prisma, req.auth.id, 'create_listing');
-    await attachListingUsers(savedListing || listing);
-    decorateListingUi(savedListing || listing);
-    return res.status(201).json(savedListing || listing);
+    const responseListing = savedListing || listing;
+    await attachListingUsers(responseListing);
+    decorateListingUi(responseListing);
+    return res.status(201).json({ success: true, listing: responseListing });
   } catch (error) {
     logListingApiError(error);
     if (isListingCodeCollision(error)) {
