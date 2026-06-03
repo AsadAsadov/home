@@ -4721,20 +4721,27 @@ Title: Park Villas
             const token = getAuthToken();
             if (token) headers.Authorization = `Bearer ${token}`;
 
-            const response = await fetch(url.startsWith('http') ? url : `${API_BASE}${url}`, {
+            const requestUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+            const response = await fetch(requestUrl, {
                 ...options,
                 method,
                 body,
                 headers
             });
+            const responseText = response.status === 204 ? '' : await response.text();
+            let responseBody = null;
+            try { responseBody = responseText ? JSON.parse(responseText) : null; } catch (_error) { responseBody = responseText; }
 
             if (response.status === 401) {
-                const errorBody = await response.json().catch(() => ({}));
+                console.log('NETWORK DEBUG', { status: response.status, body: responseBody, url: requestUrl, method });
                 if (getAuthToken()) redirectToLoginOnAuthFailure();
-                throw new Error(errorBody.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
+                throw new Error(responseBody?.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
             }
-            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'API sorğusu uğursuz oldu');
-            return response.status === 204 ? null : response.json();
+            if (!response.ok) {
+                console.log('NETWORK DEBUG', { status: response.status, body: responseBody, url: requestUrl, method });
+                throw new Error(responseBody?.message || responseBody?.error || (typeof responseBody === 'string' && responseBody.trim()) || 'API sorğusu uğursuz oldu');
+            }
+            return response.status === 204 ? null : responseBody;
         }
 
         function normalizeProjectImages(images, fallback = '') {
@@ -4883,18 +4890,38 @@ Title: Park Villas
             return result?.user || null;
         }
 
+        let pendingListingSubmissionContinuation = null;
+        let pendingListingSubmissionRunning = false;
+
+        async function continuePendingListingSubmission() {
+            const continuation = pendingListingSubmissionContinuation;
+            if (!continuation || pendingListingSubmissionRunning) return;
+            console.log('CONTINUING LISTING SUBMISSION');
+            pendingListingSubmissionContinuation = null;
+            pendingListingSubmissionRunning = true;
+            try {
+                await continuation();
+            } finally {
+                pendingListingSubmissionRunning = false;
+            }
+        }
+
         async function savePhoneAndContinue(normalizedPhone) {
             const authToken = getAuthToken();
             if (!authToken) throw new Error('Sessiya tapılmadı. Zəhmət olmasa yenidən daxil olun.');
+            console.log('PHONE BEFORE SAVE', normalizedPhone);
+            console.log('AUTH TOKEN', getAuthToken());
 
             const response = await apiRequest('/api/auth/me', {
                 method: 'PUT',
                 body: JSON.stringify({ phone: normalizedPhone })
             });
+            console.log('PHONE SAVE RESPONSE', response);
             if (response?.token) setAuthSession(response.token, response.user);
             else if (response?.user) setAuthSession(authToken, response.user);
             syncActiveUserFromApiUser(response?.user);
             await refreshCurrentUser();
+            await continuePendingListingSubmission();
             return normalizedPhone;
         }
 
@@ -4938,6 +4965,7 @@ Title: Park Villas
                         const savedPhone = await savePhoneAndContinue(normalizedPhone);
                         finish(savedPhone);
                     } catch (apiError) {
+                        alert(apiError.message);
                         error.textContent = apiError.message || 'Telefon nömrəsi yadda saxlanılmadı.';
                         error.classList.remove('hidden');
                     } finally {
@@ -7840,18 +7868,28 @@ Title: Park Villas
                 calcVal.textContent = '0 ₼';
             }
         }
+        async function submitPublicListingPayload() {
+            const regionType=document.getElementById('pl-region-type').value;
+            const city=document.getElementById('pl-city')?.value || '';
+            const district=document.getElementById('pl-district')?.value || '';
+            const isCredit = document.getElementById('pl-is-credit')?.checked || false;
+            const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
+            const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
+            const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true, savedUi);
+        }
+
         async function submitPublicListing(event) {
             event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
             publicListingSubmitting=true; setPublicSubmitLoading(true);
             try {
-                if (!(await ensureListingContactPhone())) return;
-                const regionType=document.getElementById('pl-region-type').value;
-                const city=document.getElementById('pl-city')?.value || '';
-                const district=document.getElementById('pl-district')?.value || '';
-                const isCredit = document.getElementById('pl-is-credit')?.checked || false;
-                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
-                const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
-                const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST'); const savedUi=dbListingToUi(saved); cacheData('listings',[savedUi, ...(appData.listings||[]).filter(x=>String(x.id)!==String(savedUi.id))]); renderPublicListingForm(true, savedUi);
+                if (!userHasContactPhone(activeUser)) {
+                    pendingListingSubmissionContinuation = submitPublicListingPayload;
+                    const savedPhone = await promptForContactPhone();
+                    if (!savedPhone) pendingListingSubmissionContinuation = null;
+                    return;
+                }
+                console.log('CONTINUING LISTING SUBMISSION');
+                await submitPublicListingPayload();
             } catch(error) { alert('Elan göndərilmədi: '+error.message); }
             finally { publicListingSubmitting=false; setPublicSubmitLoading(false); }
         }
@@ -9696,14 +9734,17 @@ Təşəkkür edirəm. 🙏`;
                 };
                 xhr.onload = () => {
                     let body = null;
-                    try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_error) { body = null; }
+                    try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_error) { body = xhr.responseText; }
+                    const requestUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
                     if (xhr.status === 401) {
+                        console.log('NETWORK DEBUG', { status: xhr.status, body, url: requestUrl, method });
                         if (getAuthToken()) redirectToLoginOnAuthFailure();
                         reject(new Error(body?.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.'));
                     } else if (xhr.status >= 200 && xhr.status < 300) {
                         resolve(xhr.status === 204 ? null : body);
                     } else {
-                        reject(new Error(body?.message || 'API sorğusu uğursuz oldu'));
+                        console.log('NETWORK DEBUG', { status: xhr.status, body, url: requestUrl, method });
+                        reject(new Error(body?.message || body?.error || (typeof body === 'string' && body.trim()) || 'API sorğusu uğursuz oldu'));
                     }
                 };
                 xhr.onerror = () => reject(new Error('Şəbəkə xətası baş verdi'));
