@@ -3187,6 +3187,7 @@
             <div id="admin-subtab-user-profile" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="glass-card p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i>Profil</h3>
+                    <div id="profile-phone-warning" class="hidden rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 px-3 py-2 text-xs font-black">⚠ Telefon nömrəsi əlavə edilməyib</div>
                     <div class="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
                         <div class="flex items-center gap-4">
                             <img id="profile-avatar-preview" src="" onclick="openAvatarModal(this.src)" class="w-20 h-20 rounded-full object-cover border-2 border-brand-500/40 cursor-zoom-in bg-white/10" onerror="this.src='https://ui-avatars.com/api/?name=BestHome&background=7F7FFF&color=fff'">
@@ -3770,6 +3771,7 @@ Title: Park Villas
                                 </div>
                                 <div>
                                     <strong id="p-modal-agent-name" class="text-gray-950 block text-sm"></strong>
+                                    <span class="text-[10px] font-black uppercase tracking-wide text-gray-500 block">Əlaqə nömrəsi</span>
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
@@ -4832,8 +4834,113 @@ Title: Park Villas
             return 'bg-emerald-600/90';
         }
 
+        function normalizeAzerbaijanPhone(phone) {
+            const compact = String(phone || '').trim().replace(/[\s()-]/g, '');
+            if (!compact) return '';
+            if (!/^\+?\d+$/.test(compact)) return '';
+            if (/^0\d{9}$/.test(compact)) return `+994${compact.slice(1)}`;
+            if (/^994\d{9}$/.test(compact)) return `+${compact}`;
+            if (/^\+994\d{9}$/.test(compact)) return compact;
+            return '';
+        }
+
         function normalizePhoneForLink(phone) {
-            return String(phone || '').replace(/[^0-9]/g, '');
+            return normalizeAzerbaijanPhone(phone).replace(/[^0-9]/g, '');
+        }
+
+        function userHasContactPhone(user = activeUser) {
+            return Boolean(normalizeAzerbaijanPhone(user?.phone));
+        }
+
+        function syncActiveUserFromApiUser(user) {
+            if (!user) return activeUser;
+            const role = ['admin', 'user'].includes(user.role) ? user.role : (activeUser?.role || 'user');
+            activeUser = {
+                ...activeUser,
+                role,
+                name: user.fullname || user.name || activeUser?.name || '',
+                fullname: user.fullname || user.name || activeUser?.fullname || '',
+                id: user.id || activeUser?.id,
+                email: user.email || activeUser?.email || '',
+                phone: user.phone || '',
+                avatarUrl: user.avatarUrl || user.avatar_url || activeUser?.avatarUrl || '',
+                bio: user.bio || activeUser?.bio || '',
+                provider: user.provider || activeUser?.provider || 'local',
+                createdAt: user.createdAt || user.created_at || activeUser?.createdAt,
+                lastLogin: user.lastLogin || user.last_login || activeUser?.lastLogin,
+            };
+            return activeUser;
+        }
+
+        async function refreshCurrentUser() {
+            const result = await apiRequest('/api/auth/me');
+            if (result?.user) {
+                setAuthSession(getAuthToken(), result.user);
+                syncActiveUserFromApiUser(result.user);
+                updateHeaderUI();
+                populateProfileForm(result.user);
+            }
+            return result?.user || null;
+        }
+
+        function setContactPhoneModalLoading(loading) {
+            const btn = document.getElementById('contact-phone-save-btn');
+            if (btn) {
+                btn.disabled = loading;
+                btn.textContent = loading ? 'Yadda saxlanılır…' : 'Qeyd et və davam et';
+            }
+        }
+
+        function closeContactPhoneModal() {
+            document.getElementById('contact-phone-modal')?.remove();
+        }
+
+        function promptForContactPhone() {
+            closeContactPhoneModal();
+            return new Promise((resolve) => {
+                document.body.insertAdjacentHTML('beforeend', `<div id="contact-phone-modal" class="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="w-full max-w-md rounded-[2rem] bg-white shadow-2xl border border-brand-100 p-6 space-y-5">
+                        <div><h3 class="text-2xl font-black text-slate-950">📞 Əlaqə nömrəsini qeyd edin</h3><p class="mt-2 text-sm font-semibold text-slate-600">Elan yerləşdirmək üçün əlaqə nömrəsi tələb olunur.</p></div>
+                        <label class="block space-y-2"><span class="text-xs font-black uppercase text-slate-600">Telefon nömrəsi</span><input id="contact-phone-input" type="tel" placeholder="050 123 45 67" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-950 font-bold focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-500"></label>
+                        <div id="contact-phone-error" class="hidden rounded-xl bg-red-50 border border-red-100 text-red-700 px-3 py-2 text-xs font-bold"></div>
+                        <div class="grid grid-cols-2 gap-3"><button id="contact-phone-cancel-btn" type="button" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 font-black transition">Ləğv et</button><button id="contact-phone-save-btn" type="button" class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-4 py-3 font-black transition">Qeyd et və davam et</button></div>
+                    </div>
+                </div>`);
+                const input = document.getElementById('contact-phone-input');
+                const error = document.getElementById('contact-phone-error');
+                const finish = (value) => { closeContactPhoneModal(); resolve(value); };
+                document.getElementById('contact-phone-cancel-btn').onclick = () => finish(null);
+                document.getElementById('contact-phone-save-btn').onclick = async () => {
+                    const normalizedPhone = normalizeAzerbaijanPhone(input.value);
+                    if (!normalizedPhone) {
+                        error.textContent = 'Telefon nömrəsi düzgün deyil. Məsələn: 050 123 45 67';
+                        error.classList.remove('hidden');
+                        input.focus();
+                        return;
+                    }
+                    try {
+                        setContactPhoneModalLoading(true);
+                        const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ phone: normalizedPhone }) });
+                        setAuthSession(result.token, result.user);
+                        syncActiveUserFromApiUser(result.user);
+                        await refreshCurrentUser();
+                        finish(normalizedPhone);
+                    } catch (apiError) {
+                        error.textContent = apiError.message || 'Telefon nömrəsi yadda saxlanılmadı.';
+                        error.classList.remove('hidden');
+                    } finally {
+                        setContactPhoneModalLoading(false);
+                    }
+                };
+                input.addEventListener('keydown', (event) => { if (event.key === 'Enter') document.getElementById('contact-phone-save-btn')?.click(); });
+                setTimeout(() => input.focus(), 50);
+            });
+        }
+
+        async function ensureListingContactPhone() {
+            if (userHasContactPhone(activeUser)) return true;
+            const savedPhone = await promptForContactPhone();
+            return Boolean(savedPhone && userHasContactPhone(activeUser));
         }
 
         function firstDefined(...values) {
@@ -4917,6 +5024,7 @@ Title: Park Villas
                 listingCode: firstDefined(l.listingCode, l.listing_code, l.code, ''),
                 ownerName: firstDefined(l.user?.fullname, l.ownerName, l.agentName, ''),
                 ownerAvatar: firstDefined(l.user?.avatarUrl, l.user?.avatar_url, ''),
+                ownerPhone: firstDefined(l.user?.phone, l.ownerPhone, l.agentPhone, ''),
                 ownerId: firstDefined(l.user?.id, l.userId, l.user_id, '')
             };
         }
@@ -7724,6 +7832,7 @@ Title: Park Villas
             event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
             publicListingSubmitting=true; setPublicSubmitLoading(true);
             try {
+                if (!(await ensureListingContactPhone())) return;
                 const regionType=document.getElementById('pl-region-type').value;
                 const city=document.getElementById('pl-city')?.value || '';
                 const district=document.getElementById('pl-district')?.value || '';
@@ -8751,7 +8860,7 @@ Təşəkkür edirəm. 🙏`;
             const authorName = listingUser
                 ? (listingUser.fullname || `${listingUser.name || ''} ${listingUser.surname || ''}`.trim() || 'BestHome Əmlak')
                 : 'BestHome Əmlak';
-            const authorPhone = listingUser?.phone || '';
+            const authorPhone = listingUser?.phone || p.ownerPhone || '';
             const normalizedPhone = normalizePhoneForLink(authorPhone);
             const phoneAvailable = Boolean(normalizedPhone);
 
@@ -9209,7 +9318,7 @@ Təşəkkür edirəm. 🙏`;
         async function handleProfileUpdate(e) {
             e.preventDefault();
             try {
-                const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ fullname: document.getElementById('profile-fullname').value, phone: document.getElementById('profile-phone').value, avatar_url: document.getElementById('profile-avatar').value, bio: document.getElementById('profile-bio').value }) });
+                const result = await apiRequest('/api/auth/me', { method: 'PUT', body: JSON.stringify({ fullname: document.getElementById('profile-fullname').value, phone: normalizeAzerbaijanPhone(document.getElementById('profile-phone').value) || document.getElementById('profile-phone').value, avatar_url: document.getElementById('profile-avatar').value, bio: document.getElementById('profile-bio').value }) });
                 setAuthSession(result.token, result.user);
                 activeUser = { ...activeUser, name: result.user.fullname, fullname: result.user.fullname, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
@@ -9244,6 +9353,7 @@ Təşəkkür edirəm. 🙏`;
             const completion = profileCompletionFor({ ...merged, avatarUrl: avatar });
             if (document.getElementById('profile-completion-label')) document.getElementById('profile-completion-label').textContent = `${completion}%`;
             if (document.getElementById('profile-completion-bar')) document.getElementById('profile-completion-bar').style.width = `${completion}%`;
+            document.getElementById('profile-phone-warning')?.classList.toggle('hidden', userHasContactPhone(merged));
         }
 
         function fillProfileForm() { populateProfileForm(); }
@@ -10971,6 +11081,12 @@ Təşəkkür edirəm. 🙏`;
             const streetAddress = document.getElementById('sb-street-address')?.value.trim() || '';
             const latitude = safeNumber(document.getElementById('sb-latitude')?.value);
             const longitude = safeNumber(document.getElementById('sb-longitude')?.value);
+
+            if (!editId && !(await ensureListingContactPhone())) {
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
+                return;
+            }
 
             if (!floorNumber || floorNumber < 1) {
                 alert('Yerləşdiyi mərtəbə minimum 1 olmalıdır.');

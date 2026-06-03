@@ -13,6 +13,7 @@ const {
   reserveTimestampListingCodeInLockedTransaction,
   isListingCodeCollision,
 } = require('../utils/listingCode');
+const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
 
@@ -36,6 +37,24 @@ function normalizeListingStatus(value, fallback = 'pending') {
   if (['rejected', 'rədd edilib', 'redd edilib'].includes(normalized)) return 'rejected';
   if (['pending', 'gözləmədə', 'gozlemede'].includes(normalized)) return 'pending';
   return fallback;
+}
+
+
+async function ensureListingOwnerPhone(req, res) {
+  const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) }, select: { id: true, phone: true } });
+  const normalizedPhone = normalizeAzerbaijanPhone(user?.phone);
+  if (!normalizedPhone) {
+    res.status(400).json({
+      success: false,
+      code: 'PHONE_REQUIRED',
+      message: 'Elan yerləşdirmək üçün əlaqə nömrəsi tələb olunur.',
+    });
+    return null;
+  }
+  if (user.phone !== normalizedPhone) {
+    await prisma.user.update({ where: { id: user.id }, data: { phone: normalizedPhone } });
+  }
+  return normalizedPhone;
 }
 
 function listingVisibilityWhere(req, baseWhere) {
@@ -777,6 +796,8 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
   { name: 'images', maxCount: Number(process.env.MAX_LISTING_IMAGES || 20) },
 ]), asyncHandler(async (req, res) => {
   try {
+    const ownerPhone = await ensureListingOwnerPhone(req, res);
+    if (!ownerPhone) return;
     const files = listingFiles(req);
     const fileOriginalNames = files.map((file) => file.originalname);
     const fileSummary = summarizeUploadedFiles(files);

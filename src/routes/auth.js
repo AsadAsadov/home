@@ -5,6 +5,7 @@ const prisma = require('../lib/prisma');
 const { authenticate, signToken, tokenExpiresAt } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
 const { sendEmail } = require('../utils/email');
+const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
 
@@ -321,9 +322,11 @@ router.post('/register', authRoute(async (req, res) => {
   if (!(await verifyRecaptcha(req, res))) return;
   const fullname = clean(req.body.fullname ?? req.body.name);
   const email = clean(req.body.email)?.toLowerCase();
-  const phone = clean(req.body.phone);
+  const rawPhone = clean(req.body.phone);
+  const phone = rawPhone ? normalizeAzerbaijanPhone(rawPhone) : undefined;
   const password = clean(req.body.password);
   if (!fullname || !email || !password) return res.status(400).json({ success: false, error: 'fullname, email and password are required.', message: 'fullname, email and password are required.' });
+  if (rawPhone && !phone) return res.status(400).json({ success: false, error: 'Invalid phone number.', message: 'Telefon nömrəsi düzgün deyil.' });
   if (password.length < 6) return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.', message: 'Password must be at least 6 characters.' });
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -599,7 +602,16 @@ router.put('/me', authenticate, authRoute(async (req, res) => {
     avatarUrl: clean(req.body.avatar_url ?? req.body.avatarUrl),
     bio: clean(req.body.bio),
   };
-  if (Object.prototype.hasOwnProperty.call(req.body, 'phone')) data.phone = clean(req.body.phone) ?? null;
+  if (Object.prototype.hasOwnProperty.call(req.body, 'phone')) {
+    const rawPhone = clean(req.body.phone);
+    if (!rawPhone) {
+      data.phone = null;
+    } else {
+      const phone = normalizeAzerbaijanPhone(rawPhone);
+      if (!phone) return res.status(400).json({ success: false, error: 'Invalid phone number.', message: 'Telefon nömrəsi düzgün deyil.' });
+      data.phone = phone;
+    }
+  }
   const compactData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
   const user = await prisma.user.update({ where: { id: Number(req.auth.id) }, data: compactData });
   const token = signToken(tokenPayload(user));
