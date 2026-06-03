@@ -24,6 +24,9 @@ function warnMissingRequiredEnv() {
   for (const name of ['JWT_SECRET', 'DATABASE_URL']) {
     if (!process.env[name]) console.warn(`WARNING: ${name} is missing`);
   }
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    console.warn('WARNING: GOOGLE_CLIENT_ID is missing; Google login and registration buttons will redirect to a server-side configuration error.');
+  }
 }
 
 warnMissingRequiredEnv();
@@ -99,6 +102,31 @@ app.use((err, _req, res, _next) => {
   });
 });
 
+async function ensurePublicUsersAuthColumns() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE public."users"
+        ADD COLUMN IF NOT EXISTS "provider" TEXT NOT NULL DEFAULT 'local',
+        ADD COLUMN IF NOT EXISTS "email_verified" BOOLEAN NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "phone_verified" BOOLEAN NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "is_active" BOOLEAN NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS "last_login" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "last_login_ip" TEXT,
+        ADD COLUMN IF NOT EXISTS "last_login_user_agent" TEXT,
+        ADD COLUMN IF NOT EXISTS "failed_login_attempts" INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS "locked_until" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    `);
+    await prisma.$executeRawUnsafe('ALTER TABLE public."users" ALTER COLUMN "password_hash" DROP NOT NULL');
+  } catch (error) {
+    if (['P2021', 'P2022'].includes(error.code)) {
+      console.warn('Public users auth-column bootstrap skipped until the public.users table exists:', error.message);
+      return;
+    }
+    throw error;
+  }
+}
+
 
 async function ensureSeoIdentifiers() {
   try {
@@ -146,7 +174,8 @@ async function ensureDefaultAdmin() {
   });
 }
 
-Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()])
+ensurePublicUsersAuthColumns()
+  .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
   })
