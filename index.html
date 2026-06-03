@@ -330,6 +330,7 @@
         .listing-detail-section,
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
+        :root { --mobile-bottom-nav-height: 80px; --mobile-modal-gap: 12px; }
         .listing-detail-shell { max-height: 90vh; height: auto; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
         .listing-detail-main-image img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -1722,15 +1723,61 @@
                 min-height: 200px;
             }
         }
-        @media (max-width: 767.98px) {
+        @media (max-width: 768px) {
+            #property-detail-modal,
+            #project-detail-modal-official,
+            #media-modal,
+            #property-lightbox {
+                bottom: calc(var(--mobile-bottom-nav-height) + var(--mobile-modal-gap));
+                height: calc(100dvh - (var(--mobile-bottom-nav-height) + var(--mobile-modal-gap)));
+                padding-bottom: 0;
+            }
             #property-detail-modal { padding: 0; align-items: stretch; justify-content: stretch; }
             .listing-detail-shell {
                 width: 100vw;
-                height: 100dvh;
-                max-height: 100dvh;
+                height: calc(100dvh - (var(--mobile-bottom-nav-height) + var(--mobile-modal-gap)));
+                max-height: calc(100dvh - 90px);
                 border-radius: 0;
             }
-            .listing-detail-scroll { height: 100%; max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
+            .listing-detail-scroll {
+                height: 100%;
+                max-height: 100%;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: calc(var(--mobile-bottom-nav-height) + 16px);
+            }
+            #project-detail-modal-official > .glass-card,
+            #media-modal > div {
+                width: 100%;
+                max-height: calc(100dvh - 90px);
+                height: 100%;
+                margin-bottom: 0;
+            }
+            #project-detail-modal-official > .glass-card > .overflow-y-auto,
+            #media-modal > div > aside {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: calc(var(--mobile-bottom-nav-height) + 16px);
+            }
+            #media-modal > div > .relative.bg-gray-100 {
+                flex: 0 0 auto;
+                min-height: min(280px, 42dvh);
+            }
+            .property-lightbox__panel {
+                height: calc(100dvh - (var(--mobile-bottom-nav-height) + var(--mobile-modal-gap)));
+                max-height: calc(100dvh - 90px);
+            }
+            .property-lightbox__stage {
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: calc(var(--mobile-bottom-nav-height) + 16px);
+            }
+            .property-lightbox__thumbs {
+                bottom: max(.45rem, env(safe-area-inset-bottom));
+            }
+            .listing-detail-scroll { scrollbar-width: thin; }
             .listing-detail-content { padding: .85rem; gap: .75rem; }
             .listing-detail-header { gap: .42rem; padding-right: 2.6rem; }
             .listing-detail-gallery-card { padding: .75rem !important; gap: .65rem; border-radius: 1.4rem; }
@@ -5928,7 +5975,13 @@ Title: Park Villas
             }).addTo(map);
         }
 
+        function updateMobileModalMetrics() {
+            const bottomNavHeight = document.querySelector('.mobile-bottom-nav')?.offsetHeight || 80;
+            document.documentElement.style.setProperty('--mobile-bottom-nav-height', `${bottomNavHeight}px`);
+        }
+
         function setModalOpenState(isOpen) {
+            updateMobileModalMetrics();
             document.body.classList.toggle('modal-open', Boolean(isOpen));
             document.documentElement.style.overflow = isOpen ? 'hidden' : '';
             document.body.style.overflow = isOpen ? 'hidden' : '';
@@ -5940,7 +5993,13 @@ Title: Park Villas
         }
 
         function syncModalOpenState() {
-            setModalOpenState(isElementVisibleById('property-detail-modal') || isElementVisibleById('fullscreen-map-modal'));
+            setModalOpenState(
+                isElementVisibleById('property-detail-modal') ||
+                isElementVisibleById('project-detail-modal-official') ||
+                isElementVisibleById('media-modal') ||
+                isElementVisibleById('property-lightbox') ||
+                isElementVisibleById('fullscreen-map-modal')
+            );
         }
 
         let fullscreenMapCloseCleanup = null;
@@ -6999,6 +7058,7 @@ Təşəkkür edirəm. 🙏`;
 
             switchOfficialModalTab('details');
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
+            setModalOpenState(true);
         }
 
 
@@ -7079,6 +7139,7 @@ Təşəkkür edirəm. 🙏`;
 
         function closeOfficialProjectModal() {
             document.getElementById('project-detail-modal-official').classList.add('hidden');
+            syncModalOpenState();
             if (window.location.pathname.startsWith('/project/')) {
                 history.pushState({ tabId: 'seabreeze' }, '', '/projects');
                 updateSeo({ title: 'Layihələr', path: '/projects' });
@@ -10333,6 +10394,7 @@ Təşəkkür edirəm. 🙏`;
             if (selected) updateSeo({ title: selected.title || (selected.type === 'video' ? 'Video' : 'Qalereya'), description: selected.desc || DEFAULT_SEO_DESCRIPTION, path: galleryPath(selected), image: selected.thumbnail || selected.images?.[0] || '', type: 'article' });
             renderModalMedia();
             document.getElementById('media-modal').classList.remove('hidden');
+            setModalOpenState(true);
         }
 
         function selectModalMedia(index) {
@@ -10374,6 +10436,7 @@ Təşəkkür edirəm. 🙏`;
             lightboxScale = 1;
             renderModalMedia();
             document.getElementById('media-modal').classList.remove('hidden');
+            setModalOpenState(true);
         }
 
         function openProjectLightboxFromModal() {
@@ -10389,6 +10452,7 @@ Təşəkkür edirəm. 🙏`;
             activeModalMediaIndex = 0;
             renderModalMedia();
             document.getElementById('media-modal').classList.remove('hidden');
+            setModalOpenState(true);
         }
 
         function closeModal() {
@@ -10399,6 +10463,7 @@ Təşəkkür edirəm. 🙏`;
             }
             document.getElementById('modal-content').innerHTML = '';
             document.getElementById('modal-thumbnails').innerHTML = '';
+            syncModalOpenState();
         }
 
         function getCvDisplayName(fileName = '') {
@@ -10721,9 +10786,14 @@ Təşəkkür edirəm. 🙏`;
         }
 
         // MAIN SETUP AND BOOTSTRAP
-        window.addEventListener('resize', renderDesktopAds);
+        window.addEventListener('resize', () => {
+            renderDesktopAds();
+            updateMobileModalMetrics();
+            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+        });
 
         window.addEventListener('load', async () => {
+            updateMobileModalMetrics();
                         renderProjectImageInputs(['']);
             await initializeAuth();
             await hydrateFromDatabase();
