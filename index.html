@@ -1847,27 +1847,35 @@
         @media (max-width: 767.98px) { .listing-info-row { font-size: 11px; gap: .3rem .45rem; } }
         .credit-badge { background: #dc2626; color: #ffffff; font-weight: 600; box-shadow: 0 12px 28px rgba(220,38,38,.28); letter-spacing: .12em; }
         .credit-info-panel { background: linear-gradient(135deg, rgba(254,242,242,.96), rgba(255,255,255,.98)); border: 1px solid rgba(248,113,113,.28); }
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) {
             .site-header-inner {
-                display: grid !important;
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto;
-                justify-items: center;
-                align-content: center;
-                gap: .25rem;
-                min-height: 6.75rem;
-                height: auto !important;
-                padding: .45rem 0 .55rem;
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                gap: .75rem;
+                min-height: 76px;
+                height: 76px !important;
+                padding: 0;
+                flex-wrap: nowrap;
             }
             .header-logo-wrap {
-                justify-content: center;
-                width: 100%;
+                justify-content: flex-start;
+                flex: 0 1 auto;
+                min-width: 0;
+                max-width: calc(100vw - 190px);
             }
             .site-logo {
-                height: 58px;
+                height: 56px;
+                max-height: 60px;
+                width: auto;
+                max-width: 100%;
+                object-fit: contain;
             }
             .header-mobile-actions {
-                min-height: 44px;
+                min-height: 42px;
+                gap: .4rem;
+                flex: 0 0 auto;
+                flex-wrap: nowrap;
             }
             .header-mobile-actions > button,
             #mobile-user-status-icon > button,
@@ -1878,7 +1886,7 @@
                 align-items: center;
                 justify-content: center;
             }
-            main.flex-grow { padding-top: 8.25rem !important; }
+            main.flex-grow { padding-top: 5.5rem !important; }
             .listing-detail-main-image {
                 min-height: 220px;
                 aspect-ratio: 4 / 3;
@@ -1922,12 +1930,12 @@
                 <!-- Mobile Menu Button -->
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
-                    <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
-                        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
-                    </button>
                     <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn" aria-label="WhatsApp ilə əlaqə saxla">
                         <i class="fa-brands fa-whatsapp"></i>
                     </a>
+                    <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
+                        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+                    </button>
                 </div>
             </div>
         </div>
