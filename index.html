@@ -2697,9 +2697,20 @@
         .notification-panel--full { left: 50% !important; right: auto !important; top: 96px !important; transform: translateX(-50%); width: min(720px, calc(100vw - 28px)); max-height: calc(100dvh - 124px); }
         .notification-full-backdrop { position: fixed; inset: 0; z-index: 79; background: rgba(15,23,42,.28); backdrop-filter: blur(3px); }
         .notification-inline-error { margin: 8px 4px 0; border-radius: 14px; background: #fef2f2; color:#b91c1c; padding: 8px 10px; font-size: 12px; font-weight: 800; }
-        .notification-item { display:block; width:100%; text-align:left; border-radius: 18px; padding: 12px; border: 1px solid transparent; color:#0f172a; }
+        .notification-item { display:block; width:100%; text-align:left; border-radius: 20px; padding: 12px; border: 1px solid transparent; color:#0f172a; }
         .notification-item:hover { background:#f8fafc; border-color:#e2e8f0; }
         .notification-item.is-unread { background:#eef2ff; border-color:#c7d2fe; }
+        .notification-media { position: relative; overflow: hidden; border-radius: 16px; margin-bottom: 10px; background: linear-gradient(135deg, #0f172a, #1e293b); aspect-ratio: 16 / 9; }
+        .notification-media img, .notification-media video, .notification-video-frame { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
+        .notification-media__play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background: linear-gradient(180deg, rgba(15,23,42,.08), rgba(15,23,42,.42)); color:#fff; font-size: 42px; text-shadow: 0 10px 25px rgba(0,0,0,.38); }
+        .notification-action-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+        .notification-detail-link { color:#4f46e5; font-size:11px; font-weight:900; }
+        .notification-video-modal { position: fixed; inset: 0; z-index: 120; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(2,6,23,.78); backdrop-filter: blur(4px); }
+        .notification-video-modal__card { width:min(960px, 100%); background:#020617; border:1px solid rgba(255,255,255,.14); border-radius:24px; padding:14px; box-shadow:0 35px 90px rgba(0,0,0,.45); }
+        .notification-video-modal__head { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#fff; padding:2px 4px 12px; }
+        .notification-video-modal__close { width:34px; height:34px; border-radius:999px; background:rgba(255,255,255,.12); font-size:22px; line-height:1; }
+        .notification-video-modal__body { aspect-ratio:16/9; border-radius:18px; overflow:hidden; background:#000; }
+        .notification-video-modal__body iframe, .notification-video-modal__body video { width:100%; height:100%; display:block; border:0; }
         .messages-shell { min-height: 640px; display:grid; grid-template-columns: minmax(240px, 340px) minmax(0,1fr); overflow:hidden; }
         .conversation-list { border-right:1px solid #e2e8f0; background:#f8fafc; overflow:auto; }
         .conversation-item { width:100%; display:flex; gap:10px; align-items:center; text-align:left; padding:14px; border-bottom:1px solid #e2e8f0; color:#0f172a; }
@@ -2717,7 +2728,7 @@
         .message-status.is-read { color:#16a34a; }
         .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
         .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
-        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } .notification-video-modal{ padding:0; align-items:stretch; } .notification-video-modal__card{ width:100%; min-height:100dvh; border-radius:0; display:flex; flex-direction:column; justify-content:center; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -3818,9 +3829,11 @@ Title: Park Villas
                         <p class="text-xs text-gray-400 mt-1">Bütün aktiv qeydiyyatlı istifadəçilərə sistem tipli in-app bildiriş göndərilir.</p>
                     </div>
                     <form onsubmit="handleSendBroadcastNotification(event)" class="space-y-3">
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Title</span><input type="text" id="broadcast-title" required maxlength="120" placeholder="Yeni bildiriş" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Message</span><textarea id="broadcast-message" required maxlength="1000" rows="7" placeholder="Sayta yeni funksiya əlavə olundu" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Optional internal link</span><input type="text" id="broadcast-link" placeholder="/gallery" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</span><input type="text" id="broadcast-title" required maxlength="120" placeholder="Sea Breeze-də yeni video" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Mesaj</span><textarea id="broadcast-message" required maxlength="1000" rows="5" placeholder="Prezidentin səfəri haqqında yeni video əlavə olundu." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Link</span><input type="text" id="broadcast-link" placeholder="/gallery və ya https://example.com" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Şəkil URL</span><input type="url" id="broadcast-image-url" placeholder="https://example.com/thumb.jpg" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Video URL</span><input type="url" id="broadcast-video-url" placeholder="https://youtube.com/watch?v=xxxx" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                         <button type="submit" id="broadcast-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Göndər</button>
                     </form>
                 </div>
@@ -3831,7 +3844,7 @@ Title: Park Villas
                         <div class="rounded-2xl bg-red-500/10 border border-red-500/20 p-4"><span class="block text-[10px] text-red-300 uppercase font-bold">Failed</span><strong id="broadcast-failed-count" class="text-2xl text-red-200">0</strong></div>
                     </div>
                     <div id="broadcast-result" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200"></div>
-                    <p class="text-xs text-gray-400">Link yalnız daxili path olmalıdır: /gallery, /projects, /profile və digər saytdaxili ünvanlar.</p>
+                    <p class="text-xs text-gray-400">Link /gallery, /projects, /listings və ya http(s) URL ola bilər. Video üçün YouTube, Vimeo və birbaşa MP4 dəstəklənir.</p>
                 </div>
             </div>
 
@@ -8481,19 +8494,125 @@ Title: Park Villas
             } catch (error) { renderNotificationsPanel({ full: true, error: error.message || 'Bildirişlər yüklənmədi.' }); }
         }
 
-        function renderNotificationItem(item) {
-            return `<button class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${item.id}', '${escapeHtml(item.link || '')}')"><div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="text-[10px] font-bold text-slate-400 mt-2">${formatAzDateTime(item.createdAt)}</div></button>`;
+        function safeNotificationArg(value) {
+            return encodeURIComponent(String(value || ''));
         }
 
-        function openNotification(id, link) {
+        function decodeNotificationArg(value) {
+            try { return decodeURIComponent(String(value || '')); } catch (_error) { return String(value || ''); }
+        }
+
+        function getVideoProvider(url) {
+            try {
+                const parsed = new URL(url);
+                const host = parsed.hostname.toLowerCase();
+                if (host.includes('youtu.be') || host.includes('youtube.com')) return 'youtube';
+                if (host.includes('vimeo.com')) return 'vimeo';
+                if (parsed.pathname.toLowerCase().endsWith('.mp4')) return 'mp4';
+            } catch (_error) {}
+            return '';
+        }
+
+        function youtubeVideoId(url) {
+            try {
+                const parsed = new URL(url);
+                if (parsed.hostname.toLowerCase().includes('youtu.be')) return parsed.pathname.split('/').filter(Boolean)[0] || '';
+                if (parsed.searchParams.get('v')) return parsed.searchParams.get('v');
+                const parts = parsed.pathname.split('/').filter(Boolean);
+                const marker = parts.findIndex(part => ['embed', 'shorts'].includes(part));
+                return marker > -1 ? (parts[marker + 1] || '') : '';
+            } catch (_error) { return ''; }
+        }
+
+        function notificationVideoEmbedUrl(url) {
+            const provider = getVideoProvider(url);
+            if (provider === 'youtube') {
+                const id = youtubeVideoId(url);
+                return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0` : '';
+            }
+            if (provider === 'vimeo') {
+                try {
+                    const parsed = new URL(url);
+                    const id = parsed.pathname.split('/').filter(Boolean).pop();
+                    return id ? `https://player.vimeo.com/video/${encodeURIComponent(id)}?autoplay=1` : '';
+                } catch (_error) { return ''; }
+            }
+            return url;
+        }
+
+        function notificationVideoThumb(item) {
+            if (item.imageUrl) return item.imageUrl;
+            if (getVideoProvider(item.videoUrl) === 'youtube') {
+                const id = youtubeVideoId(item.videoUrl);
+                if (id) return `https://img.youtube.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
+            }
+            return '';
+        }
+
+        function renderNotificationMedia(item) {
+            if (item.videoUrl) {
+                const thumb = notificationVideoThumb(item);
+                const media = thumb
+                    ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title || 'Video')}" loading="lazy">`
+                    : `<div class="notification-video-frame flex items-center justify-center text-white font-black text-sm">Video</div>`;
+                return `<div class="notification-media" onclick="event.stopPropagation(); openNotificationVideo('${safeNotificationArg(item.id)}')">${media}<div class="notification-media__play"><i class="fa-solid fa-circle-play"></i></div></div>`;
+            }
+            if (item.imageUrl) return `<div class="notification-media"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title || 'Bildiriş')}" loading="lazy"></div>`;
+            return '';
+        }
+
+        function renderNotificationItem(item) {
+            const detail = item.link ? `<button type="button" class="notification-detail-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', 'link')">Ətraflı bax</button>` : '<span></span>';
+            return `<div role="button" tabindex="0" class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', '${item.videoUrl ? 'video' : 'link'}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click();}">${renderNotificationMedia(item)}<div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="notification-action-row">${detail}<div class="text-[10px] font-bold text-slate-400">${formatAzDateTime(item.createdAt)}</div></div></div>`;
+        }
+
+        function closeNotificationVideo() {
+            document.getElementById('notification-video-modal')?.remove();
+        }
+
+        function openNotificationVideo(id) {
+            id = decodeNotificationArg(id);
+            const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
+            if (!item?.videoUrl) return;
+            markNotificationReadLocal(id);
+            const provider = getVideoProvider(item.videoUrl);
+            const src = notificationVideoEmbedUrl(item.videoUrl);
+            const player = provider === 'mp4'
+                ? `<video src="${escapeHtml(src)}" controls autoplay playsinline></video>`
+                : `<iframe src="${escapeHtml(src)}" title="${escapeHtml(item.title || 'Video')}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+            closeNotificationVideo();
+            document.body.insertAdjacentHTML('beforeend', `<div id="notification-video-modal" class="notification-video-modal" onclick="if(event.target.id==='notification-video-modal') closeNotificationVideo()"><div class="notification-video-modal__card"><div class="notification-video-modal__head"><strong>${escapeHtml(item.title || 'Video')}</strong><button class="notification-video-modal__close" onclick="closeNotificationVideo()" aria-label="Bağla">×</button></div><div class="notification-video-modal__body">${player}</div></div></div>`);
+            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => showToast('Bildiriş oxundu kimi işarələnmədi.'));
+        }
+
+        function markNotificationReadLocal(id) {
+            id = decodeNotificationArg(id);
             const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
             const wasUnread = item && !item.isRead;
             if (item) item.isRead = true;
             if (wasUnread) messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
             refreshHeaderBadges();
+            writeMessagingCache();
+            return { item, wasUnread };
+        }
+
+        function openNotification(id, link, action = 'link') {
+            id = decodeNotificationArg(id);
+            link = decodeNotificationArg(link);
+            const { item, wasUnread } = markNotificationReadLocal(id);
             closeNotificationsPanel();
-            if (link) spaNavigate(link.replace(window.location.origin, ''));
+            if (action === 'video' && item?.videoUrl) openNotificationVideo(id);
+            else if (link) openNotificationLink(link);
             apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => { if (item) item.isRead = false; if (wasUnread) messagingState.notificationsUnread += 1; refreshHeaderBadges(); showToast('Bildiriş oxundu kimi işarələnmədi.'); });
+        }
+
+        function openNotificationLink(link) {
+            link = decodeNotificationArg(link);
+            if (/^https?:\/\//i.test(link)) {
+                window.open(link, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            spaNavigate(link.replace(window.location.origin, ''));
         }
 
         async function markAllNotificationsRead() {
@@ -12220,16 +12339,35 @@ Təşəkkür edirəm. 🙏`;
             btn.innerHTML = isLoading ? '<span class="button-spinner"></span><span>Göndərilir…</span>' : 'Göndər';
         }
 
+        function isAllowedBroadcastLink(link) {
+            if (/^https?:\/\//i.test(link)) return true;
+            if (!link.startsWith('/') || link.startsWith('//') || /^(mailto:|tel:|javascript:)/i.test(link)) return false;
+            const pathOnly = link.split(/[?#]/)[0].replace(/\/$/, '') || '/';
+            return ['/gallery', '/projects', '/listings'].includes(pathOnly);
+        }
+
+        function isAllowedBroadcastVideoUrl(videoUrl) {
+            try {
+                const parsed = new URL(videoUrl);
+                const host = parsed.hostname.toLowerCase();
+                return ['http:', 'https:'].includes(parsed.protocol) && (host.includes('youtube.com') || host.includes('youtu.be') || host.includes('vimeo.com') || parsed.pathname.toLowerCase().endsWith('.mp4'));
+            } catch (_error) { return false; }
+        }
+
         async function handleSendBroadcastNotification(e) {
             e.preventDefault();
             if (isBroadcastSubmitting) return;
             const title = document.getElementById('broadcast-title')?.value.trim() || '';
             const message = document.getElementById('broadcast-message')?.value.trim() || '';
             const link = document.getElementById('broadcast-link')?.value.trim() || '';
-            if (!title || !message) return alert('Title və message tələb olunur.');
-            if (title.length > 120) return alert('Title maksimum 120 simvol olmalıdır.');
-            if (message.length > 1000) return alert('Message maksimum 1000 simvol olmalıdır.');
-            if (link && (!link.startsWith('/') || link.startsWith('//') || /^(https?:|mailto:|tel:|javascript:)/i.test(link))) return alert('Link yalnız daxili path ola bilər. Məsələn: /gallery');
+            const imageUrl = document.getElementById('broadcast-image-url')?.value.trim() || '';
+            const videoUrl = document.getElementById('broadcast-video-url')?.value.trim() || '';
+            if (!title || !message) return alert('Başlıq və mesaj tələb olunur.');
+            if (title.length > 120) return alert('Başlıq maksimum 120 simvol olmalıdır.');
+            if (message.length > 1000) return alert('Mesaj maksimum 1000 simvol olmalıdır.');
+            if (link && !isAllowedBroadcastLink(link)) return alert('Link /gallery, /projects, /listings və ya http(s) URL olmalıdır.');
+            if (imageUrl && !/^https?:\/\//i.test(imageUrl)) return alert('Şəkil URL http(s) formatında olmalıdır.');
+            if (videoUrl && !isAllowedBroadcastVideoUrl(videoUrl)) return alert('Video URL YouTube, Vimeo və ya birbaşa MP4 linki olmalıdır.');
             if (!confirm('Bu bildiriş bütün qeydiyyatlı istifadəçilərə göndəriləcək. Davam edilsin?')) return;
             isBroadcastSubmitting = true;
             setBroadcastButtonLoading(true);
@@ -12238,7 +12376,7 @@ Təşəkkür edirəm. 🙏`;
             try {
                 const result = await apiRequest('/api/admin/notifications/broadcast', {
                     method: 'POST',
-                    body: JSON.stringify({ title, message, link: link || null })
+                    body: JSON.stringify({ title, message, link: link || null, imageUrl: imageUrl || null, videoUrl: videoUrl || null })
                 });
                 document.getElementById('broadcast-total-users').textContent = String(result.totalUsers || 0);
                 document.getElementById('broadcast-created-count').textContent = String(result.createdCount || 0);
@@ -13457,7 +13595,7 @@ Təşəkkür edirəm. 🙏`;
             if (userListingsMatch) { await renderPublicProfile(userListingsMatch[1], true); return; }
             const userMatch = path.match(/^\/user\/(\d+)\/?$/);
             if (userMatch) { await renderPublicProfile(userMatch[1], false); return; }
-            if (path === '/elanlar') {
+            if (path === '/elanlar' || path === '/listings') {
                 switchTab('listings', { skipPush: true });
                 applyListingsRouteFilters();
                 if (homepageHydration.listings) renderSeaBreeze();
