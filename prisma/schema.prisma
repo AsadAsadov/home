@@ -150,6 +150,9 @@ model Notification {
   link      String?  @db.Text
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "idx_notifications_user_id")
+  @@index([createdAt], map: "idx_notifications_created_at")
+  @@index([isRead], map: "idx_notifications_is_read")
   @@index([userId, isRead, createdAt], map: "idx_notifications_user_read_created")
   @@index([type], map: "idx_notifications_type")
   @@map("notifications")
@@ -165,6 +168,7 @@ model Conversation {
   messages     Message[]
 
   @@index([listingId], map: "idx_conversations_listing_id")
+  @@index([createdAt], map: "idx_conversations_created_at")
   @@index([updatedAt], map: "idx_conversations_updated_at")
   @@map("conversations")
 }
@@ -177,6 +181,7 @@ model Participant {
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId], map: "participants_conversation_user_unique")
+  @@index([conversationId], map: "idx_participants_conversation_id")
   @@index([userId], map: "idx_participants_user_id")
   @@map("participants")
 }
@@ -195,6 +200,9 @@ model Message {
   sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
+  @@index([conversationId], map: "idx_messages_conversation_id")
+  @@index([createdAt], map: "idx_messages_created_at")
+  @@index([isRead], map: "idx_messages_is_read")
   @@index([conversationId, createdAt], map: "idx_messages_conversation_created")
   @@index([receiverId, isRead], map: "idx_messages_receiver_read")
   @@index([senderId], map: "idx_messages_sender_id")

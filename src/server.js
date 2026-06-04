@@ -203,6 +203,26 @@ async function ensureSeoIdentifiers() {
   }
 }
 
+
+async function logMessagingTableHealth() {
+  const tables = ['notifications', 'conversations', 'participants', 'messages'];
+  await Promise.all(tables.map(async (table) => {
+    try {
+      const result = await prisma.$queryRawUnsafe(
+        'SELECT to_regclass($1) IS NOT NULL AS "exists"',
+        `public."${table}"`,
+      );
+      if (result?.[0]?.exists) {
+        console.log(`[db] ${table} OK`);
+        return;
+      }
+      console.warn(`[db] missing table ${table}`);
+    } catch (error) {
+      console.warn(`[db] missing table ${table}`, error.message);
+    }
+  }));
+}
+
 async function ensureDefaultAdmin() {
   const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@besthome.az';
   const password = process.env.DEFAULT_ADMIN_PASSWORD || 'Admin12345';
@@ -218,7 +238,8 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-ensurePublicUsersAuthColumns()
+logMessagingTableHealth()
+  .then(() => ensurePublicUsersAuthColumns())
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
