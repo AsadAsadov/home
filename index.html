@@ -1306,20 +1306,30 @@
         .gallery-media.is-loaded {
             opacity: 1;
         }
+        .featured-video-section-inner {
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
         .featured-video-card {
-            border-radius: 16px;
-            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
-            height: 300px;
+            border-radius: 18px;
+            box-shadow: 0 22px 56px rgba(15, 23, 42, 0.14);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            border: 1px solid rgba(226, 232, 240, 0.95);
         }
         .featured-video-thumb {
-            flex: 1 1 auto;
-            min-height: 0;
+            height: 280px;
+            flex: 0 0 auto;
+        }
+        .gallery-media-contain {
+            object-fit: contain !important;
+            object-position: center !important;
         }
         .featured-video-play {
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.2);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
         }
         .featured-video-card:hover .featured-video-play {
             transform: translate(-50%, -50%) scale(1.06);
@@ -1345,10 +1355,10 @@
             .media-detail-close:hover { background: rgba(241,245,249,0.98); transform: scale(1.05); }
         }
         @media (max-width: 1023px) {
-            .featured-video-card { height: 260px; }
+            .featured-video-thumb { height: 240px; }
         }
         @media (max-width: 640px) {
-            .featured-video-card { height: 220px; }
+            .featured-video-thumb { height: 200px; }
             .media-detail-close { width: 44px; height: 44px; top: max(12px, env(safe-area-inset-top)); right: 12px; }
         }
         .gallery-detail-title {
@@ -3744,7 +3754,7 @@ Title: Park Villas
                             <input type="file" id="g-video-file" accept="video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300">
                             <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-200">
                                 <input type="checkbox" id="g-is-featured" class="w-4 h-4 rounded border-white/20 bg-slate-900">
-                                <span>Hero video kimi göstər</span>
+                                <span>⭐ Hero Video</span>
                             </label>
                         </div>
 
@@ -9083,7 +9093,8 @@ Təşəkkür edirəm. 🙏`;
         let featuredVideoIndex = 0;
 
         function featuredVideos() {
-            return orderedGalleryItems().filter(item => item?.type === 'video' && item.isFeatured === true);
+            const hero = orderedGalleryItems().find(item => item?.type === 'video' && item.isFeatured === true);
+            return hero ? [hero] : [];
         }
 
         function galleryItemMediaCount(item) {
@@ -9157,25 +9168,21 @@ Təşəkkür edirəm. 🙏`;
             featuredVideoIndex = Math.max(0, Math.min(featuredVideoIndex, videos.length - 1));
             const featuredVideo = videos[featuredVideoIndex];
             const thumb = featuredVideo.thumbnail || getYouTubeThumbnail(featuredVideo.url) || getVimeoThumbnail(featuredVideo.url) || 'https://placehold.co/1200x675/111827/ffffff?text=Video';
-            const controls = videos.length > 1 ? `
-                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(-1)" class="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Əvvəlki seçilmiş video"><i class="fa-solid fa-chevron-left"></i></button>
-                <button type="button" onclick="event.stopPropagation(); changeFeaturedVideo(1)" class="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/90 hover:bg-white text-slate-950 shadow-xl flex items-center justify-center transition" aria-label="Növbəti seçilmiş video"><i class="fa-solid fa-chevron-right"></i></button>
-                <div class="absolute right-3 bottom-3 md:right-4 md:bottom-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-black text-slate-800 shadow-lg">${featuredVideoIndex + 1} / ${videos.length}</div>
-            ` : '';
             section.innerHTML = `
-                <article onclick="openFeaturedVideoModal(${featuredVideoIndex})" class="featured-video-card group cursor-pointer bg-white border border-gray-100">
-                    <div class="featured-video-thumb media-shell bg-gray-100 media-skeleton relative overflow-hidden">
-                        <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(featuredVideo.title || 'Video')}" loading="eager" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover transition duration-500 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-black/10"></div>
-                        <div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-xl md:text-2xl transition duration-300">
-                            <i class="fa-solid fa-play ml-1"></i>
+                <div class="featured-video-section-inner">
+                    <article onclick="openFeaturedVideoModal(${featuredVideoIndex})" class="featured-video-card group cursor-pointer bg-white">
+                        <div class="featured-video-thumb media-shell bg-gray-100 media-skeleton relative overflow-hidden">
+                            <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(featuredVideo.title || 'Video')}" loading="eager" decoding="async" onload="markMediaLoaded(this)" class="gallery-media gallery-media-contain w-full h-full transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/5"></div>
+                            <div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-2xl md:text-3xl transition duration-300">
+                                <i class="fa-solid fa-play ml-1"></i>
+                            </div>
                         </div>
-                        ${controls}
-                    </div>
-                    <div class="px-4 py-3 md:px-5 md:py-4">
-                        <h3 class="text-base md:text-lg font-black text-gray-950 leading-snug line-clamp-2">${escapeHtml(featuredVideo.title || 'Video')}</h3>
-                    </div>
-                </article>
+                        <div class="px-4 py-3 md:px-5 md:py-4">
+                            <h3 class="text-base md:text-lg font-black text-gray-950 leading-snug">${escapeHtml(featuredVideo.title || 'Video')}</h3>
+                        </div>
+                    </article>
+                </div>
             `;
         }
 
@@ -9223,9 +9230,9 @@ Təşəkkür edirəm. 🙏`;
                     grid.insertAdjacentHTML('beforeend', `
                         <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64 sm:h-72 md:h-80 rounded-[18px] overflow-hidden">
                             <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden relative">
-                                <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
+                                <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media gallery-media-contain w-full h-full transition duration-500">
                             </div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-90"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-90"></div>
                             <div class="absolute top-3 left-3 md:top-4 md:left-4 w-10 h-10 rounded-full bg-white/90 text-slate-950 flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div>
                             ${item.duration ? `<div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/55 text-white rounded-full px-2.5 py-1 text-xs font-bold">${escapeHtml(item.duration)}</div>` : ''}
                         </article>
@@ -11293,14 +11300,13 @@ Təşəkkür edirəm. 🙏`;
                                 <i class="fa-solid fa-grip-vertical"></i>
                             </button>
                             <div class="w-24 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 shadow-sm">
-                                <img src="${escapeHtml(thumb)}" alt="${escapeHtml(g.title)}" class="w-full h-full object-cover object-center">
+                                <img src="${escapeHtml(thumb)}" alt="${escapeHtml(g.title)}" class="w-full h-full object-contain object-center bg-slate-100">
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-black text-white truncate">${escapeHtml(g.title)}</span>
                                     <span class="rounded-full bg-white/10 text-gray-300 px-2 py-0.5 text-[10px] font-bold">${g.type === 'event' ? 'Qalereya' : 'Video'}</span>
                                     <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
-                                    ${g.type === 'video' && g.isFeatured ? '<span class="rounded-full bg-amber-500/15 text-amber-200 px-2 py-0.5 text-[10px] font-bold">Hero</span>' : ''}
                                 </div>
                                 <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">${escapeHtml(g.desc || 'Açıqlama yoxdur')}</p>
                             </div>
@@ -11904,7 +11910,11 @@ Təşəkkür edirəm. 🙏`;
                     ? await apiRequest(`/api/gallery/${editId}`, 'PUT', formData)
                     : await apiRequest('/api/gallery', 'POST', formData);
                 const savedUi = dbGalleryToUi(saved);
-                const list = [...appData.gallery];
+                const list = [...appData.gallery].map(item => (
+                    savedUi.type === 'video' && savedUi.isFeatured && item.type === 'video'
+                        ? { ...item, isFeatured: false }
+                        : item
+                ));
                 const idx = list.findIndex(x => String(x.id) === String(editId));
                 if (idx > -1) list[idx] = savedUi;
                 else list.unshift(savedUi);
