@@ -2644,6 +2644,9 @@
         .listing-info-row__divider { color: #cbd5e1; }
         .media-card { border-radius: 1rem; overflow: hidden; border: 1px solid rgba(226,232,240,.9); background: #fff; box-shadow: 0 14px 32px rgba(15,23,42,.08); transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
         .media-card:hover { transform: translateY(-4px); border-color: rgba(127,127,255,.34); box-shadow: 0 24px 48px rgba(15,23,42,.14); }
+        .gallery-card-media { position: relative; overflow: hidden; border-radius: 18px; background: linear-gradient(135deg, #111827, #1f2937 54%, #020617); }
+        .gallery-card-media.media-skeleton { background: linear-gradient(90deg, #111827 25%, #1f2937 37%, #111827 63%); background-size: 400% 100%; }
+        .gallery-card-media img, .gallery-card-media video { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain !important; object-position: center !important; display: block; }
         .media-card__thumb, .gallery-media, .admin-media-card img, .admin-media-card video { object-fit: cover; object-position: center; }
         .admin-media-card { min-height: 112px; }
         .admin-media-drag-handle { touch-action: none; cursor: grab; }
@@ -2728,8 +2731,10 @@
         .notification-media { position: relative; overflow: hidden; border-radius: 16px; margin-bottom: 10px; background: linear-gradient(135deg, #0f172a, #1e293b); aspect-ratio: 16 / 9; }
         .notification-media img, .notification-media video, .notification-video-frame { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
         .notification-media__play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background: linear-gradient(180deg, rgba(15,23,42,.08), rgba(15,23,42,.42)); color:#fff; font-size: 42px; text-shadow: 0 10px 25px rgba(0,0,0,.38); }
-        .notification-action-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+        .notification-action-row { display:flex; align-items:center; justify-content:flex-start; gap:10px; margin-top:10px; flex-wrap:wrap; }
+        .notification-action-row__date { margin-left:auto; }
         .notification-detail-link { color:#4f46e5; font-size:11px; font-weight:900; }
+        .notification-video-link { color:#fff; background:#4f46e5; border-radius:999px; padding:6px 10px; font-size:11px; font-weight:900; box-shadow:0 10px 20px rgba(79,70,229,.22); }
         .notification-video-modal { position: fixed; inset: 0; z-index: 120; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(2,6,23,.78); backdrop-filter: blur(4px); }
         .notification-video-modal__card { width:min(960px, 100%); background:#020617; border:1px solid rgba(255,255,255,.14); border-radius:24px; padding:14px; box-shadow:0 35px 90px rgba(0,0,0,.45); }
         .notification-video-modal__head { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#fff; padding:2px 4px 12px; }
@@ -8662,28 +8667,51 @@ Title: Park Villas
             return '';
         }
 
+        function renderNotificationActions(item) {
+            const actions = [];
+            if (item.link) actions.push(`<button type="button" class="notification-detail-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', 'link')">Ətraflı bax</button>`);
+            if (item.videoUrl) actions.push(`<button type="button" class="notification-video-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '', 'video')">Videoya bax</button>`);
+            if (!actions.length) actions.push('<span></span>');
+            actions.push(`<div class="notification-action-row__date text-[10px] font-bold text-slate-400">${formatAzDateTime(item.createdAt)}</div>`);
+            return actions.join('');
+        }
+
         function renderNotificationItem(item) {
-            const detail = item.link ? `<button type="button" class="notification-detail-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', 'link')">Ətraflı bax</button>` : '<span></span>';
-            return `<div role="button" tabindex="0" class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', '${item.videoUrl ? 'video' : 'link'}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click();}">${renderNotificationMedia(item)}<div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="notification-action-row">${detail}<div class="text-[10px] font-bold text-slate-400">${formatAzDateTime(item.createdAt)}</div></div></div>`;
+            const defaultAction = item.link ? 'link' : (item.videoUrl ? 'video' : 'link');
+            return `<div role="button" tabindex="0" class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', '${defaultAction}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click();}">${renderNotificationMedia(item)}<div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="notification-action-row">${renderNotificationActions(item)}</div></div>`;
         }
 
         function closeNotificationVideo() {
             document.getElementById('notification-video-modal')?.remove();
         }
 
+        function markNotificationVideoRead(id) {
+            markNotificationReadLocal(id);
+            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => showToast('Bildiriş oxundu kimi işarələnmədi.'));
+        }
+
+        function openNotificationExternalVideo(item, id) {
+            markNotificationVideoRead(id);
+            window.open(item.videoUrl, '_blank', 'noopener,noreferrer');
+        }
+
         function openNotificationVideo(id) {
             id = decodeNotificationArg(id);
             const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
             if (!item?.videoUrl) return;
-            markNotificationReadLocal(id);
             const provider = getVideoProvider(item.videoUrl);
-            const src = notificationVideoEmbedUrl(item.videoUrl);
-            const player = provider === 'mp4'
-                ? `<video src="${escapeHtml(src)}" controls autoplay playsinline></video>`
-                : `<iframe src="${escapeHtml(src)}" title="${escapeHtml(item.title || 'Video')}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+            if (provider === 'youtube' || provider === 'vimeo') {
+                openNotificationExternalVideo(item, id);
+                return;
+            }
+            if (provider !== 'mp4') {
+                openNotificationExternalVideo(item, id);
+                return;
+            }
+            markNotificationVideoRead(id);
+            const player = `<video src="${escapeHtml(item.videoUrl)}" controls autoplay playsinline></video>`;
             closeNotificationVideo();
             document.body.insertAdjacentHTML('beforeend', `<div id="notification-video-modal" class="notification-video-modal" onclick="if(event.target.id==='notification-video-modal') closeNotificationVideo()"><div class="notification-video-modal__card"><div class="notification-video-modal__head"><strong>${escapeHtml(item.title || 'Video')}</strong><button class="notification-video-modal__close" onclick="closeNotificationVideo()" aria-label="Bağla">×</button></div><div class="notification-video-modal__body">${player}</div></div></div>`);
-            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => showToast('Bildiriş oxundu kimi işarələnmədi.'));
         }
 
         function markNotificationReadLocal(id) {
@@ -8702,8 +8730,11 @@ Title: Park Villas
             link = decodeNotificationArg(link);
             const { item, wasUnread } = markNotificationReadLocal(id);
             closeNotificationsPanel();
-            if (action === 'video' && item?.videoUrl) openNotificationVideo(id);
-            else if (link) openNotificationLink(link);
+            if (action === 'video' && item?.videoUrl) {
+                openNotificationVideo(id);
+                return;
+            }
+            if (link) openNotificationLink(link);
             apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => { if (item) item.isRead = false; if (wasUnread) messagingState.notificationsUnread += 1; refreshHeaderBadges(); showToast('Bildiriş oxundu kimi işarələnmədi.'); });
         }
 
@@ -10280,8 +10311,8 @@ Təşəkkür edirəm. 🙏`;
                     const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
                     grid.insertAdjacentHTML('beforeend', `
                         <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64 sm:h-72 md:h-80 rounded-[18px] overflow-hidden">
-                            <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden">
-                                <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full object-cover group-hover:scale-105">
+                            <div class="gallery-card-media media-shell w-full h-full media-skeleton overflow-hidden">
+                                <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full transition duration-500">
                             </div>
                         </article>
                     `);
@@ -10290,7 +10321,7 @@ Təşəkkür edirəm. 🙏`;
                     const fallbackThumb = getGalleryVideoThumbnailFallback(item);
                     grid.insertAdjacentHTML('beforeend', `
                         <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64 sm:h-72 md:h-80 rounded-[18px] overflow-hidden">
-                            <div class="media-shell w-full h-full bg-gray-100 media-skeleton overflow-hidden relative">
+                            <div class="gallery-card-media media-shell w-full h-full media-skeleton overflow-hidden relative">
                                 <img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-contain w-full h-full transition duration-500">
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-90"></div>
