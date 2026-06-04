@@ -7311,41 +7311,108 @@ Title: Park Villas
         }
 
         const SEA_BREEZE_DEFAULT_CENTER = [40.5912, 49.9867];
-        const BUILTIN_LOCATION_SUGGESTIONS = [
-            { title: 'West Town', city: 'Sea Breeze', lat: 40.5918, lon: 49.9846, keywords: 'west town sea breeze vest taun' },
-            { title: 'Sea Breeze', city: 'Sea Breeze', lat: 40.5912, lon: 49.9867, keywords: 'sea breeze seabreeze sea bree' },
-            { title: 'Yasamal', city: 'Bakı', lat: 40.3770, lon: 49.8060, keywords: 'yasamal yasam baki bakı rayon' }
+        const LOCAL_LOCATION_INDEX = [
+            { title: 'Montin', city: 'Bakı', lat: 40.4094, lon: 49.8747, keywords: 'montin montinn montın' },
+            { title: 'Montin qəsəbəsi', city: 'Bakı', lat: 40.4102, lon: 49.8760, keywords: 'montin qesebesi montin qəsəbəsi montin qesebe' },
+            { title: 'Montin bazarı', city: 'Bakı', lat: 40.4109, lon: 49.8754, keywords: 'montin bazari montin bazarı montin market bazar' },
+            { title: 'Nərimanov', city: 'Bakı', lat: 40.4022, lon: 49.8717, keywords: 'nerimanov nərimanov neriman narimanov nariman' },
+            { title: 'Gənclik', city: 'Bakı', lat: 40.4006, lon: 49.8507, keywords: 'gənclik genclik genceklik ganclik metro' },
+            { title: '28 May', city: 'Bakı', lat: 40.3798, lon: 49.8486, keywords: '28 may iyirmi sekkiz may 28 ma metro' },
+            { title: 'Memar Əcəmi', city: 'Bakı', lat: 40.4108, lon: 49.8138, keywords: 'memar əcəmi memar ecemi mem ec memecemi ajami acami metro' },
+            { title: 'Yasamal', city: 'Bakı', lat: 40.3770, lon: 49.8060, keywords: 'yasamal yasam baki bakı rayon' },
+            { title: 'Elmlər Akademiyası', city: 'Bakı', lat: 40.3750, lon: 49.8122, keywords: 'elmler akademiyasi elmlər akademiyası elmler elmlər akademiya metro' },
+            { title: 'İnşaatçılar', city: 'Bakı', lat: 40.3916, lon: 49.8028, keywords: 'insaatcilar inşaatçılar insaatcılar inshaatchilar metro' },
+            { title: 'Xətai', city: 'Bakı', lat: 40.3834, lon: 49.8751, keywords: 'xetai xətai khatai metro' },
+            { title: 'Əhmədli', city: 'Bakı', lat: 40.3855, lon: 49.9527, keywords: 'ehmedli əhmədli ahmadli ahmedli metro' },
+            { title: 'Həzi Aslanov', city: 'Bakı', lat: 40.3735, lon: 49.9537, keywords: 'hezi aslanov həzi aslanov hazi aslanov metro' },
+            { title: 'Neftçilər', city: 'Bakı', lat: 40.4110, lon: 49.9435, keywords: 'neftciler neftçilər neftchiler metro' },
+            { title: 'Qara Qarayev', city: 'Bakı', lat: 40.4178, lon: 49.9344, keywords: 'qara qarayev gara garayev qara qara metro' },
+            { title: 'Koroğlu', city: 'Bakı', lat: 40.4216, lon: 49.9183, keywords: 'koroglu koroğlu koroghlu metro' },
+            { title: 'Azadlıq', city: 'Bakı', lat: 40.4252, lon: 49.8417, keywords: 'azadliq azadlıq azadlig metro' },
+            { title: 'Dərnəgül', city: 'Bakı', lat: 40.4258, lon: 49.8606, keywords: 'dernegul dərnəgül darnegul metro' },
+            { title: 'Bakıxanov', city: 'Bakı', lat: 40.4212, lon: 49.9644, keywords: 'bakixanov bakıxanov bakihanov razin' },
+            { title: 'Buzovna', city: 'Bakı', lat: 40.5194, lon: 50.1139, keywords: 'buzovna buzovna qesebesi' },
+            { title: 'Mərdəkan', city: 'Bakı', lat: 40.4920, lon: 50.1429, keywords: 'merdekan mərdekan mərdəkan mardakan' },
+            { title: 'Bilgəh', city: 'Bakı', lat: 40.5680, lon: 50.0378, keywords: 'bilgeh bilgəh bilgah' },
+            { title: 'Sea Breeze', city: 'Sea Breeze', lat: 40.5912, lon: 49.9867, keywords: 'sea breeze seabreeze sea bree si briz' },
+            { title: 'West Town', city: 'Sea Breeze', lat: 40.5918, lon: 49.9846, keywords: 'west town west tow vest taun sea breeze' },
+            { title: 'Marina Village', city: 'Sea Breeze', lat: 40.5867, lon: 49.9879, keywords: 'marina village marina vilage sea breeze' },
+            { title: 'Park Azure', city: 'Bakı', lat: 40.3832, lon: 49.8758, keywords: 'park azure park azur azure xetai' },
+            { title: 'Port Baku', city: 'Bakı', lat: 40.3736, lon: 49.8586, keywords: 'port baku port baki port bakı' },
+            { title: 'Ağ Şəhər', city: 'Bakı', lat: 40.3843, lon: 49.8876, keywords: 'ag seher ağ şəhər ag sheher white city' },
+            { title: 'White City', city: 'Bakı', lat: 40.3843, lon: 49.8876, keywords: 'white city ag seher ağ şəhər' },
+            { title: 'Grand Hayat', city: 'Bakı', lat: 40.3989, lon: 49.8232, keywords: 'grand hayat grand hayat yasamal' },
+            { title: 'Crescent Bay', city: 'Bakı', lat: 40.3597, lon: 49.8363, keywords: 'crescent bay crescent bəy bayil' },
+            { title: 'Badamdar', city: 'Bakı', lat: 40.3378, lon: 49.8039, keywords: 'badamdar badamdar qesebesi' },
+            { title: 'Bayıl', city: 'Bakı', lat: 40.3497, lon: 49.8354, keywords: 'bayil bayıl bail' },
+            { title: 'Sahil', city: 'Bakı', lat: 40.3712, lon: 49.8424, keywords: 'sahil metro bulvar' },
+            { title: 'Nizami', city: 'Bakı', lat: 40.3791, lon: 49.8306, keywords: 'nizami nizami metro' },
+            { title: '8 Noyabr', city: 'Bakı', lat: 40.3997, lon: 49.8297, keywords: '8 noyabr sekkiz noyabr 8 no metro' }
         ];
+        const BUILTIN_LOCATION_SUGGESTIONS = LOCAL_LOCATION_INDEX;
+
+        function localLocationCandidateText(item = '') {
+            return [item.title, item.city, item.keywords].filter(Boolean).join(' ');
+        }
+
+        function localLocationMatchScore(item = {}, query = '') {
+            const q = normalizeLocationSearchText(query);
+            if (q.length < 2) return 0;
+            const values = [item.title, item.city, ...(String(item.keywords || '').split(/\s{2,}|[,;|]/))]
+                .map(value => normalizeLocationSearchText(value))
+                .filter(Boolean);
+            const text = normalizeLocationSearchText(localLocationCandidateText(item));
+            if (values.some(value => value === q)) return 100;
+            if (values.some(value => value.startsWith(q)) || text.includes(q)) return 80;
+            if (locationTextContains(text, q)) return 70;
+            const queryTokens = q.split(' ').filter(Boolean);
+            const targetTokens = text.split(' ').filter(Boolean);
+            const typoMatch = queryTokens.every(token => targetTokens.some(target => {
+                if (locationTokenMatches(token, target)) return true;
+                const prefix = target.slice(0, Math.min(target.length, Math.max(token.length, 3)));
+                const maxDistance = token.length >= 7 ? 2 : 1;
+                return token.length >= 3 && levenshteinDistance(token, prefix) <= maxDistance;
+            }));
+            return typoMatch ? 50 : 0;
+        }
+
+        function locationIndexRow(item) {
+            return {
+                source: 'local',
+                type: 'neighbourhood',
+                class: 'place',
+                lat: item.lat,
+                lon: item.lon,
+                display_name: `${item.title}, ${item.city}, Azerbaijan`,
+                address: { city: item.city, suburb: item.title, neighbourhood: item.title },
+                projectTitle: item.city === 'Sea Breeze' && item.title !== 'Sea Breeze' ? item.title : ''
+            };
+        }
 
         function localLocationRowsForQuery(query = '') {
             const q = String(query || '').trim();
             if (q.length < 2) return [];
+            return LOCAL_LOCATION_INDEX
+                .map((item, index) => ({ item, index, score: localLocationMatchScore(item, q) }))
+                .filter(entry => entry.score > 0)
+                .sort((a, b) => b.score - a.score || a.index - b.index)
+                .map(entry => locationIndexRow(entry.item))
+                .slice(0, 6);
+        }
+
+        function projectLocationRowsForQuery(query = '') {
+            const q = String(query || '').trim();
+            if (q.length < 2) return [];
             const rows = [];
             const seen = new Set();
-            const pushRow = row => {
-                const key = normalizeLocationSearchText(row.display_name || row.title || row.projectTitle);
-                if (!key || seen.has(key)) return;
-                seen.add(key);
-                rows.push(row);
-            };
-            BUILTIN_LOCATION_SUGGESTIONS
-                .filter(item => locationTextContains([item.title, item.city, item.keywords].filter(Boolean).join(' '), q))
-                .forEach(item => pushRow({
-                    source: 'local',
-                    type: 'neighbourhood',
-                    class: 'place',
-                    lat: item.lat,
-                    lon: item.lon,
-                    display_name: `${item.title}, ${item.city}, Azerbaijan`,
-                    address: { city: item.city, suburb: item.title, neighbourhood: item.title },
-                    projectTitle: item.city === 'Sea Breeze' && item.title !== 'Sea Breeze' ? item.title : ''
-                }));
             getOfficialProjects()
                 .filter(project => locationTextContains([project.title, project.slug, project.desc, project.features, project.category].filter(Boolean).join(' '), q))
                 .forEach(project => {
                     const title = String(project.title || '').trim();
-                    if (!title) return;
-                    pushRow({
+                    const key = normalizeLocationSearchText(title);
+                    if (!title || seen.has(key)) return;
+                    seen.add(key);
+                    rows.push({
                         source: 'project',
                         type: 'project',
                         class: 'place',
@@ -7359,8 +7426,8 @@ Title: Park Villas
             return rows.slice(0, 6);
         }
 
-        function projectLocationRowsForQuery(query = '') {
-            return localLocationRowsForQuery(query);
+        function locationRowsBeforeRemote(query = '') {
+            return mergeLocationRows(localLocationRowsForQuery(query), projectLocationRowsForQuery(query), 8);
         }
 
         function mergeLocationRows(primaryRows = [], secondaryRows = [], limit = 8) {
@@ -7368,7 +7435,9 @@ Title: Park Villas
             return [...primaryRows, ...secondaryRows].filter(item => {
                 const key = item?.source === 'project'
                     ? `project:${normalizeLocationSearchText(item.projectTitle || item.display_name)}`
-                    : (item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`);
+                    : (item?.source === 'local'
+                        ? `local:${normalizeLocationSearchText(item.display_name)}`
+                        : (item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`));
                 if (!item || seen.has(key)) return false;
                 seen.add(key);
                 return true;
@@ -7403,15 +7472,23 @@ Title: Park Villas
             return 'Bakı';
         }
 
-        function renderAdminLocationResults(rows, query) {
+        function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
             const resultsEl = document.getElementById('sb-location-results');
             if (!resultsEl) return;
             resultsEl.classList.remove('hidden');
-            if (!Array.isArray(rows) || !rows.length) {
-                resultsEl.innerHTML = '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Nəticə tapılmadı.</div>';
+            const hasRows = Array.isArray(rows) && rows.length;
+            const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
+            if (hasRows) {
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Nominatim nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
-            resultsEl.innerHTML = rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(item.display_name || query)}</span></button>`).join('');
+            if (loading) {
+                resultsEl.innerHTML = '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Axtarılır...</div>';
+                return;
+            }
+            resultsEl.innerHTML = error
+                ? '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Axtarış alınmadı. Yenidən cəhd edin.</div>'
+                : '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Nəticə tapılmadı.</div>';
         }
 
         function debouncedAdminLocationSearch() {
@@ -7425,7 +7502,9 @@ Title: Park Villas
                 }
                 return;
             }
-            showAdminLocationSuggestions();
+            const localRows = locationRowsBeforeRemote(query);
+            window.__lastAdminLocationResults = localRows;
+            renderAdminLocationResults(localRows, query, { loading: true });
             window.__adminLocationSearchTimer = setTimeout(searchAdminListingLocation, 300);
         }
 
@@ -7437,7 +7516,9 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastAdminLocationSearchToken = token;
             resultsEl.classList.remove('hidden');
-            resultsEl.innerHTML = '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Axtarılır...</div>';
+            const localRows = locationRowsBeforeRemote(query);
+            window.__lastAdminLocationResults = localRows;
+            renderAdminLocationResults(localRows, query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
             const variants = Array.from(new Set([query, azSearchVariant(query)].filter(Boolean)));
@@ -7459,12 +7540,12 @@ Title: Park Villas
                     seen.add(key);
                     return true;
                 });
-                const rows = mergeLocationRows(projectLocationRowsForQuery(query), remoteRows, 8);
+                const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
                 window.__lastAdminLocationResults = rows;
                 renderAdminLocationResults(rows, query);
             } catch (error) {
                 if (window.__lastAdminLocationSearchToken !== token) return;
-                resultsEl.innerHTML = '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Axtarış alınmadı. Yenidən cəhd edin.</div>';
+                renderAdminLocationResults(window.__lastAdminLocationResults || [], query, { error: !(window.__lastAdminLocationResults || []).length });
             }
         }
 
@@ -7472,7 +7553,7 @@ Title: Park Villas
             const item = (window.__lastAdminLocationResults || [])[index];
             if (!item) return;
             const searchInput = document.getElementById('sb-location-search');
-            if (item.source === 'project') applyProjectLocationSelection(item.projectTitle || item.display_name || '');
+            if (item.source === 'project' || item.projectTitle) applyProjectLocationSelection(item.projectTitle || item.display_name || '');
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
             setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false, zoom });
             fillLocationFieldsFromAddress(item.address || {}, item.display_name || '');
@@ -7494,15 +7575,23 @@ Title: Park Villas
             selectAdminLocationResult(0);
         }
 
-        function renderFullscreenMapResults(rows, query) {
+        function renderFullscreenMapResults(rows, query, { loading = false, error = false } = {}) {
             const resultsEl = document.getElementById('fullscreen-map-results');
             if (!resultsEl) return;
             resultsEl.classList.remove('hidden');
-            if (!Array.isArray(rows) || !rows.length) {
-                resultsEl.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-100 p-3 text-red-700 font-bold">Nəticə tapılmadı.</div>';
+            const hasRows = Array.isArray(rows) && rows.length;
+            const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectFullscreenMapResult(${idx})" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none"><span class="block font-extrabold text-slate-900">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[11px] font-semibold text-slate-500">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
+            if (hasRows) {
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Nominatim nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
-            resultsEl.innerHTML = rows.map((item, idx) => `<button type="button" onclick="selectFullscreenMapResult(${idx})" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none"><span class="block font-extrabold text-slate-900">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[11px] font-semibold text-slate-500">${escapeHtml(item.display_name || query)}</span></button>`).join('');
+            if (loading) {
+                resultsEl.innerHTML = '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Axtarılır...</div>';
+                return;
+            }
+            resultsEl.innerHTML = error
+                ? '<div class="rounded-xl bg-red-50 border border-red-100 p-3 text-red-700 font-bold">Axtarış alınmadı. Yenidən cəhd edin.</div>'
+                : '<div class="rounded-xl bg-red-50 border border-red-100 p-3 text-red-700 font-bold">Nəticə tapılmadı.</div>';
         }
 
         function showFullscreenMapSuggestions() {
@@ -7524,6 +7613,9 @@ Title: Park Villas
                 }
                 return;
             }
+            const rows = locationRowsBeforeRemote(query);
+            window.__lastFullscreenMapResults = rows;
+            renderFullscreenMapResults(rows, query, { loading: true });
             window.__fullscreenMapSearchTimer = setTimeout(searchFullscreenMapLocation, 300);
         }
 
@@ -7535,7 +7627,9 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastFullscreenMapSearchToken = token;
             resultsEl.classList.remove('hidden');
-            resultsEl.innerHTML = '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Axtarılır...</div>';
+            const localRows = locationRowsBeforeRemote(query);
+            window.__lastFullscreenMapResults = localRows;
+            renderFullscreenMapResults(localRows, query, { loading: true });
             const city = fullscreenMapSource === 'admin' ? adminLocationSearchCity() : 'Bakı';
             const variants = Array.from(new Set([query, azSearchVariant(query)].filter(Boolean)));
             const searchPhrases = variants.flatMap(value => [
@@ -7556,12 +7650,12 @@ Title: Park Villas
                     seen.add(key);
                     return true;
                 });
-                const rows = mergeLocationRows(projectLocationRowsForQuery(query), remoteRows, 8);
+                const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
                 window.__lastFullscreenMapResults = rows;
                 renderFullscreenMapResults(rows, query);
             } catch (error) {
                 if (window.__lastFullscreenMapSearchToken !== token) return;
-                resultsEl.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-100 p-3 text-red-700 font-bold">Axtarış alınmadı. Yenidən cəhd edin.</div>';
+                renderFullscreenMapResults(window.__lastFullscreenMapResults || [], query, { error: !(window.__lastFullscreenMapResults || []).length });
             }
         }
 
@@ -7677,8 +7771,8 @@ Title: Park Villas
             if (fullscreenMapSource === 'public') return publicLocationCity();
             return adminLocationSearchCity();
         }
-        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} if(el){el.classList.remove('hidden'); el.innerHTML='<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>';} window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,300); }
-        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; try { const rows=await nominatimSearch(q, fullscreenSearchCity()); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen'); } catch(e){ const el=document.getElementById('fullscreen-location-results'); if(el) el.innerHTML='<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'; } }
+        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} const rows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,300); }
+        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; const localRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=localRows; renderPublicLocationResults(localRows,q,'fullscreen',{loading:true}); try { const rows=await nominatimSearch(q, fullscreenSearchCity()); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen'); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; renderPublicLocationResults(window.__lastFullscreenLocationResults || [],q,'fullscreen',{error:!(window.__lastFullscreenLocationResults||[]).length}); } }
         function selectFullscreenLocationResult(index) {
             const item = (window.__lastFullscreenLocationResults || [])[index];
             if (!item) return;
@@ -8242,14 +8336,19 @@ Title: Park Villas
         }
 
         function publicLocationCity() { return document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı'; }
-        function renderPublicLocationResults(rows, query, target='pl') {
+        function renderPublicLocationResults(rows, query, target='pl', { loading = false, error = false } = {}) {
             const el = document.getElementById(target === 'fullscreen' ? 'fullscreen-location-results' : 'pl-location-results');
             if (!el) return;
             el.classList.remove('hidden');
-            if (!rows?.length) { el.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-100 p-2 text-red-700 font-bold">Nəticə tapılmadı.</div>'; return; }
-            el.innerHTML = rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('');
+            const hasRows = Array.isArray(rows) && rows.length;
+            const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('') : '';
+            if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Nominatim nəticələri yoxlanılır...</div>' : ''}`; return; }
+            if (loading) { el.innerHTML = '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>'; return; }
+            el.innerHTML = error
+                ? '<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'
+                : '<div class="rounded-xl bg-red-50 border border-red-100 p-2 text-red-700 font-bold">Nəticə tapılmadı.</div>';
         }
-        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} showPublicLocationSuggestions(); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,300); }
+        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} const rows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,300); }
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(el&&q.length>=2) el.classList.remove('hidden'); }
         async function nominatimSearch(query, city='Bakı') {
             const q = String(query || '').trim();
@@ -8259,9 +8358,9 @@ Title: Park Villas
             const responses = await Promise.all(phrases.slice(0,6).map(phrase => fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`, {headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():[])));
             const seen = new Set();
             const remoteRows = responses.flat().filter(item => { const key=item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`; if(!item||seen.has(key)) return false; seen.add(key); return true; });
-            return mergeLocationRows(projectLocationRowsForQuery(q), remoteRows, 8);
+            return mergeLocationRows(locationRowsBeforeRemote(q), remoteRows, 8);
         }
-        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const el=document.getElementById('pl-location-results'); if(el){el.classList.remove('hidden'); el.innerHTML='<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>';} try { const rows=await nominatimSearch(q, publicLocationCity()); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q); } catch(e){ if(el) el.innerHTML='<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'; } }
+        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const localRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=localRows; renderPublicLocationResults(localRows,q,'pl',{loading:true}); try { const rows=await nominatimSearch(q, publicLocationCity()); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q); } catch(e){ if(window.__lastPublicLocationToken!==token) return; renderPublicLocationResults(window.__lastPublicLocationResults || [],q,'pl',{error:!(window.__lastPublicLocationResults||[]).length}); } }
         function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); selectPublicLocationResult(0); }
