@@ -3,7 +3,6 @@ const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate } = require('../middleware/auth');
 const { emitToUser, isUserOnline } = require('../utils/realtime');
-const { createNotification } = require('../utils/inAppNotifications');
 
 const router = express.Router();
 
@@ -133,11 +132,14 @@ router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => 
     senderIds.forEach((senderId) => emitToUser(senderId, 'message:read', { conversationId: id, messageIds: unread.map((m) => m.id), readAt: now }));
   }
 
+  const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '30', 10) || 30, 1), 100);
+  const before = req.query.before ? new Date(String(req.query.before)) : null;
+  const messageWhere = { conversationId: id, ...(before && !Number.isNaN(before.getTime()) ? { createdAt: { lt: before } } : {}) };
   const conversation = await prisma.conversation.findUnique({
     where: { id },
-    include: { ...conversationInclude, messages: { orderBy: { createdAt: 'asc' } } },
+    include: { ...conversationInclude, messages: { where: messageWhere, orderBy: { createdAt: 'desc' }, take: limit } },
   });
-  res.json({ conversation: serializeConversation(conversation, req.auth.id, 0), messages: conversation.messages });
+  res.json({ conversation: serializeConversation(conversation, req.auth.id, 0), messages: (conversation.messages || []).slice().reverse(), hasMore: (conversation.messages || []).length === limit });
 }));
 
 router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req, res) => {
@@ -160,14 +162,6 @@ router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req
       await tx.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
       return saved;
     });
-
-    createNotification({
-      userId: participant.userId,
-      title: 'Yeni mesajınız var',
-      message: text.length > 120 ? `${text.slice(0, 117)}...` : text,
-      type: 'new_message',
-      link: `/profil/mesajlar?conversation=${message.conversationId}`,
-    }).catch((error) => console.warn('[messages] notification background failed', { userId: req.auth.id, receiverId: participant.userId, message: error.message, code: error.code }));
 
     emitToUser(participant.userId, 'message:new', { message });
     if (deliveredAt) emitToUser(req.auth.id, 'message:delivered', { conversationId: id, messageId: message.id, deliveredAt });

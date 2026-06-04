@@ -5,8 +5,10 @@ const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
-function notificationWhere(req) {
-  return { userId: Number(req.auth.id) };
+const MESSAGE_NOTIFICATION_TYPES = ['new_message', 'message'];
+
+function nonMessageNotificationWhere(req) {
+  return { userId: Number(req.auth.id), type: { notIn: MESSAGE_NOTIFICATION_TYPES } };
 }
 
 function durationMs(startedAt) {
@@ -15,7 +17,7 @@ function durationMs(startedAt) {
 
 router.get('/summary', authenticate, asyncHandler(async (req, res) => {
   const [notificationsUnread, messagesUnread] = await Promise.all([
-    prisma.notification.count({ where: { ...notificationWhere(req), isRead: false } }),
+    prisma.notification.count({ where: { ...nonMessageNotificationWhere(req), isRead: false } }),
     prisma.message.count({ where: { receiverId: Number(req.auth.id), isRead: false } }),
   ]);
   res.json({ notificationsUnread, messagesUnread });
@@ -24,9 +26,10 @@ router.get('/summary', authenticate, asyncHandler(async (req, res) => {
 router.get('/', authenticate, asyncHandler(async (req, res) => {
   const startedAt = process.hrtime.bigint();
   try {
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '30', 10) || 30, 1), 100);
+    const maxLimit = req.query.all === 'true' ? 1000 : 100;
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '30', 10) || 30, 1), maxLimit);
     const data = await prisma.notification.findMany({
-      where: notificationWhere(req),
+      where: nonMessageNotificationWhere(req),
       orderBy: [{ isRead: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
@@ -41,7 +44,7 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
 router.patch('/read-all', authenticate, asyncHandler(async (req, res) => {
   const startedAt = process.hrtime.bigint();
   try {
-    const result = await prisma.notification.updateMany({ where: { ...notificationWhere(req), isRead: false }, data: { isRead: true } });
+    const result = await prisma.notification.updateMany({ where: { ...nonMessageNotificationWhere(req), isRead: false }, data: { isRead: true } });
     console.log('[notifications] mark all read durationMs', { userId: req.auth.id, count: result.count, durationMs: Math.round(durationMs(startedAt)) });
     res.json({ success: true, count: result.count });
   } catch (error) {
@@ -53,7 +56,7 @@ router.patch('/read-all', authenticate, asyncHandler(async (req, res) => {
 router.patch('/:id/read', authenticate, asyncHandler(async (req, res) => {
   const id = Number.parseInt(req.params.id, 10);
   if (!Number.isInteger(id) || id < 1) return res.status(400).json({ message: 'Invalid notification ID.' });
-  const notification = await prisma.notification.findFirst({ where: { id, ...notificationWhere(req) } });
+  const notification = await prisma.notification.findFirst({ where: { id, ...nonMessageNotificationWhere(req) } });
   if (!notification) return res.status(404).json({ message: 'Notification not found.' });
   const updated = await prisma.notification.update({ where: { id }, data: { isRead: true } });
   res.json(updated);

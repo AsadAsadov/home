@@ -2712,7 +2712,7 @@
         .message-status.is-read { color:#16a34a; }
         .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
         .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
-        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -8253,7 +8253,43 @@ Title: Park Villas
         }
 
 
-        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null };
+        const MESSAGE_NOTIFICATION_TYPES = new Set(['new_message', 'message']);
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], messagesByConversation: new Map(), socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null };
+
+        function isMessageNotification(item) {
+            return MESSAGE_NOTIFICATION_TYPES.has(String(item?.type || '').toLowerCase());
+        }
+
+        function visibleNotifications() {
+            return (messagingState.notifications || []).filter(item => !isMessageNotification(item));
+        }
+
+        function readMessagingCache() {
+            if (!activeUser) return;
+            try {
+                const cache = JSON.parse(localStorage.getItem(`besthome_messaging_cache_${activeUser.id}`) || '{}');
+                if (Array.isArray(cache.notifications)) messagingState.notifications = cache.notifications.filter(item => !isMessageNotification(item));
+                if (Array.isArray(cache.conversations)) messagingState.conversations = cache.conversations;
+                if (cache.messagesByConversation && typeof cache.messagesByConversation === 'object') messagingState.messagesByConversation = new Map(Object.entries(cache.messagesByConversation));
+                if (Number.isFinite(cache.notificationsUnread)) messagingState.notificationsUnread = cache.notificationsUnread;
+                if (Number.isFinite(cache.messagesUnread)) messagingState.messagesUnread = cache.messagesUnread;
+            } catch (_error) {}
+        }
+
+        function writeMessagingCache() {
+            if (!activeUser) return;
+            try {
+                const messagesByConversation = Object.fromEntries(Array.from(messagingState.messagesByConversation.entries()).map(([id, rows]) => [id, (rows || []).slice(-30)]));
+                localStorage.setItem(`besthome_messaging_cache_${activeUser.id}`, JSON.stringify({
+                    notifications: visibleNotifications().slice(0, 100),
+                    conversations: (messagingState.conversations || []).slice(0, 80),
+                    messagesByConversation,
+                    notificationsUnread: messagingState.notificationsUnread || 0,
+                    messagesUnread: messagingState.messagesUnread || 0,
+                    savedAt: Date.now()
+                }));
+            } catch (_error) {}
+        }
 
         function badgeHtml(count) {
             const value = Number(count || 0);
@@ -8269,7 +8305,7 @@ Title: Park Villas
         }
 
         function perfLog(label, startedAt) {
-            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('debugPerf=1')) console.log(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
+            console.log(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
         }
 
         async function loadBadgeSummary() {
@@ -8299,18 +8335,38 @@ Title: Park Villas
             if (!activeUser || messagingState.socket) return;
             if (!await ensureSocketClientScript()) return;
             messagingState.socket = io({ auth: { token: getAuthToken() }, transports: ['websocket', 'polling'] });
-            messagingState.socket.on('notification:new', (notification) => { messagingState.notificationsUnread += 1; messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))]; refreshHeaderBadges(); });
+            messagingState.socket.on('notification:new', (notification) => { if (isMessageNotification(notification)) return; messagingState.notificationsUnread += 1; messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))]; refreshHeaderBadges(); writeMessagingCache(); });
             messagingState.socket.on('message:new', ({ message }) => {
                 if (!message || messagingState.seenMessageIds.has(String(message.id))) return;
                 messagingState.seenMessageIds.add(String(message.id));
                 if (String(message.senderId) === String(activeUser?.id)) return;
                 const conv = messagingState.conversations.find(c => String(c.id) === String(message.conversationId));
                 if (conv) { conv.lastMessage = message; conv.updatedAt = message.createdAt; }
+                const cacheKey = String(message.conversationId);
+                const cachedMessages = messagingState.messagesByConversation.get(cacheKey) || [];
+                if (!cachedMessages.some(m => String(m.id) === String(message.id))) messagingState.messagesByConversation.set(cacheKey, [...cachedMessages, message].slice(-60));
                 if (String(message.conversationId) === String(messagingState.activeConversationId)) { messagingState.activeMessages.push(message); renderChatWindow(messagingState.activeConversation, messagingState.activeMessages); }
                 else { messagingState.messagesUnread += 1; if (conv) conv.unreadCount = (conv.unreadCount || 0) + 1; refreshHeaderBadges(); renderConversations(); }
+                writeMessagingCache();
             });
             messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
             messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
+        }
+
+
+        function preloadMessagingData() {
+            if (!activeUser) return;
+            loadBadgeSummary();
+            loadConversations(false, { force: false }).catch(error => console.warn('Conversation preload failed', error));
+            if (Date.now() - (messagingState.notificationsLoadedAt || 0) > 15000) {
+                apiRequest('/api/notifications?limit=30')
+                    .then(result => {
+                        messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
+                        messagingState.notificationsLoadedAt = Date.now();
+                        writeMessagingCache();
+                    })
+                    .catch(error => console.warn('Notification preload failed', error));
+            }
         }
 
         function disconnectRealtime() {
@@ -8349,11 +8405,12 @@ Title: Park Villas
         }
 
         function renderNotificationsPanel({ full = false, loading = false, error = '' } = {}) {
+            const notifications = visibleNotifications();
             const body = loading
                 ? '<div class="p-4 space-y-2"><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div></div>'
-                : (messagingState.notifications.length ? messagingState.notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>');
+                : (notifications.length ? notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>');
             const panel = document.getElementById('notification-panel');
-            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div></div><div>${body}</div>${error ? `<div class="notification-inline-error">${escapeHtml(error)}</div>` : ''}`;
+            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button>${full ? '<button onclick="closeNotificationsPanel()" class="text-slate-500 hover:text-slate-950 text-lg font-black leading-none" aria-label="Bağla">×</button>' : ''}</div></div><div>${body}</div>${error ? `<div class="notification-inline-error">${escapeHtml(error)}</div>` : ''}`;
             if (full && !document.getElementById('notification-full-backdrop')) document.body.insertAdjacentHTML('beforeend', '<div id="notification-full-backdrop" class="notification-full-backdrop" onclick="closeNotificationsPanel()"></div>');
             if (panel) { panel.className = `notification-panel ${full ? 'notification-panel--full' : ''}`; panel.innerHTML = html; positionNotificationPanel(panel); return; }
             document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel ${full ? 'notification-panel--full' : ''}">${html}</div>`);
@@ -8365,24 +8422,26 @@ Title: Park Villas
             const startedAt = performance.now();
             const existing = document.getElementById('notification-panel');
             if (existing && !existing.classList.contains('notification-panel--full')) { closeNotificationsPanel(); return; }
-            renderNotificationsPanel({ loading: !messagingState.notifications.length });
-            perfLog('notification panel open ms', startedAt);
+            renderNotificationsPanel({ loading: !visibleNotifications().length });
+            perfLog('notifications_open_ms', startedAt);
             if (Date.now() - (messagingState.notificationsLoadedAt || 0) < 15000) return;
             try {
                 const result = await apiRequest('/api/notifications');
-                messagingState.notifications = result.data || [];
+                messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
                 messagingState.notificationsLoadedAt = Date.now();
+                writeMessagingCache();
                 renderNotificationsPanel();
             } catch (error) { renderNotificationsPanel({ error: error.message || 'Bildirişlər yüklənmədi.' }); }
         }
 
         async function openAllNotifications() {
             closeNotificationsPanel();
-            renderNotificationsPanel({ full: true, loading: !messagingState.notifications.length });
+            renderNotificationsPanel({ full: true, loading: !visibleNotifications().length });
             try {
-                const result = await apiRequest('/api/notifications?limit=100');
-                messagingState.notifications = result.data || [];
+                const result = await apiRequest('/api/notifications?all=true&limit=1000');
+                messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
                 messagingState.notificationsLoadedAt = Date.now();
+                writeMessagingCache();
                 renderNotificationsPanel({ full: true });
             } catch (error) { renderNotificationsPanel({ full: true, error: error.message || 'Bildirişlər yüklənmədi.' }); }
         }
@@ -8392,7 +8451,7 @@ Title: Park Villas
         }
 
         function openNotification(id, link) {
-            const item = messagingState.notifications.find(n => String(n.id) === String(id));
+            const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
             const wasUnread = item && !item.isRead;
             if (item) item.isRead = true;
             if (wasUnread) messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
@@ -8406,7 +8465,7 @@ Title: Park Villas
             const previousUnread = messagingState.notificationsUnread;
             const previousNotifications = messagingState.notifications.map(n => ({ ...n }));
             messagingState.notificationsUnread = 0;
-            messagingState.notifications = messagingState.notifications.map(n => ({ ...n, isRead: true }));
+            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
             refreshHeaderBadges();
             renderNotificationsPanel({ full: document.getElementById('notification-panel')?.classList.contains('notification-panel--full') });
             try { await apiRequest('/api/notifications/read-all', { method: 'PATCH' }); }
@@ -8418,7 +8477,7 @@ Title: Park Villas
             if (!activeUser) { setPendingAuthRoute('/profil/mesajlar'); switchTab('admin-login'); return; }
             closeNotificationsPanel();
             spaNavigate(`/profil/mesajlar${conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : ''}`);
-            perfLog('messages page open ms', startedAt);
+            perfLog('inbox_open_ms', startedAt);
         }
 
         async function loadConversations(render = true, { force = false, autoSelect = false } = {}) {
@@ -8430,11 +8489,15 @@ Title: Park Villas
                 const result = await apiRequest('/api/messages');
                 messagingState.conversations = result.data || [];
                 messagingState.conversationsLoadedAt = Date.now();
+                writeMessagingCache();
                 if (render) renderConversations();
                 const params = new URLSearchParams(window.location.search);
                 const conversationId = params.get('conversation');
                 if (conversationId && String(messagingState.activeConversationId) !== String(conversationId)) openConversation(conversationId);
-                else if (autoSelect && !messagingState.activeConversationId && messagingState.conversations[0]) openConversation(messagingState.conversations[0].id);
+                else if (autoSelect && !messagingState.activeConversationId) {
+                    const targetConversation = messagingState.conversations.find(c => Number(c.unreadCount || 0) > 0) || messagingState.conversations[0];
+                    if (targetConversation) openConversation(targetConversation.id);
+                }
             } finally { messagingState.conversationsLoading = false; }
         }
 
@@ -8460,22 +8523,30 @@ Title: Park Villas
         async function openConversation(id) {
             if (!id) return;
             messagingState.activeConversationId = String(id);
+            const startedAt = performance.now();
             const cached = messagingState.conversations.find(c => String(c.id) === String(id)) || (String(messagingState.pendingConversation?.id) === String(id) ? messagingState.pendingConversation : null);
-            if (messagingState.activeMessages.length && String(messagingState.activeMessages[0]?.conversationId) !== String(id)) messagingState.activeMessages = [];
+            const cachedUnreadCount = Number(cached?.unreadCount || 0);
+            const cachedMessages = messagingState.messagesByConversation.get(String(id)) || [];
+            messagingState.activeMessages = cachedMessages.slice();
             renderConversations();
-            renderChatWindow(cached || { placeholderName: 'Söhbət', pending: true }, messagingState.activeMessages, true);
+            renderChatWindow(cached || { placeholderName: 'Söhbət', pending: true }, messagingState.activeMessages, !cachedMessages.length);
+            perfLog('conversation_open_ms', startedAt);
             if (String(id).startsWith('pending-')) return;
             try {
-                const result = await apiRequest(`/api/messages/conversations/${id}`);
+                const historyStartedAt = performance.now();
+                const result = await apiRequest(`/api/messages/conversations/${id}?limit=30`);
                 messagingState.activeConversation = result.conversation;
                 messagingState.activeMessages = result.messages || [];
-                messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - (result.conversation?.unreadCount || 0));
+                messagingState.messagesByConversation.set(String(id), messagingState.activeMessages);
+                messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - cachedUnreadCount);
                 refreshHeaderBadges();
                 const idx = messagingState.conversations.findIndex(c => String(c.id) === String(id));
                 if (idx > -1) messagingState.conversations[idx] = { ...messagingState.conversations[idx], ...result.conversation, unreadCount: 0 };
                 else if (result.conversation) messagingState.conversations.unshift(result.conversation);
                 renderConversations();
+                writeMessagingCache();
                 renderChatWindow(result.conversation, messagingState.activeMessages);
+                perfLog('message_history_load_ms', historyStartedAt);
             } catch (error) {
                 const root = document.getElementById('chat-window-root');
                 if (root) root.innerHTML = `<div class="flex-1 flex items-center justify-center text-red-600 font-bold p-8 text-center">${escapeHtml(error.message || 'Söhbət açılmadı.')}</div>`;
@@ -8510,6 +8581,7 @@ Title: Park Villas
             input.value = '';
             const optimistic = { id: tempId, conversationId: messagingState.activeConversationId, senderId: activeUser.id, text, createdAt: new Date().toISOString(), pending: true };
             messagingState.activeMessages.push(optimistic);
+            messagingState.messagesByConversation.set(String(messagingState.activeConversationId), messagingState.activeMessages);
             renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
             perfLog('message optimistic append ms', startedAt);
             document.getElementById('chat-message-input')?.focus();
@@ -8518,11 +8590,13 @@ Title: Park Villas
                 const idx = messagingState.activeMessages.findIndex(m => m.id === tempId);
                 if (idx > -1) messagingState.activeMessages[idx] = result.message;
                 else messagingState.activeMessages.push(result.message);
+                messagingState.messagesByConversation.set(String(messagingState.activeConversationId), messagingState.activeMessages);
                 messagingState.seenMessageIds.add(String(result.message.id));
                 const conv = messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId));
                 if (conv) { conv.lastMessage = result.message; conv.updatedAt = result.message.createdAt; }
                 renderChatWindow(messagingState.activeConversation || conv || {}, messagingState.activeMessages);
                 renderConversations();
+                writeMessagingCache();
             } catch (error) {
                 const msg = messagingState.activeMessages.find(m => m.id === tempId);
                 if (msg) { msg.pending = false; msg.failed = true; msg.errorText = error.message; }
@@ -8557,8 +8631,8 @@ Title: Park Villas
             messagingState.activeMessages = [];
             navigateToMessages();
             renderConversations();
-            renderChatWindow(messagingState.pendingConversation, [], true);
-            perfLog('seller message click ms', startedAt);
+            renderChatWindow(messagingState.pendingConversation, [], false);
+            perfLog('seller_chat_open_ms', startedAt);
             try {
                 const result = await apiRequest('/api/messages/conversations', { method: 'POST', body: JSON.stringify({ listingId }) });
                 messagingState.pendingConversation = null;
@@ -8597,8 +8671,11 @@ Title: Park Villas
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
                 `;
                 mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                readMessagingCache();
+                refreshHeaderBadges();
                 loadBadgeSummary();
                 connectRealtime();
+                preloadMessagingData();
                 mobileActions.innerHTML = ``;
             } else {
                 container.innerHTML = `
@@ -8647,10 +8724,15 @@ Title: Park Villas
             if (tabId === 'messages') {
                 const params = new URLSearchParams(window.location.search);
                 const conversationId = params.get('conversation');
+                readMessagingCache();
                 renderConversations(Boolean(!messagingState.conversations.length));
                 if (conversationId) openConversation(conversationId);
                 else if (messagingState.pendingConversation) openConversation(messagingState.pendingConversation.id);
-                loadConversations(true, { autoSelect: false }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
+                else {
+                    const targetConversation = messagingState.conversations.find(c => Number(c.unreadCount || 0) > 0);
+                    if (targetConversation) openConversation(targetConversation.id);
+                }
+                loadConversations(true, { autoSelect: !conversationId && !messagingState.pendingConversation }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
             } else if (tabId === 'seabreeze') {
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
