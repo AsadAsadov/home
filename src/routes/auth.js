@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
 const { authenticate, signToken, tokenExpiresAt } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
-const { sendEmail, isEmailProviderConfigured } = require('../utils/email');
+const { NODEMAILER_NOT_INSTALLED_MESSAGE, sendEmail, isEmailProviderConfigured } = require('../utils/email');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
@@ -475,7 +475,10 @@ router.post('/forgot-password', authRoute(async (req, res) => {
         await logUserActivity(prisma, user.id, 'forgot_password');
       } catch (error) {
         console.error('Password reset email not sent:', { userId: user.id, email: user.email, error });
-        return res.status(503).json({ success: false, message: 'Email göndərilə bilmədi. SMTP ayarlarını yoxlayın.' });
+        const message = error?.message === NODEMAILER_NOT_INSTALLED_MESSAGE
+          ? NODEMAILER_NOT_INSTALLED_MESSAGE
+          : 'Email göndərilə bilmədi. SMTP ayarlarını yoxlayın.';
+        return res.status(503).json({ success: false, message });
       }
     }
   }
