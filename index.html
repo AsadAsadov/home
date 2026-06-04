@@ -2693,8 +2693,10 @@
         .header-badge-btn { position: relative; min-width: 44px; min-height: 44px; justify-content: center; }
         .header-badge-btn__badge { position: absolute; top: -7px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; line-height: 18px; font-weight: 900; box-shadow: 0 8px 18px rgba(239,68,68,.35); }
         .header-badge-btn__badge.is-empty { display: none; }
-        .notification-panel { position: fixed; right: 18px; top: 92px; z-index: 80; width: min(380px, calc(100vw - 28px)); max-height: 72vh; overflow:auto; border-radius: 24px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 70px rgba(15,23,42,.22); padding: 14px; }
-        .notification-panel--full { left: 50%; right: auto; top: 96px; transform: translateX(-50%); width: min(720px, calc(100vw - 28px)); max-height: calc(100dvh - 124px); }
+        .notification-panel { position: fixed; z-index: 80; width: min(380px, calc(100vw - 28px)); max-height: 72vh; overflow:auto; border-radius: 24px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 70px rgba(15,23,42,.22); padding: 14px; }
+        .notification-panel--full { left: 50% !important; right: auto !important; top: 96px !important; transform: translateX(-50%); width: min(720px, calc(100vw - 28px)); max-height: calc(100dvh - 124px); }
+        .notification-full-backdrop { position: fixed; inset: 0; z-index: 79; background: rgba(15,23,42,.28); backdrop-filter: blur(3px); }
+        .notification-inline-error { margin: 8px 4px 0; border-radius: 14px; background: #fef2f2; color:#b91c1c; padding: 8px 10px; font-size: 12px; font-weight: 800; }
         .notification-item { display:block; width:100%; text-align:left; border-radius: 18px; padding: 12px; border: 1px solid transparent; color:#0f172a; }
         .notification-item:hover { background:#f8fafc; border-color:#e2e8f0; }
         .notification-item.is-unread { background:#eef2ff; border-color:#c7d2fe; }
@@ -2710,7 +2712,7 @@
         .message-status.is-read { color:#16a34a; }
         .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
         .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
-        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ right: 10px; top: 78px; width: min(380px, calc(100vw - 20px)); } }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -8251,7 +8253,7 @@ Title: Park Villas
         }
 
 
-        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], conversations: [], activeConversationId: null, activeConversation: null, activeMessages: [], socket: null, summaryLoadedAt: 0 };
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null };
 
         function badgeHtml(count) {
             const value = Number(count || 0);
@@ -8259,8 +8261,15 @@ Title: Park Villas
         }
 
         function refreshHeaderBadges() {
-            document.querySelectorAll('[data-notification-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.notificationsUnread));
-            document.querySelectorAll('[data-message-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.messagesUnread));
+            clearTimeout(messagingState.badgeRefreshTimer);
+            messagingState.badgeRefreshTimer = setTimeout(() => {
+                document.querySelectorAll('[data-notification-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.notificationsUnread));
+                document.querySelectorAll('[data-message-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.messagesUnread));
+            }, 80);
+        }
+
+        function perfLog(label, startedAt) {
+            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('debugPerf=1')) console.log(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
         }
 
         async function loadBadgeSummary() {
@@ -8289,9 +8298,17 @@ Title: Park Villas
         async function connectRealtime() {
             if (!activeUser || messagingState.socket) return;
             if (!await ensureSocketClientScript()) return;
-            messagingState.socket = io({ auth: { token: getAuthToken() } });
-            messagingState.socket.on('notification:new', (notification) => { messagingState.notificationsUnread += 1; messagingState.notifications.unshift(notification); refreshHeaderBadges(); });
-            messagingState.socket.on('message:new', ({ message }) => { if (String(message.senderId) === String(activeUser?.id)) return; if (String(message.conversationId) === String(messagingState.activeConversationId)) { messagingState.activeMessages.push(message); renderChatWindow(messagingState.activeConversation, messagingState.activeMessages); apiRequest(`/api/notifications/summary`).then(summary => { messagingState.notificationsUnread = summary.notificationsUnread || 0; messagingState.messagesUnread = summary.messagesUnread || 0; refreshHeaderBadges(); }).catch(() => null); } else { messagingState.messagesUnread += 1; loadConversations(false); refreshHeaderBadges(); } });
+            messagingState.socket = io({ auth: { token: getAuthToken() }, transports: ['websocket', 'polling'] });
+            messagingState.socket.on('notification:new', (notification) => { messagingState.notificationsUnread += 1; messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))]; refreshHeaderBadges(); });
+            messagingState.socket.on('message:new', ({ message }) => {
+                if (!message || messagingState.seenMessageIds.has(String(message.id))) return;
+                messagingState.seenMessageIds.add(String(message.id));
+                if (String(message.senderId) === String(activeUser?.id)) return;
+                const conv = messagingState.conversations.find(c => String(c.id) === String(message.conversationId));
+                if (conv) { conv.lastMessage = message; conv.updatedAt = message.createdAt; }
+                if (String(message.conversationId) === String(messagingState.activeConversationId)) { messagingState.activeMessages.push(message); renderChatWindow(messagingState.activeConversation, messagingState.activeMessages); }
+                else { messagingState.messagesUnread += 1; if (conv) conv.unreadCount = (conv.unreadCount || 0) + 1; refreshHeaderBadges(); renderConversations(); }
+            });
             messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
             messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
         }
@@ -8303,7 +8320,9 @@ Title: Park Villas
 
         function closeNotificationsPanel() {
             document.getElementById('notification-panel')?.remove();
+            document.getElementById('notification-full-backdrop')?.remove();
             document.removeEventListener('click', handleNotificationOutsideClick, true);
+            document.removeEventListener('keydown', handleNotificationKeydown, true);
         }
 
         function handleNotificationOutsideClick(event) {
@@ -8311,74 +8330,123 @@ Title: Park Villas
             closeNotificationsPanel();
         }
 
-        function renderNotificationsPanel({ full = false, loading = false } = {}) {
+        function handleNotificationKeydown(event) {
+            if (event.key === 'Escape') closeNotificationsPanel();
+        }
+
+        function positionNotificationPanel(panel) {
+            if (!panel || panel.classList.contains('notification-panel--full')) return;
+            const anchor = document.querySelector('[data-notification-toggle]:focus') || document.querySelector('[data-notification-toggle]');
+            const rect = anchor?.getBoundingClientRect();
+            const isMobile = window.innerWidth <= 768;
+            const top = Math.max(70, (rect?.bottom || 78) + 8);
+            panel.style.top = `${top}px`;
+            if (isMobile) { panel.style.left = '10px'; panel.style.right = '10px'; return; }
+            const width = Math.min(380, window.innerWidth - 28);
+            panel.style.width = `${width}px`;
+            panel.style.left = `${Math.max(14, Math.min(window.innerWidth - width - 14, (rect?.right || window.innerWidth - 18) - width))}px`;
+            panel.style.right = 'auto';
+        }
+
+        function renderNotificationsPanel({ full = false, loading = false, error = '' } = {}) {
             const body = loading
                 ? '<div class="p-4 space-y-2"><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div></div>'
                 : (messagingState.notifications.length ? messagingState.notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>');
             const panel = document.getElementById('notification-panel');
-            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div></div><div>${body}</div>`;
-            if (panel) { panel.className = `notification-panel ${full ? 'notification-panel--full' : ''}`; panel.innerHTML = html; return; }
+            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div></div><div>${body}</div>${error ? `<div class="notification-inline-error">${escapeHtml(error)}</div>` : ''}`;
+            if (full && !document.getElementById('notification-full-backdrop')) document.body.insertAdjacentHTML('beforeend', '<div id="notification-full-backdrop" class="notification-full-backdrop" onclick="closeNotificationsPanel()"></div>');
+            if (panel) { panel.className = `notification-panel ${full ? 'notification-panel--full' : ''}`; panel.innerHTML = html; positionNotificationPanel(panel); return; }
             document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel ${full ? 'notification-panel--full' : ''}">${html}</div>`);
-            setTimeout(() => document.addEventListener('click', handleNotificationOutsideClick, true), 0);
+            positionNotificationPanel(document.getElementById('notification-panel'));
+            setTimeout(() => { document.addEventListener('click', handleNotificationOutsideClick, true); document.addEventListener('keydown', handleNotificationKeydown, true); }, 0);
         }
 
         async function toggleNotificationsPanel() {
+            const startedAt = performance.now();
             const existing = document.getElementById('notification-panel');
             if (existing && !existing.classList.contains('notification-panel--full')) { closeNotificationsPanel(); return; }
             renderNotificationsPanel({ loading: !messagingState.notifications.length });
+            perfLog('notification panel open ms', startedAt);
+            if (Date.now() - (messagingState.notificationsLoadedAt || 0) < 15000) return;
             try {
                 const result = await apiRequest('/api/notifications');
                 messagingState.notifications = result.data || [];
+                messagingState.notificationsLoadedAt = Date.now();
                 renderNotificationsPanel();
-            } catch (error) { renderNotificationsPanel(); showToast(error.message || 'Bildirişlər yüklənmədi.'); }
+            } catch (error) { renderNotificationsPanel({ error: error.message || 'Bildirişlər yüklənmədi.' }); }
         }
 
         async function openAllNotifications() {
+            closeNotificationsPanel();
             renderNotificationsPanel({ full: true, loading: !messagingState.notifications.length });
             try {
                 const result = await apiRequest('/api/notifications?limit=100');
                 messagingState.notifications = result.data || [];
+                messagingState.notificationsLoadedAt = Date.now();
                 renderNotificationsPanel({ full: true });
-            } catch (error) { showToast(error.message || 'Bildirişlər yüklənmədi.'); }
+            } catch (error) { renderNotificationsPanel({ full: true, error: error.message || 'Bildirişlər yüklənmədi.' }); }
         }
 
         function renderNotificationItem(item) {
             return `<button class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${item.id}', '${escapeHtml(item.link || '')}')"><div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="text-[10px] font-bold text-slate-400 mt-2">${formatAzDateTime(item.createdAt)}</div></button>`;
         }
 
-        async function openNotification(id, link) {
-            await apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => null);
-            messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
+        function openNotification(id, link) {
+            const item = messagingState.notifications.find(n => String(n.id) === String(id));
+            const wasUnread = item && !item.isRead;
+            if (item) item.isRead = true;
+            if (wasUnread) messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
             refreshHeaderBadges();
-            document.getElementById('notification-panel')?.remove();
+            closeNotificationsPanel();
             if (link) spaNavigate(link.replace(window.location.origin, ''));
+            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => { if (item) item.isRead = false; if (wasUnread) messagingState.notificationsUnread += 1; refreshHeaderBadges(); showToast('Bildiriş oxundu kimi işarələnmədi.'); });
         }
 
         async function markAllNotificationsRead() {
-            await apiRequest('/api/notifications/read-all', { method: 'PATCH' });
+            const previousUnread = messagingState.notificationsUnread;
+            const previousNotifications = messagingState.notifications.map(n => ({ ...n }));
             messagingState.notificationsUnread = 0;
+            messagingState.notifications = messagingState.notifications.map(n => ({ ...n, isRead: true }));
             refreshHeaderBadges();
-            document.getElementById('notification-panel')?.remove();
+            renderNotificationsPanel({ full: document.getElementById('notification-panel')?.classList.contains('notification-panel--full') });
+            try { await apiRequest('/api/notifications/read-all', { method: 'PATCH' }); }
+            catch (error) { messagingState.notificationsUnread = previousUnread; messagingState.notifications = previousNotifications; refreshHeaderBadges(); renderNotificationsPanel({ error: error.message || 'Hamısını oxu alınmadı.' }); }
         }
 
         function navigateToMessages(conversationId = '') {
+            const startedAt = performance.now();
             if (!activeUser) { setPendingAuthRoute('/profil/mesajlar'); switchTab('admin-login'); return; }
+            closeNotificationsPanel();
             spaNavigate(`/profil/mesajlar${conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : ''}`);
+            perfLog('messages page open ms', startedAt);
         }
 
-        async function loadConversations(render = true) {
-            if (!activeUser) return;
-            const result = await apiRequest('/api/messages');
-            messagingState.conversations = result.data || [];
-            if (render) renderConversations();
+        async function loadConversations(render = true, { force = false, autoSelect = false } = {}) {
+            if (!activeUser || messagingState.conversationsLoading) return;
+            if (!force && Date.now() - (messagingState.conversationsLoadedAt || 0) < 15000) { if (render) renderConversations(); return; }
+            messagingState.conversationsLoading = true;
+            if (render) renderConversations(true);
+            try {
+                const result = await apiRequest('/api/messages');
+                messagingState.conversations = result.data || [];
+                messagingState.conversationsLoadedAt = Date.now();
+                if (render) renderConversations();
+                const params = new URLSearchParams(window.location.search);
+                const conversationId = params.get('conversation');
+                if (conversationId && String(messagingState.activeConversationId) !== String(conversationId)) openConversation(conversationId);
+                else if (autoSelect && !messagingState.activeConversationId && messagingState.conversations[0]) openConversation(messagingState.conversations[0].id);
+            } finally { messagingState.conversationsLoading = false; }
         }
 
-        function renderConversations() {
+        function renderConversations(loading = false) {
             const root = document.getElementById('conversation-list-root');
             if (!root) return;
-            root.innerHTML = messagingState.conversations.length ? messagingState.conversations.map(c => {
-                const name = c.otherUser?.fullname || 'İstifadəçi';
-                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(c.lastMessage?.text || c.listing?.title || 'Yeni söhbət')}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
+            const pending = messagingState.pendingConversation ? [messagingState.pendingConversation] : [];
+            const conversations = [...pending, ...messagingState.conversations.filter(c => !pending.some(p => String(p.id) === String(c.id)))];
+            if (!conversations.length && loading) { root.innerHTML = '<div class="p-4 space-y-2"><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div></div>'; return; }
+            root.innerHTML = conversations.length ? conversations.map(c => {
+                const name = c.otherUser?.fullname || c.placeholderName || 'İstifadəçi';
+                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''} ${c.pending ? 'opacity-70' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(c.pending ? 'Söhbət açılır…' : (c.lastMessage?.text || c.listing?.title || 'Yeni söhbət'))}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
             }).join('') : '<div class="p-8 text-center text-slate-500 font-bold">Söhbət yoxdur</div>';
         }
 
@@ -8390,10 +8458,13 @@ Title: Park Villas
         }
 
         async function openConversation(id) {
+            if (!id) return;
             messagingState.activeConversationId = String(id);
+            const cached = messagingState.conversations.find(c => String(c.id) === String(id)) || (String(messagingState.pendingConversation?.id) === String(id) ? messagingState.pendingConversation : null);
+            if (messagingState.activeMessages.length && String(messagingState.activeMessages[0]?.conversationId) !== String(id)) messagingState.activeMessages = [];
             renderConversations();
-            const root = document.getElementById('chat-window-root');
-            if (root) root.innerHTML = '<div class="flex-1 flex items-center justify-center text-slate-500 font-bold p-8">Mesajlar yüklənir…</div>';
+            renderChatWindow(cached || { placeholderName: 'Söhbət', pending: true }, messagingState.activeMessages, true);
+            if (String(id).startsWith('pending-')) return;
             try {
                 const result = await apiRequest(`/api/messages/conversations/${id}`);
                 messagingState.activeConversation = result.conversation;
@@ -8406,22 +8477,26 @@ Title: Park Villas
                 renderConversations();
                 renderChatWindow(result.conversation, messagingState.activeMessages);
             } catch (error) {
+                const root = document.getElementById('chat-window-root');
                 if (root) root.innerHTML = `<div class="flex-1 flex items-center justify-center text-red-600 font-bold p-8 text-center">${escapeHtml(error.message || 'Söhbət açılmadı.')}</div>`;
             }
         }
 
         function messageStatus(message) {
+            if (message.failed) return '<button type="button" onclick="retryFailedMessage(\'' + escapeHtml(message.id) + '\')" class="message-status text-red-600">Təkrar göndər</button>';
             if (String(message.senderId) !== String(activeUser?.id)) return '';
             if (message.readAt) return '<span class="message-status is-read">✓✓</span>';
             if (message.deliveredAt) return '<span class="message-status">✓✓</span>';
-            return `<span class="message-status">✓${message.pending ? ' göndərilir' : ''}</span>`;
+            return `<span class="message-status">${message.pending ? '◷' : '✓'}</span>`;
         }
 
-        function renderChatWindow(conversation, messages) {
+        function renderChatWindow(conversation, messages, loading = false) {
             const root = document.getElementById('chat-window-root');
+            if (!root) return;
             messagingState.activeConversation = conversation || messagingState.activeConversation;
-            const otherName = conversation?.otherUser?.fullname || 'İstifadəçi';
-            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            const otherName = conversation?.otherUser?.fullname || conversation?.placeholderName || 'İstifadəçi';
+            const loader = loading ? '<div class="typing-placeholder">Söhbət yüklənir…</div>' : '';
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''} ${m.failed ? 'border border-red-300 bg-red-50' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
             document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
         }
 
@@ -8429,28 +8504,41 @@ Title: Park Villas
             event.preventDefault();
             const input = document.getElementById('chat-message-input');
             const text = input.value.trim();
-            if (!text || !messagingState.activeConversationId) return;
+            if (!text || !messagingState.activeConversationId || String(messagingState.activeConversationId).startsWith('pending-')) return;
+            const startedAt = performance.now();
             const tempId = `tmp-${Date.now()}`;
             input.value = '';
             const optimistic = { id: tempId, conversationId: messagingState.activeConversationId, senderId: activeUser.id, text, createdAt: new Date().toISOString(), pending: true };
             messagingState.activeMessages.push(optimistic);
             renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+            perfLog('message optimistic append ms', startedAt);
             document.getElementById('chat-message-input')?.focus();
             try {
                 const result = await apiRequest(`/api/messages/conversations/${messagingState.activeConversationId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
                 const idx = messagingState.activeMessages.findIndex(m => m.id === tempId);
                 if (idx > -1) messagingState.activeMessages[idx] = result.message;
                 else messagingState.activeMessages.push(result.message);
+                messagingState.seenMessageIds.add(String(result.message.id));
                 const conv = messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId));
-                if (conv) conv.lastMessage = result.message;
+                if (conv) { conv.lastMessage = result.message; conv.updatedAt = result.message.createdAt; }
                 renderChatWindow(messagingState.activeConversation || conv || {}, messagingState.activeMessages);
                 renderConversations();
             } catch (error) {
                 const msg = messagingState.activeMessages.find(m => m.id === tempId);
-                if (msg) { msg.pending = false; msg.failed = true; }
+                if (msg) { msg.pending = false; msg.failed = true; msg.errorText = error.message; }
                 renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
                 showToast(error.message || 'Mesaj göndərilmədi.');
             }
+        }
+
+        function retryFailedMessage(id) {
+            const msg = messagingState.activeMessages.find(m => String(m.id) === String(id));
+            if (!msg) return;
+            const input = document.getElementById('chat-message-input');
+            if (input) input.value = msg.text;
+            messagingState.activeMessages = messagingState.activeMessages.filter(m => String(m.id) !== String(id));
+            renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+            input?.focus();
         }
 
         function updateLocalMessageStatus(messageId, patch) {
@@ -8459,11 +8547,27 @@ Title: Park Villas
         }
 
         async function startListingConversation(listingId) {
+            const startedAt = performance.now();
             if (!activeUser) { setPendingAuthRoute(`/listing/${listingId}`); switchTab('admin-login'); return; }
+            const pendingId = `pending-${Date.now()}`;
+            const listing = appData.listings?.find(item => String(item.id) === String(listingId)) || null;
+            closePropertyModal();
+            messagingState.pendingConversation = { id: pendingId, pending: true, placeholderName: 'Satıcı', listing };
+            messagingState.activeConversationId = pendingId;
+            messagingState.activeMessages = [];
+            navigateToMessages();
+            renderConversations();
+            renderChatWindow(messagingState.pendingConversation, [], true);
+            perfLog('seller message click ms', startedAt);
             try {
                 const result = await apiRequest('/api/messages/conversations', { method: 'POST', body: JSON.stringify({ listingId }) });
-                navigateToMessages(result.conversation.id);
-            } catch (error) { alert(error.message || 'Söhbət yaradıla bilmədi.'); }
+                messagingState.pendingConversation = null;
+                messagingState.activeConversationId = String(result.conversation.id);
+                messagingState.conversations = [result.conversation, ...messagingState.conversations.filter(c => String(c.id) !== String(result.conversation.id))];
+                history.replaceState({ tabId: 'messages' }, '', `/profil/mesajlar?conversation=${encodeURIComponent(result.conversation.id)}`);
+                renderConversations();
+                openConversation(result.conversation.id);
+            } catch (error) { messagingState.pendingConversation = null; renderConversations(); showToast(error.message || 'Söhbət yaradıla bilmədi.'); }
         }
 
         function updateHeaderUI() {
@@ -8541,11 +8645,12 @@ Title: Park Villas
             if (tabId !== 'listings') hideListingHero();
 
             if (tabId === 'messages') {
-                loadConversations(true).then(() => {
-                    const params = new URLSearchParams(window.location.search);
-                    const conversationId = params.get('conversation');
-                    if (conversationId) openConversation(conversationId);
-                });
+                const params = new URLSearchParams(window.location.search);
+                const conversationId = params.get('conversation');
+                renderConversations(Boolean(!messagingState.conversations.length));
+                if (conversationId) openConversation(conversationId);
+                else if (messagingState.pendingConversation) openConversation(messagingState.pendingConversation.id);
+                loadConversations(true, { autoSelect: false }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
             } else if (tabId === 'seabreeze') {
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
