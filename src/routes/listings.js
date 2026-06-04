@@ -640,7 +640,7 @@ router.get('/options', (_req, res) => {
     card: LISTING_CARD_CONTRACT,
     location: {
       mapProvider: 'OpenStreetMap + Leaflet',
-      searchProvider: 'Nominatim',
+      searchProvider: 'Mapbox Geocoding API → local Azerbaijan/Baku index → Nominatim',
       fields: ['district', 'settlement', 'metro_station', 'street_address', 'latitude', 'longitude'],
       metroStations: BAKU_METRO_STATIONS,
       districts: BAKU_DISTRICTS,
