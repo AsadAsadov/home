@@ -4840,7 +4840,18 @@ Title: Park Villas
             sessionStorage.removeItem('besthome_user_data');
         }
 
+        function setPendingAuthRoute(path = window.location.pathname + window.location.search + window.location.hash) {
+            if (path && path !== '/' && path !== '/login') sessionStorage.setItem('besthome_pending_auth_route', path);
+        }
+
+        function consumePendingAuthRoute() {
+            const route = sessionStorage.getItem('besthome_pending_auth_route');
+            if (route) sessionStorage.removeItem('besthome_pending_auth_route');
+            return route;
+        }
+
         function redirectToLoginOnAuthFailure() {
+            setPendingAuthRoute();
             clearAuthSession();
             activeUser = null;
             updateHeaderUI();
@@ -5208,9 +5219,10 @@ Title: Park Villas
             const images = [...imageRows, ...mediaRows, g.imageUrl || g.image_url, g.thumbnailUrl || g.thumbnail_url]
                 .map(x => String(x || '').trim())
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
+            const isFeatured = Boolean(g.isFeatured ?? g.is_featured);
             return mediaType === 'video'
-                ? { id: g.id, title: g.title || '', type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', thumbnailFallbackUrl: g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '', autoThumbnailUrl: g.autoThumbnailUrl || g.auto_thumbnail_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: Boolean(g.isFeatured ?? g.is_featured) }
-                : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0 };
+                ? { id: g.id, title: g.title || '', type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', thumbnailFallbackUrl: g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '', autoThumbnailUrl: g.autoThumbnailUrl || g.auto_thumbnail_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
+                : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
         }
 
         const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
@@ -7703,12 +7715,12 @@ Title: Park Villas
         }
 
         function navigateToCreateListing() {
-            if (!activeUser) { switchTab('admin-login'); return; }
+            if (!activeUser) { setPendingAuthRoute('/elan-elave-et'); switchTab('admin-login'); return; }
             spaNavigate('/elan-elave-et');
         }
 
         function navigateToMyListings() {
-            if (!activeUser) { switchTab('admin-login'); return; }
+            if (!activeUser) { setPendingAuthRoute('/menim-elanlarim'); switchTab('admin-login'); return; }
             spaNavigate('/menim-elanlarim');
         }
 
@@ -7718,28 +7730,22 @@ Title: Park Villas
         }
 
         function navigateToFavorites() {
-            if (!activeUser) { switchTab('admin-login'); return; }
+            if (!activeUser) { setPendingAuthRoute('/favoriler'); switchTab('admin-login'); return; }
             spaNavigate('/favoriler');
         }
 
         function navigateToProfileInfo() {
-            if (!activeUser) { switchTab('admin-login'); return; }
-            switchTab('admin-dashboard');
-            setTimeout(() => {
-                if (typeof switchAdminSubtab === 'function') switchAdminSubtab(activeUser.role === 'admin' ? 'sb' : 'user-profile');
-            }, 80);
+            if (!activeUser) { setPendingAuthRoute('/profil/melumatlar'); switchTab('admin-login'); return; }
+            spaNavigate('/profil/melumatlar');
         }
 
         function navigateToProfileSettings() {
-            if (!activeUser) { switchTab('admin-login'); return; }
-            switchTab('admin-dashboard');
-            setTimeout(() => {
-                if (typeof switchAdminSubtab === 'function') switchAdminSubtab(activeUser.role === 'admin' ? 'sb' : 'user-profile');
-            }, 80);
+            if (!activeUser) { setPendingAuthRoute('/profil/melumatlar'); switchTab('admin-login'); return; }
+            spaNavigate('/profil/melumatlar');
         }
 
         function toggleMobileProfileMenu() {
-            if (!activeUser) { closeMobileProfileMenu(); switchTab('admin-login'); return; }
+            if (!activeUser) { closeMobileProfileMenu(); setPendingAuthRoute('/profil'); switchTab('admin-login'); return; }
             const sheet = document.getElementById('mobile-profile-sheet');
             const backdrop = document.getElementById('mobile-profile-backdrop');
             const isOpen = sheet?.classList.contains('is-open');
@@ -7760,7 +7766,7 @@ Title: Park Villas
                 || (path === '/elanlar' || path.startsWith('/listing/') ? 'listings'
                     : (path === '/elan-elave-et' || path === '/create-listing' ? 'create-listing'
                         : (path === '/ipoteka-kalkulyatoru' ? 'mortgage'
-                            : (path === '/menim-elanlarim' || path === '/favoriler' ? 'profile' : 'seabreeze'))));
+                            : (path.startsWith('/profil') || path.startsWith('/profile') || path.startsWith('/admin') || path === '/menim-elanlarim' || path === '/favoriler' ? 'profile' : 'seabreeze'))));
             document.querySelectorAll('.mobile-bottom-nav__item').forEach(btn => {
                 btn.classList.toggle('is-active', btn.dataset.mobileTab === active);
             });
@@ -9813,7 +9819,14 @@ Təşəkkür edirəm. 🙏`;
                 await hydrateFromDatabase();
                 setLoginButtonLoading(false);
                 isLoginSubmitting = false;
-                switchTab('admin-dashboard');
+                const pendingRoute = consumePendingAuthRoute();
+                if (pendingRoute) {
+                    history.replaceState({ path: pendingRoute }, '', pendingRoute);
+                    await routeToCurrentPath();
+                } else {
+                    history.replaceState({ path: activeUser.role === 'admin' ? '/admin' : '/profil' }, '', activeUser.role === 'admin' ? '/admin' : '/profil');
+                    await routeToCurrentPath();
+                }
                 return;
             } catch (apiError) {
                 console.warn('API login alınmadı:', apiError.message);
@@ -11917,6 +11930,7 @@ Təşəkkür edirəm. 🙏`;
             const desc = document.getElementById('g-desc').value;
             const videoUrl = document.getElementById('g-video-url').value.trim();
             const videoFile = document.getElementById('g-video-file')?.files?.[0];
+            const mediaType = type === 'video' ? 'video' : 'image';
             const galleryPayload = {
                 id: editId || null,
                 title,
@@ -11925,8 +11939,9 @@ Təşəkkür edirəm. 🙏`;
                 images: type === 'event' ? uploadedEventImages : [],
                 url: type === 'video' ? normalizeGalleryVideoUrl(videoUrl) : '',
                 thumbnail: type === 'video' ? (getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : '',
-                isFeatured: type === 'video' ? (document.getElementById('g-is-featured')?.checked || false) : false
+                isFeatured: mediaType === 'video' ? Boolean(document.getElementById('g-is-featured')?.checked) : false
             };
+            console.log('SAVE GALLERY isFeatured payload:', galleryPayload.isFeatured);
 
             if (type === 'event' && galleryPayload.images.length === 0 && uploadedEventImageFiles.length === 0) {
                 alert('Qalereya üçün ən azı bir şəkil seçin.');
@@ -11944,7 +11959,9 @@ Təşəkkür edirəm. 🙏`;
             const formData = new FormData();
             formData.append('title', title);
             formData.append('description', desc);
-            formData.append('media_type', type === 'video' ? 'video' : 'image');
+            formData.append('media_type', mediaType);
+            formData.append('mediaType', mediaType);
+            formData.append('isFeatured', galleryPayload.isFeatured ? 'true' : 'false');
             if (type === 'event') {
                 uploadedEventImageFiles.forEach(file => formData.append('images', file));
                 const existingImages = uploadedEventImages.filter(src => !String(src).startsWith('blob:'));
@@ -11961,17 +11978,9 @@ Təşəkkür edirəm. 🙏`;
                     ? await apiRequest(`/api/gallery/${editId}`, 'PUT', formData)
                     : await apiRequest('/api/gallery', 'POST', formData);
                 const savedUi = dbGalleryToUi(saved);
-                const list = [...appData.gallery].map(item => (
-                    savedUi.type === 'video' && savedUi.isFeatured && item.type === 'video'
-                        ? { ...item, isFeatured: false }
-                        : item
-                ));
-                const idx = list.findIndex(x => String(x.id) === String(editId || savedUi.id));
-                if (idx > -1) list[idx] = savedUi;
-                else list.unshift(savedUi);
-                cacheData('gallery', list);
-                renderPortfolio();
+                console.log('API GALLERY isFeatured response:', savedUi.isFeatured);
                 await loadGalleryPage(galleryPagination.page || 1);
+                renderPortfolio();
                 resetGalleryForm();
                 renderAdminDashboard();
             } catch (error) {
@@ -11986,6 +11995,7 @@ Təşəkkür edirəm. 🙏`;
             const list = appData.gallery;
             const g = list.find(x => x.id === id);
             if (g) {
+                console.log('EDIT GALLERY ITEM isFeatured:', g.id, g.isFeatured, g.is_featured);
                 document.getElementById('edit-g-id').value = g.id;
                 document.getElementById('g-title').value = g.title;
                 document.getElementById('g-type').value = g.type;
@@ -11999,7 +12009,7 @@ Təşəkkür edirəm. 🙏`;
                     renderGalleryMultiPreview();
                 } else {
                     document.getElementById('g-video-url').value = g.url || '';
-                    document.getElementById('g-is-featured').checked = Boolean(g.isFeatured);
+                    document.getElementById('g-is-featured').checked = Boolean(g.isFeatured || g.is_featured);
                 }
                 document.getElementById('gallery-form-title').textContent = "Media Elementini Redaktə Et";
             }
@@ -12417,21 +12427,75 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        const ADMIN_QUERY_TAB_SUBTABS = {
+            qalereya: 'gallery-manager',
+            gallery: 'gallery-manager',
+            vakansiya: 'vacancy-manager',
+            vacancy: 'vacancy-manager',
+            'site-settings': 'site-settings',
+            listings: 'seabreeze-manager',
+            projects: 'projects-manager'
+        };
+
+        const ADMIN_ROUTE_SUBTABS = {
+            '/admin': 'seabreeze-manager',
+            '/admin/listings': 'seabreeze-manager',
+            '/admin/qalereya': 'gallery-manager',
+            '/admin/gallery': 'gallery-manager',
+            '/admin/vakansiya': 'vacancy-manager',
+            '/admin/vacancy': 'vacancy-manager',
+            '/admin/site-settings': 'site-settings',
+            '/admin/projects': 'projects-manager'
+        };
+
+        function openAuthenticatedRoute(tabId, pendingPath) {
+            if (!activeUser) {
+                setPendingAuthRoute(pendingPath || window.location.pathname + window.location.search + window.location.hash);
+                switchTab('admin-login', { skipPush: true });
+                return false;
+            }
+            switchTab(tabId, { skipPush: true });
+            return true;
+        }
+
+        function routeToDashboardSubtab(subtab, path) {
+            if (!openAuthenticatedRoute('admin-dashboard', path)) return;
+            document.getElementById('admin-access-denied-route')?.remove();
+            if (path.startsWith('/admin') && activeUser.role !== 'admin') {
+                document.getElementById('admin-subtab-seabreeze-manager')?.classList.add('hidden');
+                const dashboard = document.getElementById('tab-admin-dashboard');
+                if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
+                return;
+            }
+            switchAdminSubtab(subtab);
+        }
+
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
+            if (ADMIN_ROUTE_SUBTABS[path]) {
+                const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
+                routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
+                updateSeo({ title: 'Admin Panel', path });
+                return;
+            }
+            if (path === '/profil' || path === '/profile' || path === '/profil/melumatlar' || path === '/profile/melumatlar') {
+                routeToDashboardSubtab(activeUser?.role === 'admin' ? 'seabreeze-manager' : 'user-profile', path);
+                updateSeo({ title: 'Profil', path });
+                return;
+            }
+            if (path === '/profil/elanlarim' || path === '/profile/elanlarim' || path === '/profile/listings' || path === '/menim-elanlarim') {
+                if (!openAuthenticatedRoute('my-listings', path)) return;
+                updateSeo({ title: 'Mənim elanlarım', path });
+                return;
+            }
+            if (path === '/profil/favoriler' || path === '/profile/favoriler' || path === '/profile/favorites' || path === '/favoriler') {
+                if (!openAuthenticatedRoute('favorites', path)) return;
+                updateSeo({ title: 'Favorilər', path });
+                return;
+            }
             if (path === '/elan-elave-et' || path === '/create-listing') {
-                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
-                switchTab('create-listing', { skipPush: true });
-                return;
-            }
-            if (path === '/menim-elanlarim') {
-                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
-                switchTab('my-listings', { skipPush: true });
-                return;
-            }
-            if (path === '/favoriler') {
-                if (!activeUser) { switchTab('admin-login', { skipPush: true }); return; }
-                switchTab('favorites', { skipPush: true });
+                if (!openAuthenticatedRoute('create-listing', path)) return;
+                updateSeo({ title: 'Elan əlavə et', path });
                 return;
             }
             const userListingsMatch = path.match(/^\/user\/(\d+)\/listings\/?$/);

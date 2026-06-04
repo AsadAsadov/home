@@ -89,6 +89,7 @@ async function payload(req, existing = {}) {
     ? [normalized.videoUrl ?? originalVideoUrl].filter(Boolean)
     : images;
   const thumbnailUrl = firstNonBlank(body.thumbnail_url, body.thumbnailUrl, normalized.thumbnailUrl, imageUrl, images[0]) ?? null;
+  const requestedFeatured = toBool(body.isFeatured ?? body.is_featured);
 
   return Object.fromEntries(Object.entries({
     title: body.title,
@@ -101,7 +102,7 @@ async function payload(req, existing = {}) {
     thumbnailUrl,
     mediaPositionX: normalizeMediaPosition(body.media_position_x ?? body.mediaPositionX ?? existing.mediaPositionX, MEDIA_POSITION_X),
     mediaPositionY: normalizeMediaPosition(body.media_position_y ?? body.mediaPositionY ?? existing.mediaPositionY, MEDIA_POSITION_Y),
-    isFeatured: mediaType === 'video' ? (toBool(body.is_featured ?? body.isFeatured) ?? existing.isFeatured ?? false) : false,
+    isFeatured: mediaType === 'video' ? (requestedFeatured ?? existing.isFeatured ?? false) : false,
     sortOrder: Number.isFinite(Number(body.sort_order ?? body.sortOrder)) ? Number(body.sort_order ?? body.sortOrder) : existing.sortOrder,
   }).filter(([, v]) => v !== undefined));
 }
@@ -118,6 +119,7 @@ function serializeGallery(item) {
     media_position_y: mediaPositionY,
     objectPosition: `${mediaPositionX} ${mediaPositionY}`,
     sort_order: item.sortOrder ?? item.sort_order ?? 0,
+    isFeatured: Boolean(item.isFeatured ?? item.is_featured),
     is_featured: Boolean(item.isFeatured ?? item.is_featured),
     thumbnailFallbackUrl: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
     thumbnail_fallback_url: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
