@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS "idx_email_verification_tokens_expires_at" ON "email_
 CREATE INDEX IF NOT EXISTS "idx_email_verification_tokens_used" ON "email_verification_tokens"("used");
 
 CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
-  "id" BIGSERIAL PRIMARY KEY,
+  "id" TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
   "email" TEXT NOT NULL,
   "token" TEXT NOT NULL UNIQUE,
   "expires_at" TIMESTAMP(3) NOT NULL,

@@ -234,6 +234,7 @@ async function createPasswordResetToken(email, tx = prisma) {
   const { token, hash } = generateTokenPair();
   await tx.passwordResetToken.create({
     data: {
+      id: crypto.randomUUID(),
       email: String(email).toLowerCase(),
       token: hash,
       expiresAt: addMinutes(new Date(), PASSWORD_RESET_TTL_MINUTES),
