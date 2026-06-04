@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
 const { authenticate, signToken, tokenExpiresAt } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
-const { NODEMAILER_NOT_INSTALLED_MESSAGE, sendEmail, isEmailProviderConfigured } = require('../utils/email');
+const { NODEMAILER_NOT_INSTALLED_MESSAGE, sendEmail } = require('../utils/email');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
@@ -255,29 +255,34 @@ async function sendVerificationEmail(user) {
 }
 
 async function sendPasswordResetEmail(user) {
-  if (!isEmailProviderConfigured()) {
-    console.warn('Password reset email not sent: email provider is not configured.', { userId: user.id, email: user.email });
-    const error = new Error('Email provider is not configured.');
-    error.code = 'EMAIL_PROVIDER_NOT_CONFIGURED';
-    throw error;
-  }
   const token = await createPasswordResetToken(user.id);
+  console.log('[forgot-password] reset token created', { userId: user.id, email: user.email });
   const url = appUrl('/reset-password', { token });
+  console.log('[forgot-password] reset link generated', { userId: user.id, email: user.email });
   try {
+    console.log('[forgot-password] attempting email send', { userId: user.id, email: user.email });
     const info = await sendEmail({
       to: user.email,
       subject: 'Best Home şifrə bərpası',
       text: `Şifrənizi yeniləmək üçün bu linkə keçin: ${url}`,
       html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Şifrənizi yeniləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">🔒 Şifrəni yenilə</a></p><p>Link 1 saat qüvvədədir və yalnız bir dəfə istifadə edilə bilər.</p>`,
     });
-    console.log('PASSWORD RESET EMAIL SENT', {
+    console.log('[forgot-password] email send success', {
+      userId: user.id,
+      email: user.email,
       messageId: info?.messageId,
       accepted: info?.accepted,
       rejected: info?.rejected,
       response: info?.response,
     });
   } catch (error) {
-    console.error('Password reset email failed:', { userId: user.id, email: user.email, error });
+    console.error('[forgot-password] email send failed', {
+      userId: user.id,
+      email: user.email,
+      message: error.message,
+      code: error.code,
+      missingEnv: error.missingEnv,
+    });
     throw error;
   }
   return url;
@@ -463,25 +468,37 @@ router.post('/resend-verification', authRoute(async (req, res) => {
 }));
 
 router.post('/forgot-password', authRoute(async (req, res) => {
+  console.log('[forgot-password] request received', { emailPresent: Boolean(req.body?.email) });
   if (!(await verifyRecaptcha(req, res))) return;
   const email = clean(req.body.email)?.toLowerCase();
-  if (email) {
-    const rate = hitFixedWindow(forgotPasswordAttempts, rateLimitKey('forgot', email), FORGOT_PASSWORD_WINDOW_MS, FORGOT_PASSWORD_LIMIT);
-    if (!rate.allowed) return res.status(429).json({ success: false, message: 'Şifrə bərpası üçün maksimum 5 sorğu göndərə bilərsiniz. 1 saat sonra yenidən cəhd edin.' });
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (user && user.provider !== 'google') {
-      try {
-        await sendPasswordResetEmail(user);
-        await logUserActivity(prisma, user.id, 'forgot_password');
-      } catch (error) {
-        console.error('Password reset email not sent:', { userId: user.id, email: user.email, error });
-        const message = error?.message === NODEMAILER_NOT_INSTALLED_MESSAGE
-          ? NODEMAILER_NOT_INSTALLED_MESSAGE
-          : 'Email göndərilə bilmədi. SMTP ayarlarını yoxlayın.';
-        return res.status(503).json({ success: false, message });
-      }
-    }
+  console.log('[forgot-password] email normalized', { email });
+  if (!email) return res.status(400).json({ success: false, message: 'Email tələb olunur.' });
+
+  const rate = hitFixedWindow(forgotPasswordAttempts, rateLimitKey('forgot', email), FORGOT_PASSWORD_WINDOW_MS, FORGOT_PASSWORD_LIMIT);
+  if (!rate.allowed) return res.status(429).json({ success: false, message: 'Şifrə bərpası üçün maksimum 5 sorğu göndərə bilərsiniz. 1 saat sonra yenidən cəhd edin.' });
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    console.log('[forgot-password] user not found', { email });
+    return res.status(404).json({ success: false, message: 'Bu email üçün hesab tapılmadı.' });
   }
+
+  console.log('[forgot-password] user found', { userId: user.id, email: user.email, provider: user.provider });
+  if (user.provider === 'google') {
+    return res.status(400).json({ success: false, message: 'Bu email Google hesabı ilə qeydiyyatdan keçib. Google ilə daxil olun.' });
+  }
+
+  try {
+    await sendPasswordResetEmail(user);
+    await logUserActivity(prisma, user.id, 'forgot_password');
+  } catch (error) {
+    console.error('Password reset email not sent:', { userId: user.id, email: user.email, error });
+    const message = error?.message === NODEMAILER_NOT_INSTALLED_MESSAGE
+      ? NODEMAILER_NOT_INSTALLED_MESSAGE
+      : error?.message || 'Email göndərilə bilmədi. SMTP ayarlarını yoxlayın.';
+    return res.status(error?.status || 503).json({ success: false, message, code: error?.code, missingEnv: error?.missingEnv });
+  }
+
   res.json({ success: true, ok: true, message: 'Şifrə bərpa linki email ünvanınıza göndərildi.' });
 }));
 
