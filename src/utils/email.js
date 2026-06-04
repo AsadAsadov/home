@@ -13,9 +13,14 @@ function emailServiceUnavailableError(message = NODEMAILER_NOT_INSTALLED_MESSAGE
 
 function loadNodemailer() {
   try {
-    return require('nodemailer');
+    const nodemailer = require('nodemailer');
+    console.log('[email] nodemailer loaded successfully');
+    return nodemailer;
   } catch (error) {
-    if (isMissingNodemailerError(error)) throw emailServiceUnavailableError();
+    if (isMissingNodemailerError(error)) {
+      console.error(NODEMAILER_NOT_INSTALLED_MESSAGE);
+      throw emailServiceUnavailableError();
+    }
     throw error;
   }
 }
@@ -38,18 +43,49 @@ function smtpConfig() {
   };
 }
 
+function smtpLogConfig(from = fromAddress()) {
+  const provider = getProvider();
+  const config = smtpConfig();
+  return {
+    provider,
+    host: config.host,
+    port: config.port,
+    user: config.auth.user,
+    from,
+    hasPass: Boolean(process.env.SMTP_PASS),
+  };
+}
+
+function configError(message, code = 'EMAIL_CONFIG_ERROR', status = 503, missingEnv = []) {
+  const error = new Error(message);
+  error.code = code;
+  error.status = status;
+  error.missingEnv = missingEnv;
+  return error;
+}
+
+function missingSmtpEnvNames(provider = getProvider()) {
+  const missing = [];
+  if (!process.env.SMTP_HOST && provider !== 'gmail') missing.push('SMTP_HOST');
+  if (!process.env.SMTP_USER && !process.env.GMAIL_SMTP_USER) missing.push('SMTP_USER');
+  if (!process.env.SMTP_PASS && !process.env.GMAIL_SMTP_PASS) missing.push('SMTP_PASS');
+  if (!process.env.EMAIL_FROM && !process.env.SMTP_FROM) missing.push('EMAIL_FROM');
+  return missing;
+}
+
 function isSmtpConfigured() {
   const config = smtpConfig();
   return Boolean(config.host && config.auth.user && config.auth.pass);
 }
 
 function isEmailProviderConfigured() {
-  return Boolean(
-    process.env.RESEND_API_KEY
-    || process.env.SENDGRID_API_KEY
-    || (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN)
-    || isSmtpConfigured()
-  );
+  const provider = getProvider();
+  if (!provider) return false;
+  if (provider === 'resend') return Boolean(process.env.RESEND_API_KEY);
+  if (provider === 'sendgrid') return Boolean(process.env.SENDGRID_API_KEY);
+  if (provider === 'mailgun') return Boolean(process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN);
+  if (provider === 'smtp' || provider === 'gmail') return isSmtpConfigured();
+  return false;
 }
 
 function fromAddress() {
@@ -61,28 +97,45 @@ function plainAddress(value) {
   return (match ? match[1] : value).trim();
 }
 
-function createSmtpTransporter() {
+function createSmtpTransporter(from) {
   const config = smtpConfig();
-  if (!config.host || !config.auth.user || !config.auth.pass) throw new Error('SMTP email is not configured.');
+  console.log('[smtp] config', smtpLogConfig(from));
+  const missingEnv = missingSmtpEnvNames();
+  if (missingEnv.length) {
+    console.error('[smtp] missing env', { missingEnv });
+    throw configError(`SMTP email is not configured. Missing env: ${missingEnv.join(', ')}`, 'SMTP_CONFIG_MISSING', 503, missingEnv);
+  }
   return loadNodemailer().createTransport(config);
 }
 
-async function verifySmtpTransporter(transporter) {
+async function verifySmtpTransporter(transporter, from) {
   try {
-    const smtpTransporter = transporter || createSmtpTransporter();
+    const smtpTransporter = transporter || createSmtpTransporter(from);
     await smtpTransporter.verify();
-    console.log('SMTP transporter verified successfully');
+    console.log('[smtp] verify success');
     return true;
   } catch (error) {
-    console.error('SMTP transporter verify failed:', error);
+    console.error('[smtp] verify failed', { message: error.message, code: error.code, command: error.command });
     throw error;
   }
 }
 
 async function sendSmtpEmail(message) {
-  const transporter = createSmtpTransporter();
-  await verifySmtpTransporter(transporter);
-  return transporter.sendMail(message);
+  const transporter = createSmtpTransporter(message.from);
+  await verifySmtpTransporter(transporter, message.from);
+  try {
+    const info = await transporter.sendMail(message);
+    console.log('[smtp] sendMail result', {
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      response: info?.response,
+    });
+    return info;
+  } catch (error) {
+    console.error('[smtp] sendMail failed', { message: error.message, code: error.code, command: error.command });
+    throw error;
+  }
 }
 
 async function sendResendEmail(message) {
@@ -133,18 +186,17 @@ async function sendMailgunEmail(message) {
 async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
   const message = { to, from, subject, text, html };
   const provider = getProvider();
+  if (!provider) {
+    const missingEnv = ['EMAIL_PROVIDER'];
+    console.error('[email] missing env', { missingEnv });
+    throw configError(`Email provider is not configured. Missing env: ${missingEnv.join(', ')}`, 'EMAIL_PROVIDER_MISSING', 503, missingEnv);
+  }
   if (provider === 'resend') return sendResendEmail(message);
   if (provider === 'sendgrid') return sendSendGridEmail(message);
   if (provider === 'mailgun') return sendMailgunEmail(message);
   if (provider === 'smtp' || provider === 'gmail') return sendSmtpEmail(message);
 
-  if (process.env.RESEND_API_KEY) return sendResendEmail(message);
-  if (process.env.SENDGRID_API_KEY) return sendSendGridEmail(message);
-  if (process.env.MAILGUN_API_KEY) return sendMailgunEmail(message);
-  if (isSmtpConfigured()) return sendSmtpEmail(message);
-
-  console.warn('Password reset email not sent: email provider is not configured.', { to, subject });
-  return { skipped: true };
+  throw configError(`Unsupported EMAIL_PROVIDER: ${provider}`, 'EMAIL_PROVIDER_UNSUPPORTED', 503);
 }
 
 module.exports = {
