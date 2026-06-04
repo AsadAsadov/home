@@ -4,7 +4,7 @@ const prisma = require('../lib/prisma');
 const upload = require('../middleware/upload');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
-const { normalizeVideo } = require('../utils/media');
+const { getYouTubeThumbnailFallbackUrl, getYouTubeThumbnailUrl, normalizeVideo } = require('../utils/media');
 const { uploadToGalleryBucket } = require('../utils/supabaseStorage');
 const router = express.Router();
 
@@ -30,6 +30,10 @@ function mediaFiles(req) {
 
 const MEDIA_POSITION_X = new Set(['left', 'center', 'right']);
 const MEDIA_POSITION_Y = new Set(['top', 'center', 'bottom']);
+
+function firstNonBlank(...values) {
+  return values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+}
 
 function toBool(value) {
   if (value === undefined || value === null || value === '') return undefined;
@@ -78,13 +82,13 @@ async function payload(req, existing = {}) {
   const existingImages = parseImages(body.existing_images ?? body.existingImages);
   const imageField = body.image_url ?? body.imageUrl;
   const images = [...imageUploads, ...submittedImages, ...existingImages, imageField].filter(Boolean);
-  const originalVideoUrl = firstVideoUpload ? firstVideoUpload.url : (body.video_url ?? body.videoUrl ?? body.url);
+  const originalVideoUrl = firstVideoUpload ? firstVideoUpload.url : firstNonBlank(body.video_url, body.videoUrl, body.url);
   const normalized = mediaType === 'video' && originalVideoUrl ? normalizeVideo(originalVideoUrl) : {};
-  const imageUrl = mediaType === 'image' ? (images[0] || uploadedUrls[0] || null) : (imageField ?? null);
+  const imageUrl = mediaType === 'image' ? (images[0] || uploadedUrls[0] || null) : (firstNonBlank(imageField) ?? null);
   const mediaUrls = mediaType === 'video'
     ? [normalized.videoUrl ?? originalVideoUrl].filter(Boolean)
     : images;
-  const thumbnailUrl = body.thumbnail_url ?? body.thumbnailUrl ?? normalized.thumbnailUrl ?? imageUrl ?? images[0] ?? null;
+  const thumbnailUrl = firstNonBlank(body.thumbnail_url, body.thumbnailUrl, normalized.thumbnailUrl, imageUrl, images[0]) ?? null;
 
   return Object.fromEntries(Object.entries({
     title: body.title,
@@ -115,6 +119,10 @@ function serializeGallery(item) {
     objectPosition: `${mediaPositionX} ${mediaPositionY}`,
     sort_order: item.sortOrder ?? item.sort_order ?? 0,
     is_featured: Boolean(item.isFeatured ?? item.is_featured),
+    thumbnailFallbackUrl: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
+    thumbnail_fallback_url: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
+    autoThumbnailUrl: getYouTubeThumbnailUrl(item.videoUrl || item.video_url || ''),
+    auto_thumbnail_url: getYouTubeThumbnailUrl(item.videoUrl || item.video_url || ''),
     preview: { objectPosition: `${mediaPositionX} ${mediaPositionY}`, updatesInstantly: true },
   };
 }
