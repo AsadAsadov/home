@@ -15,6 +15,7 @@ const {
 } = require('../utils/listingCode');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
 const { sendNewListingNotification } = require('../utils/notifications');
+const { createNotification, notifyAdmins } = require('../utils/inAppNotifications');
 
 const router = express.Router();
 
@@ -689,6 +690,15 @@ router.patch('/:id/approve', authenticate, authorize('admin'), asyncHandler(asyn
     include,
   });
   await attachListingUsers(updated);
+  if (updated.userId) {
+    await createNotification({
+      userId: Number(updated.userId),
+      title: 'Elanınız təsdiqləndi',
+      message: updated.title,
+      type: 'listing_approved',
+      link: `/listing/${updated.listingCode || updated.id}`,
+    });
+  }
   decorateListingUi(updated);
   res.json(updated);
 }));
@@ -702,6 +712,15 @@ router.patch('/:id/reject', authenticate, authorize('admin'), asyncHandler(async
     include,
   });
   await attachListingUsers(updated);
+  if (updated.userId) {
+    await createNotification({
+      userId: Number(updated.userId),
+      title: 'Elanınız rədd edildi',
+      message: updated.title,
+      type: 'listing_rejected',
+      link: `/profil/elanlarim`,
+    });
+  }
   decorateListingUi(updated);
   res.json(updated);
 }));
@@ -901,6 +920,12 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     await attachListingUsers(responseListing);
     if (req.auth.role === 'user' && responseListing.status === 'pending') {
       Promise.resolve(sendNewListingNotification(responseListing, responseListing.user || req.auth)).catch(() => {});
+      Promise.resolve(notifyAdmins({
+        title: 'Yeni elan təsdiq gözləyir',
+        message: responseListing.title,
+        type: 'listing_pending',
+        link: `/admin/listings?review=${responseListing.id}`,
+      })).catch(() => {});
     }
     decorateListingUi(responseListing);
     return res.status(201).json({ success: true, listing: responseListing });

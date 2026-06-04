@@ -4,6 +4,7 @@ const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
+const { notifyAdmins } = require('../utils/inAppNotifications');
 const {
   CAREER_CV_BUCKET,
   MAX_CV_SIZE_BYTES,
@@ -40,6 +41,12 @@ router.post('/', cvUpload.single('cv'), asyncHandler(async (req, res) => {
   const cvFilePath = await uploadCareerCv(req.file);
   const body = { ...req.body, cv_file: cvFilePath };
   const created = await prisma.application.create({ data: compact(serializers.application(body)), include: { vacancy: true } });
+  Promise.resolve(notifyAdmins({
+    title: 'Yeni vakansiya müraciəti',
+    message: `${created.fullname}${created.vacancy?.title ? ` — ${created.vacancy.title}` : ''}`,
+    type: 'vacancy_application',
+    link: '/admin/applications',
+  })).catch(() => {});
   res.status(201).json(created);
 }));
 

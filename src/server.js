@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -14,6 +15,7 @@ const { makeUniqueSlug } = require('./utils/seo');
 const { generateNextListingCodeInLockedTransaction } = require('./utils/listingCode');
 const { authenticate, authorize } = require('./middleware/auth');
 const { sendEmail, verifySmtpTransporter } = require('./utils/email');
+const { initRealtime } = require('./utils/realtime');
 
 const app = express();
 app.set('json replacer', (_key, value) => {
@@ -90,6 +92,8 @@ app.use('/api/admin/email', require('./routes/adminEmail'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/messages', require('./routes/messages'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
@@ -211,13 +215,16 @@ async function ensureDefaultAdmin() {
   });
 }
 
+const server = http.createServer(app);
+initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
+
 ensurePublicUsersAuthColumns()
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
   })
   .finally(() => {
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`BestHome backend listening on :${port}`);
     });
   });

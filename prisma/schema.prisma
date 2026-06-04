@@ -76,6 +76,7 @@ model Listing {
   views                ListingView[]
   favorites            Favorite[]
   listingHeroItems     ListingHeroItem[]
+  conversations        Conversation[]
 
   @@index([displayOrder, id])
   @@index([status], map: "idx_listings_status")
@@ -136,6 +137,68 @@ model ListingImage {
 
   @@index([listingId, sortOrder])
   @@map("listing_images")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  title     String
+  message   String?  @db.Text
+  type      String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+  link      String?  @db.Text
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt], map: "idx_notifications_user_read_created")
+  @@index([type], map: "idx_notifications_type")
+  @@map("notifications")
+}
+
+model Conversation {
+  id           BigInt        @id @default(autoincrement())
+  listingId    BigInt?       @map("listing_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+  listing      Listing?      @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  participants Participant[]
+  messages     Message[]
+
+  @@index([listingId], map: "idx_conversations_listing_id")
+  @@index([updatedAt], map: "idx_conversations_updated_at")
+  @@map("conversations")
+}
+
+model Participant {
+  id             BigInt       @id @default(autoincrement())
+  conversationId BigInt       @map("conversation_id")
+  userId         Int          @map("user_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId], map: "participants_conversation_user_unique")
+  @@index([userId], map: "idx_participants_user_id")
+  @@map("participants")
+}
+
+model Message {
+  id             BigInt       @id @default(autoincrement())
+  conversationId BigInt       @map("conversation_id")
+  senderId       Int          @map("sender_id")
+  receiverId     Int          @map("receiver_id")
+  text           String       @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at")
+  isRead         Boolean      @default(false) @map("is_read")
+  deliveredAt    DateTime?    @map("delivered_at")
+  readAt         DateTime?    @map("read_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt], map: "idx_messages_conversation_created")
+  @@index([receiverId, isRead], map: "idx_messages_receiver_read")
+  @@index([senderId], map: "idx_messages_sender_id")
+  @@map("messages")
 }
 
 model Vacancy {
@@ -211,6 +274,10 @@ model User {
   activityLogs  UserActivityLog[]
   emailVerificationTokens EmailVerificationToken[]
   emailChangeTokens      EmailChangeToken[]
+  notifications          Notification[]
+  conversations          Participant[]
+  sentMessages           Message[] @relation("SentMessages")
+  receivedMessages       Message[] @relation("ReceivedMessages")
 
   @@index([lockedUntil], map: "idx_users_locked_until")
   @@map("users")
