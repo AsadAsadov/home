@@ -3752,10 +3752,6 @@ Title: Park Villas
                         <div id="gallery-video-fields" class="hidden space-y-2">
                             <input type="url" id="g-video-url" placeholder="YouTube, Vimeo və ya MP4 URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                             <input type="file" id="g-video-file" accept="video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300">
-                            <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-200">
-                                <input type="checkbox" id="g-is-featured" class="w-4 h-4 rounded border-white/20 bg-slate-900">
-                                <span>⭐ Hero Video</span>
-                            </label>
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
@@ -4841,12 +4837,12 @@ Title: Park Villas
         }
 
         function setPendingAuthRoute(path = window.location.pathname + window.location.search + window.location.hash) {
-            if (path && path !== '/' && path !== '/login') sessionStorage.setItem('besthome_pending_auth_route', path);
+            if (path && path !== '/' && path !== '/login') { sessionStorage.setItem('besthome_pending_auth_route', path); sessionStorage.setItem('pendingAuthRoute', path); }
         }
 
         function consumePendingAuthRoute() {
-            const route = sessionStorage.getItem('besthome_pending_auth_route');
-            if (route) sessionStorage.removeItem('besthome_pending_auth_route');
+            const route = sessionStorage.getItem('besthome_pending_auth_route') || sessionStorage.getItem('pendingAuthRoute');
+            if (route) { sessionStorage.removeItem('besthome_pending_auth_route'); sessionStorage.removeItem('pendingAuthRoute'); }
             return route;
         }
 
@@ -5221,8 +5217,8 @@ Title: Park Villas
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
             const isFeatured = Boolean(g.isFeatured ?? g.is_featured);
             return mediaType === 'video'
-                ? { id: g.id, title: g.title || '', type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', thumbnailFallbackUrl: g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '', autoThumbnailUrl: g.autoThumbnailUrl || g.auto_thumbnail_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
-                : { id: g.id, title: g.title || '', type: 'event', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
+                ? { id: g.id, title: g.title || '', type: 'video', mediaType: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', thumbnailFallbackUrl: g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '', autoThumbnailUrl: g.autoThumbnailUrl || g.auto_thumbnail_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
+                : { id: g.id, title: g.title || '', type: 'event', mediaType: 'image', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
         }
 
         const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
@@ -7720,8 +7716,8 @@ Title: Park Villas
         }
 
         function navigateToMyListings() {
-            if (!activeUser) { setPendingAuthRoute('/menim-elanlarim'); switchTab('admin-login'); return; }
-            spaNavigate('/menim-elanlarim');
+            if (!activeUser) { setPendingAuthRoute('/profil/elanlarim'); switchTab('admin-login'); return; }
+            spaNavigate('/profil/elanlarim');
         }
 
         function navigateToListingPreview(listingKey) {
@@ -7730,8 +7726,8 @@ Title: Park Villas
         }
 
         function navigateToFavorites() {
-            if (!activeUser) { setPendingAuthRoute('/favoriler'); switchTab('admin-login'); return; }
-            spaNavigate('/favoriler');
+            if (!activeUser) { setPendingAuthRoute('/profil/favoriler'); switchTab('admin-login'); return; }
+            spaNavigate('/profil/favoriler');
         }
 
         function navigateToProfileInfo() {
@@ -8222,7 +8218,7 @@ Title: Park Villas
                 loadAdminBackground();
             }
 
-            const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/menim-elanlarim', favorites: '/favoriler' };
+            const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler' };
             const routeTitles = { mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər' };
             const routePath = routePaths[tabId] || '/';
             updateSeo({ title: routeTitles[tabId] || SITE_NAME, path: routePath });
@@ -9134,7 +9130,7 @@ Təşəkkür edirəm. 🙏`;
         let featuredVideoIndex = 0;
 
         function featuredVideos() {
-            const hero = orderedGalleryItems().find(item => item?.type === 'video' && item.isFeatured === true);
+            const hero = orderedGalleryItems().find(item => (item?.mediaType === 'video' || item?.type === 'video') && item.isFeatured === true);
             console.debug('[gallery hero] selected featured video id', hero?.id || null);
             return hero ? [hero] : [];
         }
@@ -9181,6 +9177,34 @@ Təşəkkür edirəm. 🙏`;
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
             }
             renderPortfolio();
+        }
+
+
+        async function loadGallery() {
+            await loadGalleryPage(galleryPagination.page || 1);
+        }
+
+        let galleryHeroToggleSubmittingId = null;
+
+        async function toggleGalleryHero(id, isFeatured) {
+            if (galleryHeroToggleSubmittingId !== null) return;
+            galleryHeroToggleSubmittingId = String(id);
+            renderAdminDashboard();
+            try {
+                await apiRequest(`/api/gallery/${encodeURIComponent(id)}/hero`, {
+                    method: 'POST',
+                    body: JSON.stringify({ isFeatured: Boolean(isFeatured) })
+                });
+                await loadGallery();
+                renderAdminDashboard();
+                renderPortfolio();
+            } catch (error) {
+                alert(error.message || 'Hero statusu yenilənmədi.');
+                renderAdminDashboard();
+            } finally {
+                galleryHeroToggleSubmittingId = null;
+                renderAdminDashboard();
+            }
         }
 
         function renderPortfolioPagination() {
@@ -9568,7 +9592,9 @@ Təşəkkür edirəm. 🙏`;
                 activeUser = { role, name: user.fullname || user.email, fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'google' };
                 updateHeaderUI();
                 await hydrateFromDatabase();
-                switchTab('admin-dashboard');
+                const pendingRoute = consumePendingAuthRoute();
+                if (pendingRoute) history.replaceState({ path: pendingRoute }, '', pendingRoute);
+                await routeToCurrentPath();
                 return true;
             } catch (_error) {
                 clearAuthSession();
@@ -9842,7 +9868,18 @@ Təşəkkür edirəm. 🙏`;
         }
 
         // SUBTABS WITHIN THE DASHBOARD
-        function switchAdminSubtab(subtab) {
+        const ADMIN_SUBTAB_ROUTES = {
+            'seabreeze-manager': '/admin/listings',
+            'projects-manager': '/admin/projects',
+            'gallery-manager': '/admin/gallery',
+            'vacancy-manager': '/admin/vacancies',
+            'site-settings': '/admin/site-settings',
+            'hero-sections': '/admin/project-hero',
+            'listing-hero': '/admin/listing-hero',
+            'user-profile': '/profil/melumatlar'
+        };
+
+        function switchAdminSubtab(subtab, options = {}) {
             const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
@@ -9873,6 +9910,11 @@ Təşəkkür edirəm. 🙏`;
             }
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
+            const subtabRoute = ADMIN_SUBTAB_ROUTES[subtab] || '/admin';
+            if (!options.skipPush && (activeUser?.role === 'admin' || subtab === 'user-profile') && window.location.pathname !== subtabRoute) {
+                history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
+                updateSeo({ title: 'Admin Panel', path: subtabRoute });
+            }
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
@@ -11375,6 +11417,7 @@ Təşəkkür edirəm. 🙏`;
                                 <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">${escapeHtml(g.desc || 'Açıqlama yoxdur')}</p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                                ${g.type === 'video' ? `<button type="button" onclick="toggleGalleryHero(${g.id}, ${!(g.isFeatured || g.is_featured)})" ${galleryHeroToggleSubmittingId === String(g.id) ? 'disabled' : ''} class="text-amber-300 px-3 py-2 ${g.isFeatured || g.is_featured ? 'bg-amber-500/20 hover:bg-amber-500' : 'bg-white/5 hover:bg-amber-500'} hover:text-white rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">${galleryHeroToggleSubmittingId === String(g.id) ? 'Gözləyin…' : ((g.isFeatured || g.is_featured) ? '⭐ Herodan çıxart' : '⭐ Heroya əlavə et')}</button>` : ''}
                                 <button onclick="editGalleryItem(${g.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
                                 <button onclick="deleteGalleryItem(${g.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
                             </div>
@@ -11938,11 +11981,8 @@ Təşəkkür edirəm. 🙏`;
                 desc,
                 images: type === 'event' ? uploadedEventImages : [],
                 url: type === 'video' ? normalizeGalleryVideoUrl(videoUrl) : '',
-                thumbnail: type === 'video' ? (getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : '',
-                isFeatured: mediaType === 'video' ? Boolean(document.getElementById('g-is-featured')?.checked) : false
+                thumbnail: type === 'video' ? (getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : ''
             };
-            console.log('SAVE GALLERY isFeatured payload:', galleryPayload.isFeatured);
-
             if (type === 'event' && galleryPayload.images.length === 0 && uploadedEventImageFiles.length === 0) {
                 alert('Qalereya üçün ən azı bir şəkil seçin.');
                 isGallerySaveSubmitting = false;
@@ -11961,7 +12001,6 @@ Təşəkkür edirəm. 🙏`;
             formData.append('description', desc);
             formData.append('media_type', mediaType);
             formData.append('mediaType', mediaType);
-            formData.append('isFeatured', galleryPayload.isFeatured ? 'true' : 'false');
             if (type === 'event') {
                 uploadedEventImageFiles.forEach(file => formData.append('images', file));
                 const existingImages = uploadedEventImages.filter(src => !String(src).startsWith('blob:'));
@@ -11970,15 +12009,11 @@ Təşəkkür edirəm. 🙏`;
                 if (videoUrl) formData.append('video_url', videoUrl);
                 if (videoFile) formData.append('video', videoFile);
                 if (galleryPayload.thumbnail) formData.append('thumbnail_url', galleryPayload.thumbnail);
-                formData.append('is_featured', galleryPayload.isFeatured ? 'true' : 'false');
             }
 
             try {
-                const saved = editId
-                    ? await apiRequest(`/api/gallery/${editId}`, 'PUT', formData)
-                    : await apiRequest('/api/gallery', 'POST', formData);
-                const savedUi = dbGalleryToUi(saved);
-                console.log('API GALLERY isFeatured response:', savedUi.isFeatured);
+                if (editId) await apiRequest(`/api/gallery/${editId}`, 'PUT', formData);
+                else await apiRequest('/api/gallery', 'POST', formData);
                 await loadGalleryPage(galleryPagination.page || 1);
                 renderPortfolio();
                 resetGalleryForm();
@@ -11995,7 +12030,6 @@ Təşəkkür edirəm. 🙏`;
             const list = appData.gallery;
             const g = list.find(x => x.id === id);
             if (g) {
-                console.log('EDIT GALLERY ITEM isFeatured:', g.id, g.isFeatured, g.is_featured);
                 document.getElementById('edit-g-id').value = g.id;
                 document.getElementById('g-title').value = g.title;
                 document.getElementById('g-type').value = g.type;
@@ -12009,7 +12043,6 @@ Təşəkkür edirəm. 🙏`;
                     renderGalleryMultiPreview();
                 } else {
                     document.getElementById('g-video-url').value = g.url || '';
-                    document.getElementById('g-is-featured').checked = Boolean(g.isFeatured || g.is_featured);
                 }
                 document.getElementById('gallery-form-title').textContent = "Media Elementini Redaktə Et";
             }
@@ -12021,7 +12054,6 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('g-type').value = 'event';
             document.getElementById('g-video-url').value = '';
             if (document.getElementById('g-video-file')) document.getElementById('g-video-file').value = '';
-            if (document.getElementById('g-is-featured')) document.getElementById('g-is-featured').checked = false;
             document.getElementById('g-desc').value = '';
             uploadedEventImages = [];
             uploadedEventImageFiles = [];
@@ -12434,7 +12466,10 @@ Təşəkkür edirəm. 🙏`;
             vacancy: 'vacancy-manager',
             'site-settings': 'site-settings',
             listings: 'seabreeze-manager',
-            projects: 'projects-manager'
+            projects: 'projects-manager',
+            'project-hero': 'hero-sections',
+            'listing-hero': 'listing-hero',
+            vacancies: 'vacancy-manager'
         };
 
         const ADMIN_ROUTE_SUBTABS = {
@@ -12445,7 +12480,10 @@ Təşəkkür edirəm. 🙏`;
             '/admin/vakansiya': 'vacancy-manager',
             '/admin/vacancy': 'vacancy-manager',
             '/admin/site-settings': 'site-settings',
-            '/admin/projects': 'projects-manager'
+            '/admin/projects': 'projects-manager',
+            '/admin/project-hero': 'hero-sections',
+            '/admin/listing-hero': 'listing-hero',
+            '/admin/vacancies': 'vacancy-manager'
         };
 
         function openAuthenticatedRoute(tabId, pendingPath) {
@@ -12462,12 +12500,15 @@ Təşəkkür edirəm. 🙏`;
             if (!openAuthenticatedRoute('admin-dashboard', path)) return;
             document.getElementById('admin-access-denied-route')?.remove();
             if (path.startsWith('/admin') && activeUser.role !== 'admin') {
-                document.getElementById('admin-subtab-seabreeze-manager')?.classList.add('hidden');
+                document.querySelectorAll('[id^="admin-subtab-"]').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
+                    btn.className = 'pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm hidden';
+                });
                 const dashboard = document.getElementById('tab-admin-dashboard');
                 if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
                 return;
             }
-            switchAdminSubtab(subtab);
+            switchAdminSubtab(subtab, { skipPush: true });
         }
 
         async function routeToCurrentPath({ replace = false } = {}) {
@@ -12479,7 +12520,7 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (path === '/profil' || path === '/profile' || path === '/profil/melumatlar' || path === '/profile/melumatlar') {
-                routeToDashboardSubtab(activeUser?.role === 'admin' ? 'seabreeze-manager' : 'user-profile', path);
+                routeToDashboardSubtab('user-profile', path);
                 updateSeo({ title: 'Profil', path });
                 return;
             }

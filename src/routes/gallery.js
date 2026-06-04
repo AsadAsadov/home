@@ -197,6 +197,33 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
   }
 }));
 
+
+router.post('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const isFeatured = toBool(req.body?.isFeatured ?? req.body?.is_featured);
+  if (isFeatured === undefined) return res.status(400).json({ message: 'isFeatured is required.' });
+
+  try {
+    const existing = await prisma.gallery.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
+    if (existing.mediaType !== 'video') return res.status(400).json({ message: 'Yalnız video hero edilə bilər.' });
+
+    const updated = await prisma.$transaction(async (tx) => {
+      if (isFeatured === true) {
+        await tx.gallery.updateMany({ where: { mediaType: 'video' }, data: { isFeatured: false } });
+        return tx.gallery.update({ where: { id }, data: { isFeatured: true } });
+      }
+      return tx.gallery.update({ where: { id }, data: { isFeatured: false } });
+    });
+
+    res.json(serializeGallery(updated));
+  } catch (error) {
+    if (!isGallerySchemaUnavailable(error)) throw error;
+    console.warn('[gallery] hero toggle skipped because schema is unavailable.', { code: error.code, message: error.message });
+    res.json(emptyGalleryResponse(req));
+  }
+}));
+
 router.get('/:id', asyncHandler(async (req, res) => {
   try {
     const data = await prisma.gallery.findUnique({ where: { id: Number(req.params.id) } });
