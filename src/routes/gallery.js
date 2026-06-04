@@ -111,20 +111,34 @@ function serializeGallery(item) {
   if (!item) return item;
   const mediaPositionX = item.mediaPositionX || 'center';
   const mediaPositionY = item.mediaPositionY || 'center';
+  const mediaType = item.mediaType || item.media_type;
+  const videoUrl = item.videoUrl || item.video_url || '';
+  const thumbnailUrl = item.thumbnailUrl || item.thumbnail_url || '';
+  const imageUrl = item.imageUrl || item.image_url || '';
+  const isFeatured = Boolean(item.isFeatured ?? item.is_featured);
   return {
     ...item,
+    mediaType,
+    media_type: mediaType,
+    videoUrl,
+    video_url: videoUrl,
+    thumbnailUrl,
+    thumbnail_url: thumbnailUrl,
+    imageUrl,
+    image_url: imageUrl,
     mediaPositionX,
     mediaPositionY,
     media_position_x: mediaPositionX,
     media_position_y: mediaPositionY,
     objectPosition: `${mediaPositionX} ${mediaPositionY}`,
+    sortOrder: item.sortOrder ?? item.sort_order ?? 0,
     sort_order: item.sortOrder ?? item.sort_order ?? 0,
-    isFeatured: Boolean(item.isFeatured ?? item.is_featured),
-    is_featured: Boolean(item.isFeatured ?? item.is_featured),
-    thumbnailFallbackUrl: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
-    thumbnail_fallback_url: getYouTubeThumbnailFallbackUrl(item.videoUrl || item.video_url || ''),
-    autoThumbnailUrl: getYouTubeThumbnailUrl(item.videoUrl || item.video_url || ''),
-    auto_thumbnail_url: getYouTubeThumbnailUrl(item.videoUrl || item.video_url || ''),
+    isFeatured,
+    is_featured: isFeatured,
+    thumbnailFallbackUrl: getYouTubeThumbnailFallbackUrl(videoUrl),
+    thumbnail_fallback_url: getYouTubeThumbnailFallbackUrl(videoUrl),
+    autoThumbnailUrl: getYouTubeThumbnailUrl(videoUrl),
+    auto_thumbnail_url: getYouTubeThumbnailUrl(videoUrl),
     preview: { objectPosition: `${mediaPositionX} ${mediaPositionY}`, updatesInstantly: true },
   };
 }

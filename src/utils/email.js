@@ -5,6 +5,18 @@ function getProvider() {
   return String(process.env.EMAIL_PROVIDER || process.env.MAIL_PROVIDER || '').toLowerCase();
 }
 
+
+function isEmailProviderConfigured() {
+  const provider = getProvider();
+  const hasSmtp = Boolean((process.env.SMTP_HOST || provider === 'gmail') && (process.env.SMTP_USER || process.env.GMAIL_SMTP_USER) && (process.env.SMTP_PASS || process.env.GMAIL_SMTP_PASS));
+  return Boolean(
+    process.env.RESEND_API_KEY
+    || process.env.SENDGRID_API_KEY
+    || (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN)
+    || hasSmtp
+  );
+}
+
 function fromAddress() {
   return process.env.EMAIL_FROM || process.env.SMTP_FROM || 'Best Home <noreply@besthome.az>';
 }
@@ -150,8 +162,8 @@ async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
   if (process.env.MAILGUN_API_KEY) return sendMailgunEmail(message);
   if (process.env.SMTP_HOST || process.env.GMAIL_SMTP_USER) return sendSmtpEmail(message);
 
-  console.warn('EMAIL SKIPPED: no email provider configured', { to, subject });
+  console.warn('Password reset email not sent: email provider is not configured.', { to, subject });
   return { skipped: true };
 }
 
-module.exports = { sendEmail };
+module.exports = { sendEmail, isEmailProviderConfigured };
