@@ -2678,6 +2678,27 @@
                 aspect-ratio: 4 / 3;
             }
         }
+
+        .header-badge-btn { position: relative; min-width: 42px; justify-content: center; }
+        .header-badge-btn__badge { position: absolute; top: -7px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; line-height: 18px; font-weight: 900; box-shadow: 0 8px 18px rgba(239,68,68,.35); }
+        .header-badge-btn__badge.is-empty { display: none; }
+        .notification-panel { position: fixed; right: 18px; top: 92px; z-index: 80; width: min(380px, calc(100vw - 28px)); max-height: 72vh; overflow:auto; border-radius: 24px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 70px rgba(15,23,42,.22); padding: 14px; }
+        .notification-item { display:block; width:100%; text-align:left; border-radius: 18px; padding: 12px; border: 1px solid transparent; color:#0f172a; }
+        .notification-item:hover { background:#f8fafc; border-color:#e2e8f0; }
+        .notification-item.is-unread { background:#eef2ff; border-color:#c7d2fe; }
+        .messages-shell { min-height: 640px; display:grid; grid-template-columns: minmax(240px, 340px) minmax(0,1fr); overflow:hidden; }
+        .conversation-list { border-right:1px solid #e2e8f0; background:#f8fafc; overflow:auto; }
+        .conversation-item { width:100%; display:flex; gap:10px; align-items:center; text-align:left; padding:14px; border-bottom:1px solid #e2e8f0; color:#0f172a; }
+        .conversation-item:hover, .conversation-item.is-active { background:#fff; }
+        .chat-window { display:flex; flex-direction:column; min-height:640px; background:#fff; }
+        .chat-messages { flex:1; overflow:auto; padding:18px; background:linear-gradient(180deg,#ffffff,#f8fafc); }
+        .chat-bubble { max-width:min(70%,520px); margin:8px 0; padding:10px 12px; border-radius:18px; font-weight:700; color:#0f172a; background:#e2e8f0; }
+        .chat-bubble.is-mine { margin-left:auto; background:#dcfce7; }
+        .message-status { display:inline-flex; margin-left:8px; font-size:11px; font-weight:900; color:#94a3b8; }
+        .message-status.is-read { color:#16a34a; }
+        .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
+        .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -3114,6 +3135,26 @@
         </section>
         <section id="tab-my-listings" class="tab-content hidden py-8">
             <div id="my-listings-root" class="public-listing-shell"></div>
+        </section>
+
+        <section id="tab-messages" class="tab-content hidden py-8">
+            <div class="rounded-[2rem] bg-white border border-slate-200 shadow-2xl overflow-hidden messages-shell">
+                <aside class="conversation-list">
+                    <div class="p-4 border-b border-slate-200 bg-white">
+                        <h1 class="text-2xl font-black text-slate-950">💬 Mesajlar</h1>
+                        <div class="mt-2 flex flex-wrap gap-2 text-[11px] font-black">
+                            <button onclick="navigateToProfileInfo()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Kabinet</button>
+                            <button onclick="navigateToMessages()" class="rounded-full bg-brand-600 px-3 py-1 text-white">Mesajlar</button>
+                            <button onclick="navigateToFavorites()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Favorilər</button>
+                            <button onclick="navigateToMyListings()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Elanlarım</button>
+                        </div>
+                    </div>
+                    <div id="conversation-list-root"></div>
+                </aside>
+                <div id="chat-window-root" class="chat-window">
+                    <div class="flex-1 flex items-center justify-center text-slate-500 font-bold p-8 text-center">Söhbət seçin və ya elandan “Satıcıya yaz” düyməsinə klikləyin.</div>
+                </div>
+            </div>
         </section>
 
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-8">
@@ -3959,9 +4000,10 @@ Title: Park Villas
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
-                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
                                 <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
+                                <button id="p-modal-message-btn" type="button" class="listing-detail-action min-h-[48px] bg-brand-600 hover:bg-brand-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-regular fa-comment-dots"></i><span>Satıcıya yaz</span></button>
                                 <button id="p-modal-favorite-btn" type="button" class="listing-detail-action min-h-[48px] bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-rose-100 transition"><i class="fa-regular fa-heart"></i><span>Favori</span></button>
                             </div>
                         </div>
@@ -8200,6 +8242,162 @@ Title: Park Villas
             }
         }
 
+
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], conversations: [], activeConversationId: null, activeMessages: [], socket: null };
+
+        function badgeHtml(count) {
+            const value = Number(count || 0);
+            return `<span class="header-badge-btn__badge ${value ? '' : 'is-empty'}">${value > 99 ? '99+' : value}</span>`;
+        }
+
+        function refreshHeaderBadges() {
+            document.querySelectorAll('[data-notification-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.notificationsUnread));
+            document.querySelectorAll('[data-message-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.messagesUnread));
+        }
+
+        async function loadBadgeSummary() {
+            if (!activeUser) return;
+            try {
+                const summary = await apiRequest('/api/notifications/summary');
+                messagingState.notificationsUnread = summary.notificationsUnread || 0;
+                messagingState.messagesUnread = summary.messagesUnread || 0;
+                refreshHeaderBadges();
+            } catch (error) { console.warn('Badge summary failed', error); }
+        }
+
+        function ensureSocketClientScript() {
+            return new Promise((resolve) => {
+                if (window.io) return resolve(true);
+                const script = document.createElement('script');
+                script.src = '/socket.io/socket.io.js';
+                script.onload = () => resolve(Boolean(window.io));
+                script.onerror = () => resolve(false);
+                document.head.appendChild(script);
+            });
+        }
+
+        async function connectRealtime() {
+            if (!activeUser || messagingState.socket) return;
+            if (!await ensureSocketClientScript()) return;
+            messagingState.socket = io({ auth: { token: getAuthToken() } });
+            messagingState.socket.on('notification:new', (notification) => { messagingState.notificationsUnread += 1; messagingState.notifications.unshift(notification); refreshHeaderBadges(); });
+            messagingState.socket.on('message:new', ({ message }) => { messagingState.messagesUnread += 1; if (String(message.conversationId) === String(messagingState.activeConversationId)) openConversation(message.conversationId); else loadConversations(false); refreshHeaderBadges(); });
+            messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
+            messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
+        }
+
+        function disconnectRealtime() {
+            if (messagingState.socket) messagingState.socket.disconnect();
+            messagingState.socket = null;
+        }
+
+        async function toggleNotificationsPanel() {
+            const existing = document.getElementById('notification-panel');
+            if (existing) { existing.remove(); return; }
+            try {
+                const result = await apiRequest('/api/notifications');
+                messagingState.notifications = result.data || [];
+                document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel"><div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div><div>${messagingState.notifications.length ? messagingState.notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>'}</div></div>`);
+            } catch (error) { alert(error.message); }
+        }
+
+        function renderNotificationItem(item) {
+            return `<button class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${item.id}', '${escapeHtml(item.link || '')}')"><div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="text-[10px] font-bold text-slate-400 mt-2">${formatAzDateTime(item.createdAt)}</div></button>`;
+        }
+
+        async function openNotification(id, link) {
+            await apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => null);
+            messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
+            refreshHeaderBadges();
+            document.getElementById('notification-panel')?.remove();
+            if (link) spaNavigate(link.replace(window.location.origin, ''));
+        }
+
+        async function markAllNotificationsRead() {
+            await apiRequest('/api/notifications/read-all', { method: 'PATCH' });
+            messagingState.notificationsUnread = 0;
+            refreshHeaderBadges();
+            document.getElementById('notification-panel')?.remove();
+        }
+
+        function navigateToMessages(conversationId = '') {
+            if (!activeUser) { setPendingAuthRoute('/profil/mesajlar'); switchTab('admin-login'); return; }
+            spaNavigate(`/profil/mesajlar${conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : ''}`);
+        }
+
+        async function loadConversations(render = true) {
+            if (!activeUser) return;
+            const result = await apiRequest('/api/messages');
+            messagingState.conversations = result.data || [];
+            if (render) renderConversations();
+        }
+
+        function renderConversations() {
+            const root = document.getElementById('conversation-list-root');
+            if (!root) return;
+            root.innerHTML = messagingState.conversations.length ? messagingState.conversations.map(c => {
+                const name = c.otherUser?.fullname || 'İstifadəçi';
+                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(c.lastMessage?.text || c.listing?.title || 'Yeni söhbət')}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
+            }).join('') : '<div class="p-8 text-center text-slate-500 font-bold">Söhbət yoxdur</div>';
+        }
+
+        function listingChatCard(listing) {
+            if (!listing) return '';
+            const img = listing.imageUrl || listing.images?.[0]?.imageUrl || '';
+            return `<div class="listing-chat-card">${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(listing.listingCode || listing.id)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml([listing.district, listing.city].filter(Boolean).join(', '))}</div></div></div>`;
+        }
+
+        async function openConversation(id) {
+            const result = await apiRequest(`/api/messages/conversations/${id}`);
+            messagingState.activeConversationId = String(id);
+            messagingState.activeMessages = result.messages || [];
+            messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - (result.conversation?.unreadCount || 0));
+            refreshHeaderBadges();
+            await loadConversations(false);
+            renderConversations();
+            renderChatWindow(result.conversation, messagingState.activeMessages);
+        }
+
+        function messageStatus(message) {
+            if (String(message.senderId) !== String(activeUser?.id)) return '';
+            if (message.readAt) return '<span class="message-status is-read">✓✓</span>';
+            if (message.deliveredAt) return '<span class="message-status">✓✓</span>';
+            return '<span class="message-status">✓</span>';
+        }
+
+        function renderChatWindow(conversation, messages) {
+            const root = document.getElementById('chat-window-root');
+            const otherName = conversation?.otherUser?.fullname || 'İstifadəçi';
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><div class="typing-placeholder">${escapeHtml(otherName)} yazır… (tezliklə)</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
+        }
+
+        async function sendChatMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-message-input');
+            const text = input.value.trim();
+            if (!text || !messagingState.activeConversationId) return;
+            input.value = '';
+            const result = await apiRequest(`/api/messages/conversations/${messagingState.activeConversationId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
+            messagingState.activeMessages.push(result.message);
+            renderChatWindow(messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId)) || {}, messagingState.activeMessages);
+            await loadConversations(false);
+            renderConversations();
+        }
+
+        function updateLocalMessageStatus(messageId, patch) {
+            const msg = messagingState.activeMessages.find(m => String(m.id) === String(messageId));
+            if (msg) { Object.assign(msg, patch); renderChatWindow(messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId)) || {}, messagingState.activeMessages); }
+        }
+
+        async function startListingConversation(listingId) {
+            if (!activeUser) { setPendingAuthRoute(`/listing/${listingId}`); switchTab('admin-login'); return; }
+            try {
+                const result = await apiRequest('/api/messages/conversations', { method: 'POST', body: JSON.stringify({ listingId }) });
+                navigateToMessages(result.conversation.id);
+            } catch (error) { alert(error.message); }
+        }
+
         function updateHeaderUI() {
             const container = document.getElementById('header-user-status');
             const mobileIcon = document.getElementById('mobile-user-status-icon');
@@ -8210,12 +8408,15 @@ Title: Park Villas
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
+                    <button onclick="toggleNotificationsPanel()" class="header-action-btn header-badge-btn" aria-label="Bildirişlər">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
+                    <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button>
                     <div class="relative group">
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
                         <div class="profile-dropdown-shell absolute right-0 top-full z-50 hidden group-hover:block group-focus-within:block">
                             <div class="profile-dropdown-menu" role="menu" aria-label="Profil menyusu">
                                 <button onclick="navigateToProfileInfo()" class="profile-dropdown-item" role="menuitem">👤 Profil məlumatları</button>
                                 <button onclick="navigateToMyListings()" class="profile-dropdown-item" role="menuitem">📋 Mənim elanlarım</button>
+                                <button onclick="navigateToMessages()" class="profile-dropdown-item" role="menuitem">💬 Mesajlar</button>
                                 <button onclick="navigateToFavorites()" class="profile-dropdown-item" role="menuitem">❤️ Favorilər</button>
                                 <button onclick="logoutAdmin()" class="profile-dropdown-item text-red-600" role="menuitem">🚪 Çıxış</button>
                             </div>
@@ -8223,7 +8424,9 @@ Title: Park Villas
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div onclick="navigateToProfileInfo()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" class="header-action-btn header-badge-btn !w-9 !h-9 !p-0">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn !w-9 !h-9 !p-0">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                loadBadgeSummary();
+                connectRealtime();
                 mobileActions.innerHTML = ``;
             } else {
                 container.innerHTML = `
@@ -8232,6 +8435,9 @@ Title: Park Villas
                 `;
                 mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
                 mobileActions.innerHTML = ``;
+                disconnectRealtime();
+                messagingState.notificationsUnread = 0;
+                messagingState.messagesUnread = 0;
             }
         }
 
@@ -8266,7 +8472,13 @@ Title: Park Villas
 
             if (tabId !== 'listings') hideListingHero();
 
-            if (tabId === 'seabreeze') {
+            if (tabId === 'messages') {
+                loadConversations(true).then(() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const conversationId = params.get('conversation');
+                    if (conversationId) openConversation(conversationId);
+                });
+            } else if (tabId === 'seabreeze') {
                 renderOfficialProjectOptions();
                 switchProjectCategory(selectedProjectCategory);
                 setupHomepageLazyLoaders();
@@ -8292,8 +8504,8 @@ Title: Park Villas
                 loadAdminBackground();
             }
 
-            const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler' };
-            const routeTitles = { mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər' };
+            const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
+            const routeTitles = { mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
             const routePath = routePaths[tabId] || '/';
             updateSeo({ title: routeTitles[tabId] || SITE_NAME, path: routePath });
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
@@ -9162,6 +9374,8 @@ Təşəkkür edirəm. 🙏`;
                 callBtn.href = `tel:${normalizedPhone}`;
             }
             document.getElementById('p-modal-share-top-btn').onclick = () => shareListing(p);
+            const messageBtn = document.getElementById('p-modal-message-btn');
+            if (messageBtn) messageBtn.onclick = () => startListingConversation(p.id);
             const favoriteBtn = document.getElementById('p-modal-favorite-btn');
             if (favoriteBtn) favoriteBtn.onclick = (event) => toggleFavorite(event, p.id);
             renderFavoriteControlState(p.id);
@@ -12707,6 +12921,11 @@ Təşəkkür edirəm. 🙏`;
             if (path === '/profil/favoriler' || path === '/profile/favoriler' || path === '/profile/favorites' || path === '/favoriler') {
                 if (!openAuthenticatedRoute('favorites', path)) return;
                 updateSeo({ title: 'Favorilər', path });
+                return;
+            }
+            if (path === '/profil/mesajlar' || path === '/profile/messages' || path === '/messages') {
+                if (!openAuthenticatedRoute('messages', `${path}${window.location.search}`)) return;
+                updateSeo({ title: 'Mesajlar', path });
                 return;
             }
             if (path === '/elan-elave-et' || path === '/create-listing') {
