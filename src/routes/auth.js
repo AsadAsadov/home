@@ -230,11 +230,11 @@ async function createEmailVerificationToken(userId, tx = prisma) {
   return token;
 }
 
-async function createPasswordResetToken(userId, tx = prisma) {
+async function createPasswordResetToken(email, tx = prisma) {
   const { token, hash } = generateTokenPair();
   await tx.passwordResetToken.create({
     data: {
-      userId: Number(userId),
+      email: String(email).toLowerCase(),
       token: hash,
       expiresAt: addMinutes(new Date(), PASSWORD_RESET_TTL_MINUTES),
     },
@@ -255,7 +255,7 @@ async function sendVerificationEmail(user) {
 }
 
 async function sendPasswordResetEmail(user) {
-  const token = await createPasswordResetToken(user.id);
+  const token = await createPasswordResetToken(user.email);
   console.log('[forgot-password] reset token created', { userId: user.id, email: user.email });
   const url = appUrl('/reset-password', { token });
   console.log('[forgot-password] reset link generated', { userId: user.id, email: user.email });
@@ -510,17 +510,19 @@ router.post('/reset-password', authRoute(async (req, res) => {
   if (!password || password.length < 6) return res.status(400).json({ success: false, code: 'PASSWORD_TOO_SHORT', message: 'Yeni şifrə ən azı 6 simvol olmalıdır.' });
   if (passwordConfirmation !== undefined && password !== passwordConfirmation) return res.status(400).json({ success: false, code: 'PASSWORD_MISMATCH', message: 'Şifrələr uyğun deyil.' });
 
-  const stored = await prisma.passwordResetToken.findUnique({ where: { token: tokenHash(rawToken) }, include: { user: true } });
+  const stored = await prisma.passwordResetToken.findUnique({ where: { token: tokenHash(rawToken) } });
   if (!stored) return res.status(400).json({ success: false, code: 'RESET_FAILED', message: 'Şifrə bərpa linki yanlışdır.' });
-  if (stored.used) return res.status(400).json({ success: false, code: 'RESET_USED', message: 'Bu şifrə bərpa linki artıq istifadə edilib.' });
   if (stored.expiresAt <= new Date()) return res.status(400).json({ success: false, code: 'RESET_EXPIRED', message: 'Şifrə bərpa linkinin vaxtı bitib.' });
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.$transaction(async (tx) => {
-    await tx.passwordResetToken.update({ where: { id: stored.id }, data: { used: true } });
-    await tx.userSession.deleteMany({ where: { userId: stored.userId } });
-    return tx.user.update({ where: { id: stored.userId }, data: { passwordHash, provider: stored.user.provider || 'local' } });
+    const resetUser = await tx.user.findUnique({ where: { email: stored.email.toLowerCase() } });
+    if (!resetUser) return null;
+    await tx.passwordResetToken.delete({ where: { id: stored.id } });
+    await tx.userSession.deleteMany({ where: { userId: resetUser.id } });
+    return tx.user.update({ where: { id: resetUser.id }, data: { passwordHash, provider: resetUser.provider || 'local' } });
   });
+  if (!user) return res.status(400).json({ success: false, code: 'RESET_FAILED', message: 'Şifrə bərpa linki yanlışdır.' });
   await logUserActivity(prisma, user.id, 'reset_password');
   res.json({ success: true, message: 'Şifrəniz uğurla dəyişdirildi ✅' });
 }));
