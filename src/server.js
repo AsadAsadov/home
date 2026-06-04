@@ -65,6 +65,9 @@ app.use('/uploads', express.static(uploadDir));
 if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
+app.get('/api/config/maps', (_req, res) => {
+  res.json({ googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '' });
+});
 app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (req, res, next) => {
   try {
     const to = String(req.body?.to || '').trim();
