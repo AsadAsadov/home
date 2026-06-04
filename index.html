@@ -5207,18 +5207,35 @@ Title: Park Villas
             return [];
         }
 
+        function normalizeGalleryItem(item = {}) {
+            const mediaType = item.mediaType || item.media_type || item.type;
+            const isFeatured = Boolean(item.isFeatured ?? item.is_featured);
+            return {
+                ...item,
+                mediaType,
+                media_type: mediaType,
+                isFeatured,
+                is_featured: isFeatured
+            };
+        }
+
         function dbGalleryToUi(g) {
-            const mediaType = g.mediaType || g.media_type;
+            const normalizedItem = normalizeGalleryItem(g || {});
+            const mediaType = normalizedItem.mediaType;
             const imageRows = normalizeJsonArray(g.images);
             const mediaRows = normalizeJsonArray(g.mediaUrls || g.media_urls);
             const createdAt = g.createdAt || g.created_at || new Date().toISOString();
-            const images = [...imageRows, ...mediaRows, g.imageUrl || g.image_url, g.thumbnailUrl || g.thumbnail_url]
+            const thumbnailUrl = g.thumbnailUrl || g.thumbnail_url || '';
+            const autoThumbnailUrl = g.autoThumbnailUrl || g.auto_thumbnail_url || '';
+            const thumbnailFallbackUrl = g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '';
+            const imageUrl = g.imageUrl || g.image_url || '';
+            const images = [...imageRows, ...mediaRows, imageUrl, thumbnailUrl]
                 .map(x => String(x || '').trim())
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
-            const isFeatured = Boolean(g.isFeatured ?? g.is_featured);
+            const isFeatured = Boolean(normalizedItem.isFeatured ?? normalizedItem.is_featured);
             return mediaType === 'video'
-                ? { id: g.id, title: g.title || '', type: 'video', mediaType: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: g.thumbnailUrl || g.thumbnail_url || g.imageUrl || g.image_url || '', thumbnailFallbackUrl: g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '', autoThumbnailUrl: g.autoThumbnailUrl || g.auto_thumbnail_url || '', desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
-                : { id: g.id, title: g.title || '', type: 'event', mediaType: 'image', images, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
+                ? { id: g.id, title: g.title || '', type: 'video', mediaType: 'video', media_type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', videoUrl: g.videoUrl || g.video_url || mediaRows[0] || '', video_url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: thumbnailUrl || autoThumbnailUrl || thumbnailFallbackUrl || imageUrl || '', thumbnailUrl, thumbnail_url: thumbnailUrl, thumbnailFallbackUrl, thumbnail_fallback_url: thumbnailFallbackUrl, autoThumbnailUrl, auto_thumbnail_url: autoThumbnailUrl, imageUrl, image_url: imageUrl, desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
+                : { id: g.id, title: g.title || '', type: 'event', mediaType: 'image', media_type: 'image', images, imageUrl, image_url: imageUrl, thumbnailUrl, thumbnail_url: thumbnailUrl, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
         }
 
         const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
@@ -6404,12 +6421,12 @@ Title: Park Villas
         }
 
         function getGalleryVideoThumbnail(item = {}) {
-            return item.thumbnail || item.autoThumbnailUrl || item.auto_thumbnail_url || getYouTubeThumbnail(item.url) || getVimeoThumbnail(item.url) || '';
+            return item.thumbnailUrl || item.thumbnail_url || item.thumbnail || item.autoThumbnailUrl || item.auto_thumbnail_url || item.thumbnailFallbackUrl || item.thumbnail_fallback_url || item.imageUrl || item.image_url || getYouTubeThumbnail(item.url || item.videoUrl || item.video_url) || getVimeoThumbnail(item.url || item.videoUrl || item.video_url) || '';
         }
 
         function getGalleryVideoThumbnailFallback(item = {}) {
             const primary = getGalleryVideoThumbnail(item);
-            const youtubeFallback = item.thumbnailFallbackUrl || item.thumbnail_fallback_url || getYouTubeThumbnailFallback(item.url);
+            const youtubeFallback = item.thumbnailFallbackUrl || item.thumbnail_fallback_url || item.imageUrl || item.image_url || getYouTubeThumbnailFallback(item.url || item.videoUrl || item.video_url);
             return youtubeFallback && youtubeFallback !== primary ? youtubeFallback : '';
         }
 
@@ -9130,9 +9147,24 @@ Təşəkkür edirəm. 🙏`;
         let featuredVideoIndex = 0;
 
         function featuredVideos() {
-            const hero = orderedGalleryItems().find(item => (item?.mediaType === 'video' || item?.type === 'video') && item.isFeatured === true);
-            console.debug('[gallery hero] selected featured video id', hero?.id || null);
-            return hero ? [hero] : [];
+            const heroVideo = galleryItems().find(item =>
+                (item.mediaType === 'video' || item.media_type === 'video') &&
+                (item.isFeatured === true || item.is_featured === true)
+            );
+            console.log('FOUND HERO VIDEO:', heroVideo);
+            return heroVideo ? [heroVideo] : [];
+        }
+
+        function galleryItems() {
+            return orderedGalleryItems().map(normalizeGalleryItem);
+        }
+
+        function renderGalleryHero() {
+            return renderFeaturedVideoSection(featuredVideos());
+        }
+
+        function renderAdminGallery() {
+            renderAdminDashboard();
         }
 
         function galleryItemMediaCount(item) {
@@ -9172,7 +9204,9 @@ Təşəkkür edirəm. 🙏`;
                 galleryPagination = Array.isArray(result)
                     ? { page: 1, limit: rows.length || GALLERY_PAGE_LIMIT, total: rows.length, totalPages: 1 }
                     : { page: result.page || page, limit: GALLERY_PAGE_LIMIT, total: result.total || rows.length, totalPages: result.totalPages || 1 };
-                cacheData('gallery', rows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+                const normalizedRows = rows.map(item => normalizeGalleryItem(dbGalleryToUi(item)));
+                cacheData('gallery', normalizedRows.sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+                console.log('GALLERY LOADED:', appData.gallery);
             } catch (error) {
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
             }
@@ -9191,13 +9225,15 @@ Təşəkkür edirəm. 🙏`;
             galleryHeroToggleSubmittingId = String(id);
             renderAdminDashboard();
             try {
-                await apiRequest(`/api/gallery/${encodeURIComponent(id)}/hero`, {
+                const response = await apiRequest(`/api/gallery/${encodeURIComponent(id)}/hero`, {
                     method: 'POST',
                     body: JSON.stringify({ isFeatured: Boolean(isFeatured) })
                 });
+                console.log('TOGGLE HERO RESPONSE:', response);
                 await loadGallery();
-                renderAdminDashboard();
+                renderAdminGallery();
                 renderPortfolio();
+                renderGalleryHero();
             } catch (error) {
                 alert(error.message || 'Hero statusu yenilənmədi.');
                 renderAdminDashboard();
@@ -9274,9 +9310,8 @@ Təşəkkür edirəm. 🙏`;
             if (!grid) return;
             grid.innerHTML = '';
 
-            const heroVideos = featuredVideos();
             try {
-                renderFeaturedVideoSection(heroVideos);
+                renderGalleryHero();
             } catch (error) {
                 console.error('[gallery hero] hero render result', { rendered: false, error: error.message });
                 const section = document.getElementById('featured-video-section');
@@ -12487,6 +12522,7 @@ Təşəkkür edirəm. 🙏`;
         };
 
         function openAuthenticatedRoute(tabId, pendingPath) {
+            console.log('ROUTE RESTORE USER:', activeUser);
             if (!activeUser) {
                 setPendingAuthRoute(pendingPath || window.location.pathname + window.location.search + window.location.hash);
                 switchTab('admin-login', { skipPush: true });
@@ -12508,11 +12544,13 @@ Təşəkkür edirəm. 🙏`;
                 if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
                 return;
             }
+            console.log('OPEN ADMIN SUBTAB:', subtab);
             switchAdminSubtab(subtab, { skipPush: true });
         }
 
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
+            console.log('INITIAL PATH:', path);
             if (ADMIN_ROUTE_SUBTABS[path]) {
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
                 routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
@@ -12664,9 +12702,10 @@ Təşəkkür edirəm. 🙏`;
                 setTimeout(initAdminListingMap, 120);
                 return;
             }
+            console.log('INITIAL PATH:', window.location.pathname);
             await initializeAuth();
-            await hydrateFromDatabase();
             await routeToCurrentPath();
+            await hydrateFromDatabase();
             setMobileBottomNavActive();
             populateMetroSelect();
             toggleMetroFieldForCity();
