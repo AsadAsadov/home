@@ -14,13 +14,24 @@ function isMp4Url(url = '') {
 
 const DEFAULT_YOUTUBE_ORIGIN = process.env.PUBLIC_SITE_ORIGIN || 'https://besthome.onrender.com';
 
+function getYouTubeThumbnailUrl(url = '') {
+  const youtubeId = getYouTubeId(url);
+  return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : '';
+}
+
+function getYouTubeThumbnailFallbackUrl(url = '') {
+  const youtubeId = getYouTubeId(url);
+  return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : '';
+}
+
 function normalizeVideo(url = '') {
   const youtubeId = getYouTubeId(url);
   if (youtubeId) {
     return {
       provider: 'youtube',
       videoUrl: `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&origin=${DEFAULT_YOUTUBE_ORIGIN}`,
-      thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+      thumbnailUrl: getYouTubeThumbnailUrl(url),
+      thumbnailFallbackUrl: getYouTubeThumbnailFallbackUrl(url),
     };
   }
   const vimeoId = getVimeoId(url);
@@ -34,4 +45,4 @@ function normalizeVideo(url = '') {
   return { provider: isMp4Url(url) ? 'mp4' : 'external', videoUrl: url, thumbnailUrl: null };
 }
 
-module.exports = { getYouTubeId, getVimeoId, isMp4Url, normalizeVideo };
+module.exports = { getYouTubeId, getYouTubeThumbnailUrl, getYouTubeThumbnailFallbackUrl, getVimeoId, isMp4Url, normalizeVideo };
