@@ -12,6 +12,8 @@ const bcrypt = require('bcryptjs');
 const prisma = require('./lib/prisma');
 const { makeUniqueSlug } = require('./utils/seo');
 const { generateNextListingCodeInLockedTransaction } = require('./utils/listingCode');
+const { authenticate, authorize } = require('./middleware/auth');
+const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 
 const app = express();
 app.set('json replacer', (_key, value) => {
@@ -30,6 +32,16 @@ function warnMissingRequiredEnv() {
 }
 
 warnMissingRequiredEnv();
+console.log('SMTP CONFIG', {
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  user: process.env.SMTP_USER,
+  from: process.env.SMTP_FROM,
+  hasPass: Boolean(process.env.SMTP_PASS),
+});
+if (process.env.SMTP_HOST || process.env.SMTP_USER || process.env.SMTP_PASS) {
+  verifySmtpTransporter().catch(() => {});
+}
 const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
 const uploadsStaticDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -51,6 +63,28 @@ app.use('/uploads', express.static(uploadDir));
 if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
+app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (req, res, next) => {
+  try {
+    const to = String(req.body?.to || '').trim();
+    if (!to) return res.status(400).json({ success: false, message: 'Email ünvanı tələb olunur.' });
+    const info = await sendEmail({
+      to,
+      subject: 'Best Home test email',
+      text: 'SMTP işləyir.',
+      html: '<p>SMTP işləyir.</p>',
+    });
+    return res.json({
+      success: true,
+      message: 'Test email göndərildi.',
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      response: info?.response,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));

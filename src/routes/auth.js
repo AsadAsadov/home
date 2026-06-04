@@ -57,7 +57,7 @@ function appUrl(pathname, params = {}) {
     process.env.PUBLIC_APP_URL
     || process.env.FRONTEND_URL
     || process.env.APP_URL
-    || 'https://besthome.onrender.com'
+    || `http://localhost:${process.env.PORT || 3000}`
   ).replace(/\/$/, '');
   const url = new URL(pathname, `${baseUrl}/`);
   Object.entries(params).forEach(([key, value]) => {
@@ -264,11 +264,17 @@ async function sendPasswordResetEmail(user) {
   const token = await createPasswordResetToken(user.id);
   const url = appUrl('/reset-password', { token });
   try {
-    await sendEmail({
+    const info = await sendEmail({
       to: user.email,
       subject: 'Best Home şifrə bərpası',
       text: `Şifrənizi yeniləmək üçün bu linkə keçin: ${url}`,
       html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Şifrənizi yeniləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">🔒 Şifrəni yenilə</a></p><p>Link 1 saat qüvvədədir və yalnız bir dəfə istifadə edilə bilər.</p>`,
+    });
+    console.log('PASSWORD RESET EMAIL SENT', {
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      response: info?.response,
     });
   } catch (error) {
     console.error('Password reset email failed:', { userId: user.id, email: user.email, error });
@@ -469,7 +475,7 @@ router.post('/forgot-password', authRoute(async (req, res) => {
         await logUserActivity(prisma, user.id, 'forgot_password');
       } catch (error) {
         console.error('Password reset email not sent:', { userId: user.id, email: user.email, error });
-        return res.status(503).json({ success: false, message: 'Şifrə bərpa linki göndərilə bilmədi. Bir az sonra yenidən cəhd edin.' });
+        return res.status(503).json({ success: false, message: 'Email göndərilə bilmədi. SMTP ayarlarını yoxlayın.' });
       }
     }
   }
