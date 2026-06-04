@@ -173,6 +173,8 @@ model Participant {
   id             BigInt       @id @default(autoincrement())
   conversationId BigInt       @map("conversation_id")
   userId         Int          @map("user_id")
+  hiddenAt       DateTime?    @map("hidden_at")
+  clearedAt      DateTime?    @map("cleared_at")
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -191,6 +193,8 @@ model Message {
   isRead         Boolean      @default(false) @map("is_read")
   deliveredAt    DateTime?    @map("delivered_at")
   readAt         DateTime?    @map("read_at")
+  deletedAt      DateTime?    @map("deleted_at")
+  deletedById    Int?         @map("deleted_by_id")
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver       User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)

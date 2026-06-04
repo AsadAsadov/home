@@ -15,10 +15,28 @@ function durationMs(startedAt) {
   return Number(process.hrtime.bigint() - startedAt) / 1e6;
 }
 
+async function visibleUnreadMessageCount(userId) {
+  const participants = await prisma.participant.findMany({
+    where: { userId: Number(userId) },
+    include: { conversation: { select: { id: true, updatedAt: true } } },
+  });
+  const visible = participants.filter((participant) => !participant.hiddenAt || new Date(participant.conversation.updatedAt).getTime() > new Date(participant.hiddenAt).getTime());
+  if (!visible.length) return 0;
+  const counts = await Promise.all(visible.map((participant) => prisma.message.count({
+    where: {
+      conversationId: participant.conversationId,
+      receiverId: Number(userId),
+      isRead: false,
+      ...(participant.clearedAt ? { createdAt: { gt: participant.clearedAt } } : {}),
+    },
+  })));
+  return counts.reduce((sum, count) => sum + count, 0);
+}
+
 router.get('/summary', authenticate, asyncHandler(async (req, res) => {
   const [notificationsUnread, messagesUnread] = await Promise.all([
     prisma.notification.count({ where: { ...nonMessageNotificationWhere(req), isRead: false } }),
-    prisma.message.count({ where: { receiverId: Number(req.auth.id), isRead: false } }),
+    visibleUnreadMessageCount(req.auth.id),
   ]);
   res.json({ notificationsUnread, messagesUnread });
 }));

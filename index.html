@@ -2706,8 +2706,13 @@
         .conversation-item:hover, .conversation-item.is-active { background:#fff; }
         .chat-window { display:flex; flex-direction:column; min-height:640px; background:#fff; }
         .chat-messages { flex:1; overflow:auto; padding:18px; background:linear-gradient(180deg,#ffffff,#f8fafc); }
-        .chat-bubble { max-width:min(70%,520px); margin:8px 0; padding:10px 12px; border-radius:18px; font-weight:700; color:#0f172a; background:#e2e8f0; }
+        .chat-bubble { position: relative; max-width:min(70%,520px); margin:8px 0; padding:10px 12px; border-radius:18px; font-weight:700; color:#0f172a; background:#e2e8f0; }
         .chat-bubble.is-mine { margin-left:auto; background:#dcfce7; }
+        .chat-bubble.is-deleted { color:#64748b; font-style:italic; background:#f1f5f9; }
+        .chat-bubble__menu { display:none; position:absolute; top:6px; right:8px; border:0; background:rgba(255,255,255,.78); color:#334155; border-radius:999px; width:24px; height:24px; font-weight:900; }
+        .chat-bubble:hover .chat-bubble__menu, .chat-bubble:focus-within .chat-bubble__menu { display:inline-flex; align-items:center; justify-content:center; }
+        .conversation-item__menu { border:0; background:transparent; color:#64748b; border-radius:999px; min-width:32px; min-height:32px; font-weight:900; }
+        .conversation-item__menu:hover { background:#eef2ff; color:#4f46e5; }
         .message-status { display:inline-flex; margin-left:8px; font-size:11px; font-weight:900; color:#94a3b8; }
         .message-status.is-read { color:#16a34a; }
         .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
@@ -3187,6 +3192,7 @@
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
                 <button onclick="switchAdminSubtab('google-email')" id="subtab-btn-google-email" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Google email</button>
+                <button onclick="switchAdminSubtab('broadcast-notifications')" id="subtab-btn-broadcast-notifications" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Bildiriş göndər</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
                 <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
                 <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Advertisement Management</button>
@@ -3801,6 +3807,31 @@ Title: Park Villas
                     </div>
                     <div id="google-email-result" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200"></div>
                     <button type="button" onclick="loadGoogleEmailRecipientCount()" class="bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2 rounded-xl">Recipient sayını yenilə</button>
+                </div>
+            </div>
+
+            <!-- SUBTAB: BROADCAST NOTIFICATIONS -->
+            <div id="admin-subtab-broadcast-notifications" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-regular fa-bell text-brand-300"></i><span>İstifadəçilərə bildiriş göndər</span></h3>
+                        <p class="text-xs text-gray-400 mt-1">Bütün aktiv qeydiyyatlı istifadəçilərə sistem tipli in-app bildiriş göndərilir.</p>
+                    </div>
+                    <form onsubmit="handleSendBroadcastNotification(event)" class="space-y-3">
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Title</span><input type="text" id="broadcast-title" required maxlength="120" placeholder="Yeni bildiriş" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Message</span><textarea id="broadcast-message" required maxlength="1000" rows="7" placeholder="Sayta yeni funksiya əlavə olundu" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Optional internal link</span><input type="text" id="broadcast-link" placeholder="/gallery" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <button type="submit" id="broadcast-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Göndər</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 glass-card p-6 rounded-2xl space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                        <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><span class="block text-[10px] text-gray-400 uppercase font-bold">Total users</span><strong id="broadcast-total-users" class="text-2xl text-white">0</strong></div>
+                        <div class="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4"><span class="block text-[10px] text-emerald-300 uppercase font-bold">Created</span><strong id="broadcast-created-count" class="text-2xl text-emerald-200">0</strong></div>
+                        <div class="rounded-2xl bg-red-500/10 border border-red-500/20 p-4"><span class="block text-[10px] text-red-300 uppercase font-bold">Failed</span><strong id="broadcast-failed-count" class="text-2xl text-red-200">0</strong></div>
+                    </div>
+                    <div id="broadcast-result" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200"></div>
+                    <p class="text-xs text-gray-400">Link yalnız daxili path olmalıdır: /gallery, /projects, /profile və digər saytdaxili ünvanlar.</p>
                 </div>
             </div>
 
@@ -8346,9 +8377,11 @@ Title: Park Villas
                 const cachedMessages = messagingState.messagesByConversation.get(cacheKey) || [];
                 if (!cachedMessages.some(m => String(m.id) === String(message.id))) messagingState.messagesByConversation.set(cacheKey, [...cachedMessages, message].slice(-60));
                 if (String(message.conversationId) === String(messagingState.activeConversationId)) { messagingState.activeMessages.push(message); renderChatWindow(messagingState.activeConversation, messagingState.activeMessages); }
-                else { messagingState.messagesUnread += 1; if (conv) conv.unreadCount = (conv.unreadCount || 0) + 1; refreshHeaderBadges(); renderConversations(); }
+                else { messagingState.messagesUnread += 1; if (conv) conv.unreadCount = (conv.unreadCount || 0) + 1; else loadConversations(true, { force: true }).catch(error => console.warn('Conversation revive failed', error)); refreshHeaderBadges(); renderConversations(); }
                 writeMessagingCache();
             });
+            messagingState.socket.on('message:deleted', ({ message }) => handleRealtimeMessageDeleted(message));
+            messagingState.socket.on('conversation:hidden', ({ conversationId }) => handleRealtimeConversationHidden(conversationId));
             messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
             messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
             messagingState.socket.on('user:online', ({ userId }) => updateConversationPresence(userId, { isOnline: true, lastSeenAt: null }));
@@ -8539,9 +8572,15 @@ Title: Park Villas
 
         function conversationPreviewText(conversation) {
             if (conversation?.pending) return 'Söhbət açılır…';
+            if (conversation?.lastMessage?.deletedAt) return 'Bu mesaj silindi';
             const context = messageListingContext(conversation?.lastMessage);
             if (context) return context.title || conversation?.listing?.title || 'Elan konteksti';
             return conversation?.lastMessage?.text || conversation?.listing?.title || 'Yeni söhbət';
+        }
+
+        function conversationActionMenu(id) {
+            if (!id || String(id).startsWith('pending-')) return '';
+            return `<button type="button" class="conversation-item__menu" onclick="event.stopPropagation(); showConversationActions('${escapeHtml(id)}')" aria-label="Söhbət menyusu">⋯</button>`;
         }
 
         function renderConversations(loading = false) {
@@ -8552,7 +8591,7 @@ Title: Park Villas
             if (!conversations.length && loading) { root.innerHTML = '<div class="p-4 space-y-2"><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div></div>'; return; }
             root.innerHTML = conversations.length ? conversations.map(c => {
                 const name = c.otherUser?.fullname || c.placeholderName || 'İstifadəçi';
-                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''} ${c.pending ? 'opacity-70' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(conversationPreviewText(c))}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
+                return `<div class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''} ${c.pending ? 'opacity-70' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(conversationPreviewText(c))}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}${conversationActionMenu(c.id)}</div>`;
             }).join('') : '<div class="p-8 text-center text-slate-500 font-bold">Söhbət yoxdur</div>';
         }
 
@@ -8621,10 +8660,24 @@ Title: Park Villas
 
         function messageStatus(message) {
             if (message.failed) return '<button type="button" onclick="retryFailedMessage(\'' + escapeHtml(message.id) + '\')" class="message-status text-red-600">Təkrar göndər</button>';
-            if (String(message.senderId) !== String(activeUser?.id)) return '';
+            if (String(message.senderId) !== String(activeUser?.id) || message.deletedAt) return '';
             if (message.readAt) return '<span class="message-status is-read">✓✓</span>';
             if (message.deliveredAt) return '<span class="message-status">✓✓</span>';
             return `<span class="message-status">${message.pending ? '◷' : '✓'}</span>`;
+        }
+
+        function messageMenu(message) {
+            if (!message || message.pending || message.failed || message.deletedAt || String(message.senderId) !== String(activeUser?.id)) return '';
+            return `<button type="button" class="chat-bubble__menu" onclick="event.stopPropagation(); deleteOwnMessage('${escapeHtml(message.id)}')" aria-label="Mesaj menyusu">⋯</button>`;
+        }
+
+        function renderMessageBubble(message) {
+            const context = messageListingContext(message);
+            if (context) return `<div class="my-2" data-message-id="${escapeHtml(message.id)}">${listingChatCard(context)}</div>`;
+            const mine = String(message.senderId) === String(activeUser.id);
+            const deleted = Boolean(message.deletedAt);
+            const text = deleted ? 'Bu mesaj silindi' : (message.text || '');
+            return `<div class="chat-bubble ${mine ? 'is-mine' : ''} ${deleted ? 'is-deleted' : ''} ${message.pending ? 'opacity-70' : ''} ${message.failed ? 'border border-red-300 bg-red-50' : ''}" data-message-id="${escapeHtml(message.id)}">${messageMenu(message)}<span>${escapeHtml(text)}</span>${messageStatus(message)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(message.createdAt)}</div></div>`;
         }
 
         function renderChatWindow(conversation, messages, loading = false) {
@@ -8634,8 +8687,87 @@ Title: Park Villas
             const otherName = conversation?.otherUser?.fullname || conversation?.placeholderName || 'İstifadəçi';
             const loader = loading ? '<div class="typing-placeholder">Söhbət yüklənir…</div>' : '';
             const presenceLine = conversationPresenceLine(conversation?.otherUser);
-            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong>${presenceLine}</div></div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(m => { const context = messageListingContext(m); return context ? `<div class="my-2" data-message-id="${escapeHtml(m.id)}">${listingChatCard(context)}</div>` : `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''} ${m.failed ? 'border border-red-300 bg-red-50' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`; }).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            const clearButton = conversation?.id && !String(conversation.id).startsWith('pending-') ? `<button type="button" onclick="clearActiveConversation()" class="text-xs font-black text-slate-500 hover:text-brand-600">Söhbəti təmizlə</button>` : '';
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between gap-3"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong>${presenceLine}</div>${clearButton}</div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(renderMessageBubble).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
             document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
+        }
+
+
+        function replaceMessageEverywhere(updatedMessage) {
+            if (!updatedMessage) return;
+            const updateRows = (rows = []) => rows.map(item => String(item.id) === String(updatedMessage.id) ? { ...item, ...updatedMessage, text: 'Bu mesaj silindi' } : item);
+            messagingState.activeMessages = updateRows(messagingState.activeMessages);
+            messagingState.messagesByConversation.forEach((rows, key) => messagingState.messagesByConversation.set(key, updateRows(rows)));
+            messagingState.conversations.forEach(conversation => {
+                if (String(conversation.lastMessage?.id) === String(updatedMessage.id)) conversation.lastMessage = { ...conversation.lastMessage, ...updatedMessage, text: 'Bu mesaj silindi' };
+            });
+            if (String(updatedMessage.conversationId) === String(messagingState.activeConversationId)) renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+            renderConversations();
+            writeMessagingCache();
+        }
+
+        function handleRealtimeMessageDeleted(message) {
+            replaceMessageEverywhere(message);
+        }
+
+        function handleRealtimeConversationHidden(conversationId) {
+            const hiddenConversation = messagingState.conversations.find(c => String(c.id) === String(conversationId));
+            messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - Number(hiddenConversation?.unreadCount || 0));
+            refreshHeaderBadges();
+            messagingState.conversations = messagingState.conversations.filter(c => String(c.id) !== String(conversationId));
+            if (String(messagingState.activeConversationId) === String(conversationId)) {
+                messagingState.activeConversationId = null;
+                messagingState.activeConversation = null;
+                messagingState.activeMessages = [];
+                const root = document.getElementById('chat-window-root');
+                if (root) root.innerHTML = '<div class="flex-1 flex items-center justify-center text-slate-500 font-bold p-8 text-center">Söhbət siyahıdan silindi.</div>';
+            }
+            renderConversations();
+            writeMessagingCache();
+        }
+
+        async function deleteOwnMessage(messageId) {
+            if (!messageId || !confirm('Mesaj silinsin?')) return;
+            const msg = messagingState.activeMessages.find(m => String(m.id) === String(messageId));
+            if (!msg || String(msg.senderId) !== String(activeUser?.id)) return showToast('Yalnız öz mesajınızı silə bilərsiniz.');
+            try {
+                const result = await apiRequest(`/api/messages/messages/${encodeURIComponent(messageId)}`, { method: 'DELETE' });
+                replaceMessageEverywhere(result.message);
+            } catch (error) { showToast(error.message || 'Mesaj silinmədi.'); }
+        }
+
+        async function showConversationActions(conversationId) {
+            if (!conversationId) return;
+            const action = prompt('Söhbət əməliyyatı:\n1 - Söhbəti sil/gizlət\n2 - Söhbəti təmizlə', '1');
+            if (action === '1') return hideConversation(conversationId);
+            if (action === '2') return clearConversation(conversationId);
+        }
+
+        async function hideConversation(conversationId) {
+            if (!conversationId || !confirm('Söhbət siyahıdan silinsin?')) return;
+            try {
+                await apiRequest(`/api/messages/conversations/${encodeURIComponent(conversationId)}/hide`, { method: 'PATCH' });
+                handleRealtimeConversationHidden(conversationId);
+            } catch (error) { showToast(error.message || 'Söhbət silinmədi.'); }
+        }
+
+        async function clearConversation(conversationId) {
+            if (!conversationId) return;
+            try {
+                await apiRequest(`/api/messages/conversations/${encodeURIComponent(conversationId)}/clear`, { method: 'PATCH' });
+                messagingState.messagesByConversation.set(String(conversationId), []);
+                if (String(messagingState.activeConversationId) === String(conversationId)) {
+                    messagingState.activeMessages = [];
+                    renderChatWindow(messagingState.activeConversation, []);
+                }
+                showToast('Söhbət təmizləndi.');
+                writeMessagingCache();
+            } catch (error) { showToast(error.message || 'Söhbət təmizlənmədi.'); }
+        }
+
+        function clearActiveConversation() {
+            if (!messagingState.activeConversationId || !confirm('Söhbət təmizlənsin?')) return;
+            clearConversation(messagingState.activeConversationId);
         }
 
         async function sendChatMessage(event) {
@@ -10517,11 +10649,12 @@ Təşəkkür edirəm. 🙏`;
             'hero-sections': '/admin/project-hero',
             'listing-hero': '/admin/listing-hero',
             'google-email': '/admin/google-email',
+            'broadcast-notifications': '/admin/notifications/broadcast',
             'user-profile': '/profil/melumatlar'
         };
 
         function switchAdminSubtab(subtab, options = {}) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -10533,6 +10666,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
             document.getElementById('admin-subtab-google-email')?.classList.add('hidden');
+            document.getElementById('admin-subtab-broadcast-notifications')?.classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
@@ -10545,7 +10679,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -12074,6 +12208,52 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+
+
+        let isBroadcastSubmitting = false;
+
+        function setBroadcastButtonLoading(isLoading) {
+            const btn = document.getElementById('broadcast-submit-btn');
+            if (!btn) return;
+            btn.disabled = Boolean(isLoading);
+            btn.classList.toggle('is-loading', Boolean(isLoading));
+            btn.innerHTML = isLoading ? '<span class="button-spinner"></span><span>Göndərilir…</span>' : 'Göndər';
+        }
+
+        async function handleSendBroadcastNotification(e) {
+            e.preventDefault();
+            if (isBroadcastSubmitting) return;
+            const title = document.getElementById('broadcast-title')?.value.trim() || '';
+            const message = document.getElementById('broadcast-message')?.value.trim() || '';
+            const link = document.getElementById('broadcast-link')?.value.trim() || '';
+            if (!title || !message) return alert('Title və message tələb olunur.');
+            if (title.length > 120) return alert('Title maksimum 120 simvol olmalıdır.');
+            if (message.length > 1000) return alert('Message maksimum 1000 simvol olmalıdır.');
+            if (link && (!link.startsWith('/') || link.startsWith('//') || /^(https?:|mailto:|tel:|javascript:)/i.test(link))) return alert('Link yalnız daxili path ola bilər. Məsələn: /gallery');
+            if (!confirm('Bu bildiriş bütün qeydiyyatlı istifadəçilərə göndəriləcək. Davam edilsin?')) return;
+            isBroadcastSubmitting = true;
+            setBroadcastButtonLoading(true);
+            const resultBox = document.getElementById('broadcast-result');
+            if (resultBox) { resultBox.classList.add('hidden'); resultBox.textContent = ''; }
+            try {
+                const result = await apiRequest('/api/admin/notifications/broadcast', {
+                    method: 'POST',
+                    body: JSON.stringify({ title, message, link: link || null })
+                });
+                document.getElementById('broadcast-total-users').textContent = String(result.totalUsers || 0);
+                document.getElementById('broadcast-created-count').textContent = String(result.createdCount || 0);
+                document.getElementById('broadcast-failed-count').textContent = String(result.failedCount || 0);
+                if (resultBox) {
+                    resultBox.classList.remove('hidden');
+                    resultBox.textContent = `Total users: ${result.totalUsers || 0}, Created: ${result.createdCount || 0}, Failed: ${result.failedCount || 0}`;
+                }
+            } catch (error) {
+                alert('Broadcast bildiriş göndərilmədi: ' + error.message);
+            } finally {
+                isBroadcastSubmitting = false;
+                setBroadcastButtonLoading(false);
+            }
+        }
 
         let isGoogleEmailSubmitting = false;
 
