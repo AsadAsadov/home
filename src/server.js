@@ -89,6 +89,7 @@ app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (
 });
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin/email', require('./routes/adminEmail'));
+app.use('/api/admin/notifications', require('./routes/adminNotifications'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));

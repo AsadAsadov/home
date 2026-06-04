@@ -6,12 +6,15 @@ const NOTIFICATION_TYPES = new Set([
   'listing_approved',
   'listing_rejected',
   'new_message',
+  'message',
   'vacancy_application',
   'system',
 ]);
 
 function normalizeType(type) {
-  return NOTIFICATION_TYPES.has(type) ? type : 'system';
+  const normalized = String(type || '').trim().toLowerCase();
+  if (['new-message', 'new message', 'message_new', 'message'].includes(normalized)) return 'message';
+  return NOTIFICATION_TYPES.has(normalized) ? normalized : 'system';
 }
 
 async function createNotification({ userId, title, message, type = 'system', link = null }, tx = prisma) {
