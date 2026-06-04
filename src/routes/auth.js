@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
 const { authenticate, signToken, tokenExpiresAt } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
-const { sendEmail } = require('../utils/email');
+const { sendEmail, isEmailProviderConfigured } = require('../utils/email');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
@@ -59,12 +59,6 @@ function appUrl(pathname, params = {}) {
     || process.env.APP_URL
     || 'https://besthome.onrender.com'
   ).replace(/\/$/, '');
-  console.log({
-    PUBLIC_APP_URL: process.env.PUBLIC_APP_URL,
-    FRONTEND_URL: process.env.FRONTEND_URL,
-    APP_URL: process.env.APP_URL,
-    baseUrl,
-  });
   const url = new URL(pathname, `${baseUrl}/`);
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) url.searchParams.set(key, value);
@@ -261,14 +255,25 @@ async function sendVerificationEmail(user) {
 }
 
 async function sendPasswordResetEmail(user) {
+  if (!isEmailProviderConfigured()) {
+    console.warn('Password reset email not sent: email provider is not configured.', { userId: user.id, email: user.email });
+    const error = new Error('Email provider is not configured.');
+    error.code = 'EMAIL_PROVIDER_NOT_CONFIGURED';
+    throw error;
+  }
   const token = await createPasswordResetToken(user.id);
   const url = appUrl('/reset-password', { token });
-  await sendEmail({
-    to: user.email,
-    subject: 'Best Home şifrə bərpası',
-    text: `Şifrənizi yeniləmək üçün bu linkə keçin: ${url}`,
-    html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Şifrənizi yeniləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">🔒 Şifrəni yenilə</a></p><p>Link 1 saat qüvvədədir və yalnız bir dəfə istifadə edilə bilər.</p>`,
-  });
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Best Home şifrə bərpası',
+      text: `Şifrənizi yeniləmək üçün bu linkə keçin: ${url}`,
+      html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Şifrənizi yeniləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">🔒 Şifrəni yenilə</a></p><p>Link 1 saat qüvvədədir və yalnız bir dəfə istifadə edilə bilər.</p>`,
+    });
+  } catch (error) {
+    console.error('Password reset email failed:', { userId: user.id, email: user.email, error });
+    throw error;
+  }
   return url;
 }
 
@@ -459,11 +464,16 @@ router.post('/forgot-password', authRoute(async (req, res) => {
     if (!rate.allowed) return res.status(429).json({ success: false, message: 'Şifrə bərpası üçün maksimum 5 sorğu göndərə bilərsiniz. 1 saat sonra yenidən cəhd edin.' });
     const user = await prisma.user.findUnique({ where: { email } });
     if (user && user.provider !== 'google') {
-      await sendPasswordResetEmail(user);
-      await logUserActivity(prisma, user.id, 'forgot_password');
+      try {
+        await sendPasswordResetEmail(user);
+        await logUserActivity(prisma, user.id, 'forgot_password');
+      } catch (error) {
+        console.error('Password reset email not sent:', { userId: user.id, email: user.email, error });
+        return res.status(503).json({ success: false, message: 'Şifrə bərpa linki göndərilə bilmədi. Bir az sonra yenidən cəhd edin.' });
+      }
     }
   }
-  res.json({ success: true, ok: true, message: 'Əgər e-poçt mövcuddursa, bərpa təlimatı göndəriləcək.' });
+  res.json({ success: true, ok: true, message: 'Şifrə bərpa linki email ünvanınıza göndərildi.' });
 }));
 
 router.post('/reset-password', authRoute(async (req, res) => {

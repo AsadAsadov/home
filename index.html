@@ -2717,7 +2717,7 @@
     <main class="flex-grow pt-28 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
-        <section id="tab-seabreeze" class="tab-content space-y-12">
+        <section id="tab-seabreeze" class="tab-content hidden space-y-12">
             <!-- Hero banner -->
             <div id="sea-breeze-hero-slider" class="sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
                 <div id="sea-breeze-hero-media" class="absolute inset-0" role="img" aria-label="BestHome layihə vitrini"></div>
@@ -3065,7 +3065,7 @@
                 <div id="forgot-message" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
                 <form onsubmit="handleForgotPassword(event)" class="space-y-4 text-left">
                     <input type="email" id="forgot-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Göndər</button>
+                    <button type="submit" id="forgot-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">Göndər</button>
                 </form>
                 <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Girişə qayıt</button>
             </div>
@@ -5210,12 +5210,21 @@ Title: Park Villas
         function normalizeGalleryItem(item = {}) {
             const mediaType = item.mediaType || item.media_type || item.type;
             const isFeatured = Boolean(item.isFeatured ?? item.is_featured);
+            const videoUrl = item.videoUrl || item.video_url || item.url || '';
+            const thumbnailUrl = item.thumbnailUrl || item.thumbnail_url || item.thumbnail || '';
+            const imageUrl = item.imageUrl || item.image_url || '';
             return {
                 ...item,
                 mediaType,
                 media_type: mediaType,
                 isFeatured,
-                is_featured: isFeatured
+                is_featured: isFeatured,
+                videoUrl,
+                video_url: videoUrl,
+                thumbnailUrl,
+                thumbnail_url: thumbnailUrl,
+                imageUrl,
+                image_url: imageUrl
             };
         }
 
@@ -6514,7 +6523,7 @@ Title: Park Villas
             observer.observe(element);
         }
 
-        let activeTabId = 'seabreeze';
+        let activeTabId = null;
 
         function isTabAktiv(tabId) {
             if (tabId === activeTabId) return true;
@@ -9148,10 +9157,10 @@ Təşəkkür edirəm. 🙏`;
 
         function featuredVideos() {
             const heroVideo = galleryItems().find(item =>
-                (item.mediaType === 'video' || item.media_type === 'video') &&
-                (item.isFeatured === true || item.is_featured === true)
+                item.mediaType === 'video' &&
+                item.isFeatured === true
             );
-            console.log('FOUND HERO VIDEO:', heroVideo);
+            console.log('FOUND GALLERY HERO:', heroVideo);
             return heroVideo ? [heroVideo] : [];
         }
 
@@ -9206,7 +9215,7 @@ Təşəkkür edirəm. 🙏`;
                     : { page: result.page || page, limit: GALLERY_PAGE_LIMIT, total: result.total || rows.length, totalPages: result.totalPages || 1 };
                 const normalizedRows = rows.map(item => normalizeGalleryItem(dbGalleryToUi(item)));
                 cacheData('gallery', normalizedRows.sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
-                console.log('GALLERY LOADED:', appData.gallery);
+                console.log('GALLERY ITEMS AFTER LOAD:', appData.gallery);
             } catch (error) {
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
             }
@@ -9229,7 +9238,7 @@ Təşəkkür edirəm. 🙏`;
                     method: 'POST',
                     body: JSON.stringify({ isFeatured: Boolean(isFeatured) })
                 });
-                console.log('TOGGLE HERO RESPONSE:', response);
+                console.log('GALLERY HERO API RESPONSE:', response);
                 await loadGallery();
                 renderAdminGallery();
                 renderPortfolio();
@@ -9544,9 +9553,21 @@ Təşəkkür edirəm. 🙏`;
         async function handleForgotPassword(e) {
             e.preventDefault();
             const box = document.getElementById('forgot-message');
-            await apiRequest('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: document.getElementById('forgot-email').value }) });
-            box.textContent = 'Əgər e-poçt mövcuddursa, bərpa təlimatı göndəriləcək.';
-            box.classList.remove('hidden');
+            const button = document.getElementById('forgot-submit-btn');
+            const originalText = button?.textContent || 'Göndər';
+            if (button) { button.disabled = true; button.textContent = 'Göndərilir…'; button.classList.add('opacity-70', 'cursor-not-allowed'); }
+            box.classList.add('hidden');
+            box.className = 'hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs';
+            try {
+                const response = await apiRequest('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email: document.getElementById('forgot-email').value }) });
+                box.textContent = response?.message || 'Şifrə bərpa linki email ünvanınıza göndərildi.';
+                box.className = 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs';
+            } catch (error) {
+                box.textContent = error.message || 'Şifrə bərpa linki göndərilə bilmədi. Bir az sonra yenidən cəhd edin.';
+                box.className = 'bg-red-500/10 border border-red-500/30 text-red-300 p-3 rounded-xl text-xs';
+            } finally {
+                if (button) { button.disabled = false; button.textContent = originalText; button.classList.remove('opacity-70', 'cursor-not-allowed'); }
+            }
         }
 
 
@@ -12690,11 +12711,14 @@ Təşəkkür edirəm. 🙏`;
             if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
         });
 
-        window.addEventListener('load', async () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            const initialPath = window.location.pathname;
+            console.log('INITIAL PATH:', initialPath);
             updateMobileModalMetrics();
-                        renderProjectImageInputs(['']);
+            renderProjectImageInputs(['']);
+            await initializeAuth();
             if (await verifyEmailFromUrl()) return;
-            if (window.location.pathname === '/reset-password') { switchTab('reset-password', { skipPush: true }); return; }
+            if (initialPath === '/reset-password') { switchTab('reset-password', { skipPush: true }); return; }
             if (await completeGoogleLoginFromUrl()) {
                 setMobileBottomNavActive();
                 populateMetroSelect();
@@ -12702,8 +12726,6 @@ Təşəkkür edirəm. 🙏`;
                 setTimeout(initAdminListingMap, 120);
                 return;
             }
-            console.log('INITIAL PATH:', window.location.pathname);
-            await initializeAuth();
             await routeToCurrentPath();
             await hydrateFromDatabase();
             setMobileBottomNavActive();
