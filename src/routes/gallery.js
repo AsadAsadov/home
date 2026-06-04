@@ -135,6 +135,17 @@ function emptyGalleryResponse(req, extra = {}) {
   return { success: true, data: [], items: [], total: 0, page, limit, totalPages: 1, ...extra };
 }
 
+function unsetOtherFeaturedVideos(tx, keepId = null) {
+  return tx.gallery.updateMany({
+    where: {
+      mediaType: 'video',
+      isFeatured: true,
+      ...(keepId ? { id: { not: keepId } } : {}),
+    },
+    data: { isFeatured: false },
+  });
+}
+
 router.get('/', asyncHandler(async (req, res) => {
   const page = positiveInt(req.query.page, 1, 1000000);
   const limit = positiveInt(req.query.limit, 1000, 5000);
@@ -195,11 +206,14 @@ router.post('/', authenticate, authorize('admin'), upload.fields([
 ]), asyncHandler(async (req, res) => {
   try {
     const data = await payload(req);
-    if (!Number.isFinite(Number(data.sortOrder)) || Number(data.sortOrder) <= 0) {
-      await prisma.gallery.updateMany({ data: { sortOrder: { increment: 1 } } });
-      data.sortOrder = 1;
-    }
-    const created = await prisma.gallery.create({ data });
+    const created = await prisma.$transaction(async (tx) => {
+      if (data.isFeatured === true) await unsetOtherFeaturedVideos(tx);
+      if (!Number.isFinite(Number(data.sortOrder)) || Number(data.sortOrder) <= 0) {
+        await tx.gallery.updateMany({ data: { sortOrder: { increment: 1 } } });
+        data.sortOrder = 1;
+      }
+      return tx.gallery.create({ data });
+    });
     res.status(201).json(serializeGallery(created));
   } catch (error) {
     if (!isGallerySchemaUnavailable(error)) throw error;
@@ -217,7 +231,11 @@ router.put('/:id', authenticate, authorize('admin'), upload.fields([
   try {
     const existing = await prisma.gallery.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
-    const updated = await prisma.gallery.update({ where: { id }, data: await payload(req, existing) });
+    const data = await payload(req, existing);
+    const updated = await prisma.$transaction(async (tx) => {
+      if (data.isFeatured === true) await unsetOtherFeaturedVideos(tx, id);
+      return tx.gallery.update({ where: { id }, data });
+    });
     res.json(serializeGallery(updated));
   } catch (error) {
     if (!isGallerySchemaUnavailable(error)) throw error;
