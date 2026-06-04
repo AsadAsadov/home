@@ -1,19 +1,32 @@
-const net = require('net');
-const tls = require('tls');
-
 function getProvider() {
   return String(process.env.EMAIL_PROVIDER || process.env.MAIL_PROVIDER || '').toLowerCase();
 }
 
+function smtpConfig() {
+  const provider = getProvider();
+  return {
+    host: process.env.SMTP_HOST || (provider === 'gmail' ? 'smtp.gmail.com' : undefined),
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: false,
+    requireTLS: true,
+    auth: {
+      user: process.env.SMTP_USER || process.env.GMAIL_SMTP_USER,
+      pass: process.env.SMTP_PASS || process.env.GMAIL_SMTP_PASS,
+    },
+  };
+}
+
+function isSmtpConfigured() {
+  const config = smtpConfig();
+  return Boolean(config.host && config.auth.user && config.auth.pass);
+}
 
 function isEmailProviderConfigured() {
-  const provider = getProvider();
-  const hasSmtp = Boolean((process.env.SMTP_HOST || provider === 'gmail') && (process.env.SMTP_USER || process.env.GMAIL_SMTP_USER) && (process.env.SMTP_PASS || process.env.GMAIL_SMTP_PASS));
   return Boolean(
     process.env.RESEND_API_KEY
     || process.env.SENDGRID_API_KEY
     || (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN)
-    || hasSmtp
+    || isSmtpConfigured()
   );
 }
 
@@ -26,87 +39,28 @@ function plainAddress(value) {
   return (match ? match[1] : value).trim();
 }
 
-function encodeBase64(value) {
-  return Buffer.from(String(value), 'utf8').toString('base64');
+function createSmtpTransporter() {
+  const config = smtpConfig();
+  if (!config.host || !config.auth.user || !config.auth.pass) throw new Error('SMTP email is not configured.');
+  return require('nodemailer').createTransport(config);
 }
 
-function smtpRead(socket) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    const onData = (chunk) => {
-      data += chunk.toString('utf8');
-      const lines = data.split(/\r?\n/).filter(Boolean);
-      const last = lines[lines.length - 1] || '';
-      if (/^\d{3} /.test(last)) cleanup(resolve, data);
-    };
-    const cleanup = (done, value) => {
-      socket.off('data', onData);
-      socket.off('error', onError);
-      done(value);
-    };
-    const onError = (error) => cleanup(reject, error);
-    socket.on('data', onData);
-    socket.on('error', onError);
-  });
-}
-
-async function smtpCommand(socket, command, expected = /^[23]/) {
-  if (command) socket.write(`${command}\r\n`);
-  const response = await smtpRead(socket);
-  if (!expected.test(response)) throw new Error(`SMTP command failed: ${response.trim()}`);
-  return response;
-}
-
-function connectSmtp({ host, port, secure }) {
-  return new Promise((resolve, reject) => {
-    const socket = secure
-      ? tls.connect({ host, port, servername: host }, () => resolve(socket))
-      : net.connect({ host, port }, () => resolve(socket));
-    socket.once('error', reject);
-  });
-}
-
-function buildMessage({ from, to, subject, text, html }) {
-  const boundary = `besthome-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const headers = [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-  ];
-  return `${headers.join('\r\n')}\r\n\r\n--${boundary}\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n${text || ''}\r\n--${boundary}\r\nContent-Type: text/html; charset=utf-8\r\n\r\n${html || text || ''}\r\n--${boundary}--\r\n`;
+async function verifySmtpTransporter(transporter) {
+  try {
+    const smtpTransporter = transporter || createSmtpTransporter();
+    await smtpTransporter.verify();
+    console.log('SMTP transporter verified successfully');
+    return true;
+  } catch (error) {
+    console.error('SMTP transporter verify failed:', error);
+    throw error;
+  }
 }
 
 async function sendSmtpEmail(message) {
-  const host = process.env.SMTP_HOST || (getProvider() === 'gmail' ? 'smtp.gmail.com' : undefined);
-  const port = Number(process.env.SMTP_PORT || (getProvider() === 'gmail' ? 465 : 587));
-  const secure = String(process.env.SMTP_SECURE || (port === 465 ? 'true' : 'false')) === 'true';
-  const user = process.env.SMTP_USER || process.env.GMAIL_SMTP_USER;
-  const pass = process.env.SMTP_PASS || process.env.GMAIL_SMTP_PASS;
-  if (!host || !user || !pass) throw new Error('SMTP email is not configured.');
-
-  let socket = await connectSmtp({ host, port, secure });
-  try {
-    await smtpCommand(socket, null);
-    await smtpCommand(socket, `EHLO ${process.env.SMTP_EHLO_DOMAIN || 'besthome.az'}`);
-    if (!secure && String(process.env.SMTP_STARTTLS || 'true') === 'true') {
-      await smtpCommand(socket, 'STARTTLS');
-      socket = tls.connect({ socket, servername: host });
-      await smtpCommand(socket, `EHLO ${process.env.SMTP_EHLO_DOMAIN || 'besthome.az'}`);
-    }
-    await smtpCommand(socket, 'AUTH LOGIN');
-    await smtpCommand(socket, encodeBase64(user));
-    await smtpCommand(socket, encodeBase64(pass));
-    await smtpCommand(socket, `MAIL FROM:<${plainAddress(message.from)}>`, /^[23]/);
-    await smtpCommand(socket, `RCPT TO:<${plainAddress(message.to)}>`, /^[23]/);
-    await smtpCommand(socket, 'DATA', /^3/);
-    socket.write(`${buildMessage(message).replace(/\r?\n\.\r?\n/g, '\r\n..\r\n')}\r\n.\r\n`);
-    await smtpCommand(socket, null);
-    await smtpCommand(socket, 'QUIT', /^[23]/).catch(() => {});
-  } finally {
-    socket.end();
-  }
+  const transporter = createSmtpTransporter();
+  await verifySmtpTransporter(transporter);
+  return transporter.sendMail(message);
 }
 
 async function sendResendEmail(message) {
@@ -118,6 +72,8 @@ async function sendResendEmail(message) {
     body: JSON.stringify({ from: message.from, to: [message.to], subject: message.subject, text: message.text, html: message.html }),
   });
   if (!response.ok) throw new Error(`Resend email failed: ${await response.text()}`);
+  const body = await response.json().catch(() => ({}));
+  return { messageId: body.id, accepted: [message.to], rejected: [], response: response.statusText };
 }
 
 async function sendSendGridEmail(message) {
@@ -134,6 +90,7 @@ async function sendSendGridEmail(message) {
     }),
   });
   if (!response.ok) throw new Error(`SendGrid email failed: ${await response.text()}`);
+  return { messageId: response.headers.get('x-message-id') || undefined, accepted: [message.to], rejected: [], response: response.statusText };
 }
 
 async function sendMailgunEmail(message) {
@@ -147,6 +104,8 @@ async function sendMailgunEmail(message) {
     body: form,
   });
   if (!response.ok) throw new Error(`Mailgun email failed: ${await response.text()}`);
+  const body = await response.json().catch(() => ({}));
+  return { messageId: body.id, accepted: [message.to], rejected: [], response: body.message || response.statusText };
 }
 
 async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
@@ -160,10 +119,10 @@ async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
   if (process.env.RESEND_API_KEY) return sendResendEmail(message);
   if (process.env.SENDGRID_API_KEY) return sendSendGridEmail(message);
   if (process.env.MAILGUN_API_KEY) return sendMailgunEmail(message);
-  if (process.env.SMTP_HOST || process.env.GMAIL_SMTP_USER) return sendSmtpEmail(message);
+  if (isSmtpConfigured()) return sendSmtpEmail(message);
 
   console.warn('Password reset email not sent: email provider is not configured.', { to, subject });
   return { skipped: true };
 }
 
-module.exports = { sendEmail, isEmailProviderConfigured };
+module.exports = { sendEmail, isEmailProviderConfigured, verifySmtpTransporter };
