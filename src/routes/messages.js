@@ -22,6 +22,10 @@ function toBigIntId(value) {
   }
 }
 
+function durationMs(startedAt) {
+  return Number(process.hrtime.bigint() - startedAt) / 1e6;
+}
+
 function listingInclude() {
   return { images: { orderBy: { sortOrder: 'asc' }, take: 1 } };
 }
@@ -56,16 +60,19 @@ async function conversationUnreadCounts(userId, ids) {
   return new Map(grouped.map((row) => [String(row.conversationId), row._count._all]));
 }
 
-router.get('/', authenticate, asyncHandler(async (req, res) => {
+async function markDeliveredInBackground(userId) {
   const deliveredNow = new Date();
   const undelivered = await prisma.message.findMany({
-    where: { receiverId: Number(req.auth.id), deliveredAt: null },
+    where: { receiverId: Number(userId), deliveredAt: null },
     select: { id: true, senderId: true, conversationId: true },
   });
-  if (undelivered.length) {
-    await prisma.message.updateMany({ where: { id: { in: undelivered.map((m) => m.id) } }, data: { deliveredAt: deliveredNow } });
-    undelivered.forEach((message) => emitToUser(message.senderId, 'message:delivered', { conversationId: message.conversationId, messageId: message.id, deliveredAt: deliveredNow }));
-  }
+  if (!undelivered.length) return;
+  await prisma.message.updateMany({ where: { id: { in: undelivered.map((m) => m.id) } }, data: { deliveredAt: deliveredNow } });
+  undelivered.forEach((message) => emitToUser(message.senderId, 'message:delivered', { conversationId: message.conversationId, messageId: message.id, deliveredAt: deliveredNow }));
+}
+
+router.get('/', authenticate, asyncHandler(async (req, res) => {
+  markDeliveredInBackground(req.auth.id).catch((error) => console.warn('[messages] delivered background failed', { userId: req.auth.id, message: error.message, code: error.code }));
   const conversations = await prisma.conversation.findMany({
     where: { participants: { some: { userId: Number(req.auth.id) } } },
     include: conversationInclude,
@@ -76,39 +83,39 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
 }));
 
 router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
-  console.log('[messages] create conversation start', { userId: req.auth.id, listingId: req.body.listingId ?? req.body.listing_id, receiverId: req.body.receiverId ?? req.body.receiver_id });
+  const startedAt = process.hrtime.bigint();
   try {
-  const listingId = toBigIntId(req.body.listingId ?? req.body.listing_id);
-  let receiverId = toIntId(req.body.receiverId ?? req.body.receiver_id);
+    const listingId = toBigIntId(req.body.listingId ?? req.body.listing_id);
+    let receiverId = toIntId(req.body.receiverId ?? req.body.receiver_id);
 
-  if (listingId && !receiverId) {
-    const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { userId: true, status: true } });
-    if (!listing || listing.status !== 'approved') return res.status(404).json({ message: 'Listing not found.' });
-    receiverId = toIntId(listing.userId);
-  }
-  if (!receiverId) return res.status(400).json({ message: 'Recipient is required.' });
-  if (String(receiverId) === String(req.auth.id)) return res.status(400).json({ message: 'Özünüzə mesaj göndərə bilməzsiniz.' });
+    if (listingId && !receiverId) {
+      const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { userId: true, status: true } });
+      if (!listing || listing.status !== 'approved') return res.status(404).json({ message: 'Listing not found.' });
+      receiverId = toIntId(listing.userId);
+    }
+    if (!receiverId) return res.status(400).json({ message: 'Recipient is required.' });
+    if (String(receiverId) === String(req.auth.id)) return res.status(400).json({ message: 'Özünüzə mesaj göndərə bilməzsiniz.' });
 
-  const existingParticipants = await prisma.participant.findMany({
-    where: { userId: { in: [Number(req.auth.id), receiverId] }, ...(listingId ? { conversation: { listingId } } : {}) },
-    select: { conversationId: true },
-  });
-  const counts = existingParticipants.reduce((acc, p) => acc.set(String(p.conversationId), (acc.get(String(p.conversationId)) || 0) + 1), new Map());
-  const existingId = [...counts.entries()].find(([, count]) => count === 2)?.[0];
-
-  const conversation = existingId
-    ? await prisma.conversation.findUnique({ where: { id: BigInt(existingId) }, include: conversationInclude })
-    : await prisma.conversation.create({
-      data: {
-        listingId,
-        participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
-      },
-      include: conversationInclude,
+    const existingParticipants = await prisma.participant.findMany({
+      where: { userId: { in: [Number(req.auth.id), receiverId] }, ...(listingId ? { conversation: { listingId } } : {}) },
+      select: { conversationId: true },
     });
-  console.log('[messages] create conversation success', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existingId) });
-  res.status(existingId ? 200 : 201).json({ conversation: serializeConversation(conversation, req.auth.id, 0) });
+    const counts = existingParticipants.reduce((acc, p) => acc.set(String(p.conversationId), (acc.get(String(p.conversationId)) || 0) + 1), new Map());
+    const existingId = [...counts.entries()].find(([, count]) => count === 2)?.[0];
+
+    const conversation = existingId
+      ? await prisma.conversation.findUnique({ where: { id: BigInt(existingId) }, include: conversationInclude })
+      : await prisma.conversation.create({
+        data: {
+          listingId,
+          participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
+        },
+        include: conversationInclude,
+      });
+    console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existingId), durationMs: Math.round(durationMs(startedAt)) });
+    return res.status(existingId ? 200 : 201).json({ conversation: serializeConversation(conversation, req.auth.id, 0) });
   } catch (error) {
-    console.error('[messages] create conversation failed', { userId: req.auth.id, message: error.message, code: error.code, meta: error.meta });
+    console.error('[messages] create/open conversation failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;
   }
 }));
@@ -134,40 +141,40 @@ router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => 
 }));
 
 router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req, res) => {
-  console.log('[messages] send start', { userId: req.auth.id, conversationId: req.params.id });
+  const startedAt = process.hrtime.bigint();
   try {
-  const id = toBigIntId(req.params.id);
-  if (!id) return res.status(400).json({ message: 'Invalid conversation ID.' });
-  if (!await requireParticipant(id, req.auth.id)) return res.status(403).json({ message: 'Conversation access denied.' });
-  const text = String(req.body.text || '').trim();
-  if (!text) return res.status(400).json({ message: 'Message text is required.' });
+    const id = toBigIntId(req.params.id);
+    if (!id) return res.status(400).json({ message: 'Invalid conversation ID.' });
+    if (!await requireParticipant(id, req.auth.id)) return res.status(403).json({ message: 'Conversation access denied.' });
+    const text = String(req.body.text || '').trim();
+    if (!text) return res.status(400).json({ message: 'Message text is required.' });
 
-  const participant = await prisma.participant.findFirst({ where: { conversationId: id, userId: { not: Number(req.auth.id) } }, include: { user: true } });
-  if (!participant) return res.status(400).json({ message: 'Recipient not found.' });
-  const deliveredAt = isUserOnline(participant.userId) ? new Date() : null;
+    const participant = await prisma.participant.findFirst({ where: { conversationId: id, userId: { not: Number(req.auth.id) } }, include: { user: true } });
+    if (!participant) return res.status(400).json({ message: 'Recipient not found.' });
+    const deliveredAt = isUserOnline(participant.userId) ? new Date() : null;
 
-  const message = await prisma.$transaction(async (tx) => {
-    const saved = await tx.message.create({
-      data: { conversationId: id, senderId: Number(req.auth.id), receiverId: participant.userId, text, deliveredAt },
+    const message = await prisma.$transaction(async (tx) => {
+      const saved = await tx.message.create({
+        data: { conversationId: id, senderId: Number(req.auth.id), receiverId: participant.userId, text, deliveredAt },
+      });
+      await tx.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
+      return saved;
     });
-    await tx.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
-    return saved;
-  });
 
-  await createNotification({
-    userId: participant.userId,
-    title: 'Yeni mesajınız var',
-    message: text.length > 120 ? `${text.slice(0, 117)}...` : text,
-    type: 'new_message',
-    link: `/profil/mesajlar?conversation=${message.conversationId}`,
-  });
+    createNotification({
+      userId: participant.userId,
+      title: 'Yeni mesajınız var',
+      message: text.length > 120 ? `${text.slice(0, 117)}...` : text,
+      type: 'new_message',
+      link: `/profil/mesajlar?conversation=${message.conversationId}`,
+    }).catch((error) => console.warn('[messages] notification background failed', { userId: req.auth.id, receiverId: participant.userId, message: error.message, code: error.code }));
 
-  emitToUser(participant.userId, 'message:new', { message });
-  if (deliveredAt) emitToUser(req.auth.id, 'message:delivered', { conversationId: id, messageId: message.id, deliveredAt });
-  console.log('[messages] send success', { userId: req.auth.id, conversationId: id, messageId: message.id, receiverId: participant.userId });
-  res.status(201).json({ message });
+    emitToUser(participant.userId, 'message:new', { message });
+    if (deliveredAt) emitToUser(req.auth.id, 'message:delivered', { conversationId: id, messageId: message.id, deliveredAt });
+    console.log('[messages] send durationMs', { userId: req.auth.id, conversationId: id, messageId: message.id, receiverId: participant.userId, durationMs: Math.round(durationMs(startedAt)) });
+    return res.status(201).json({ message });
   } catch (error) {
-    console.error('[messages] send failed', { userId: req.auth.id, conversationId: req.params.id, message: error.message, code: error.code, meta: error.meta });
+    console.error('[messages] send failed', { userId: req.auth.id, conversationId: req.params.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;
   }
 }));
