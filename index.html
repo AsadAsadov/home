@@ -1379,31 +1379,32 @@
         .media-detail-panel {
             max-height: calc(100vh - 120px);
         }
-        .media-detail-close {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 120;
+        .detail-close-btn {
+            position: sticky;
+            top: 12px;
+            float: right;
+            z-index: 50;
             width: 44px;
+            min-width: 44px;
             height: 44px;
-            border-radius: 9999px;
-            background: rgba(255,255,255,0.98);
-            color: #0f172a;
-            display: inline-flex;
+            min-height: 44px;
+            border-radius: 999px;
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 8px 24px rgba(15,23,42,.18);
+            display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.24);
             cursor: pointer;
             border: 1px solid rgba(226,232,240,0.95);
             transition: background 180ms ease, transform 180ms ease, color 180ms ease;
         }
         @media (hover: hover) {
-            .media-detail-close:hover { background: #fff; transform: scale(1.05); }
+            .detail-close-btn:hover { background: #fff; transform: scale(1.05); }
         }
         @media (max-width: 640px) {
             #media-modal { padding-top: max(88px, calc(env(safe-area-inset-top) + 88px)); padding-left: 12px; padding-right: 12px; }
             .media-detail-panel { max-height: calc(100vh - 108px); }
-            .media-detail-close { width: 44px; height: 44px; top: 10px; right: 10px; }
         }
         .gallery-detail-title {
             font-size: 18px;
@@ -2415,9 +2416,8 @@
             .listing-detail-gallery-card { padding: .75rem !important; gap: .65rem; border-radius: 1.4rem; }
             .listing-detail-main-image { aspect-ratio: 16 / 9; height: auto; min-height: 0; max-height: none; border-radius: 1.15rem; }
             .listing-detail-thumbnail { width: 74px; height: 58px; flex-basis: 74px; border-radius: .9rem; }
-            .listing-detail-image-actions { top: .75rem; right: .75rem; gap: .4rem; }
+            .listing-detail-image-actions { top: 4rem; right: .75rem; gap: .4rem; }
             .listing-detail-image-action { min-height: 38px; padding: .56rem .72rem; font-size: .72rem; }
-            .listing-detail-image-action--close { width: 38px; padding: 0; }
             .listing-detail-price-panel,
             .listing-detail-credit-panel,
             .listing-detail-location-section,
@@ -2571,7 +2571,6 @@
             transition: all .25s ease;
         }
         .listing-detail-image-action:hover { background: var(--primary, var(--color-primary)); color: #fff; transform: translateY(-1px); }
-        .listing-detail-image-action--close { width: 42px; padding: 0; font-size: 1.05rem; }
         .listing-detail-thumbnail {
             overflow: hidden;
             background: #fff !important;
@@ -2827,18 +2826,15 @@
         .modal-close,
         .popup-close,
         .gallery-detail-close,
-        .media-detail-close,
-        .listing-detail-image-action--close,
-        .property-lightbox__close,
         .fullscreen-map-close {
             position: sticky !important;
             top: 12px !important;
             margin-left: auto;
             z-index: 4010 !important;
-            width: 42px;
-            min-width: 42px;
-            height: 42px;
-            min-height: 42px;
+            width: 44px;
+            min-width: 44px;
+            height: 44px;
+            min-height: 44px;
             border-radius: 999px;
             background: white;
             color: #111827;
@@ -2847,11 +2843,15 @@
             align-items: center;
             justify-content: center;
         }
-        .media-detail-close {
-            float: right;
-            right: 12px;
-        }
         .listing-detail-image-actions { z-index: 4010; }
+        #property-detail-modal .listing-detail-scroll > .detail-close-btn,
+        #project-detail-modal-official > .glass-card > .overflow-y-auto > .detail-close-btn {
+            margin: 12px 12px -56px auto;
+        }
+        #property-detail-modal .listing-detail-image-actions {
+            top: 4.5rem;
+            right: 1rem;
+        }
         .property-lightbox__panel {
             padding-top: calc(var(--header-height) + 8px);
             padding-bottom: max(16px, env(safe-area-inset-bottom));
@@ -2947,7 +2947,7 @@
             overflow-y: auto !important;
             padding-top: 4rem !important;
         }
-        #media-modal .media-detail-close {
+        #media-modal .detail-close-btn {
             position: absolute !important;
             top: 12px !important;
             right: 12px !important;
@@ -4225,8 +4225,8 @@ Title: Park Villas
     <!-- MƏNZİL / VİLLA ƏLAQƏLİ ELANLAR ÜÇÜN PREMIUM DETALLI MODAL -->
     <div id="property-detail-modal" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6" onclick="if (event.target === this) closePropertyModal()">
         <div class="modal-glass-panel listing-detail-shell max-w-6xl w-full rounded-[2rem] overflow-hidden border border-white/40 relative flex flex-col">
-            <button type="button" onclick="closePropertyModal()" class="media-detail-close" aria-label="Elan detalını bağla"><i class="fa-solid fa-xmark"></i></button>
             <div class="listing-detail-scroll">
+                <button type="button" onclick="closePropertyModal()" class="detail-close-btn" aria-label="Elan detalını bağla"><i class="fa-solid fa-xmark"></i></button>
                 <div class="listing-detail-modal-grid grid grid-cols-1 gap-0">
                     <div class="p-3 md:p-5 listing-detail-gallery-card">
                         <div class="relative listing-detail-main-image">
@@ -4234,7 +4234,6 @@ Title: Park Villas
                             <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">1 / 1</div>
                             <div class="listing-detail-image-actions">
                                 <button type="button" id="p-modal-share-top-btn" class="listing-detail-image-action" aria-label="Elanı paylaş"><i class="fa-solid fa-link"></i><span>Paylaş</span></button>
-                                <button type="button" onclick="closePropertyModal()" class="listing-detail-image-action listing-detail-image-action--close" aria-label="Elan detalını bağla"><i class="fa-solid fa-xmark"></i></button>
                             </div>
                         </div>
                         <div id="p-modal-thumbnails" class="listing-detail-thumbnail-strip"></div>
@@ -4345,14 +4344,10 @@ Title: Park Villas
     <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
     <div id="project-detail-modal-official" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-4" onclick="if (event.target === this) closeOfficialProjectModal()">
         <div class="modal-glass-panel glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
-
-            <button onclick="shareActiveProject()" class="absolute top-4 right-16 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-brand-500 hover:text-white text-slate-950 text-xs font-black px-4 py-2 shadow-2xl transition">
-                <i class="fa-solid fa-link"></i><span>Paylaş</span>
-            </button>
-            <button onclick="closeOfficialProjectModal()" class="media-detail-close" aria-label="Bağla">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
             <div class="overflow-y-auto">
+                <button type="button" onclick="closeOfficialProjectModal()" class="detail-close-btn" aria-label="Bağla">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
                 <div class="relative h-72 md:h-96 overflow-hidden">
                     <picture class="block w-full h-full imageMove">
                         <source id="op-modal-source-desktop" media="(min-width: 1024px)" srcset="">
@@ -4473,7 +4468,7 @@ Title: Park Villas
 
     <div id="media-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[100] flex p-3 md:p-6" onclick="if (event.target === this) closeModal()">
         <div class="modal-glass-panel media-detail-panel w-full max-w-6xl bg-white rounded-3xl overflow-hidden relative flex flex-col lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
-            <button onclick="closeModal()" class="media-detail-close" aria-label="Bağla">
+            <button type="button" onclick="closeModal()" class="detail-close-btn" aria-label="Bağla">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="media-detail-viewer relative bg-gray-100 min-h-[280px] md:min-h-[520px] flex items-center justify-center overflow-hidden">
