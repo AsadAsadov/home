@@ -2893,6 +2893,93 @@
             }
         }
 
+
+        /* Gallery detail modal: desktop 70/30 media-first layout. */
+        #media-modal:not(.hidden) {
+            align-items: flex-start !important;
+            justify-content: center !important;
+            padding: calc(var(--header-height) + 12px) 16px 24px !important;
+            overflow-y: auto !important;
+        }
+        #media-modal > .media-detail-panel {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            transform: none !important;
+            width: min(95vw, 1200px) !important;
+            max-width: 1200px !important;
+            height: min(78dvh, 760px) !important;
+            max-height: calc(100dvh - var(--header-height) - 36px) !important;
+            overflow: hidden !important;
+            display: grid !important;
+            grid-template-columns: minmax(0, 70%) minmax(280px, 30%) !important;
+            grid-template-rows: minmax(0, 1fr) !important;
+            background: #fff !important;
+        }
+        #media-modal .media-detail-viewer {
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            height: 100% !important;
+        }
+        #media-modal #modal-content,
+        #media-modal #modal-content .media-shell,
+        #media-modal #modal-content img,
+        #media-modal #modal-content video,
+        #media-modal #modal-content iframe {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: none !important;
+            min-width: 0 !important;
+        }
+        #media-modal #modal-content img,
+        #media-modal #modal-content video {
+            object-fit: contain !important;
+            object-position: center !important;
+        }
+        #media-modal > .media-detail-panel > aside {
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow-y: auto !important;
+            padding-top: 4rem !important;
+        }
+        #media-modal .media-detail-close {
+            position: absolute !important;
+            top: 12px !important;
+            right: 12px !important;
+            left: auto !important;
+            float: none !important;
+            margin: 0 !important;
+            z-index: 4100 !important;
+        }
+        @media (max-width: 1023px) {
+            #media-modal:not(.hidden) {
+                padding: calc(var(--header-height) + 8px) 8px calc(var(--mobile-bottom-nav-height) + 12px) !important;
+            }
+            #media-modal > .media-detail-panel {
+                width: calc(100vw - 16px) !important;
+                max-width: none !important;
+                height: auto !important;
+                max-height: calc(100dvh - var(--header-height) - var(--mobile-bottom-nav-height) - 20px) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow-y: auto !important;
+            }
+            #media-modal .media-detail-viewer {
+                height: min(58dvh, 520px) !important;
+                min-height: 280px !important;
+                flex: 0 0 auto !important;
+            }
+            #media-modal > .media-detail-panel > aside {
+                padding-top: 1.25rem !important;
+                overflow: visible !important;
+            }
+        }
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -4389,7 +4476,7 @@ Title: Park Villas
             <button onclick="closeModal()" class="media-detail-close" aria-label="Bağla">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <div class="relative bg-gray-100 min-h-[280px] md:min-h-[520px] flex items-center justify-center overflow-hidden">
+            <div class="media-detail-viewer relative bg-gray-100 min-h-[280px] md:min-h-[520px] flex items-center justify-center overflow-hidden">
                 <div id="modal-content" class="w-full h-full flex items-center justify-center relative"></div>
                 <div id="modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 md:px-5 pointer-events-none">
                     <button onclick="changeModalImage(-1)" class="w-11 h-11 md:w-12 md:h-12 rounded-full bg-black/45 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition" aria-label="Əvvəlki"><i class="fa-solid fa-chevron-left"></i></button>
@@ -7691,6 +7778,188 @@ Title: Park Villas
             return Array.from(new Set(phrases.map(value => value.replace(/\s+/g, ' ').trim()).filter(Boolean))).slice(0, 10);
         }
 
+
+
+        const GOOGLE_PLACES_BAKU_BIAS = { lat: 40.4093, lng: 49.8671 };
+        const GOOGLE_PLACES_BAKU_RADIUS_METERS = 65000;
+        const GOOGLE_PLACES_FALLBACK_WARNING = 'Google Places unavailable, falling back to local search';
+        window.__googlePlacesState = window.__googlePlacesState || { keyPromise: null, scriptPromise: null, service: null, placesService: null, warned: false };
+
+        async function getGoogleMapsApiKey() {
+            const state = window.__googlePlacesState;
+            if (!state.keyPromise) {
+                state.keyPromise = fetch('/api/config/maps', { headers: { Accept: 'application/json' } })
+                    .then(res => res.ok ? res.json() : {})
+                    .then(data => String(data.googleMapsApiKey || '').trim())
+                    .catch(() => '');
+            }
+            return state.keyPromise;
+        }
+
+        function warnGooglePlacesFallback() {
+            const state = window.__googlePlacesState;
+            if (state.warned) return;
+            state.warned = true;
+            console.warn(GOOGLE_PLACES_FALLBACK_WARNING);
+        }
+
+        async function loadGooglePlacesLibrary() {
+            const state = window.__googlePlacesState;
+            if (window.google?.maps?.places) return window.google.maps.places;
+            if (!state.scriptPromise) {
+                state.scriptPromise = getGoogleMapsApiKey().then(key => new Promise((resolve, reject) => {
+                    if (!key) return reject(new Error('GOOGLE_MAPS_API_KEY is missing'));
+                    const callbackName = `__besthomeGooglePlacesReady_${Date.now()}`;
+                    const script = document.createElement('script');
+                    window[callbackName] = () => {
+                        delete window[callbackName];
+                        resolve(window.google?.maps?.places);
+                    };
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places&language=az&region=AZ&callback=${callbackName}`;
+                    script.async = true;
+                    script.defer = true;
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        reject(new Error('Google Maps JavaScript API failed to load'));
+                    };
+                    document.head.appendChild(script);
+                }));
+            }
+            const places = await state.scriptPromise;
+            if (!places) throw new Error('Google Places library unavailable');
+            return places;
+        }
+
+        async function googlePlacesAutocomplete(query = '') {
+            const q = String(query || '').trim();
+            if (q.length < 2) return [];
+            await loadGooglePlacesLibrary();
+            const state = window.__googlePlacesState;
+            if (!state.service) state.service = new google.maps.places.AutocompleteService();
+            const request = {
+                input: q,
+                componentRestrictions: { country: 'az' },
+                fields: ['place_id', 'geometry', 'formatted_address', 'name'],
+                location: new google.maps.LatLng(GOOGLE_PLACES_BAKU_BIAS.lat, GOOGLE_PLACES_BAKU_BIAS.lng),
+                radius: GOOGLE_PLACES_BAKU_RADIUS_METERS,
+                strictBounds: false,
+            };
+            return new Promise((resolve, reject) => {
+                state.service.getPlacePredictions(request, (predictions, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && Array.isArray(predictions)) {
+                        resolve(predictions.slice(0, 8).map(prediction => ({
+                            source: 'google',
+                            type: 'place',
+                            class: 'place',
+                            place_id: prediction.place_id,
+                            display_name: prediction.description || prediction.structured_formatting?.main_text || q,
+                            main_text: prediction.structured_formatting?.main_text || prediction.description || q,
+                            secondary_text: prediction.structured_formatting?.secondary_text || 'Azerbaijan',
+                            address: {},
+                        })));
+                    } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                        resolve([]);
+                    } else {
+                        reject(new Error(`Google Places Autocomplete status: ${status}`));
+                    }
+                });
+            });
+        }
+
+        async function getGooglePlaceDetails(placeId) {
+            if (!placeId) return null;
+            await loadGooglePlacesLibrary();
+            const state = window.__googlePlacesState;
+            if (!state.placesService) {
+                let serviceEl = document.getElementById('google-places-service-node');
+                if (!serviceEl) {
+                    serviceEl = document.createElement('div');
+                    serviceEl.id = 'google-places-service-node';
+                    serviceEl.hidden = true;
+                    document.body.appendChild(serviceEl);
+                }
+                state.placesService = new google.maps.places.PlacesService(serviceEl);
+            }
+            return new Promise((resolve, reject) => {
+                state.placesService.getDetails({
+                    placeId,
+                    fields: ['place_id', 'geometry', 'formatted_address', 'name', 'address_components'],
+                }, (place, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) resolve(place);
+                    else reject(new Error(`Google Places Details status: ${status}`));
+                });
+            });
+        }
+
+        function googleAddressComponentsToAddress(components = []) {
+            const byType = type => components.find(component => component.types?.includes(type))?.long_name || '';
+            return {
+                road: byType('route'),
+                house_number: byType('street_number'),
+                suburb: byType('sublocality') || byType('sublocality_level_1') || byType('neighborhood'),
+                neighbourhood: byType('neighborhood'),
+                city: byType('locality') || byType('administrative_area_level_2') || 'Bakı',
+                city_district: byType('administrative_area_level_2') || byType('sublocality_level_1'),
+                country: byType('country') || 'Azerbaijan',
+            };
+        }
+
+        function googlePlaceToLocationRow(place, fallback = {}) {
+            const location = place?.geometry?.location;
+            const lat = typeof location?.lat === 'function' ? location.lat() : Number(location?.lat);
+            const lon = typeof location?.lng === 'function' ? location.lng() : Number(location?.lng);
+            return {
+                ...fallback,
+                source: 'google',
+                type: 'place',
+                class: 'place',
+                place_id: place?.place_id || fallback.place_id || '',
+                lat,
+                lon,
+                display_name: place?.formatted_address || fallback.display_name || place?.name || '',
+                address: googleAddressComponentsToAddress(place?.address_components || []),
+                name: place?.name || fallback.main_text || '',
+            };
+        }
+
+        async function resolveLocationResult(item) {
+            if (!item || item.source !== 'google' || (Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon)))) return item;
+            const place = await getGooglePlaceDetails(item.place_id);
+            return googlePlaceToLocationRow(place, item);
+        }
+
+        async function nominatimRemoteSearch(query = '', { city = 'Bakı', district = '' } = {}) {
+            const q = String(query || '').trim();
+            if (q.length < 2) return [];
+            const searchPhrases = addressRemoteQueryVariants(q, { city, district });
+            const responses = await Promise.all(searchPhrases.map(phrase => {
+                const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`;
+                return fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.ok ? res.json() : []);
+            }));
+            const seen = new Set();
+            return responses.flat().filter(item => {
+                const key = item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`;
+                if (!item || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).slice(0, 8);
+        }
+
+        async function searchLocationsWithPriority(query = '', { city = 'Bakı', district = '' } = {}) {
+            const q = String(query || '').trim();
+            if (q.length < 2) return [];
+            try {
+                const googleRows = await googlePlacesAutocomplete(q);
+                if (googleRows.length) return googleRows;
+            } catch (error) {
+                warnGooglePlacesFallback();
+            }
+            const localRows = locationRowsBeforeRemote(q);
+            if (localRows.length) return localRows;
+            const nominatimRows = await nominatimRemoteSearch(q, { city, district });
+            return nominatimRows;
+        }
+
         function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
             const resultsEl = document.getElementById('sb-location-results');
             if (!resultsEl) return;
@@ -7698,7 +7967,7 @@ Title: Park Villas
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
             if (hasRows) {
-                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Nominatim nəticələri yoxlanılır...</div>' : ''}`;
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Google Places nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
             if (loading) {
@@ -7721,10 +7990,9 @@ Title: Park Villas
                 }
                 return;
             }
-            const localRows = locationRowsBeforeRemote(query);
-            window.__lastAdminLocationResults = localRows;
-            renderAdminLocationResults(localRows, query, { loading: true });
-            window.__adminLocationSearchTimer = setTimeout(searchAdminListingLocation, 300);
+            window.__lastAdminLocationResults = [];
+            renderAdminLocationResults([], query, { loading: true });
+            window.__adminLocationSearchTimer = setTimeout(searchAdminListingLocation, 180);
         }
 
         async function searchAdminListingLocation() {
@@ -7735,64 +8003,54 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastAdminLocationSearchToken = token;
             resultsEl.classList.remove('hidden');
-            const localRows = locationRowsBeforeRemote(query);
-            window.__lastAdminLocationResults = localRows;
-            renderAdminLocationResults(localRows, query, { loading: true });
+            window.__lastAdminLocationResults = [];
+            renderAdminLocationResults([], query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
-            const normalizedQuery = normalizeAddressQuery(query);
-            const searchPhrases = addressRemoteQueryVariants(query, { city, district });
             console.info('[map-search] query', query);
-            console.info('[map-search] normalizedQuery', normalizedQuery);
-            console.info('[map-search] localResults', localRows);
+            console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
-                const responses = await Promise.all(searchPhrases.map(phrase => {
-                    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`;
-                    return fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.ok ? res.json() : []);
-                }));
+                const rows = await searchLocationsWithPriority(query, { city, district });
                 if (window.__lastAdminLocationSearchToken !== token) return;
-                const seen = new Set();
-                const remoteRows = responses.flat().filter(item => {
-                    const key = item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`;
-                    if (!item || seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-                const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
-                console.info('[map-search] remoteResults', remoteRows);
-                console.info('[map-search] finalResults', rows);
                 window.__lastAdminLocationResults = rows;
-                renderAdminLocationResults(rows, query);
+                console.info('[map-search] finalResults', rows);
+                renderAdminLocationResults(rows, query, { error: !rows.length });
             } catch (error) {
                 if (window.__lastAdminLocationSearchToken !== token) return;
-                renderAdminLocationResults(window.__lastAdminLocationResults || [], query, { error: !(window.__lastAdminLocationResults || []).length });
+                window.__lastAdminLocationResults = [];
+                renderAdminLocationResults([], query, { error: true });
             }
         }
 
-        function selectAdminLocationResult(index, { keepResults = false } = {}) {
-            const item = (window.__lastAdminLocationResults || [])[index];
+        async function selectAdminLocationResult(index, { keepResults = false } = {}) {
+            let item = (window.__lastAdminLocationResults || [])[index];
             if (!item) return;
+            try {
+                item = await resolveLocationResult(item);
+            } catch (error) {
+                warnGooglePlacesFallback();
+                return;
+            }
             const searchInput = document.getElementById('sb-location-search');
             if (item.source === 'project' || item.projectTitle) applyProjectLocationSelection(item.projectTitle || item.display_name || '');
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
             setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false, zoom });
-            fillLocationFieldsFromAddress(item.address || {}, item.display_name || '');
-            if (searchInput) searchInput.value = item.display_name || searchInput.value;
+            fillLocationFieldsFromAddress(item.address || {}, item.display_name || item.name || '');
+            if (searchInput) searchInput.value = item.display_name || item.name || searchInput.value;
             if (fullscreenMapSource === 'admin') {
                 updateFullscreenMarker([Number(item.lat), Number(item.lon)], true);
                 fullscreenMap?.setView([Number(item.lat), Number(item.lon)], zoom);
                 const fullscreenInput = document.getElementById('fullscreen-map-search-input');
-                if (fullscreenInput) fullscreenInput.value = item.display_name || fullscreenInput.value;
+                if (fullscreenInput) fullscreenInput.value = item.display_name || item.name || fullscreenInput.value;
             }
             if (!keepResults) document.getElementById('sb-location-results')?.classList.add('hidden');
         }
-
 
         async function handleAdminLocationSearchKeydown(event) {
             if (event.key !== 'Enter') return;
             event.preventDefault();
             if (!(window.__lastAdminLocationResults || []).length) await searchAdminListingLocation();
-            selectAdminLocationResult(0);
+            await selectAdminLocationResult(0);
         }
 
         function renderFullscreenMapResults(rows, query, { loading = false, error = false } = {}) {
@@ -7802,7 +8060,7 @@ Title: Park Villas
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectFullscreenMapResult(${idx})" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none"><span class="block font-extrabold text-slate-900">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[11px] font-semibold text-slate-500">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
             if (hasRows) {
-                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Nominatim nəticələri yoxlanılır...</div>' : ''}`;
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Google Places nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
             if (loading) {
@@ -7833,10 +8091,9 @@ Title: Park Villas
                 }
                 return;
             }
-            const rows = locationRowsBeforeRemote(query);
-            window.__lastFullscreenMapResults = rows;
-            renderFullscreenMapResults(rows, query, { loading: true });
-            window.__fullscreenMapSearchTimer = setTimeout(searchFullscreenMapLocation, 300);
+            window.__lastFullscreenMapResults = [];
+            renderFullscreenMapResults([], query, { loading: true });
+            window.__fullscreenMapSearchTimer = setTimeout(searchFullscreenMapLocation, 180);
         }
 
         async function searchFullscreenMapLocation() {
@@ -7847,36 +8104,21 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastFullscreenMapSearchToken = token;
             resultsEl.classList.remove('hidden');
-            const localRows = locationRowsBeforeRemote(query);
-            window.__lastFullscreenMapResults = localRows;
-            renderFullscreenMapResults(localRows, query, { loading: true });
+            window.__lastFullscreenMapResults = [];
+            renderFullscreenMapResults([], query, { loading: true });
             const city = fullscreenMapSource === 'admin' ? adminLocationSearchCity() : 'Bakı';
-            const normalizedQuery = normalizeAddressQuery(query);
-            const searchPhrases = addressRemoteQueryVariants(query, { city });
             console.info('[map-search] query', query);
-            console.info('[map-search] normalizedQuery', normalizedQuery);
-            console.info('[map-search] localResults', localRows);
+            console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
-                const responses = await Promise.all(searchPhrases.map(phrase => {
-                    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`;
-                    return fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.ok ? res.json() : []);
-                }));
+                const rows = await searchLocationsWithPriority(query, { city });
                 if (window.__lastFullscreenMapSearchToken !== token) return;
-                const seen = new Set();
-                const remoteRows = responses.flat().filter(item => {
-                    const key = item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`;
-                    if (!item || seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-                const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
-                console.info('[map-search] remoteResults', remoteRows);
-                console.info('[map-search] finalResults', rows);
                 window.__lastFullscreenMapResults = rows;
-                renderFullscreenMapResults(rows, query);
+                console.info('[map-search] finalResults', rows);
+                renderFullscreenMapResults(rows, query, { error: !rows.length });
             } catch (error) {
                 if (window.__lastFullscreenMapSearchToken !== token) return;
-                renderFullscreenMapResults(window.__lastFullscreenMapResults || [], query, { error: !(window.__lastFullscreenMapResults || []).length });
+                window.__lastFullscreenMapResults = [];
+                renderFullscreenMapResults([], query, { error: true });
             }
         }
 
@@ -7897,13 +8139,19 @@ Title: Park Villas
             if (address) document.getElementById('p-modal-street-address').textContent = `📌 ${address}`;
         }
 
-        function selectFullscreenMapResult(index) {
-            const item = (window.__lastFullscreenMapResults || [])[index];
+        async function selectFullscreenMapResult(index) {
+            let item = (window.__lastFullscreenMapResults || [])[index];
             if (!item) return;
+            try {
+                item = await resolveLocationResult(item);
+            } catch (error) {
+                warnGooglePlacesFallback();
+                return;
+            }
             const point = [Number(item.lat), Number(item.lon)];
             if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) return;
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
-            const address = item.display_name || '';
+            const address = item.display_name || item.name || '';
             if (fullscreenMapSource === 'admin' || fullscreenMapSource === 'public') {
                 setFullscreenMapSelection(point[0], point[1], { address, addressData: item.address || null, projectTitle: item.projectTitle || '', updateMarker: true, moveMap: true, zoom });
             } else {
@@ -7918,7 +8166,7 @@ Title: Park Villas
             if (event.key !== 'Enter') return;
             event.preventDefault();
             if (!(window.__lastFullscreenMapResults || []).length) await searchFullscreenMapLocation();
-            selectFullscreenMapResult(0);
+            await selectFullscreenMapResult(0);
             document.getElementById('fullscreen-map-results')?.classList.add('hidden');
         }
 
@@ -7992,18 +8240,19 @@ Title: Park Villas
             if (fullscreenMapSource === 'public') return publicLocationCity();
             return adminLocationSearchCity();
         }
-        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} const rows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,300); }
-        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; const localRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=localRows; renderPublicLocationResults(localRows,q,'fullscreen',{loading:true}); try { const rows=await nominatimSearch(q, fullscreenSearchCity()); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen'); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; renderPublicLocationResults(window.__lastFullscreenLocationResults || [],q,'fullscreen',{error:!(window.__lastFullscreenLocationResults||[]).length}); } }
-        function selectFullscreenLocationResult(index) {
-            const item = (window.__lastFullscreenLocationResults || [])[index];
+        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,180); }
+        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:fullscreenSearchCity()}); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{error:!rows.length}); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{error:true}); } }
+        async function selectFullscreenLocationResult(index) {
+            let item = (window.__lastFullscreenLocationResults || [])[index];
             if (!item) return;
+            try { item = await resolveLocationResult(item); } catch (error) { warnGooglePlacesFallback(); return; }
             const input = document.getElementById('fullscreen-location-search');
-            if (input) input.value = item.display_name || input.value;
+            if (input) input.value = item.display_name || item.name || input.value;
             document.getElementById('fullscreen-location-results')?.classList.add('hidden');
             const point = [Number(item.lat), Number(item.lon)];
             if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) return;
             const zoom = item.type === 'house' ? 17 : 16;
-            setFullscreenMapSelection(point[0], point[1], { address: item.display_name || '', addressData: item.address || null, projectTitle: item.projectTitle || '', updateMarker: true, moveMap: true, zoom });
+            setFullscreenMapSelection(point[0], point[1], { address: item.display_name || item.name || '', addressData: item.address || null, projectTitle: item.projectTitle || '', updateMarker: true, moveMap: true, zoom });
         }
 
 
@@ -8011,7 +8260,7 @@ Title: Park Villas
             if (event.key !== 'Enter') return;
             event.preventDefault();
             if (!(window.__lastFullscreenLocationResults || []).length) await searchFullscreenLocation();
-            selectFullscreenLocationResult(0);
+            await selectFullscreenLocationResult(0);
         }
 
         function setBackgroundMapsDisabled(disabled) {
@@ -8563,35 +8812,19 @@ Title: Park Villas
             el.classList.remove('hidden');
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('') : '';
-            if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Nominatim nəticələri yoxlanılır...</div>' : ''}`; return; }
+            if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Google Places nəticələri yoxlanılır...</div>' : ''}`; return; }
             if (loading) { el.innerHTML = '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>'; return; }
             el.innerHTML = error
                 ? '<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'
                 : '<div class="rounded-xl bg-red-50 border border-red-100 p-2 text-red-700 font-bold">Nəticə tapılmadı.</div>';
         }
-        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} const rows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,300); }
+        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,180); }
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(el&&q.length>=2) el.classList.remove('hidden'); }
-        async function nominatimSearch(query, city='Bakı') {
-            const q = String(query || '').trim();
-            if (q.length < 2) return [];
-            const normalizedQuery = normalizeAddressQuery(q);
-            const localRows = locationRowsBeforeRemote(q);
-            const phrases = addressRemoteQueryVariants(q, { city });
-            console.info('[map-search] query', q);
-            console.info('[map-search] normalizedQuery', normalizedQuery);
-            console.info('[map-search] localResults', localRows);
-            const responses = await Promise.all(phrases.map(phrase => fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`, {headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():[])));
-            const seen = new Set();
-            const remoteRows = responses.flat().filter(item => { const key=item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`; if(!item||seen.has(key)) return false; seen.add(key); return true; });
-            const finalRows = mergeLocationRows(localRows, remoteRows, 8);
-            console.info('[map-search] remoteResults', remoteRows);
-            console.info('[map-search] finalResults', finalRows);
-            return finalRows;
-        }
-        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const localRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=localRows; renderPublicLocationResults(localRows,q,'pl',{loading:true}); try { const rows=await nominatimSearch(q, publicLocationCity()); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q); } catch(e){ if(window.__lastPublicLocationToken!==token) return; renderPublicLocationResults(window.__lastPublicLocationResults || [],q,'pl',{error:!(window.__lastPublicLocationResults||[]).length}); } }
-        function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
+        async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
+        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:!rows.length}); } catch(e){ if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnGooglePlacesFallback(); return; } const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
-        async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); selectPublicLocationResult(0); }
+        async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
         function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'◌ Elan göndərilir…':'Yerləşdir'; }
         function togglePublicLandField() {
