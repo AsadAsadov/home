@@ -14,6 +14,7 @@ const {
   isListingCodeCollision,
 } = require('../utils/listingCode');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
+const { sendNewListingNotification } = require('../utils/notifications');
 
 const router = express.Router();
 
@@ -898,6 +899,9 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     await logUserActivity(prisma, req.auth.id, 'create_listing');
     const responseListing = savedListing || listing;
     await attachListingUsers(responseListing);
+    if (req.auth.role === 'user' && responseListing.status === 'pending') {
+      Promise.resolve(sendNewListingNotification(responseListing, responseListing.user || req.auth)).catch(() => {});
+    }
     decorateListingUi(responseListing);
     return res.status(201).json({ success: true, listing: responseListing });
   } catch (error) {

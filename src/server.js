@@ -86,6 +86,7 @@ app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (
   }
 });
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin/email', require('./routes/adminEmail'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));
@@ -141,6 +142,7 @@ async function ensurePublicUsersAuthColumns() {
     await prisma.$executeRawUnsafe(`
       ALTER TABLE public."users"
         ADD COLUMN IF NOT EXISTS "provider" TEXT NOT NULL DEFAULT 'local',
+        ADD COLUMN IF NOT EXISTS "google_id" TEXT,
         ADD COLUMN IF NOT EXISTS "email_verified" BOOLEAN NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS "phone_verified" BOOLEAN NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS "is_active" BOOLEAN NOT NULL DEFAULT true,
@@ -152,6 +154,7 @@ async function ensurePublicUsersAuthColumns() {
         ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
     `);
     await prisma.$executeRawUnsafe('ALTER TABLE public."users" ALTER COLUMN "password_hash" DROP NOT NULL');
+    await prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "users_google_id_key" ON public."users"("google_id")');
   } catch (error) {
     if (['P2021', 'P2022'].includes(error.code)) {
       console.warn('Public users auth-column bootstrap skipped until the public.users table exists:', error.message);
