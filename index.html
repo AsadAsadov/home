@@ -7712,7 +7712,7 @@ Title: Park Villas
                     ? `project:${normalizeLocationSearchText(item.projectTitle || item.display_name)}`
                     : (item?.source === 'local'
                         ? `local:${normalizeLocationSearchText(item.display_name)}`
-                        : (item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`));
+                        : (item?.mapbox_id || item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`));
                 if (!item || seen.has(key)) return false;
                 seen.add(key);
                 return true;
@@ -7775,152 +7775,111 @@ Title: Park Villas
 
 
 
-        const GOOGLE_PLACES_BAKU_BIAS = { lat: 40.4093, lng: 49.8671 };
-        const GOOGLE_PLACES_BAKU_RADIUS_METERS = 65000;
-        const GOOGLE_PLACES_FALLBACK_WARNING = 'Google Places unavailable, falling back to local search';
-        window.__googlePlacesState = window.__googlePlacesState || { keyPromise: null, scriptPromise: null, service: null, placesService: null, warned: false };
+        const MAPBOX_BAKU_PROXIMITY = { lng: 49.8671, lat: 40.4093 };
+        const MAPBOX_GEOCODING_ENDPOINT = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+        const MAPBOX_FALLBACK_WARNING = 'Mapbox Geocoding unavailable, falling back to local Azerbaijan/Baku index';
+        window.__mapboxGeocodingState = window.__mapboxGeocodingState || { tokenPromise: null, warned: false };
 
-        async function getGoogleMapsApiKey() {
-            const state = window.__googlePlacesState;
-            if (!state.keyPromise) {
-                state.keyPromise = fetch('/api/config/maps', { headers: { Accept: 'application/json' } })
+        async function getMapboxAccessToken() {
+            const state = window.__mapboxGeocodingState;
+            if (!state.tokenPromise) {
+                state.tokenPromise = fetch('/api/config/maps', { headers: { Accept: 'application/json' } })
                     .then(res => res.ok ? res.json() : {})
-                    .then(data => String(data.googleMapsApiKey || '').trim())
+                    .then(data => String(data.mapboxAccessToken || '').trim())
                     .catch(() => '');
             }
-            return state.keyPromise;
+            return state.tokenPromise;
         }
 
-        function warnGooglePlacesFallback() {
-            const state = window.__googlePlacesState;
+        function warnMapboxFallback() {
+            const state = window.__mapboxGeocodingState;
             if (state.warned) return;
             state.warned = true;
-            console.warn(GOOGLE_PLACES_FALLBACK_WARNING);
+            console.warn(MAPBOX_FALLBACK_WARNING);
         }
 
-        async function loadGooglePlacesLibrary() {
-            const state = window.__googlePlacesState;
-            if (window.google?.maps?.places) return window.google.maps.places;
-            if (!state.scriptPromise) {
-                state.scriptPromise = getGoogleMapsApiKey().then(key => new Promise((resolve, reject) => {
-                    if (!key) return reject(new Error('GOOGLE_MAPS_API_KEY is missing'));
-                    const callbackName = `__besthomeGooglePlacesReady_${Date.now()}`;
-                    const script = document.createElement('script');
-                    window[callbackName] = () => {
-                        delete window[callbackName];
-                        resolve(window.google?.maps?.places);
-                    };
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places&language=az&region=AZ&callback=${callbackName}`;
-                    script.async = true;
-                    script.defer = true;
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        reject(new Error('Google Maps JavaScript API failed to load'));
-                    };
-                    document.head.appendChild(script);
-                }));
-            }
-            const places = await state.scriptPromise;
-            if (!places) throw new Error('Google Places library unavailable');
-            return places;
+        function mapboxContextValue(feature = {}, idPrefix = '') {
+            return (feature.context || []).find(part => String(part.id || '').startsWith(idPrefix))?.text || '';
         }
 
-        async function googlePlacesAutocomplete(query = '') {
-            const q = String(query || '').trim();
-            if (q.length < 2) return [];
-            await loadGooglePlacesLibrary();
-            const state = window.__googlePlacesState;
-            if (!state.service) state.service = new google.maps.places.AutocompleteService();
-            const request = {
-                input: q,
-                componentRestrictions: { country: 'az' },
-                fields: ['place_id', 'geometry', 'formatted_address', 'name'],
-                location: new google.maps.LatLng(GOOGLE_PLACES_BAKU_BIAS.lat, GOOGLE_PLACES_BAKU_BIAS.lng),
-                radius: GOOGLE_PLACES_BAKU_RADIUS_METERS,
-                strictBounds: false,
-            };
-            return new Promise((resolve, reject) => {
-                state.service.getPlacePredictions(request, (predictions, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK && Array.isArray(predictions)) {
-                        resolve(predictions.slice(0, 8).map(prediction => ({
-                            source: 'google',
-                            type: 'place',
-                            class: 'place',
-                            place_id: prediction.place_id,
-                            display_name: prediction.description || prediction.structured_formatting?.main_text || q,
-                            main_text: prediction.structured_formatting?.main_text || prediction.description || q,
-                            secondary_text: prediction.structured_formatting?.secondary_text || 'Azerbaijan',
-                            address: {},
-                        })));
-                    } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                        resolve([]);
-                    } else {
-                        reject(new Error(`Google Places Autocomplete status: ${status}`));
-                    }
-                });
-            });
-        }
-
-        async function getGooglePlaceDetails(placeId) {
-            if (!placeId) return null;
-            await loadGooglePlacesLibrary();
-            const state = window.__googlePlacesState;
-            if (!state.placesService) {
-                let serviceEl = document.getElementById('google-places-service-node');
-                if (!serviceEl) {
-                    serviceEl = document.createElement('div');
-                    serviceEl.id = 'google-places-service-node';
-                    serviceEl.hidden = true;
-                    document.body.appendChild(serviceEl);
-                }
-                state.placesService = new google.maps.places.PlacesService(serviceEl);
-            }
-            return new Promise((resolve, reject) => {
-                state.placesService.getDetails({
-                    placeId,
-                    fields: ['place_id', 'geometry', 'formatted_address', 'name', 'address_components'],
-                }, (place, status) => {
-                    if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) resolve(place);
-                    else reject(new Error(`Google Places Details status: ${status}`));
-                });
-            });
-        }
-
-        function googleAddressComponentsToAddress(components = []) {
-            const byType = type => components.find(component => component.types?.includes(type))?.long_name || '';
+        function mapboxFeatureToLocationRow(feature = {}, fallbackQuery = '') {
+            const center = Array.isArray(feature.center) ? feature.center : [];
+            const lon = Number(center[0]);
+            const lat = Number(center[1]);
+            const displayName = feature.place_name || [feature.text, feature.properties?.address, 'Azərbaycan'].filter(Boolean).join(', ') || fallbackQuery;
+            const road = feature.place_type?.includes('address') ? (feature.text || '') : '';
+            const houseNumber = feature.address || feature.properties?.address || '';
+            const neighbourhood = mapboxContextValue(feature, 'neighborhood') || (feature.place_type?.includes('neighborhood') ? feature.text : '');
+            const suburb = mapboxContextValue(feature, 'locality') || neighbourhood;
+            const city = mapboxContextValue(feature, 'place') || mapboxContextValue(feature, 'region') || 'Bakı';
             return {
-                road: byType('route'),
-                house_number: byType('street_number'),
-                suburb: byType('sublocality') || byType('sublocality_level_1') || byType('neighborhood'),
-                neighbourhood: byType('neighborhood'),
-                city: byType('locality') || byType('administrative_area_level_2') || 'Bakı',
-                city_district: byType('administrative_area_level_2') || byType('sublocality_level_1'),
-                country: byType('country') || 'Azerbaijan',
-            };
-        }
-
-        function googlePlaceToLocationRow(place, fallback = {}) {
-            const location = place?.geometry?.location;
-            const lat = typeof location?.lat === 'function' ? location.lat() : Number(location?.lat);
-            const lon = typeof location?.lng === 'function' ? location.lng() : Number(location?.lng);
-            return {
-                ...fallback,
-                source: 'google',
-                type: 'place',
+                source: 'mapbox',
+                type: feature.place_type?.[0] || 'place',
                 class: 'place',
-                place_id: place?.place_id || fallback.place_id || '',
+                mapbox_id: feature.id || '',
                 lat,
                 lon,
-                display_name: place?.formatted_address || fallback.display_name || place?.name || '',
-                address: googleAddressComponentsToAddress(place?.address_components || []),
-                name: place?.name || fallback.main_text || '',
+                display_name: displayName,
+                name: feature.text || displayName,
+                address: {
+                    road,
+                    house_number: houseNumber,
+                    suburb,
+                    neighbourhood,
+                    city,
+                    city_district: city,
+                    country: mapboxContextValue(feature, 'country') || 'Azerbaijan',
+                },
+                relevance: Number(feature.relevance || 0),
             };
+        }
+
+        async function mapboxGeocodingSearch(query = '', { city = 'Bakı', district = '' } = {}) {
+            const q = String(query || '').trim();
+            if (q.length < 2) return [];
+            const token = await getMapboxAccessToken();
+            if (!token) throw new Error('MAPBOX_ACCESS_TOKEN is missing');
+            const variants = addressRemoteQueryVariants(q, { city, district }).slice(0, 4);
+            const responses = await Promise.all(variants.map(phrase => {
+                const params = new URLSearchParams({
+                    country: 'az',
+                    language: 'az',
+                    limit: '8',
+                    autocomplete: 'true',
+                    proximity: `${MAPBOX_BAKU_PROXIMITY.lng},${MAPBOX_BAKU_PROXIMITY.lat}`,
+                    access_token: token,
+                });
+                const url = `${MAPBOX_GEOCODING_ENDPOINT}/${encodeURIComponent(phrase)}.json?${params.toString()}`;
+                return fetch(url, { headers: { Accept: 'application/json' } }).then(res => {
+                    if (!res.ok) throw new Error(`Mapbox Geocoding status: ${res.status}`);
+                    return res.json();
+                });
+            }));
+            const seen = new Set();
+            return responses
+                .flatMap(data => Array.isArray(data.features) ? data.features : [])
+                .map(feature => mapboxFeatureToLocationRow(feature, q))
+                .filter(item => {
+                    if (!Number.isFinite(Number(item.lat)) || !Number.isFinite(Number(item.lon))) return false;
+                    const key = item.mapbox_id || `${item.lat},${item.lon},${item.display_name}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                })
+                .sort((a, b) => locationDistanceKm(a.lat, a.lon, MAPBOX_BAKU_PROXIMITY.lat, MAPBOX_BAKU_PROXIMITY.lng) - locationDistanceKm(b.lat, b.lon, MAPBOX_BAKU_PROXIMITY.lat, MAPBOX_BAKU_PROXIMITY.lng))
+                .slice(0, 8);
+        }
+
+        function locationDistanceKm(lat1, lon1, lat2, lon2) {
+            const toRad = deg => Number(deg) * Math.PI / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+            return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
         async function resolveLocationResult(item) {
-            if (!item || item.source !== 'google' || (Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon)))) return item;
-            const place = await getGooglePlaceDetails(item.place_id);
-            return googlePlaceToLocationRow(place, item);
+            return item;
         }
 
         async function nominatimRemoteSearch(query = '', { city = 'Bakı', district = '' } = {}) {
@@ -7933,7 +7892,7 @@ Title: Park Villas
             }));
             const seen = new Set();
             return responses.flat().filter(item => {
-                const key = item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`;
+                const key = item?.mapbox_id || item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`;
                 if (!item || seen.has(key)) return false;
                 seen.add(key);
                 return true;
@@ -7944,10 +7903,10 @@ Title: Park Villas
             const q = String(query || '').trim();
             if (q.length < 2) return [];
             try {
-                const googleRows = await googlePlacesAutocomplete(q);
-                if (googleRows.length) return googleRows;
+                const mapboxRows = await mapboxGeocodingSearch(q, { city, district });
+                if (mapboxRows.length) return mapboxRows;
             } catch (error) {
-                warnGooglePlacesFallback();
+                warnMapboxFallback();
             }
             const localRows = locationRowsBeforeRemote(q);
             if (localRows.length) return localRows;
@@ -7962,7 +7921,7 @@ Title: Park Villas
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
             if (hasRows) {
-                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Google Places nəticələri yoxlanılır...</div>' : ''}`;
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Mapbox nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
             if (loading) {
@@ -7985,9 +7944,10 @@ Title: Park Villas
                 }
                 return;
             }
-            window.__lastAdminLocationResults = [];
-            renderAdminLocationResults([], query, { loading: true });
-            window.__adminLocationSearchTimer = setTimeout(searchAdminListingLocation, 180);
+            const instantRows = locationRowsBeforeRemote(query);
+            window.__lastAdminLocationResults = instantRows;
+            renderAdminLocationResults(instantRows, query, { loading: true });
+            window.__adminLocationSearchTimer = setTimeout(searchAdminListingLocation, 250);
         }
 
         async function searchAdminListingLocation() {
@@ -7998,8 +7958,9 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastAdminLocationSearchToken = token;
             resultsEl.classList.remove('hidden');
-            window.__lastAdminLocationResults = [];
-            renderAdminLocationResults([], query, { loading: true });
+            const instantRows = locationRowsBeforeRemote(query);
+            window.__lastAdminLocationResults = instantRows;
+            renderAdminLocationResults(instantRows, query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
             console.info('[map-search] query', query);
@@ -8023,7 +7984,7 @@ Title: Park Villas
             try {
                 item = await resolveLocationResult(item);
             } catch (error) {
-                warnGooglePlacesFallback();
+                warnMapboxFallback();
                 return;
             }
             const searchInput = document.getElementById('sb-location-search');
@@ -8055,7 +8016,7 @@ Title: Park Villas
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectFullscreenMapResult(${idx})" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none"><span class="block font-extrabold text-slate-900">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span><span class="mt-1 block text-[11px] font-semibold text-slate-500">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
             if (hasRows) {
-                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Google Places nəticələri yoxlanılır...</div>' : ''}`;
+                resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 border border-slate-100 p-3 text-slate-600 font-bold">Mapbox nəticələri yoxlanılır...</div>' : ''}`;
                 return;
             }
             if (loading) {
@@ -8086,9 +8047,10 @@ Title: Park Villas
                 }
                 return;
             }
-            window.__lastFullscreenMapResults = [];
-            renderFullscreenMapResults([], query, { loading: true });
-            window.__fullscreenMapSearchTimer = setTimeout(searchFullscreenMapLocation, 180);
+            const instantRows = locationRowsBeforeRemote(query);
+            window.__lastFullscreenMapResults = instantRows;
+            renderFullscreenMapResults(instantRows, query, { loading: true });
+            window.__fullscreenMapSearchTimer = setTimeout(searchFullscreenMapLocation, 250);
         }
 
         async function searchFullscreenMapLocation() {
@@ -8099,8 +8061,9 @@ Title: Park Villas
             const token = `${Date.now()}-${query}`;
             window.__lastFullscreenMapSearchToken = token;
             resultsEl.classList.remove('hidden');
-            window.__lastFullscreenMapResults = [];
-            renderFullscreenMapResults([], query, { loading: true });
+            const instantRows = locationRowsBeforeRemote(query);
+            window.__lastFullscreenMapResults = instantRows;
+            renderFullscreenMapResults(instantRows, query, { loading: true });
             const city = fullscreenMapSource === 'admin' ? adminLocationSearchCity() : 'Bakı';
             console.info('[map-search] query', query);
             console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
@@ -8140,7 +8103,7 @@ Title: Park Villas
             try {
                 item = await resolveLocationResult(item);
             } catch (error) {
-                warnGooglePlacesFallback();
+                warnMapboxFallback();
                 return;
             }
             const point = [Number(item.lat), Number(item.lon)];
@@ -8235,12 +8198,12 @@ Title: Park Villas
             if (fullscreenMapSource === 'public') return publicLocationCity();
             return adminLocationSearchCity();
         }
-        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,180); }
-        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:fullscreenSearchCity()}); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{error:!rows.length}); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{error:true}); } }
+        function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} const instantRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,250); }
+        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'fullscreen',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:fullscreenSearchCity()}); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{error:!rows.length}); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{error:true}); } }
         async function selectFullscreenLocationResult(index) {
             let item = (window.__lastFullscreenLocationResults || [])[index];
             if (!item) return;
-            try { item = await resolveLocationResult(item); } catch (error) { warnGooglePlacesFallback(); return; }
+            try { item = await resolveLocationResult(item); } catch (error) { warnMapboxFallback(); return; }
             const input = document.getElementById('fullscreen-location-search');
             if (input) input.value = item.display_name || item.name || input.value;
             document.getElementById('fullscreen-location-results')?.classList.add('hidden');
@@ -8807,17 +8770,17 @@ Title: Park Villas
             el.classList.remove('hidden');
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('') : '';
-            if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Google Places nəticələri yoxlanılır...</div>' : ''}`; return; }
+            if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Mapbox nəticələri yoxlanılır...</div>' : ''}`; return; }
             if (loading) { el.innerHTML = '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>'; return; }
             el.innerHTML = error
                 ? '<div class="rounded-xl bg-red-50 p-2 text-red-700 font-bold">Axtarış alınmadı.</div>'
                 : '<div class="rounded-xl bg-red-50 border border-red-100 p-2 text-red-700 font-bold">Nəticə tapılmadı.</div>';
         }
-        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,180); }
+        function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,250); }
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(el&&q.length>=2) el.classList.remove('hidden'); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
-        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:!rows.length}); } catch(e){ if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
-        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnGooglePlacesFallback(); return; } const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
+        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:!rows.length}); } catch(e){ if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
