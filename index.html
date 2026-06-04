@@ -1368,28 +1368,40 @@
         .featured-video-card:hover .featured-video-play {
             transform: translate(-50%, -50%) scale(1.06);
         }
+        #media-modal {
+            align-items: flex-start;
+            padding-top: max(96px, calc(env(safe-area-inset-top) + 96px));
+            padding-bottom: 24px;
+            overflow-y: auto;
+        }
+        .media-detail-panel {
+            max-height: calc(100vh - 120px);
+        }
         .media-detail-close {
-            position: fixed;
-            top: max(16px, env(safe-area-inset-top));
-            right: 16px;
-            z-index: 80;
-            width: 40px;
-            height: 40px;
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 120;
+            width: 44px;
+            height: 44px;
             border-radius: 9999px;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.98);
             color: #0f172a;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.24);
             cursor: pointer;
+            border: 1px solid rgba(226,232,240,0.95);
             transition: background 180ms ease, transform 180ms ease, color 180ms ease;
         }
         @media (hover: hover) {
-            .media-detail-close:hover { background: rgba(241,245,249,0.98); transform: scale(1.05); }
+            .media-detail-close:hover { background: #fff; transform: scale(1.05); }
         }
         @media (max-width: 640px) {
-            .media-detail-close { width: 44px; height: 44px; top: max(12px, env(safe-area-inset-top)); right: 12px; }
+            #media-modal { padding-top: max(88px, calc(env(safe-area-inset-top) + 88px)); padding-left: 12px; padding-right: 12px; }
+            .media-detail-panel { max-height: calc(100vh - 108px); }
+            .media-detail-close { width: 44px; height: 44px; top: 10px; right: 10px; }
         }
         .gallery-detail-title {
             font-size: 18px;
@@ -2644,9 +2656,9 @@
         .listing-info-row__divider { color: #cbd5e1; }
         .media-card { border-radius: 1rem; overflow: hidden; border: 1px solid rgba(226,232,240,.9); background: #fff; box-shadow: 0 14px 32px rgba(15,23,42,.08); transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
         .media-card:hover { transform: translateY(-4px); border-color: rgba(127,127,255,.34); box-shadow: 0 24px 48px rgba(15,23,42,.14); }
-        .gallery-card-media { position: relative; overflow: hidden; border-radius: 18px; background: linear-gradient(135deg, #111827, #1f2937 54%, #020617); }
-        .gallery-card-media.media-skeleton { background: linear-gradient(90deg, #111827 25%, #1f2937 37%, #111827 63%); background-size: 400% 100%; }
-        .gallery-card-media img, .gallery-card-media video { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain !important; object-position: center !important; display: block; }
+        .gallery-card-media { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: 14px; background: transparent; }
+        .gallery-card-media.media-skeleton { background: transparent; }
+        .gallery-card-media img, .gallery-card-media video, .gallery-card-media .gallery-media-cover { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover !important; object-position: center center !important; display: block; }
         .media-card__thumb, .gallery-media, .admin-media-card img, .admin-media-card video { object-fit: cover; object-position: center; }
         .admin-media-card { min-height: 112px; }
         .admin-media-drag-handle { touch-action: none; cursor: grab; }
@@ -4250,11 +4262,11 @@ Title: Park Villas
         </div>
     </div>
 
-    <div id="media-modal" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6" onclick="if (event.target === this) closeModal()">
-        <button onclick="closeModal()" class="media-detail-close" aria-label="Bağla">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-        <div class="modal-glass-panel w-full max-w-6xl max-h-[92vh] bg-white rounded-3xl overflow-hidden relative flex flex-col lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+    <div id="media-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[100] flex p-3 md:p-6" onclick="if (event.target === this) closeModal()">
+        <div class="modal-glass-panel media-detail-panel w-full max-w-6xl bg-white rounded-3xl overflow-hidden relative flex flex-col lg:grid lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+            <button onclick="closeModal()" class="media-detail-close" aria-label="Bağla">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="relative bg-gray-100 min-h-[280px] md:min-h-[520px] flex items-center justify-center overflow-hidden">
                 <div id="modal-content" class="w-full h-full flex items-center justify-center relative"></div>
                 <div id="modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 md:px-5 pointer-events-none">
@@ -7249,14 +7261,16 @@ Title: Park Villas
                 .replace(/\bhasan\b/gi, 'Həsən')
                 .replace(/\beliyev\b/gi, 'Əliyev')
                 .replace(/\baliyev\b/gi, 'Əliyev')
-                .replace(/\bkucesi\b/gi, 'küçəsi')
-                .replace(/\bprospekti\b/gi, 'prospekti')
+                .replace(/\bsadiqcan\b/gi, 'Sadıqcan')
+                .replace(/\bsadigcan\b/gi, 'Sadıqcan')
+                .replace(/\bkucesi\b|\bkuchesi\b|\bkuce\b|\bkuc\b/gi, 'küçəsi')
+                .replace(/\bprospekti\b|\bprospekt\b|\bavenue\b|\bave\b|\bpr\b/gi, 'prospekti')
+                .replace(/\bqesebesi\b|\bqesebe\b/gi, 'qəsəbəsi')
                 .trim();
         }
 
-
-        function normalizeLocationSearchText(value = '') {
-            return String(value || '')
+        function normalizeAddressQuery(value = '') {
+            const ascii = String(value || '')
                 .toLocaleLowerCase('az-AZ')
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
@@ -7267,8 +7281,30 @@ Title: Park Villas
                 .replace(/ğ/g, 'g')
                 .replace(/ş/g, 's')
                 .replace(/ç/g, 'c')
+                .replace(/\br-n\b/g, ' rn ')
+                .replace(/[^a-z0-9\s-]/g, ' ')
+                .replace(/\b(kuchesi|kucesi|kuch|kuce|kuc|street|st)\b/g, ' kuce ')
+                .replace(/\b(prospekti|prospekt|avenue|ave|pr)\b/g, ' prospekt ')
+                .replace(/\b(qesebesi|qesebe|gesebesi|gesebe)\b/g, ' qesebe ')
+                .replace(/\b(rayonu|rayon|r-n|rn)\b/g, ' rayon ')
+                .replace(/\b(metrosu|metro|m)\b/g, ' metro ')
                 .replace(/\s+/g, ' ')
                 .trim();
+            const tokens = ascii.split(' ').filter(Boolean);
+            const suffixes = new Set(['kuce', 'prospekt', 'qesebe', 'rayon', 'metro']);
+            const looseTokens = tokens.map(token => token.replace(/q/g, 'g'));
+            return {
+                original: String(value || '').trim(),
+                normalized: ascii,
+                loose: looseTokens.join(' '),
+                tokens,
+                looseTokens,
+                withoutSuffix: tokens.filter(token => !suffixes.has(token)).join(' '),
+            };
+        }
+
+        function normalizeLocationSearchText(value = '') {
+            return normalizeAddressQuery(value).normalized;
         }
 
         function levenshteinDistance(a = '', b = '') {
@@ -7293,8 +7329,8 @@ Title: Park Villas
         }
 
         function locationTokenMatches(token = '', targetToken = '') {
-            const q = normalizeLocationSearchText(token);
-            const t = normalizeLocationSearchText(targetToken);
+            const q = normalizeAddressQuery(token).loose;
+            const t = normalizeAddressQuery(targetToken).loose;
             if (q.length < 2 || !t) return false;
             if (t.startsWith(q) || q.startsWith(t) || t.includes(q)) return true;
             return q.length >= 4 && levenshteinDistance(q, t.slice(0, Math.max(q.length, Math.min(t.length, q.length + 1)))) <= 1;
@@ -7312,6 +7348,7 @@ Title: Park Villas
 
         const SEA_BREEZE_DEFAULT_CENTER = [40.5912, 49.9867];
         const LOCAL_LOCATION_INDEX = [
+            { title: 'Sadıqcan küçəsi', city: 'Bakı', lat: 40.4055, lon: 49.8738, keywords: 'sadıqcan küçəsi sadiqcan kucesi sadigcan kuchesi sadiqcan kuce sadıqcan küç sadigcan kuc sadigcan street' },
             { title: 'Montin', city: 'Bakı', lat: 40.4094, lon: 49.8747, keywords: 'montin montinn montın' },
             { title: 'Montin qəsəbəsi', city: 'Bakı', lat: 40.4102, lon: 49.8760, keywords: 'montin qesebesi montin qəsəbəsi montin qesebe' },
             { title: 'Montin bazarı', city: 'Bakı', lat: 40.4109, lon: 49.8754, keywords: 'montin bazari montin bazarı montin market bazar' },
@@ -7356,24 +7393,29 @@ Title: Park Villas
         }
 
         function localLocationMatchScore(item = {}, query = '') {
-            const q = normalizeLocationSearchText(query);
+            const parsed = normalizeAddressQuery(query);
+            const q = parsed.normalized;
             if (q.length < 2) return 0;
-            const values = [item.title, item.city, ...(String(item.keywords || '').split(/\s{2,}|[,;|]/))]
-                .map(value => normalizeLocationSearchText(value))
-                .filter(Boolean);
-            const text = normalizeLocationSearchText(localLocationCandidateText(item));
-            if (values.some(value => value === q)) return 100;
-            if (values.some(value => value.startsWith(q)) || text.includes(q)) return 80;
-            if (locationTextContains(text, q)) return 70;
-            const queryTokens = q.split(' ').filter(Boolean);
-            const targetTokens = text.split(' ').filter(Boolean);
-            const typoMatch = queryTokens.every(token => targetTokens.some(target => {
+            const values = [item.title, item.city, item.display_name, ...(String(item.keywords || '').split(/\s{2,}|[,;|]/))]
+                .map(value => normalizeAddressQuery(value))
+                .filter(value => value.normalized);
+            const normalizedValues = values.flatMap(value => [value.normalized, value.loose, value.withoutSuffix]).filter(Boolean);
+            const candidate = normalizeAddressQuery(localLocationCandidateText(item));
+            const text = candidate.normalized;
+            const looseText = candidate.loose;
+            if (normalizedValues.some(value => value === q || value === parsed.loose || (parsed.withoutSuffix && value === parsed.withoutSuffix))) return 120;
+            if (normalizedValues.some(value => value.startsWith(q) || value.startsWith(parsed.loose)) || text.includes(q) || looseText.includes(parsed.loose)) return 95;
+            if (parsed.withoutSuffix && (text.includes(parsed.withoutSuffix) || looseText.includes(parsed.withoutSuffix.replace(/q/g, 'g')))) return 88;
+            if (locationTextContains(text, q) || locationTextContains(looseText, parsed.loose)) return 78;
+            const targetTokens = looseText.split(' ').filter(Boolean);
+            const fuzzyTokens = parsed.looseTokens.filter(token => !['kuce', 'prospekt', 'qesebe', 'rayon', 'metro'].includes(token));
+            const typoMatch = fuzzyTokens.every(token => targetTokens.some(target => {
                 if (locationTokenMatches(token, target)) return true;
                 const prefix = target.slice(0, Math.min(target.length, Math.max(token.length, 3)));
                 const maxDistance = token.length >= 7 ? 2 : 1;
                 return token.length >= 3 && levenshteinDistance(token, prefix) <= maxDistance;
             }));
-            return typoMatch ? 50 : 0;
+            return typoMatch ? 60 : 0;
         }
 
         function locationIndexRow(item) {
@@ -7472,6 +7514,32 @@ Title: Park Villas
             return 'Bakı';
         }
 
+
+        function titleCaseAddressVariant(value = '') {
+            return String(value || '').split(' ').filter(Boolean).map(part => part.charAt(0).toLocaleUpperCase('az-AZ') + part.slice(1)).join(' ');
+        }
+
+        function addressRemoteQueryVariants(query = '', { city = 'Bakı', district = '' } = {}) {
+            const parsed = normalizeAddressQuery(query);
+            const azVariant = azSearchVariant(query);
+            const normalizedKuce = parsed.normalized.replace(/\bkuce\b/g, 'kucesi');
+            const titleNormalized = titleCaseAddressVariant(normalizedKuce);
+            const titleWithoutSuffix = titleCaseAddressVariant(parsed.withoutSuffix);
+            const raw = String(query || '').trim();
+            const bases = [raw, azVariant, normalizedKuce, titleNormalized]
+                .concat(titleWithoutSuffix ? [titleWithoutSuffix] : [])
+                .filter(Boolean);
+            const phrases = [];
+            bases.forEach(value => {
+                phrases.push(value);
+                phrases.push([value, district, city, 'Azərbaycan'].filter(Boolean).join(', '));
+                phrases.push([value, 'Bakı', 'Azərbaycan'].filter(Boolean).join(', '));
+                phrases.push([value, city, 'Azerbaijan'].filter(Boolean).join(', '));
+            });
+            if (titleWithoutSuffix) phrases.push([titleWithoutSuffix, 'Bakı'].filter(Boolean).join(', '));
+            return Array.from(new Set(phrases.map(value => value.replace(/\s+/g, ' ').trim()).filter(Boolean))).slice(0, 10);
+        }
+
         function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
             const resultsEl = document.getElementById('sb-location-results');
             if (!resultsEl) return;
@@ -7521,14 +7589,13 @@ Title: Park Villas
             renderAdminLocationResults(localRows, query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
-            const variants = Array.from(new Set([query, azSearchVariant(query)].filter(Boolean)));
-            const searchPhrases = variants.flatMap(value => [
-                [value, district, city, 'Azerbaijan'].filter(Boolean).join(', '),
-                [value, city, 'Azerbaijan'].filter(Boolean).join(', '),
-                [value, 'Bakı', 'Azerbaijan'].filter(Boolean).join(', ')
-            ]);
+            const normalizedQuery = normalizeAddressQuery(query);
+            const searchPhrases = addressRemoteQueryVariants(query, { city, district });
+            console.info('[map-search] query', query);
+            console.info('[map-search] normalizedQuery', normalizedQuery);
+            console.info('[map-search] localResults', localRows);
             try {
-                const responses = await Promise.all(searchPhrases.slice(0, 6).map(phrase => {
+                const responses = await Promise.all(searchPhrases.map(phrase => {
                     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`;
                     return fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.ok ? res.json() : []);
                 }));
@@ -7541,6 +7608,8 @@ Title: Park Villas
                     return true;
                 });
                 const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
+                console.info('[map-search] remoteResults', remoteRows);
+                console.info('[map-search] finalResults', rows);
                 window.__lastAdminLocationResults = rows;
                 renderAdminLocationResults(rows, query);
             } catch (error) {
@@ -7631,14 +7700,13 @@ Title: Park Villas
             window.__lastFullscreenMapResults = localRows;
             renderFullscreenMapResults(localRows, query, { loading: true });
             const city = fullscreenMapSource === 'admin' ? adminLocationSearchCity() : 'Bakı';
-            const variants = Array.from(new Set([query, azSearchVariant(query)].filter(Boolean)));
-            const searchPhrases = variants.flatMap(value => [
-                [value, city, 'Azerbaijan'].filter(Boolean).join(', '),
-                [value, 'Bakı', 'Azerbaijan'].filter(Boolean).join(', '),
-                [value, 'Azerbaijan'].filter(Boolean).join(', ')
-            ]);
+            const normalizedQuery = normalizeAddressQuery(query);
+            const searchPhrases = addressRemoteQueryVariants(query, { city });
+            console.info('[map-search] query', query);
+            console.info('[map-search] normalizedQuery', normalizedQuery);
+            console.info('[map-search] localResults', localRows);
             try {
-                const responses = await Promise.all(searchPhrases.slice(0, 6).map(phrase => {
+                const responses = await Promise.all(searchPhrases.map(phrase => {
                     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`;
                     return fetch(url, { headers: { Accept: 'application/json' } }).then(res => res.ok ? res.json() : []);
                 }));
@@ -7651,6 +7719,8 @@ Title: Park Villas
                     return true;
                 });
                 const rows = mergeLocationRows(locationRowsBeforeRemote(query), remoteRows, 8);
+                console.info('[map-search] remoteResults', remoteRows);
+                console.info('[map-search] finalResults', rows);
                 window.__lastFullscreenMapResults = rows;
                 renderFullscreenMapResults(rows, query);
             } catch (error) {
@@ -8353,12 +8423,19 @@ Title: Park Villas
         async function nominatimSearch(query, city='Bakı') {
             const q = String(query || '').trim();
             if (q.length < 2) return [];
-            const variants = Array.from(new Set([q, azSearchVariant(q)].filter(Boolean)));
-            const phrases = variants.flatMap(v => [[v, city, 'Azerbaijan'].filter(Boolean).join(', '), [v, 'Bakı', 'Azerbaijan'].filter(Boolean).join(', '), [v, 'Sea Breeze', 'Azerbaijan'].filter(Boolean).join(', ')]);
-            const responses = await Promise.all(phrases.slice(0,6).map(phrase => fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`, {headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():[])));
+            const normalizedQuery = normalizeAddressQuery(q);
+            const localRows = locationRowsBeforeRemote(q);
+            const phrases = addressRemoteQueryVariants(q, { city });
+            console.info('[map-search] query', q);
+            console.info('[map-search] normalizedQuery', normalizedQuery);
+            console.info('[map-search] localResults', localRows);
+            const responses = await Promise.all(phrases.map(phrase => fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=az&q=${encodeURIComponent(phrase)}`, {headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():[])));
             const seen = new Set();
             const remoteRows = responses.flat().filter(item => { const key=item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`; if(!item||seen.has(key)) return false; seen.add(key); return true; });
-            return mergeLocationRows(locationRowsBeforeRemote(q), remoteRows, 8);
+            const finalRows = mergeLocationRows(localRows, remoteRows, 8);
+            console.info('[map-search] remoteResults', remoteRows);
+            console.info('[map-search] finalResults', finalRows);
+            return finalRows;
         }
         async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const localRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=localRows; renderPublicLocationResults(localRows,q,'pl',{loading:true}); try { const rows=await nominatimSearch(q, publicLocationCity()); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q); } catch(e){ if(window.__lastPublicLocationToken!==token) return; renderPublicLocationResults(window.__lastPublicLocationResults || [],q,'pl',{error:!(window.__lastPublicLocationResults||[]).length}); } }
         function selectPublicLocationResult(index) { const item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||''); if(input) input.value=item.display_name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
@@ -10409,8 +10486,8 @@ Təşəkkür edirəm. 🙏`;
                 if (item.type === 'event') {
                     const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64 sm:h-72 md:h-80 rounded-[18px] overflow-hidden">
-                            <div class="gallery-card-media media-shell w-full h-full media-skeleton overflow-hidden">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
+                            <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden">
                                 <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full transition duration-500">
                             </div>
                         </article>
@@ -10419,9 +10496,9 @@ Təşəkkür edirəm. 🙏`;
                     const thumb = getGalleryVideoThumbnail(item) || 'https://placehold.co/600x400/f3f4f6/6b7280?text=Video';
                     const fallbackThumb = getGalleryVideoThumbnailFallback(item);
                     grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative h-64 sm:h-72 md:h-80 rounded-[18px] overflow-hidden">
-                            <div class="gallery-card-media media-shell w-full h-full media-skeleton overflow-hidden relative">
-                                <img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-contain w-full h-full transition duration-500">
+                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
+                            <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden relative">
+                                <img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-cover w-full h-full transition duration-500">
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-90"></div>
                             <div class="absolute top-3 left-3 md:top-4 md:left-4 w-10 h-10 rounded-full bg-white/90 text-slate-950 flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div>
