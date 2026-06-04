@@ -17,7 +17,7 @@ function normalizeType(type) {
   return NOTIFICATION_TYPES.has(normalized) ? normalized : 'system';
 }
 
-async function createNotification({ userId, title, message, type = 'system', link = null }, tx = prisma) {
+async function createNotification({ userId, title, message, type = 'system', link = null, imageUrl = null, videoUrl = null }, tx = prisma) {
   if (!userId) return null;
   const notification = await tx.notification.create({
     data: {
@@ -26,6 +26,8 @@ async function createNotification({ userId, title, message, type = 'system', lin
       message: String(message || '').trim() || null,
       type: normalizeType(type),
       link: link ? String(link) : null,
+      imageUrl: imageUrl ? String(imageUrl) : null,
+      videoUrl: videoUrl ? String(videoUrl) : null,
     },
   });
   emitToUser(userId, 'notification:new', notification);
