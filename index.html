@@ -2255,27 +2255,37 @@
             background: var(--color-primary);
             color: #fff;
         }
-        .fullscreen-map-panel {
-            width: 90vw;
-            height: 90vh;
-            border-radius: 1.5rem;
+        .fullscreen-map-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: rgba(15, 23, 42, .72);
+            backdrop-filter: blur(8px);
+        }
+        .fullscreen-map-modal {
+            position: fixed;
+            z-index: 5001;
+            top: 72px;
+            left: 24px;
+            right: 24px;
+            bottom: 24px;
+            border-radius: 22px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,.22);
-            background: #0f172a;
+            background: #fff;
             box-shadow: 0 32px 90px rgba(0,0,0,.45);
         }
         .fullscreen-map-close {
             position: absolute;
             top: 12px;
             right: 12px;
-            z-index: 3012;
+            z-index: 5012;
         }
         .fullscreen-map-confirm {
             position: absolute;
             left: 1rem;
             right: 1rem;
             bottom: max(1rem, env(safe-area-inset-bottom));
-            z-index: 3011;
+            z-index: 5011;
             display: flex;
             justify-content: center;
             pointer-events: none;
@@ -2285,26 +2295,34 @@
             position: absolute;
             top: 1rem;
             left: 1rem;
-            z-index: 3010;
-            width: min(420px, calc(100% - 8rem));
+            z-index: 5010;
+            width: min(520px, calc(100% - 8rem));
         }
         .fullscreen-map-results {
-            max-height: min(280px, 45vh);
+            max-height: min(320px, 45vh);
             overflow-y: auto;
+            overscroll-behavior: contain;
         }
-        @media (max-width: 640px) {
-            #fullscreen-map-modal {
-                padding: 0;
-                top: 80px;
-                bottom: calc(var(--mobile-bottom-nav-height) + var(--mobile-modal-gap));
-                height: auto;
-            }
-            .fullscreen-map-panel { width: calc(100vw - 24px); height: 100%; border-radius: 1rem; }
-            .fullscreen-map-search { top: .8rem; left: .8rem; width: calc(100% - 1.6rem); padding-right: 4.7rem; }
-        }
+        .fullscreen-map-container,
         #fullscreen-map-canvas {
             width: 100%;
             height: 100%;
+            min-height: 520px;
+        }
+        @media (max-width: 768px) {
+            .fullscreen-map-modal {
+                top: 76px;
+                left: 10px;
+                right: 10px;
+                bottom: 92px;
+                border-radius: 18px;
+            }
+            .fullscreen-map-container,
+            #fullscreen-map-canvas {
+                height: 100%;
+                min-height: 420px;
+            }
+            .fullscreen-map-search { top: .8rem; left: .8rem; width: calc(100% - 1.6rem); padding-right: 4.7rem; }
         }
         .leaflet-container {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -2780,7 +2798,6 @@
         #property-detail-modal:not(.hidden),
         #project-detail-modal-official:not(.hidden),
         #media-modal:not(.hidden),
-        #fullscreen-map-modal:not(.hidden),
         #property-lightbox:not(.hidden) {
             position: fixed !important;
             inset: 0 !important;
@@ -2794,8 +2811,7 @@
         .listing-detail-modal,
         #property-detail-modal > .listing-detail-shell,
         #project-detail-modal-official > .glass-card,
-        #media-modal > .media-detail-panel,
-        #fullscreen-map-modal > .fullscreen-map-panel {
+        #media-modal > .media-detail-panel {
             position: fixed !important;
             top: calc(var(--header-height) + 12px) !important;
             left: 50% !important;
@@ -2878,8 +2894,7 @@
             .listing-detail-modal,
             #property-detail-modal > .listing-detail-shell,
             #project-detail-modal-official > .glass-card,
-            #media-modal > .media-detail-panel,
-            #fullscreen-map-modal > .fullscreen-map-panel {
+            #media-modal > .media-detail-panel {
                 top: calc(var(--header-height) + 8px) !important;
                 width: calc(100vw - 16px) !important;
                 max-height: calc(100dvh - var(--header-height) - var(--mobile-bottom-nav-height) - 18px) !important;
@@ -4419,8 +4434,8 @@ Title: Park Villas
     </div>
 
     <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
-    <div id="fullscreen-map-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[3000] items-center justify-center p-3 md:p-6">
-        <div class="fullscreen-map-panel relative">
+    <div id="fullscreen-map-modal" class="fullscreen-map-backdrop hidden">
+        <div class="fullscreen-map-modal">
 
             <div id="fullscreen-map-search-wrap" class="fullscreen-map-search hidden">
                 <input type="search" id="fullscreen-location-search" oninput="debouncedFullscreenLocationSearch()" onkeydown="handleFullscreenLocationSearchKeydown(event)" placeholder="🔍 Ünvan, metro və ya rayon axtar…" class="w-full h-12 rounded-2xl border border-white/20 bg-white/95 px-4 pr-12 text-sm font-bold text-slate-900 shadow-2xl focus:outline-none focus:border-brand-500">
@@ -4434,7 +4449,7 @@ Title: Park Villas
                 </div>
                 <div id="fullscreen-map-results" class="fullscreen-map-results hidden rounded-2xl border border-white/60 bg-white/95 p-2 text-sm shadow-2xl"></div>
             </div>
-            <div id="fullscreen-map-canvas"></div>
+            <div id="fullscreen-map-canvas" class="fullscreen-map-container"></div>
             <div id="fullscreen-map-confirm" class="fullscreen-map-confirm hidden"><button type="button" onclick="confirmFullscreenMapSelection()" class="rounded-2xl bg-brand-600 px-6 py-3 text-sm font-black text-white shadow-2xl hover:bg-brand-700 transition">📍 Məkanı seç</button></div>
             <div id="fullscreen-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
         </div>
@@ -7705,9 +7720,11 @@ Title: Park Villas
             return mergeLocationRows(localLocationRowsForQuery(query), projectLocationRowsForQuery(query), 8);
         }
 
-        function mergeLocationRows(primaryRows = [], secondaryRows = [], limit = 8) {
+        function mergeLocationRows(...args) {
+            let limit = 8;
+            if (typeof args[args.length - 1] === 'number') limit = args.pop();
             const seen = new Set();
-            return [...primaryRows, ...secondaryRows].filter(item => {
+            return args.flat().filter(item => {
                 const key = item?.source === 'project'
                     ? `project:${normalizeLocationSearchText(item.projectTitle || item.display_name)}`
                     : (item?.source === 'local'
@@ -7717,6 +7734,44 @@ Title: Park Villas
                 seen.add(key);
                 return true;
             }).slice(0, limit);
+        }
+
+        function exactGenericLocationQueryMatch(item = {}, query = '') {
+            const q = normalizeLocationSearchText(query);
+            const name = normalizeLocationSearchText(item.name || String(item.display_name || '').split(',')[0] || '');
+            if (!q || !name) return false;
+            const aliases = {
+                baki: ['baki', 'baku'],
+                baku: ['baki', 'baku'],
+                seki: ['seki', 'sheki'],
+                sheki: ['seki', 'sheki'],
+                azerbaycan: ['azerbaycan', 'azerbaijan'],
+                azerbaijan: ['azerbaycan', 'azerbaijan'],
+            };
+            if (q === name) return true;
+            return (aliases[name] || []).includes(q);
+        }
+
+        function isWeakGenericRemoteLocation(item = {}, query = '') {
+            const type = String(item.type || item.class || '').toLowerCase();
+            const display = String(item.display_name || item.name || '');
+            const firstPart = display.split(',')[0] || item.name || '';
+            const genericType = ['country', 'region', 'place', 'locality'].includes(type);
+            const genericName = ['baki', 'baku', 'seki', 'sheki', 'azerbaycan', 'azerbaijan'].includes(normalizeLocationSearchText(firstPart));
+            if (!genericType && !genericName) return false;
+            return !exactGenericLocationQueryMatch({ ...item, name: item.name || firstPart }, query);
+        }
+
+        function filterRemoteLocationRows(rows = [], query = '') {
+            return (Array.isArray(rows) ? rows : []).filter(item => {
+                if (!Number.isFinite(Number(item?.lat)) || !Number.isFinite(Number(item?.lon))) return false;
+                return !isWeakGenericRemoteLocation(item, query);
+            });
+        }
+
+        function isSearchResponseCurrent(inputId = '', tokenName = '', token = '', query = '') {
+            const currentQuery = (document.getElementById(inputId)?.value || '').trim();
+            return window[tokenName] === token && currentQuery === query;
         }
 
         function applyProjectLocationSelection(projectTitle = '') {
@@ -7902,16 +7957,21 @@ Title: Park Villas
         async function searchLocationsWithPriority(query = '', { city = 'Bakı', district = '' } = {}) {
             const q = String(query || '').trim();
             if (q.length < 2) return [];
+            const localRows = localLocationRowsForQuery(q);
+            const projectRows = projectLocationRowsForQuery(q);
+            let mapboxRows = [];
+            let nominatimRows = [];
             try {
-                const mapboxRows = await mapboxGeocodingSearch(q, { city, district });
-                if (mapboxRows.length) return mapboxRows;
+                mapboxRows = filterRemoteLocationRows(await mapboxGeocodingSearch(q, { city, district }), q);
             } catch (error) {
                 warnMapboxFallback();
             }
-            const localRows = locationRowsBeforeRemote(q);
-            if (localRows.length) return localRows;
-            const nominatimRows = await nominatimRemoteSearch(q, { city, district });
-            return nominatimRows;
+            try {
+                nominatimRows = filterRemoteLocationRows(await nominatimRemoteSearch(q, { city, district }), q);
+            } catch (error) {
+                if (!mapboxRows.length) warnMapboxFallback();
+            }
+            return mergeLocationRows(localRows, projectRows, mapboxRows, nominatimRows, 10);
         }
 
         function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
@@ -7967,12 +8027,12 @@ Title: Park Villas
             console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
                 const rows = await searchLocationsWithPriority(query, { city, district });
-                if (window.__lastAdminLocationSearchToken !== token) return;
+                if (!isSearchResponseCurrent('sb-location-search', '__lastAdminLocationSearchToken', token, query)) return;
                 window.__lastAdminLocationResults = rows;
                 console.info('[map-search] finalResults', rows);
                 renderAdminLocationResults(rows, query, { error: !rows.length });
             } catch (error) {
-                if (window.__lastAdminLocationSearchToken !== token) return;
+                if (!isSearchResponseCurrent('sb-location-search', '__lastAdminLocationSearchToken', token, query)) return;
                 window.__lastAdminLocationResults = [];
                 renderAdminLocationResults([], query, { error: true });
             }
@@ -8069,12 +8129,12 @@ Title: Park Villas
             console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
                 const rows = await searchLocationsWithPriority(query, { city });
-                if (window.__lastFullscreenMapSearchToken !== token) return;
+                if (!isSearchResponseCurrent('fullscreen-map-search-input', '__lastFullscreenMapSearchToken', token, query)) return;
                 window.__lastFullscreenMapResults = rows;
                 console.info('[map-search] finalResults', rows);
                 renderFullscreenMapResults(rows, query, { error: !rows.length });
             } catch (error) {
-                if (window.__lastFullscreenMapSearchToken !== token) return;
+                if (!isSearchResponseCurrent('fullscreen-map-search-input', '__lastFullscreenMapSearchToken', token, query)) return;
                 window.__lastFullscreenMapResults = [];
                 renderFullscreenMapResults([], query, { error: true });
             }
@@ -8199,7 +8259,7 @@ Title: Park Villas
             return adminLocationSearchCity();
         }
         function debouncedFullscreenLocationSearch() { clearTimeout(window.__fullscreenLocationTimer); const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); const el=document.getElementById('fullscreen-location-results'); if(q.length<2){el?.classList.add('hidden'); return;} const instantRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'fullscreen',{loading:true}); window.__fullscreenLocationTimer=setTimeout(searchFullscreenLocation,250); }
-        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'fullscreen',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:fullscreenSearchCity()}); if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{error:!rows.length}); } catch(e){ if(window.__lastFullscreenLocationToken!==token) return; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{error:true}); } }
+        async function searchFullscreenLocation() { const q=(document.getElementById('fullscreen-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastFullscreenLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastFullscreenLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'fullscreen',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:fullscreenSearchCity()}); if(!isSearchResponseCurrent('fullscreen-location-search','__lastFullscreenLocationToken',token,q)) return; window.__lastFullscreenLocationResults=rows; renderPublicLocationResults(rows,q,'fullscreen',{error:!rows.length}); } catch(e){ if(!isSearchResponseCurrent('fullscreen-location-search','__lastFullscreenLocationToken',token,q)) return; window.__lastFullscreenLocationResults=[]; renderPublicLocationResults([],q,'fullscreen',{error:true}); } }
         async function selectFullscreenLocationResult(index) {
             let item = (window.__lastFullscreenLocationResults || [])[index];
             if (!item) return;
@@ -8287,6 +8347,15 @@ Title: Park Villas
             return { point: BAKU_DEFAULT_CENTER, zoom: BAKU_DEFAULT_ZOOM, hasMarker: false };
         }
 
+        function resizeFullscreenMapAfterOpen() {
+            if (!fullscreenMap) return;
+            requestAnimationFrame(() => {
+                fullscreenMap.invalidateSize();
+                setTimeout(() => fullscreenMap?.invalidateSize(), 150);
+                setTimeout(() => fullscreenMap?.invalidateSize(), 400);
+            });
+        }
+
         function openFullscreenMap(source = 'detail') {
             if (typeof L === 'undefined') return;
             fullscreenMapSource = source;
@@ -8307,31 +8376,33 @@ Title: Park Villas
             document.getElementById('fullscreen-location-results')?.classList.add('hidden');
             const { point, zoom, hasMarker } = currentMapPoint(source);
             fullscreenMapSelection = hasMarker && ['admin','public'].includes(source) ? { lat: point[0], lng: point[1], address: '', addressData: null, projectTitle: '' } : null;
-            setTimeout(() => {
-                if (!fullscreenMap) {
-                    setMapLoading('fullscreen-map-loading', true);
-                    fullscreenMap = L.map(canvas, { scrollWheelZoom: true }).setView(point, zoom);
-                    addOpenStreetMapLayer(fullscreenMap);
-                    attachMapLoadingOverlay(fullscreenMap, 'fullscreen-map-loading');
-                    fullscreenMap.on('click', event => {
-                        if (!['admin','public'].includes(fullscreenMapSource)) return;
-                        setFullscreenMapSelection(event.latlng.lat, event.latlng.lng, { updateMarker: true });
-                    });
-                } else {
-                    fullscreenMap.setView(point, zoom);
-                }
-                if (hasMarker) updateFullscreenMarker(point, source === 'admin' || source === 'public');
-                else clearFullscreenMarker();
-                const input = document.getElementById('fullscreen-map-search-input');
-                const results = document.getElementById('fullscreen-map-results');
-                if (input) input.value = source === 'admin' ? (document.getElementById('sb-location-search')?.value || '') : (source === 'public' ? (document.getElementById('pl-location-search')?.value || '') : '');
-                if (!['admin','public'].includes(source) && document.activeElement === input) input?.blur();
-                if (results) {
-                    results.innerHTML = '';
-                    results.classList.add('hidden');
-                }
-                fullscreenMap.invalidateSize();
-            }, 80);
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (!fullscreenMap) {
+                        setMapLoading('fullscreen-map-loading', true);
+                        fullscreenMap = L.map(canvas, { scrollWheelZoom: true }).setView(point, zoom);
+                        addOpenStreetMapLayer(fullscreenMap);
+                        attachMapLoadingOverlay(fullscreenMap, 'fullscreen-map-loading');
+                        fullscreenMap.on('click', event => {
+                            if (!['admin','public'].includes(fullscreenMapSource)) return;
+                            setFullscreenMapSelection(event.latlng.lat, event.latlng.lng, { updateMarker: true });
+                        });
+                    } else {
+                        fullscreenMap.setView(point, zoom);
+                    }
+                    if (hasMarker) updateFullscreenMarker(point, source === 'admin' || source === 'public');
+                    else clearFullscreenMarker();
+                    const input = document.getElementById('fullscreen-map-search-input');
+                    const results = document.getElementById('fullscreen-map-results');
+                    if (input) input.value = source === 'admin' ? (document.getElementById('sb-location-search')?.value || '') : (source === 'public' ? (document.getElementById('pl-location-search')?.value || '') : '');
+                    if (!['admin','public'].includes(source) && document.activeElement === input) input?.blur();
+                    if (results) {
+                        results.innerHTML = '';
+                        results.classList.add('hidden');
+                    }
+                    resizeFullscreenMapAfterOpen();
+                }, 100);
+            });
         }
 
         function clearFullscreenMarker() {
@@ -8779,7 +8850,7 @@ Title: Park Villas
         function debouncedPublicLocationSearch() { clearTimeout(window.__publicLocationTimer); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2){document.getElementById('pl-location-results')?.classList.add('hidden'); return;} const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); window.__publicLocationTimer=setTimeout(searchPublicListingLocation,250); }
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(el&&q.length>=2) el.classList.remove('hidden'); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
-        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:!rows.length}); } catch(e){ if(window.__lastPublicLocationToken!==token) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
+        async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<2) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:!rows.length}); } catch(e){ if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
         async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
