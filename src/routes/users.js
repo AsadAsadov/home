@@ -16,7 +16,7 @@ const avatarUpload = multer({
 });
 
 function publicUser(user) {
-  const { passwordHash, ...safe } = user;
+  const { passwordHash, googleId, ...safe } = user;
   return safe;
 }
 

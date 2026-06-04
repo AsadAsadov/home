@@ -580,7 +580,7 @@ router.get('/google/callback', authRoute(async (req, res) => {
   const email = String(profile.email).toLowerCase();
   let user = await prisma.user.findUnique({ where: { email } });
   if (user) {
-    user = await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, lastLogin: new Date(), avatarUrl: user.avatarUrl || profile.picture || null, provider: 'google' } });
+    user = await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, lastLogin: new Date(), avatarUrl: user.avatarUrl || profile.picture || null, provider: 'google', googleId: profile.sub || user.googleId || null } });
     await logUserActivity(prisma, user.id, 'google_login');
   } else {
     user = await prisma.user.create({
@@ -590,6 +590,7 @@ router.get('/google/callback', authRoute(async (req, res) => {
         avatarUrl: profile.picture || null,
         emailVerified: true,
         provider: 'google',
+        googleId: profile.sub || null,
         role: 'user',
         lastLogin: new Date(),
       },

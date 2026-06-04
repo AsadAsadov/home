@@ -1322,7 +1322,7 @@
         }
         .featured-video-thumb {
             width: 100%;
-            height: 520px;
+            height: 620px;
             overflow: hidden;
             border-radius: 16px;
             flex: 0 0 auto;
@@ -1375,13 +1375,13 @@
             .media-detail-close:hover { background: rgba(241,245,249,0.98); transform: scale(1.05); }
         }
         @media (min-width: 1601px) {
-            .featured-video-thumb { height: 560px; }
+            .featured-video-thumb { height: 680px; }
         }
         @media (max-width: 1023px) {
-            .featured-video-thumb { height: 380px; }
+            .featured-video-thumb { height: 440px; }
         }
         @media (max-width: 640px) {
-            .featured-video-thumb { height: 280px; }
+            .featured-video-thumb { height: 330px; }
             .media-detail-close { width: 44px; height: 44px; top: max(12px, env(safe-area-inset-top)); right: 12px; }
         }
         .gallery-detail-title {
@@ -3136,6 +3136,7 @@
                 <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Elan Hero</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
                 <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
+                <button onclick="switchAdminSubtab('google-email')" id="subtab-btn-google-email" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Google email</button>
                 <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
                 <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
                 <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Advertisement Management</button>
@@ -3726,6 +3727,30 @@ Title: Park Villas
                         <input type="search" id="admin-user-search-email" oninput="renderAdminDashboard()" placeholder="E-poçt ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
                     </div>
                     <div class="grid grid-cols-1 gap-3" id="admin-agents-grid"></div>
+                </div>
+            </div>
+
+            <!-- SUBTAB: GOOGLE USER EMAIL -->
+            <div id="admin-subtab-google-email" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-brands fa-google text-blue-300"></i><span>Google istifadəçilərinə bildiriş göndər</span></h3>
+                        <p class="text-xs text-gray-400 mt-1">Yalnız Google ilə qeydiyyatdan keçmiş və ya daxil olmuş istifadəçilərə announcement/news email göndərilir.</p>
+                    </div>
+                    <form onsubmit="handleSendGoogleUsersEmail(event)" class="space-y-3">
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Subject</span><input type="text" id="google-email-subject" required placeholder="Saytda yeniliklər" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Message</span><textarea id="google-email-message" required rows="7" placeholder="Yeni qalereya bölməsi əlavə olundu…" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
+                        <button type="submit" id="google-email-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Göndər</button>
+                    </form>
+                </div>
+                <div class="lg:col-span-7 glass-card p-6 rounded-2xl space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                        <div class="rounded-2xl bg-white/5 border border-white/10 p-4"><span class="block text-[10px] text-gray-400 uppercase font-bold">Google recipient</span><strong id="google-email-recipient-count" class="text-2xl text-white">—</strong></div>
+                        <div class="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4"><span class="block text-[10px] text-emerald-300 uppercase font-bold">Göndərildi</span><strong id="google-email-sent-count" class="text-2xl text-emerald-200">0</strong></div>
+                        <div class="rounded-2xl bg-red-500/10 border border-red-500/20 p-4"><span class="block text-[10px] text-red-300 uppercase font-bold">Uğursuz</span><strong id="google-email-failed-count" class="text-2xl text-red-200">0</strong></div>
+                    </div>
+                    <div id="google-email-result" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-200"></div>
+                    <button type="button" onclick="loadGoogleEmailRecipientCount()" class="bg-white/5 border border-white/10 text-gray-300 text-xs font-bold px-4 py-2 rounded-xl">Recipient sayını yenilə</button>
                 </div>
             </div>
 
@@ -5492,7 +5517,7 @@ Title: Park Villas
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0 };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0, provider: u.provider || 'local' };
         }
 
 
@@ -9955,11 +9980,12 @@ Təşəkkür edirəm. 🙏`;
             'site-settings': '/admin/site-settings',
             'hero-sections': '/admin/project-hero',
             'listing-hero': '/admin/listing-hero',
+            'google-email': '/admin/google-email',
             'user-profile': '/profil/melumatlar'
         };
 
         function switchAdminSubtab(subtab, options = {}) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -9970,6 +9996,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-listing-hero')?.classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
             document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-google-email')?.classList.add('hidden');
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
@@ -9982,7 +10009,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -10003,6 +10030,7 @@ Təşəkkür edirəm. 🙏`;
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
             if (subtab === 'user-profile') { fillProfileForm(); }
+            if (subtab === 'google-email') { loadGoogleEmailRecipientCount(); }
             if (subtab === 'hero-sections') {
                 loadAdminHeroSlides();
                 resetHeroSlideForm();
@@ -11505,6 +11533,71 @@ Təşəkkür edirəm. 🙏`;
                 });
 
                 renderAdminAds();
+            }
+        }
+
+
+        let isGoogleEmailSubmitting = false;
+
+        function setGoogleEmailButtonLoading(isLoading) {
+            const btn = document.getElementById('google-email-submit-btn');
+            if (!btn) return;
+            btn.disabled = Boolean(isLoading);
+            btn.classList.toggle('is-loading', Boolean(isLoading));
+            btn.innerHTML = isLoading ? '<span class="button-spinner"></span><span>Göndərilir…</span>' : 'Göndər';
+        }
+
+        function localGoogleUsersCount() {
+            return [...new Set((appData.agents || [])
+                .filter(user => (user.provider || 'local') === 'google')
+                .map(user => String(user.email || '').trim().toLowerCase())
+                .filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))].length;
+        }
+
+        async function loadGoogleEmailRecipientCount() {
+            const el = document.getElementById('google-email-recipient-count');
+            if (el) el.textContent = '…';
+            try {
+                const summary = await apiRequest('/api/admin/email/google-users/summary');
+                if (el) el.textContent = String(summary.totalRecipients || 0);
+                return summary.totalRecipients || 0;
+            } catch (error) {
+                const fallback = localGoogleUsersCount();
+                if (el) el.textContent = String(fallback);
+                console.warn('Google email recipient count alınmadı:', error.message);
+                return fallback;
+            }
+        }
+
+        async function handleSendGoogleUsersEmail(e) {
+            e.preventDefault();
+            if (isGoogleEmailSubmitting) return;
+            const subject = document.getElementById('google-email-subject')?.value.trim() || '';
+            const message = document.getElementById('google-email-message')?.value.trim() || '';
+            if (!subject || !message) return alert('Subject və message tələb olunur.');
+            const total = await loadGoogleEmailRecipientCount();
+            if (!confirm(`Bu email Google ilə daxil olmuş ${total} istifadəçiyə göndəriləcək. Davam edilsin?`)) return;
+            isGoogleEmailSubmitting = true;
+            setGoogleEmailButtonLoading(true);
+            const resultBox = document.getElementById('google-email-result');
+            if (resultBox) { resultBox.classList.add('hidden'); resultBox.textContent = ''; }
+            try {
+                const result = await apiRequest('/api/admin/email/google-users', {
+                    method: 'POST',
+                    body: JSON.stringify({ subject, message })
+                });
+                document.getElementById('google-email-recipient-count').textContent = String(result.totalRecipients || 0);
+                document.getElementById('google-email-sent-count').textContent = String(result.sentCount || 0);
+                document.getElementById('google-email-failed-count').textContent = String(result.failedCount || 0);
+                if (resultBox) {
+                    resultBox.classList.remove('hidden');
+                    resultBox.textContent = `Göndərildi: ${result.sentCount || 0}, Uğursuz: ${result.failedCount || 0}`;
+                }
+            } catch (error) {
+                alert('Google istifadəçilərinə email göndərilmədi: ' + error.message);
+            } finally {
+                isGoogleEmailSubmitting = false;
+                setGoogleEmailButtonLoading(false);
             }
         }
 

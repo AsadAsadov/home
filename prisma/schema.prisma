@@ -194,6 +194,7 @@ model User {
   phone         String?           @db.Text
   avatarUrl     String?           @map("avatar_url") @db.Text
   provider      String            @default("local")
+  googleId      String?           @unique @map("google_id")
   bio           String?           @db.Text
   isActive      Boolean           @default(true) @map("is_active")
   emailVerified Boolean           @default(false) @map("email_verified")
