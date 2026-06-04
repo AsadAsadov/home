@@ -1,4 +1,6 @@
 const NODEMAILER_NOT_INSTALLED_MESSAGE = 'Email service is not available because nodemailer is not installed.';
+const SMTP_VERIFY_TIMEOUT_MS = 15000;
+const SMTP_SENDMAIL_TIMEOUT_MS = 15000;
 
 function isMissingNodemailerError(error) {
   return error?.code === 'MODULE_NOT_FOUND' && String(error?.message || '').includes('nodemailer');
@@ -9,6 +11,37 @@ function emailServiceUnavailableError(message = NODEMAILER_NOT_INSTALLED_MESSAGE
   error.status = 503;
   error.code = 'EMAIL_SERVICE_UNAVAILABLE';
   return error;
+}
+
+function smtpErrorDetails(error) {
+  return {
+    message: error?.message,
+    code: error?.code,
+    command: error?.command,
+    response: error?.response,
+    responseCode: error?.responseCode,
+  };
+}
+
+function smtpTimeoutError(operation, timeoutMs) {
+  const error = new Error(`SMTP ${operation} timed out after ${timeoutMs}ms.`);
+  error.status = 503;
+  error.code = `SMTP_${operation.toUpperCase()}_TIMEOUT`;
+  return error;
+}
+
+async function withSmtpTimeout(promise, operation, timeoutMs) {
+  let timeout;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(smtpTimeoutError(operation, timeoutMs)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function loadNodemailer() {
@@ -40,6 +73,9 @@ function smtpConfig() {
       user: process.env.SMTP_USER || process.env.GMAIL_SMTP_USER,
       pass: process.env.SMTP_PASS || process.env.GMAIL_SMTP_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   };
 }
 
@@ -111,11 +147,12 @@ function createSmtpTransporter(from) {
 async function verifySmtpTransporter(transporter, from) {
   try {
     const smtpTransporter = transporter || createSmtpTransporter(from);
-    await smtpTransporter.verify();
+    console.log('[smtp] verify start');
+    await withSmtpTimeout(smtpTransporter.verify(), 'verify', SMTP_VERIFY_TIMEOUT_MS);
     console.log('[smtp] verify success');
     return true;
   } catch (error) {
-    console.error('[smtp] verify failed', { message: error.message, code: error.code, command: error.command });
+    console.error('[smtp] verify failed', smtpErrorDetails(error));
     throw error;
   }
 }
@@ -124,8 +161,9 @@ async function sendSmtpEmail(message) {
   const transporter = createSmtpTransporter(message.from);
   await verifySmtpTransporter(transporter, message.from);
   try {
-    const info = await transporter.sendMail(message);
-    console.log('[smtp] sendMail result', {
+    console.log('[smtp] sendMail start');
+    const info = await withSmtpTimeout(transporter.sendMail(message), 'sendmail', SMTP_SENDMAIL_TIMEOUT_MS);
+    console.log('[smtp] sendMail success', {
       messageId: info?.messageId,
       accepted: info?.accepted,
       rejected: info?.rejected,
@@ -133,7 +171,7 @@ async function sendSmtpEmail(message) {
     });
     return info;
   } catch (error) {
-    console.error('[smtp] sendMail failed', { message: error.message, code: error.code, command: error.command });
+    console.error('[smtp] sendMail failed', smtpErrorDetails(error));
     throw error;
   }
 }
