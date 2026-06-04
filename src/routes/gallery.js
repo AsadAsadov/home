@@ -153,6 +153,19 @@ function isGallerySchemaUnavailable(error) {
   return ['P2021', 'P2022'].includes(error?.code) || /gallery|sort_order|is_featured/i.test(String(error?.message || ''));
 }
 
+function galleryFeaturedFieldMapping() {
+  return {
+    prismaModel: 'Gallery',
+    prismaField: 'isFeatured',
+    databaseTable: 'gallery',
+    databaseColumn: 'is_featured',
+  };
+}
+
+function summarizeGalleryUpdateQuery(operation, args) {
+  return { operation: `prisma.gallery.${operation}`, args };
+}
+
 function emptyGalleryResponse(req, extra = {}) {
   const page = positiveInt(req?.query?.page, 1, 1000000);
   const limit = positiveInt(req?.query?.limit, 1000, 5000);
@@ -213,29 +226,92 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 
 
 router.post('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  console.log('TOGGLE HERO REQUEST', req.params.id, req.body);
+
   const id = Number(req.params.id);
   const isFeatured = toBool(req.body?.isFeatured ?? req.body?.is_featured);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: 'Valid gallery id is required.' });
   if (isFeatured === undefined) return res.status(400).json({ message: 'isFeatured is required.' });
 
-  try {
-    const existing = await prisma.gallery.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ message: 'Gallery item not found.' });
-    if (existing.mediaType !== 'video') return res.status(400).json({ message: 'Yalnız video hero edilə bilər.' });
+  const fieldMapping = galleryFeaturedFieldMapping();
+  const failingQueries = [];
 
-    const updated = await prisma.$transaction(async (tx) => {
+  try {
+    const databaseColumns = await prisma.$queryRaw`
+      SELECT column_name, data_type, udt_name
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND table_name = 'gallery'
+        AND column_name IN ('id', 'title', 'media_type', 'is_featured')
+      ORDER BY column_name
+    `;
+    console.log('GALLERY FEATURED FIELD MAP', { ...fieldMapping, databaseColumns });
+
+    const findQuery = summarizeGalleryUpdateQuery('findUnique', { where: { id } });
+    failingQueries.push(findQuery);
+    const video = await prisma.gallery.findUnique({ where: { id } });
+    console.log('VIDEO BEFORE UPDATE', video);
+    failingQueries.pop();
+
+    if (!video) return res.status(404).json({ message: 'Gallery item not found.' });
+    if (video.mediaType !== 'video') return res.status(400).json({ message: 'Yalnız video hero edilə bilər.' });
+
+    let unsetResult = null;
+    let updatedVideo = null;
+    let featuredVideos = [];
+
+    await prisma.$transaction(async (tx) => {
       if (isFeatured === true) {
-        await tx.gallery.updateMany({ where: { mediaType: 'video' }, data: { isFeatured: false } });
-        return tx.gallery.update({ where: { id }, data: { isFeatured: true } });
+        const unsetQuery = summarizeGalleryUpdateQuery('updateMany', {
+          where: { isFeatured: true, id: { not: id } },
+          data: { isFeatured: false },
+        });
+        failingQueries.push(unsetQuery);
+        unsetResult = await tx.gallery.updateMany(unsetQuery.args);
+        console.log('GALLERY HERO UPDATE MANY RESULT', unsetResult);
+        failingQueries.pop();
       }
-      return tx.gallery.update({ where: { id }, data: { isFeatured: false } });
+
+      const updateQuery = summarizeGalleryUpdateQuery('update', { where: { id }, data: { isFeatured } });
+      failingQueries.push(updateQuery);
+      updatedVideo = await tx.gallery.update(updateQuery.args);
+      failingQueries.pop();
+      console.log('UPDATED VIDEO', updatedVideo);
+
+      const featuredQuery = summarizeGalleryUpdateQuery('findMany', {
+        where: { isFeatured: true },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      });
+      failingQueries.push(featuredQuery);
+      featuredVideos = await tx.gallery.findMany(featuredQuery.args);
+      failingQueries.pop();
+      console.log('FEATURED VIDEOS AFTER UPDATE', featuredVideos);
+
+      if (isFeatured === true && (featuredVideos.length !== 1 || featuredVideos[0].id !== id)) {
+        const error = new Error('Gallery hero invariant failed: expected exactly one featured gallery row after toggle.');
+        error.status = 500;
+        error.details = { expectedFeaturedId: id, featuredIds: featuredVideos.map((item) => item.id) };
+        throw error;
+      }
     });
 
-    const item = serializeGallery(updated);
-    res.json({ success: true, item, data: item });
+    const item = serializeGallery(updatedVideo);
+    res.json({
+      success: true,
+      item,
+      data: item,
+      debug: { fieldMapping, unsetResult, featuredCount: featuredVideos.length, featuredIds: featuredVideos.map((item) => item.id) },
+    });
   } catch (error) {
-    if (!isGallerySchemaUnavailable(error)) throw error;
-    console.warn('[gallery] hero toggle skipped because schema is unavailable.', { code: error.code, message: error.message });
-    res.json(emptyGalleryResponse(req));
+    console.error('[gallery] hero toggle failed.', {
+      code: error.code,
+      message: error.message,
+      meta: error.meta,
+      details: error.details,
+      failingQuery: failingQueries.at(-1) || null,
+      fieldMapping,
+    });
+    throw error;
   }
 }));
 
