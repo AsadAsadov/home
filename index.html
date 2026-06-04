@@ -1308,7 +1308,8 @@
         }
         .featured-video-section-inner {
             width: 100%;
-            max-width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
         }
         .featured-video-card {
             width: 100%;
@@ -1322,7 +1323,7 @@
         }
         .featured-video-thumb {
             width: 100%;
-            height: 620px;
+            height: clamp(320px, 38vw, 520px);
             overflow: hidden;
             border-radius: 16px;
             flex: 0 0 auto;
@@ -1331,7 +1332,17 @@
             width: 100%;
             height: 100%;
             object-fit: cover !important;
-            object-position: center top !important;
+            object-position: center center !important;
+        }
+        @media (min-width: 1600px) {
+            .featured-video-thumb { height: clamp(380px, 34vw, 560px); }
+        }
+        @media (max-width: 1024px) {
+            .featured-video-thumb { height: 320px; }
+        }
+        @media (max-width: 640px) {
+            .featured-video-thumb { height: 220px; border-radius: 14px; }
+            .featured-video-card { border-radius: 14px; }
         }
         .gallery-media-contain {
             object-fit: contain !important;
@@ -1374,14 +1385,7 @@
         @media (hover: hover) {
             .media-detail-close:hover { background: rgba(241,245,249,0.98); transform: scale(1.05); }
         }
-        @media (min-width: 1601px) {
-            .featured-video-thumb { height: 680px; }
-        }
-        @media (max-width: 1023px) {
-            .featured-video-thumb { height: 440px; }
-        }
         @media (max-width: 640px) {
-            .featured-video-thumb { height: 330px; }
             .media-detail-close { width: 44px; height: 44px; top: max(12px, env(safe-area-inset-top)); right: 12px; }
         }
         .gallery-detail-title {
@@ -2648,7 +2652,7 @@
                 justify-content: flex-start;
                 flex: 0 1 auto;
                 min-width: 0;
-                max-width: calc(100vw - 190px);
+                max-width: max(58px, calc(100vw - 260px));
             }
             .site-logo {
                 height: 56px;
@@ -2658,20 +2662,27 @@
                 object-fit: contain;
             }
             .header-mobile-actions {
-                min-height: 42px;
-                gap: .4rem;
+                min-height: 44px;
+                gap: .45rem;
                 flex: 0 0 auto;
                 flex-wrap: nowrap;
             }
             .header-mobile-actions > button,
-            #mobile-user-status-icon > button,
-            #mobile-user-status-icon > div {
-                width: 42px !important;
-                height: 42px !important;
+            .header-mobile-actions > a,
+            #mobile-user-status-icon button,
+            #mobile-user-status-icon .mobile-header-icon {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px;
+                flex: 0 0 44px;
+                padding: 0 !important;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
+            #mobile-user-status-icon > div { display: flex; align-items: center; gap: .45rem; flex-wrap: nowrap; }
+            .header-mobile-actions span:not(.header-badge-btn__badge),
+            #mobile-user-status-icon span:not(.header-badge-btn__badge) { display: none; }
             main.flex-grow { padding-top: 5.5rem !important; }
             .listing-detail-main-image {
                 min-height: 220px;
@@ -2679,10 +2690,11 @@
             }
         }
 
-        .header-badge-btn { position: relative; min-width: 42px; justify-content: center; }
+        .header-badge-btn { position: relative; min-width: 44px; min-height: 44px; justify-content: center; }
         .header-badge-btn__badge { position: absolute; top: -7px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; line-height: 18px; font-weight: 900; box-shadow: 0 8px 18px rgba(239,68,68,.35); }
         .header-badge-btn__badge.is-empty { display: none; }
         .notification-panel { position: fixed; right: 18px; top: 92px; z-index: 80; width: min(380px, calc(100vw - 28px)); max-height: 72vh; overflow:auto; border-radius: 24px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 70px rgba(15,23,42,.22); padding: 14px; }
+        .notification-panel--full { left: 50%; right: auto; top: 96px; transform: translateX(-50%); width: min(720px, calc(100vw - 28px)); max-height: calc(100dvh - 124px); }
         .notification-item { display:block; width:100%; text-align:left; border-radius: 18px; padding: 12px; border: 1px solid transparent; color:#0f172a; }
         .notification-item:hover { background:#f8fafc; border-color:#e2e8f0; }
         .notification-item.is-unread { background:#eef2ff; border-color:#c7d2fe; }
@@ -2698,7 +2710,7 @@
         .message-status.is-read { color:#16a34a; }
         .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
         .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
-        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ right: 10px; top: 78px; width: min(380px, calc(100vw - 20px)); } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -3142,12 +3154,7 @@
                 <aside class="conversation-list">
                     <div class="p-4 border-b border-slate-200 bg-white">
                         <h1 class="text-2xl font-black text-slate-950">💬 Mesajlar</h1>
-                        <div class="mt-2 flex flex-wrap gap-2 text-[11px] font-black">
-                            <button onclick="navigateToProfileInfo()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Kabinet</button>
-                            <button onclick="navigateToMessages()" class="rounded-full bg-brand-600 px-3 py-1 text-white">Mesajlar</button>
-                            <button onclick="navigateToFavorites()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Favorilər</button>
-                            <button onclick="navigateToMyListings()" class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Elanlarım</button>
-                        </div>
+                        <div class="mt-2 inline-flex rounded-full bg-brand-600 px-3 py-1 text-[11px] font-black text-white">Mesajlar</div>
                     </div>
                     <div id="conversation-list-root"></div>
                 </aside>
@@ -4027,6 +4034,7 @@ Title: Park Villas
                 <label for="edit-user-phone" class="text-[10px] text-gray-400 font-bold uppercase">Əlaqə nömrəsi</label>
                 <input type="tel" id="edit-user-phone" placeholder="+994501234567" aria-label="Əlaqə nömrəsi" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
                 <input type="email" id="edit-user-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300"><input type="checkbox" id="edit-user-email-verified" class="accent-brand-500"> Email təsdiqlənib</label>
                 <input type="password" id="edit-user-password" placeholder="Yeni şifrə (boş saxlasanız dəyişməz)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                                         <select id="edit-user-role" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                     <option value="user">İstifadəçi</option>
@@ -5559,7 +5567,7 @@ Title: Park Villas
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0, provider: u.provider || 'local' };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0, provider: u.provider || 'local', emailVerified: u.emailVerified ?? u.email_verified ?? false };
         }
 
 
@@ -8243,7 +8251,7 @@ Title: Park Villas
         }
 
 
-        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], conversations: [], activeConversationId: null, activeMessages: [], socket: null };
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], conversations: [], activeConversationId: null, activeConversation: null, activeMessages: [], socket: null, summaryLoadedAt: 0 };
 
         function badgeHtml(count) {
             const value = Number(count || 0);
@@ -8257,6 +8265,8 @@ Title: Park Villas
 
         async function loadBadgeSummary() {
             if (!activeUser) return;
+            if (Date.now() - (messagingState.summaryLoadedAt || 0) < 15000) return;
+            messagingState.summaryLoadedAt = Date.now();
             try {
                 const summary = await apiRequest('/api/notifications/summary');
                 messagingState.notificationsUnread = summary.notificationsUnread || 0;
@@ -8281,7 +8291,7 @@ Title: Park Villas
             if (!await ensureSocketClientScript()) return;
             messagingState.socket = io({ auth: { token: getAuthToken() } });
             messagingState.socket.on('notification:new', (notification) => { messagingState.notificationsUnread += 1; messagingState.notifications.unshift(notification); refreshHeaderBadges(); });
-            messagingState.socket.on('message:new', ({ message }) => { messagingState.messagesUnread += 1; if (String(message.conversationId) === String(messagingState.activeConversationId)) openConversation(message.conversationId); else loadConversations(false); refreshHeaderBadges(); });
+            messagingState.socket.on('message:new', ({ message }) => { if (String(message.senderId) === String(activeUser?.id)) return; if (String(message.conversationId) === String(messagingState.activeConversationId)) { messagingState.activeMessages.push(message); renderChatWindow(messagingState.activeConversation, messagingState.activeMessages); apiRequest(`/api/notifications/summary`).then(summary => { messagingState.notificationsUnread = summary.notificationsUnread || 0; messagingState.messagesUnread = summary.messagesUnread || 0; refreshHeaderBadges(); }).catch(() => null); } else { messagingState.messagesUnread += 1; loadConversations(false); refreshHeaderBadges(); } });
             messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
             messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
         }
@@ -8291,14 +8301,45 @@ Title: Park Villas
             messagingState.socket = null;
         }
 
+        function closeNotificationsPanel() {
+            document.getElementById('notification-panel')?.remove();
+            document.removeEventListener('click', handleNotificationOutsideClick, true);
+        }
+
+        function handleNotificationOutsideClick(event) {
+            if (event.target.closest('#notification-panel') || event.target.closest('[data-notification-toggle]')) return;
+            closeNotificationsPanel();
+        }
+
+        function renderNotificationsPanel({ full = false, loading = false } = {}) {
+            const body = loading
+                ? '<div class="p-4 space-y-2"><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div></div>'
+                : (messagingState.notifications.length ? messagingState.notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>');
+            const panel = document.getElementById('notification-panel');
+            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div></div><div>${body}</div>`;
+            if (panel) { panel.className = `notification-panel ${full ? 'notification-panel--full' : ''}`; panel.innerHTML = html; return; }
+            document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel ${full ? 'notification-panel--full' : ''}">${html}</div>`);
+            setTimeout(() => document.addEventListener('click', handleNotificationOutsideClick, true), 0);
+        }
+
         async function toggleNotificationsPanel() {
             const existing = document.getElementById('notification-panel');
-            if (existing) { existing.remove(); return; }
+            if (existing && !existing.classList.contains('notification-panel--full')) { closeNotificationsPanel(); return; }
+            renderNotificationsPanel({ loading: !messagingState.notifications.length });
             try {
                 const result = await apiRequest('/api/notifications');
                 messagingState.notifications = result.data || [];
-                document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel"><div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button></div><div>${messagingState.notifications.length ? messagingState.notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>'}</div></div>`);
-            } catch (error) { alert(error.message); }
+                renderNotificationsPanel();
+            } catch (error) { renderNotificationsPanel(); showToast(error.message || 'Bildirişlər yüklənmədi.'); }
+        }
+
+        async function openAllNotifications() {
+            renderNotificationsPanel({ full: true, loading: !messagingState.notifications.length });
+            try {
+                const result = await apiRequest('/api/notifications?limit=100');
+                messagingState.notifications = result.data || [];
+                renderNotificationsPanel({ full: true });
+            } catch (error) { showToast(error.message || 'Bildirişlər yüklənmədi.'); }
         }
 
         function renderNotificationItem(item) {
@@ -8343,32 +8384,44 @@ Title: Park Villas
 
         function listingChatCard(listing) {
             if (!listing) return '';
-            const img = listing.imageUrl || listing.images?.[0]?.imageUrl || '';
-            return `<div class="listing-chat-card">${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(listing.listingCode || listing.id)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml([listing.district, listing.city].filter(Boolean).join(', '))}</div></div></div>`;
+            const img = listing.imageUrl || listing.images?.[0]?.imageUrl || listing.images?.[0]?.url || '';
+            const code = listing.listingCode || listing.listing_code || listing.code || listing.id;
+            return `<button type="button" onclick="navigateToListingPreview('${escapeHtml(code)}')" class="listing-chat-card text-left hover:border-brand-300 hover:bg-brand-50 transition">${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(code)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml([listing.district, listing.city].filter(Boolean).join(', '))}</div></div></button>`;
         }
 
         async function openConversation(id) {
-            const result = await apiRequest(`/api/messages/conversations/${id}`);
             messagingState.activeConversationId = String(id);
-            messagingState.activeMessages = result.messages || [];
-            messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - (result.conversation?.unreadCount || 0));
-            refreshHeaderBadges();
-            await loadConversations(false);
             renderConversations();
-            renderChatWindow(result.conversation, messagingState.activeMessages);
+            const root = document.getElementById('chat-window-root');
+            if (root) root.innerHTML = '<div class="flex-1 flex items-center justify-center text-slate-500 font-bold p-8">Mesajlar yüklənir…</div>';
+            try {
+                const result = await apiRequest(`/api/messages/conversations/${id}`);
+                messagingState.activeConversation = result.conversation;
+                messagingState.activeMessages = result.messages || [];
+                messagingState.messagesUnread = Math.max(0, messagingState.messagesUnread - (result.conversation?.unreadCount || 0));
+                refreshHeaderBadges();
+                const idx = messagingState.conversations.findIndex(c => String(c.id) === String(id));
+                if (idx > -1) messagingState.conversations[idx] = { ...messagingState.conversations[idx], ...result.conversation, unreadCount: 0 };
+                else if (result.conversation) messagingState.conversations.unshift(result.conversation);
+                renderConversations();
+                renderChatWindow(result.conversation, messagingState.activeMessages);
+            } catch (error) {
+                if (root) root.innerHTML = `<div class="flex-1 flex items-center justify-center text-red-600 font-bold p-8 text-center">${escapeHtml(error.message || 'Söhbət açılmadı.')}</div>`;
+            }
         }
 
         function messageStatus(message) {
             if (String(message.senderId) !== String(activeUser?.id)) return '';
             if (message.readAt) return '<span class="message-status is-read">✓✓</span>';
             if (message.deliveredAt) return '<span class="message-status">✓✓</span>';
-            return '<span class="message-status">✓</span>';
+            return `<span class="message-status">✓${message.pending ? ' göndərilir' : ''}</span>`;
         }
 
         function renderChatWindow(conversation, messages) {
             const root = document.getElementById('chat-window-root');
+            messagingState.activeConversation = conversation || messagingState.activeConversation;
             const otherName = conversation?.otherUser?.fullname || 'İstifadəçi';
-            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><div class="typing-placeholder">${escapeHtml(otherName)} yazır… (tezliklə)</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
             document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
         }
 
@@ -8377,17 +8430,32 @@ Title: Park Villas
             const input = document.getElementById('chat-message-input');
             const text = input.value.trim();
             if (!text || !messagingState.activeConversationId) return;
+            const tempId = `tmp-${Date.now()}`;
             input.value = '';
-            const result = await apiRequest(`/api/messages/conversations/${messagingState.activeConversationId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
-            messagingState.activeMessages.push(result.message);
-            renderChatWindow(messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId)) || {}, messagingState.activeMessages);
-            await loadConversations(false);
-            renderConversations();
+            const optimistic = { id: tempId, conversationId: messagingState.activeConversationId, senderId: activeUser.id, text, createdAt: new Date().toISOString(), pending: true };
+            messagingState.activeMessages.push(optimistic);
+            renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+            document.getElementById('chat-message-input')?.focus();
+            try {
+                const result = await apiRequest(`/api/messages/conversations/${messagingState.activeConversationId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
+                const idx = messagingState.activeMessages.findIndex(m => m.id === tempId);
+                if (idx > -1) messagingState.activeMessages[idx] = result.message;
+                else messagingState.activeMessages.push(result.message);
+                const conv = messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId));
+                if (conv) conv.lastMessage = result.message;
+                renderChatWindow(messagingState.activeConversation || conv || {}, messagingState.activeMessages);
+                renderConversations();
+            } catch (error) {
+                const msg = messagingState.activeMessages.find(m => m.id === tempId);
+                if (msg) { msg.pending = false; msg.failed = true; }
+                renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+                showToast(error.message || 'Mesaj göndərilmədi.');
+            }
         }
 
         function updateLocalMessageStatus(messageId, patch) {
             const msg = messagingState.activeMessages.find(m => String(m.id) === String(messageId));
-            if (msg) { Object.assign(msg, patch); renderChatWindow(messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId)) || {}, messagingState.activeMessages); }
+            if (msg) { Object.assign(msg, patch); renderChatWindow(messagingState.activeConversation || messagingState.conversations.find(c => String(c.id) === String(messagingState.activeConversationId)) || {}, messagingState.activeMessages); }
         }
 
         async function startListingConversation(listingId) {
@@ -8395,7 +8463,7 @@ Title: Park Villas
             try {
                 const result = await apiRequest('/api/messages/conversations', { method: 'POST', body: JSON.stringify({ listingId }) });
                 navigateToMessages(result.conversation.id);
-            } catch (error) { alert(error.message); }
+            } catch (error) { alert(error.message || 'Söhbət yaradıla bilmədi.'); }
         }
 
         function updateHeaderUI() {
@@ -8408,7 +8476,7 @@ Title: Park Villas
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
-                    <button onclick="toggleNotificationsPanel()" class="header-action-btn header-badge-btn" aria-label="Bildirişlər">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
+                    <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
                     <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button>
                     <div class="relative group">
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
@@ -8424,7 +8492,7 @@ Title: Park Villas
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" class="header-action-btn header-badge-btn !w-9 !h-9 !p-0">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn !w-9 !h-9 !p-0">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
                 loadBadgeSummary();
                 connectRealtime();
                 mobileActions.innerHTML = ``;
@@ -11672,6 +11740,7 @@ Təşəkkür edirəm. 🙏`;
                                         <h4 class="font-extrabold text-white text-base">${escapeHtml(fullname)}</h4>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10">${roleLabel(a.role)}</span>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full ${a.emailVerified ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'}">${a.emailVerified ? 'Email təsdiqli' : 'Email təsdiqsiz'}</span>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-gray-300">
                                         <span><b class="text-gray-500 uppercase text-[9px] block">E-poçt</b>${escapeHtml(a.email || '—')}</span>
@@ -11685,6 +11754,7 @@ Təşəkkür edirəm. 🙏`;
                                 </div>
                                 <div class="flex md:flex-col items-center gap-2 shrink-0">
                                     <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                    ${!a.emailVerified ? `<button onclick="event.stopPropagation(); verifyUserEmail('${a.id}')" class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition" aria-label="Emaili təsdiqlə"><i class="fa-solid fa-envelope-circle-check"></i></button>` : ''}
                                     <button onclick="event.stopPropagation(); toggleUserActive('${a.id}', ${a.isActive === false ? 'true' : 'false'})" class="w-9 h-9 rounded-lg ${a.isActive === false ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500'} hover:text-white transition" aria-label="Status"><i class="fa-solid ${a.isActive === false ? 'fa-check' : 'fa-ban'}"></i></button>
                                     <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
                                 </div>
@@ -12168,6 +12238,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('edit-user-email').value = user.email || '';
             document.getElementById('edit-user-phone').value = user.phone || '';
             document.getElementById('edit-user-role').value = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+            document.getElementById('edit-user-email-verified').checked = Boolean(user.emailVerified);
             document.getElementById('user-edit-modal').classList.remove('hidden');
         }
 
@@ -12190,7 +12261,8 @@ Təşəkkür edirəm. 🙏`;
                 fullname: document.getElementById('edit-user-fullname').value.trim(),
                 email: document.getElementById('edit-user-email').value.trim(),
                 phone: document.getElementById('edit-user-phone').value.trim(),
-                role: document.getElementById('edit-user-role').value
+                role: document.getElementById('edit-user-role').value,
+                emailVerified: document.getElementById('edit-user-email-verified').checked
             };
             const password = document.getElementById('edit-user-password')?.value.trim();
             if (password) payload.password = password;
@@ -12205,6 +12277,20 @@ Təşəkkür edirəm. 🙏`;
                 isUserActionSubmitting = false;
                 setUserEditButtonLoading(false);
             }
+        }
+
+
+        async function verifyUserEmail(id) {
+            if (isUserActionSubmitting) return;
+            isUserActionSubmitting = true;
+            setUserActionStatusLoading(true, 'Email təsdiqlənir…');
+            try {
+                const updated = await apiRequest(`/api/users/${id}/verify-email`, { method: 'PATCH' });
+                const idx = appData.agents.findIndex(x => String(x.id) === String(id));
+                if (idx > -1) appData.agents[idx] = userToUi(updated);
+                renderAdminDashboard();
+            } catch (error) { alert('Email təsdiqlənmədi: ' + (error.message || 'Xəta')); }
+            finally { isUserActionSubmitting = false; setUserActionStatusLoading(false); }
         }
 
         async function toggleUserActive(id, activate) {

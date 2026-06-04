@@ -76,6 +76,8 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
 }));
 
 router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
+  console.log('[messages] create conversation start', { userId: req.auth.id, listingId: req.body.listingId ?? req.body.listing_id, receiverId: req.body.receiverId ?? req.body.receiver_id });
+  try {
   const listingId = toBigIntId(req.body.listingId ?? req.body.listing_id);
   let receiverId = toIntId(req.body.receiverId ?? req.body.receiver_id);
 
@@ -103,7 +105,12 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
       },
       include: conversationInclude,
     });
+  console.log('[messages] create conversation success', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existingId) });
   res.status(existingId ? 200 : 201).json({ conversation: serializeConversation(conversation, req.auth.id, 0) });
+  } catch (error) {
+    console.error('[messages] create conversation failed', { userId: req.auth.id, message: error.message, code: error.code, meta: error.meta });
+    throw error;
+  }
 }));
 
 router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => {
@@ -127,6 +134,8 @@ router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => 
 }));
 
 router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req, res) => {
+  console.log('[messages] send start', { userId: req.auth.id, conversationId: req.params.id });
+  try {
   const id = toBigIntId(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid conversation ID.' });
   if (!await requireParticipant(id, req.auth.id)) return res.status(403).json({ message: 'Conversation access denied.' });
@@ -155,7 +164,12 @@ router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req
 
   emitToUser(participant.userId, 'message:new', { message });
   if (deliveredAt) emitToUser(req.auth.id, 'message:delivered', { conversationId: id, messageId: message.id, deliveredAt });
+  console.log('[messages] send success', { userId: req.auth.id, conversationId: id, messageId: message.id, receiverId: participant.userId });
   res.status(201).json({ message });
+  } catch (error) {
+    console.error('[messages] send failed', { userId: req.auth.id, conversationId: req.params.id, message: error.message, code: error.code, meta: error.meta });
+    throw error;
+  }
 }));
 
 module.exports = router;

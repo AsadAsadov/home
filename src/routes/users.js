@@ -213,6 +213,12 @@ router.put('/:id', authenticate, authorize('admin'), asyncHandler(async (req, re
   res.json(publicUser(user));
 }));
 
+
+router.patch('/:id/verify-email', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const user = await prisma.user.update({ where: { id: Number(req.params.id) }, data: { emailVerified: true } });
+  res.json(publicUser(user));
+}));
+
 router.patch('/:id/block', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const user = await prisma.user.update({ where: { id: Number(req.params.id) }, data: { isActive: false } });
   await prisma.userSession.deleteMany({ where: { userId: user.id } }).catch(() => null);

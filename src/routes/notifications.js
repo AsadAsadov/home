@@ -10,21 +10,35 @@ function notificationWhere(req) {
 }
 
 router.get('/summary', authenticate, asyncHandler(async (req, res) => {
+  console.log('[notifications] summary start', { userId: req.auth.id });
+  try {
   const [notificationsUnread, messagesUnread] = await Promise.all([
     prisma.notification.count({ where: { ...notificationWhere(req), isRead: false } }),
     prisma.message.count({ where: { receiverId: Number(req.auth.id), isRead: false } }),
   ]);
+  console.log('[notifications] summary success', { userId: req.auth.id, notificationsUnread, messagesUnread });
   res.json({ notificationsUnread, messagesUnread });
+  } catch (error) {
+    console.error('[notifications] summary failed', { userId: req.auth.id, message: error.message, code: error.code });
+    throw error;
+  }
 }));
 
 router.get('/', authenticate, asyncHandler(async (req, res) => {
+  console.log('[notifications] list start', { userId: req.auth.id });
+  try {
   const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '30', 10) || 30, 1), 100);
   const data = await prisma.notification.findMany({
     where: notificationWhere(req),
     orderBy: [{ isRead: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }],
     take: limit,
   });
+  console.log('[notifications] list success', { userId: req.auth.id, count: data.length });
   res.json({ data });
+  } catch (error) {
+    console.error('[notifications] list failed', { userId: req.auth.id, message: error.message, code: error.code });
+    throw error;
+  }
 }));
 
 router.patch('/:id/read', authenticate, asyncHandler(async (req, res) => {

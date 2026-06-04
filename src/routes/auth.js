@@ -245,13 +245,34 @@ async function createPasswordResetToken(email, tx = prisma) {
 
 async function sendVerificationEmail(user) {
   const token = await createEmailVerificationToken(user.id);
+  console.log('[email-verification] token created', { userId: user.id, email: user.email });
   const url = appUrl('/verify-email', { token });
-  await sendEmail({
+  try {
+    console.log('[email-verification] attempting email send', { userId: user.id, email: user.email });
+    const info = await sendEmail({
     to: user.email,
     subject: 'Best Home hesabınızı təsdiqləyin',
     text: `Salam ${user.fullname}, Best Home hesabınızı təsdiqləmək üçün bu linkə keçin: ${url}`,
     html: `<p>Salam ${escapeHtml(user.fullname)},</p><p>Best Home hesabınızı təsdiqləmək üçün düyməyə klikləyin.</p><p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700">📧 Emaili təsdiqlə</a></p><p>Link 24 saat qüvvədədir.</p>`,
-  });
+    });
+    console.log('[email-verification] email send success', {
+      userId: user.id,
+      email: user.email,
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      response: info?.response,
+    });
+  } catch (error) {
+    console.error('[email-verification] email send failed', {
+      userId: user.id,
+      email: user.email,
+      message: error.message,
+      code: error.code,
+      missingEnv: error.missingEnv,
+    });
+    throw error;
+  }
   return url;
 }
 
@@ -349,8 +370,10 @@ router.post('/register', authRoute(async (req, res) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) return res.status(409).json({ success: false, error: 'Email is already registered.', message: 'Email is already registered.' });
 
+  console.log('[email-verification] start', { email });
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({ data: { fullname, email, phone, passwordHash, role: 'user', emailVerified: false, provider: 'local' } });
+  console.log('[email-verification] user created', { userId: user.id, email: user.email });
   await logUserActivity(prisma, user.id, 'register');
   let verificationEmailSent = true;
   try {
@@ -358,6 +381,17 @@ router.post('/register', authRoute(async (req, res) => {
   } catch (error) {
     verificationEmailSent = false;
     authErrorLog(error, { path: 'send_verification_email', user_id: user.id });
+  }
+
+  if (!verificationEmailSent) {
+    return res.status(503).json({
+      success: false,
+      user: publicUser(user),
+      userCreated: true,
+      emailVerificationRequired: true,
+      verificationEmailSent: false,
+      message: 'Email təsdiqləmə məktubu göndərilə bilmədi.',
+    });
   }
 
   return res.status(201).json({
@@ -464,7 +498,14 @@ router.post('/resend-verification', authRoute(async (req, res) => {
   const rate = hitFixedWindow(resendVerificationAttempts, rateLimitKey('verify', email), RESEND_VERIFICATION_WINDOW_MS, 1);
   if (!rate.allowed) return res.status(429).json({ success: false, message: 'Zəhmət olmasa 1 dəqiqə sonra yenidən cəhd edin.' });
   const user = await prisma.user.findUnique({ where: { email } });
-  if (user && !user.emailVerified && user.provider !== 'google') await sendVerificationEmail(user);
+  if (user && !user.emailVerified && user.provider !== 'google') {
+    try {
+      await sendVerificationEmail(user);
+    } catch (error) {
+      authErrorLog(error, { path: 'resend_verification_email', user_id: user.id });
+      return res.status(503).json({ success: false, verificationEmailSent: false, message: 'Email təsdiqləmə məktubu göndərilə bilmədi.' });
+    }
+  }
   res.json({ success: true, message: 'Əgər hesab təsdiqlənməyibsə, yeni təsdiqləmə linki göndərildi.' });
 }));
 
