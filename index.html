@@ -2025,8 +2025,17 @@
             .property-lightbox__thumb { width: 68px; height: 52px; flex-basis: 68px; border-radius: .7rem; }
         }
 
+        .listing-form-grid-2,
         .admin-notebook-fields {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        @media (max-width: 420px) {
+            .listing-form-grid-2,
+            .admin-notebook-fields {
+                grid-template-columns: 1fr;
+            }
         }
         .admin-notebook-fields label,
         .admin-floor-label {
@@ -3517,14 +3526,14 @@
                                 </select>
                             </div>
                             <div id="sb-district-wrap" class="space-y-1">
-                                <label id="sb-district-label" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Project *</label>
+                                <label id="sb-district-label" class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Layihə *</label>
                                 <select id="sb-project" class="w-full h-10 bg-[#0f172a] border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
                                     <option value="Digər">Digər Rezidensiya</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="admin-notebook-fields grid gap-2 md:gap-3">
+                        <div class="admin-notebook-fields">
                             <div class="space-y-1">
                                 <label class="text-gray-400 font-bold uppercase tracking-wide">Otaq sayı *</label>
                                 <input type="number" id="sb-rooms" required min="1" value="2" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-brand-500/60">
@@ -3855,9 +3864,9 @@
                         <div>
                             <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
                                 <i class="fa-solid fa-file-import text-brand-500"></i>
-                                Bulk Project Import
+                                Bulk Layihə Import
                             </h3>
-                            <p class="text-gray-400 text-xs mt-1">Çoxlu layihə mətnini yapışdırın, avtomatik bölünmüş layihələri yoxlayın, redaktə edin və hamısını mövcud Project CRUD API ilə bir əməliyyatda yadda saxlayın.</p>
+                            <p class="text-gray-400 text-xs mt-1">Çoxlu layihə mətnini yapışdırın, avtomatik bölünmüş layihələri yoxlayın, redaktə edin və hamısını mövcud Layihə CRUD API ilə bir əməliyyatda yadda saxlayın.</p>
                         </div>
                         <button type="button" onclick="clearBulkProjectImport()" class="self-start bg-white/5 hover:bg-white/10 text-gray-300 text-[10px] font-bold px-3 py-2 rounded-xl transition">Təmizlə</button>
                     </div>
@@ -3893,7 +3902,7 @@ Title: Park Villas
                                     <p class="text-[11px] text-gray-500">Saxlamadan əvvəl bütün xanaları birbaşa redaktə edə bilərsiniz.</p>
                                 </div>
                                 <button id="bulk-project-save-btn" type="button" onclick="saveBulkProjectImport()" disabled class="bg-emerald-500/20 text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-emerald-500 hover:enabled:text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
-                                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Save All Projects
+                                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Bütün layihələri saxla
                                 </button>
                             </div>
                             <div class="overflow-x-auto rounded-2xl border border-white/10 bg-black/10">
@@ -3931,8 +3940,8 @@ Title: Park Villas
                     <form onsubmit="handleSaveHeroSlide(event)" class="admin-responsive-form space-y-3">
                         <input type="hidden" id="hero-slide-id">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Mode</span><select id="hero-slide-type-input" onchange="handleHeroSlideTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="project">Project</option><option value="custom">Custom</option></select></label>
-                            <label id="hero-project-field" class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Project</span><select id="hero-project-id-input" onchange="handleHeroProjectChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="">Layihə seçin</option></select></label>
+                            <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Mode</span><select id="hero-slide-type-input" onchange="handleHeroSlideTypeChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="project">Layihə</option><option value="custom">Custom</option></select></label>
+                            <label id="hero-project-field" class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Layihə</span><select id="hero-project-id-input" onchange="handleHeroProjectChange()" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white"><option value="">Layihə seçin</option></select></label>
                         </div>
                         <div id="hero-custom-fields" class="space-y-3">
                             <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Title</span><input type="text" id="hero-title-input" placeholder="Marketing banner title" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
@@ -3960,7 +3969,7 @@ Title: Park Villas
                             <label class="space-y-1"><span class="text-[10px] text-gray-400 font-bold uppercase">Duration</span><input type="number" id="hero-duration-input" min="1" value="10" oninput="updateHeroAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
                             <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300 mt-5"><input type="checkbox" id="hero-is-active-input" checked onchange="updateHeroAdminPreview()" class="w-4 h-4"> Aktiv</label>
                         </div>
-                        <p id="hero-existing-media-label" class="text-[10px] text-gray-500">Project mode layihənin image_url dəyərindən istifadə edir. Custom mode media_url və ya upload istifadə edir.</p>
+                        <p id="hero-existing-media-label" class="text-[10px] text-gray-500">Layihə mode layihənin image_url dəyərindən istifadə edir. Custom mode media_url və ya upload istifadə edir.</p>
                         <div class="flex gap-2">
                             <button type="submit" id="hero-form-submit" class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition">Yadda Saxla</button>
                             <button type="button" onclick="resetHeroSlideForm()" class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-gray-300">Təmizlə</button>
@@ -4682,7 +4691,7 @@ Title: Park Villas
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
-            if (['seabreeze', 'sea breeze', 'sea-breeze'].includes(normalized)) return 'seabreeze';
+            if (['seabreeze', 'sea breeze', 'sea-breeze'].includes(normalized.replace(/\s+/g, ' ')) || normalized.replace(/[\s_-]+/g, '') === 'seabreeze') return 'seabreeze';
             if (['general', 'umumi', 'ümumi'].includes(normalized)) return 'general';
             if (['baki', 'bakı'].includes(normalized)) return 'baki';
             if (['absheron', 'abşeron', 'abseron'].includes(normalized)) return 'absheron';
@@ -4693,7 +4702,17 @@ Title: Park Villas
         function getRegionLabel(regionType) { return REGION_LABELS[regionType] || 'Unknown'; }
         function getListingRegionType(listing = {}) { const normalized = normalizeRegionType(listing.regionType, listing.project); if (normalized === 'general') return cityToLegacyRegion(listing.city) || 'general'; return normalized || cityToLegacyRegion(listing.city) || ''; }
         function getListingDistrict(listing = {}) { const region = getListingRegionType(listing); return region === 'seabreeze' ? (listing.district || listing.project || '') : (listing.district || listing.neighborhood || ''); }
-        function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getOfficialProjects().map(p => p.title).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : (region === 'sumqayit' ? SUMQAYIT_DISTRICTS : []))); }
+        function normalizeProjectRegionValue(value = '') { return String(value || '').trim().toLocaleLowerCase('az-AZ').replace(/[\s_-]+/g, ''); }
+        function isSeaBreezeRegionValue(value = '') { return normalizeProjectRegionValue(value) === 'seabreeze'; }
+        function isSeaBreezeProject(project = {}) {
+            const explicitRegionValues = [project.region, project.regionType, project.region_type, project.projectArea, project.project_area, project.location]
+                .map(value => String(value || '').trim())
+                .filter(Boolean);
+            if (!explicitRegionValues.length) return true;
+            return explicitRegionValues.some(isSeaBreezeRegionValue);
+        }
+        function getSeaBreezeProjects() { return getOfficialProjects().filter(isSeaBreezeProject); }
+        function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getSeaBreezeProjects().map(p => p.title).filter(Boolean).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : (region === 'sumqayit' ? SUMQAYIT_DISTRICTS : []))); }
         function cityToLegacyRegion(city) { const n = String(city || '').trim().toLowerCase(); if (['baki', 'bakı'].includes(n)) return 'baki'; if (['absheron', 'abşeron', 'abseron'].includes(n)) return 'absheron'; if (['sumqayit', 'sumqayıt'].includes(n)) return 'sumqayit'; return ''; }
         function legacyRegionToCity(region) { return region === 'baki' ? 'Bakı' : (region === 'absheron' ? 'Abşeron' : (region === 'sumqayit' ? 'Sumqayıt' : '')); }
 
@@ -5328,6 +5347,7 @@ Title: Park Villas
             const img = primaryImage || images[0] || '';
             return {
                 id: String(p.id), title: p.title || '', category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
+                region: p.region || p.regionType || p.region_type || '', projectArea: p.projectArea || p.project_area || '', location: p.location || '',
                 floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
                 repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: normalizeFeatures(p.features),
                 desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
@@ -5984,7 +6004,7 @@ Title: Park Villas
         }
 
         function bootstrapCachedData() {
-            appData.projects = [];
+            appData.projects = readCache(CACHE_KEYS.projects, []);
             appData.listings = [];
             appData.vacancies = readCache(CACHE_KEYS.vacancies, defaultVacancies);
             appData.gallery = [];
@@ -6383,7 +6403,7 @@ Title: Park Villas
             const file = document.getElementById('hero-media-file-input');
             if (file) file.value = '';
             const label = document.getElementById('hero-existing-media-label');
-            if (label) label.textContent = slide?.media_url ? `Mövcud media_url saxlanılacaq: ${slide.media_url}` : 'Project mode layihənin image_url dəyərindən istifadə edir. Custom mode media_url və ya upload istifadə edir.';
+            if (label) label.textContent = slide?.media_url ? `Mövcud media_url saxlanılacaq: ${slide.media_url}` : 'Layihə mode layihənin image_url dəyərindən istifadə edir. Custom mode media_url və ya upload istifadə edir.';
             handleHeroSlideTypeChange(false);
             document.getElementById('hero-form-submit').textContent = slide?.id ? 'Slaydı Yenilə' : 'Slayd Yarat';
             updateHeroAdminPreview(slide);
@@ -6495,7 +6515,7 @@ Title: Park Villas
             const slideType = document.getElementById('hero-slide-type-input').value;
             const mediaUrl = document.getElementById('hero-media-url-input')?.value.trim();
             const projectId = document.getElementById('hero-project-id-input').value;
-            if (slideType === 'project' && !projectId) return alert('Project mode üçün layihə seçin.');
+            if (slideType === 'project' && !projectId) return alert('Layihə mode üçün layihə seçin.');
             if (slideType === 'custom' && !id && !file && !mediaUrl) return alert('Custom hero üçün media URL və ya upload tələb olunur.');
             if (slideType === 'custom' && !document.getElementById('hero-title-input')?.value.trim()) return alert('Custom hero üçün başlıq daxil edin.');
             isHeroSaveSubmitting = true;
@@ -7272,7 +7292,7 @@ Title: Park Villas
 
         function buildDistrictOptionHtml(region, includeAll = false) {
             const options = region === 'city' ? getVisibleGeneralCities().map(item => item.value) : getDistrictOptionsForRegion(region);
-            const first = includeAll ? '<option value="all">Bütün layihə/rayonlar</option>' : '';
+            const first = includeAll ? `<option value="all">${region === 'seabreeze' ? 'Bütün layihələr' : 'Bütün layihə/rayonlar'}</option>` : '';
             const suffix = region === 'seabreeze' && !options.includes('Digər') ? '<option value="Digər">Digər Rezidensiya</option>' : '';
             return first + options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('') + suffix;
         }
@@ -7348,7 +7368,7 @@ Title: Park Villas
         function handleListingRegionTypeChange(preferredCategory = '') {
             const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
             const label = document.getElementById('sb-district-label');
-            if (label) label.textContent = region === 'seabreeze' ? 'Project *' : 'Şəhər *';
+            if (label) label.textContent = region === 'seabreeze' ? 'Layihə *' : 'Şəhər *';
             syncCategoryOptionsForRegion(region, preferredCategory);
             syncDistrictSelect(document.getElementById('sb-project'), region === 'general' ? 'city' : region, false);
             ensureGeneralDistrictField();
@@ -7956,9 +7976,16 @@ Title: Park Villas
 
         async function searchLocationsWithPriority(query = '', { city = 'Bakı', district = '' } = {}) {
             const q = String(query || '').trim();
-            if (q.length < 2) return [];
-            const localRows = localLocationRowsForQuery(q);
-            const projectRows = projectLocationRowsForQuery(q);
+            console.info('[map-search] query', q);
+            if (q.length < 2) {
+                console.info('[map-search] provider local count', 0);
+                console.info('[map-search] provider mapbox count', 0);
+                console.info('[map-search] provider nominatim count', 0);
+                console.info('[map-search] final count', 0);
+                return [];
+            }
+            const localRows = mergeLocationRows(localLocationRowsForQuery(q), projectLocationRowsForQuery(q), 10);
+            console.info('[map-search] provider local count', localRows.length);
             let mapboxRows = [];
             let nominatimRows = [];
             try {
@@ -7966,12 +7993,19 @@ Title: Park Villas
             } catch (error) {
                 warnMapboxFallback();
             }
-            try {
-                nominatimRows = filterRemoteLocationRows(await nominatimRemoteSearch(q, { city, district }), q);
-            } catch (error) {
-                if (!mapboxRows.length) warnMapboxFallback();
+            console.info('[map-search] provider mapbox count', mapboxRows.length);
+            if (!localRows.length && !mapboxRows.length) {
+                try {
+                    nominatimRows = filterRemoteLocationRows(await nominatimRemoteSearch(q, { city, district }), q);
+                } catch (error) {
+                    warnMapboxFallback();
+                }
             }
-            return mergeLocationRows(localRows, projectRows, mapboxRows, nominatimRows, 10);
+            console.info('[map-search] provider nominatim count', nominatimRows.length);
+            const finalRows = mergeLocationRows(localRows, mapboxRows, nominatimRows, 10);
+            console.info('[map-search] final count', finalRows.length);
+            if (!finalRows.length) console.info('[map-search] no results after all providers');
+            return finalRows;
         }
 
         function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
@@ -8023,13 +8057,10 @@ Title: Park Villas
             renderAdminLocationResults(instantRows, query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
-            console.info('[map-search] query', query);
-            console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
                 const rows = await searchLocationsWithPriority(query, { city, district });
                 if (!isSearchResponseCurrent('sb-location-search', '__lastAdminLocationSearchToken', token, query)) return;
                 window.__lastAdminLocationResults = rows;
-                console.info('[map-search] finalResults', rows);
                 renderAdminLocationResults(rows, query, { error: !rows.length });
             } catch (error) {
                 if (!isSearchResponseCurrent('sb-location-search', '__lastAdminLocationSearchToken', token, query)) return;
@@ -8125,13 +8156,10 @@ Title: Park Villas
             window.__lastFullscreenMapResults = instantRows;
             renderFullscreenMapResults(instantRows, query, { loading: true });
             const city = fullscreenMapSource === 'admin' ? adminLocationSearchCity() : 'Bakı';
-            console.info('[map-search] query', query);
-            console.info('[map-search] normalizedQuery', normalizeAddressQuery(query));
             try {
                 const rows = await searchLocationsWithPriority(query, { city });
                 if (!isSearchResponseCurrent('fullscreen-map-search-input', '__lastFullscreenMapSearchToken', token, query)) return;
                 window.__lastFullscreenMapResults = rows;
-                console.info('[map-search] finalResults', rows);
                 renderFullscreenMapResults(rows, query, { error: !rows.length });
             } catch (error) {
                 if (!isSearchResponseCurrent('fullscreen-map-search-input', '__lastFullscreenMapSearchToken', token, query)) return;
@@ -8685,10 +8713,12 @@ Title: Park Villas
                             <label class="public-form-field"><span class="public-form-label">Elan növü</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
                             <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
-                            <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
-                            <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
-                            <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
-                            <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
+                            <div class="listing-form-grid-2 sm:col-span-2 lg:col-span-4">
+                                <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
+                                <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
+                                <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
+                                <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
+                            </div>
                             <label id="pl-land-wrap" class="public-form-field"><span class="public-form-label">Torpaq sahəsi (Sot)</span><input id="pl-land" type="number" min="0" step="any" class="public-form-input" placeholder="Məs: 4.5"></label>
                         </div>
                         <label class="public-checkbox-pill"><input type="checkbox" id="pl-is-credit" onchange="togglePublicCreditFields()" class="accent-red-600"><span>Kredit</span></label>
@@ -8733,7 +8763,7 @@ Title: Park Villas
             const city = citySelect?.value || '';
             const district = document.getElementById('pl-district');
             if (!district) return;
-            let options = region === 'seabreeze' ? getOfficialProjects().map(p=>p.title).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : (city === 'Sumqayıt' ? SUMQAYIT_DISTRICTS : [])));
+            let options = region === 'seabreeze' ? getSeaBreezeProjects().map(p=>p.title).filter(Boolean).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : (city === 'Sumqayıt' ? SUMQAYIT_DISTRICTS : [])));
             district.innerHTML = options.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
             const showDistrict = settings.showRayonFilter !== false;
             const showSettlement = settings.showQesebeFilter !== false && region !== 'seabreeze';
@@ -8746,7 +8776,7 @@ Title: Park Villas
             if (!showSettlement && document.getElementById('pl-settlement')) document.getElementById('pl-settlement').value = '';
             if (!showMetro && document.getElementById('pl-metro')) document.getElementById('pl-metro').value = '';
             const districtLabel = document.getElementById('pl-district-label');
-            if (districtLabel) districtLabel.textContent = region === 'seabreeze' ? 'Rayon / Layihə' : 'Rayon / Layihə';
+            if (districtLabel) districtLabel.textContent = region === 'seabreeze' ? 'Layihə' : 'Rayon / Layihə';
             if (publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), 12);
         }
 
@@ -12420,7 +12450,7 @@ Təşəkkür edirəm. 🙏`;
                 if (status) status.textContent = 'Yadda saxlanma zamanı xəta baş verdi.';
             } finally {
                 if (saveBtn) {
-                    saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Save All Projects';
+                    saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Bütün layihələri saxla';
                     saveBtn.disabled = !bulkProjectImportRows.some(row => row.title.trim());
                 }
             }
