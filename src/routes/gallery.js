@@ -216,7 +216,8 @@ router.post('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (r
       return tx.gallery.update({ where: { id }, data: { isFeatured: false } });
     });
 
-    res.json(serializeGallery(updated));
+    const item = serializeGallery(updated);
+    res.json({ success: true, item, data: item });
   } catch (error) {
     if (!isGallerySchemaUnavailable(error)) throw error;
     console.warn('[gallery] hero toggle skipped because schema is unavailable.', { code: error.code, message: error.message });
