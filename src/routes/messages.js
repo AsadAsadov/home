@@ -72,9 +72,17 @@ async function requireParticipant(conversationId, userId) {
   return prisma.participant.findFirst({ where: { conversationId: BigInt(conversationId), userId: Number(userId) } });
 }
 
+function serializeMessage(message) {
+  if (!message) return null;
+  return message.deletedAt ? { ...message, text: 'Bu mesaj silindi' } : message;
+}
+
 function serializeConversation(conversation, currentUserId, unreadCount = 0) {
   const other = conversation.participants?.find((participant) => String(participant.userId) !== String(currentUserId)) || conversation.participants?.[0];
+  const self = conversation.participants?.find((participant) => String(participant.userId) === String(currentUserId));
   const presence = other?.userId ? getUserPresence(other.userId) : null;
+  const rawLastMessage = conversation.messages?.[0] || null;
+  const lastMessage = rawLastMessage && (!self?.clearedAt || new Date(rawLastMessage.createdAt).getTime() > new Date(self.clearedAt).getTime()) ? rawLastMessage : null;
   return {
     ...conversation,
     otherUser: other?.user ? {
@@ -83,7 +91,7 @@ function serializeConversation(conversation, currentUserId, unreadCount = 0) {
       ...(presence?.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
     } : null,
     unreadCount,
-    lastMessage: conversation.messages?.[0] || null,
+    lastMessage: serializeMessage(lastMessage),
   };
 }
 
@@ -101,14 +109,38 @@ function dedupeConversationsByParticipantPair(conversations, currentUserId) {
   });
 }
 
-async function conversationUnreadCounts(userId, ids) {
-  if (!ids.length) return new Map();
+async function conversationUnreadCounts(userId, conversations) {
+  if (!conversations.length) return new Map();
+  const clearedAtByConversation = new Map(conversations.map((conversation) => {
+    const participant = conversation.participants?.find((item) => String(item.userId) === String(userId));
+    return [String(conversation.id), participant?.clearedAt || null];
+  }));
   const grouped = await prisma.message.groupBy({
     by: ['conversationId'],
-    where: { conversationId: { in: ids }, receiverId: Number(userId), isRead: false },
+    where: { conversationId: { in: conversations.map((item) => item.id) }, receiverId: Number(userId), isRead: false },
     _count: { _all: true },
   });
-  return new Map(grouped.map((row) => [String(row.conversationId), row._count._all]));
+  if (!grouped.length) return new Map();
+  const counts = new Map(grouped.map((row) => [String(row.conversationId), row._count._all]));
+  const conversationsWithClearedAt = [...clearedAtByConversation.entries()].filter(([, clearedAt]) => clearedAt);
+  if (!conversationsWithClearedAt.length) return counts;
+  await Promise.all(conversationsWithClearedAt.map(async ([conversationId, clearedAt]) => {
+    const count = await prisma.message.count({
+      where: { conversationId: BigInt(conversationId), receiverId: Number(userId), isRead: false, createdAt: { gt: clearedAt } },
+    });
+    counts.set(conversationId, count);
+  }));
+  return counts;
+}
+
+function currentParticipant(conversation, userId) {
+  return conversation.participants?.find((participant) => String(participant.userId) === String(userId)) || null;
+}
+
+function isConversationVisibleForParticipant(conversation, userId) {
+  const participant = currentParticipant(conversation, userId);
+  if (!participant?.hiddenAt) return true;
+  return new Date(conversation.updatedAt).getTime() > new Date(participant.hiddenAt).getTime();
 }
 
 async function markDeliveredInBackground(userId) {
@@ -129,8 +161,8 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
     include: conversationInclude,
     orderBy: { updatedAt: 'desc' },
   });
-  const visibleConversations = dedupeConversationsByParticipantPair(conversations, req.auth.id);
-  const counts = await conversationUnreadCounts(req.auth.id, visibleConversations.map((item) => item.id));
+  const visibleConversations = dedupeConversationsByParticipantPair(conversations.filter((conversation) => isConversationVisibleForParticipant(conversation, req.auth.id)), req.auth.id);
+  const counts = await conversationUnreadCounts(req.auth.id, visibleConversations);
   res.json({ data: visibleConversations.map((conversation) => serializeConversation(conversation, req.auth.id, counts.get(String(conversation.id)) || 0)) });
 }));
 
@@ -213,12 +245,17 @@ router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => 
 
   const limit = Math.min(Math.max(Number.parseInt(req.query.limit || '30', 10) || 30, 1), 100);
   const before = req.query.before ? new Date(String(req.query.before)) : null;
-  const messageWhere = { conversationId: id, ...(before && !Number.isNaN(before.getTime()) ? { createdAt: { lt: before } } : {}) };
+  const participant = await requireParticipant(id, req.auth.id);
+  const messageWhere = {
+    conversationId: id,
+    ...(participant?.clearedAt ? { createdAt: { gt: participant.clearedAt } } : {}),
+    ...(before && !Number.isNaN(before.getTime()) ? { createdAt: { ...(participant?.clearedAt ? { gt: participant.clearedAt } : {}), lt: before } } : {}),
+  };
   const conversation = await prisma.conversation.findUnique({
     where: { id },
     include: { ...conversationInclude, messages: { where: messageWhere, orderBy: { createdAt: 'desc' }, take: limit } },
   });
-  res.json({ conversation: serializeConversation(conversation, req.auth.id, 0), messages: (conversation.messages || []).slice().reverse(), hasMore: (conversation.messages || []).length === limit });
+  res.json({ conversation: serializeConversation(conversation, req.auth.id, 0), messages: (conversation.messages || []).slice().reverse().map(serializeMessage), hasMore: (conversation.messages || []).length === limit });
 }));
 
 router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req, res) => {
@@ -242,14 +279,50 @@ router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req
       return saved;
     });
 
-    emitToUser(participant.userId, 'message:new', { message });
+    emitToUser(participant.userId, 'message:new', { message: serializeMessage(message) });
     if (deliveredAt) emitToUser(req.auth.id, 'message:delivered', { conversationId: id, messageId: message.id, deliveredAt });
     console.log('[messages] send durationMs', { userId: req.auth.id, conversationId: id, messageId: message.id, receiverId: participant.userId, durationMs: Math.round(durationMs(startedAt)) });
-    return res.status(201).json({ message });
+    return res.status(201).json({ message: serializeMessage(message) });
   } catch (error) {
     console.error('[messages] send failed', { userId: req.auth.id, conversationId: req.params.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;
   }
+}));
+
+router.delete('/messages/:messageId', authenticate, asyncHandler(async (req, res) => {
+  const messageId = toBigIntId(req.params.messageId);
+  if (!messageId) return res.status(400).json({ message: 'Invalid message ID.' });
+  const existing = await prisma.message.findUnique({ where: { id: messageId }, include: { conversation: { include: { participants: true } } } });
+  if (!existing) return res.status(404).json({ message: 'Message not found.' });
+  if (String(existing.senderId) !== String(req.auth.id)) return res.status(403).json({ message: 'Yalnız öz mesajınızı silə bilərsiniz.' });
+  if (!await requireParticipant(existing.conversationId, req.auth.id)) return res.status(403).json({ message: 'Conversation access denied.' });
+
+  const deletedAt = new Date();
+  const deleted = await prisma.message.update({ where: { id: messageId }, data: { deletedAt, deletedById: Number(req.auth.id) } });
+  const payload = { conversationId: deleted.conversationId, message: serializeMessage(deleted), messageId: deleted.id, deletedAt, deletedById: Number(req.auth.id) };
+  existing.conversation.participants.forEach((participant) => emitToUser(participant.userId, 'message:deleted', payload));
+  res.json(payload);
+}));
+
+router.patch('/conversations/:id/hide', authenticate, asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid conversation ID.' });
+  const participant = await requireParticipant(id, req.auth.id);
+  if (!participant) return res.status(403).json({ message: 'Conversation access denied.' });
+  const hiddenAt = new Date();
+  await prisma.participant.update({ where: { id: participant.id }, data: { hiddenAt } });
+  emitToUser(req.auth.id, 'conversation:hidden', { conversationId: id, hiddenAt });
+  res.json({ success: true, conversationId: id, hiddenAt });
+}));
+
+router.patch('/conversations/:id/clear', authenticate, asyncHandler(async (req, res) => {
+  const id = toBigIntId(req.params.id);
+  if (!id) return res.status(400).json({ message: 'Invalid conversation ID.' });
+  const participant = await requireParticipant(id, req.auth.id);
+  if (!participant) return res.status(403).json({ message: 'Conversation access denied.' });
+  const clearedAt = new Date();
+  await prisma.participant.update({ where: { id: participant.id }, data: { clearedAt } });
+  res.json({ success: true, conversationId: id, clearedAt });
 }));
 
 module.exports = router;
