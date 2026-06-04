@@ -1,3 +1,25 @@
+const NODEMAILER_NOT_INSTALLED_MESSAGE = 'Email service is not available because nodemailer is not installed.';
+
+function isMissingNodemailerError(error) {
+  return error?.code === 'MODULE_NOT_FOUND' && String(error?.message || '').includes('nodemailer');
+}
+
+function emailServiceUnavailableError(message = NODEMAILER_NOT_INSTALLED_MESSAGE) {
+  const error = new Error(message);
+  error.status = 503;
+  error.code = 'EMAIL_SERVICE_UNAVAILABLE';
+  return error;
+}
+
+function loadNodemailer() {
+  try {
+    return require('nodemailer');
+  } catch (error) {
+    if (isMissingNodemailerError(error)) throw emailServiceUnavailableError();
+    throw error;
+  }
+}
+
 function getProvider() {
   return String(process.env.EMAIL_PROVIDER || process.env.MAIL_PROVIDER || '').toLowerCase();
 }
@@ -42,7 +64,7 @@ function plainAddress(value) {
 function createSmtpTransporter() {
   const config = smtpConfig();
   if (!config.host || !config.auth.user || !config.auth.pass) throw new Error('SMTP email is not configured.');
-  return require('nodemailer').createTransport(config);
+  return loadNodemailer().createTransport(config);
 }
 
 async function verifySmtpTransporter(transporter) {
@@ -125,4 +147,9 @@ async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
   return { skipped: true };
 }
 
-module.exports = { sendEmail, isEmailProviderConfigured, verifySmtpTransporter };
+module.exports = {
+  NODEMAILER_NOT_INSTALLED_MESSAGE,
+  sendEmail,
+  isEmailProviderConfigured,
+  verifySmtpTransporter,
+};
