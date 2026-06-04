@@ -8351,6 +8351,8 @@ Title: Park Villas
             });
             messagingState.socket.on('message:delivered', ({ messageId, deliveredAt }) => updateLocalMessageStatus(messageId, { deliveredAt }));
             messagingState.socket.on('message:read', ({ messageIds, readAt }) => (messageIds || []).forEach(id => updateLocalMessageStatus(id, { readAt, isRead: true })));
+            messagingState.socket.on('user:online', ({ userId }) => updateConversationPresence(userId, { isOnline: true, lastSeenAt: null }));
+            messagingState.socket.on('user:offline', ({ userId, lastSeenAt }) => updateConversationPresence(userId, { isOnline: false, lastSeenAt }));
         }
 
 
@@ -8480,6 +8482,32 @@ Title: Park Villas
             perfLog('inbox_open_ms', startedAt);
         }
 
+        function upsertConversationLocal(conversation) {
+            if (!conversation) return;
+            const sameParticipant = (item) => item?.otherUser?.id && conversation?.otherUser?.id && String(item.otherUser.id) === String(conversation.otherUser.id);
+            messagingState.conversations = [conversation, ...messagingState.conversations.filter(c => String(c.id) !== String(conversation.id) && !sameParticipant(c))];
+        }
+
+        function updateConversationPresence(userId, presence = {}) {
+            if (!userId) return;
+            let changed = false;
+            messagingState.conversations.forEach(conversation => {
+                if (String(conversation.otherUser?.id) === String(userId)) {
+                    conversation.otherUser = { ...conversation.otherUser, ...presence };
+                    changed = true;
+                }
+            });
+            if (String(messagingState.activeConversation?.otherUser?.id) === String(userId)) {
+                messagingState.activeConversation.otherUser = { ...messagingState.activeConversation.otherUser, ...presence };
+                changed = true;
+            }
+            if (changed) {
+                renderConversations();
+                if (messagingState.activeConversation) renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
+                writeMessagingCache();
+            }
+        }
+
         async function loadConversations(render = true, { force = false, autoSelect = false } = {}) {
             if (!activeUser || messagingState.conversationsLoading) return;
             if (!force && Date.now() - (messagingState.conversationsLoadedAt || 0) < 15000) { if (render) renderConversations(); return; }
@@ -8501,6 +8529,21 @@ Title: Park Villas
             } finally { messagingState.conversationsLoading = false; }
         }
 
+        const LISTING_CONTEXT_PREFIX = '__BESTHOME_LISTING_CONTEXT__';
+
+        function messageListingContext(message) {
+            const text = String(message?.text || '');
+            if (!text.startsWith(LISTING_CONTEXT_PREFIX)) return null;
+            try { return JSON.parse(text.slice(LISTING_CONTEXT_PREFIX.length)); } catch (_error) { return null; }
+        }
+
+        function conversationPreviewText(conversation) {
+            if (conversation?.pending) return 'Söhbət açılır…';
+            const context = messageListingContext(conversation?.lastMessage);
+            if (context) return context.title || conversation?.listing?.title || 'Elan konteksti';
+            return conversation?.lastMessage?.text || conversation?.listing?.title || 'Yeni söhbət';
+        }
+
         function renderConversations(loading = false) {
             const root = document.getElementById('conversation-list-root');
             if (!root) return;
@@ -8509,7 +8552,7 @@ Title: Park Villas
             if (!conversations.length && loading) { root.innerHTML = '<div class="p-4 space-y-2"><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-14 rounded-2xl bg-slate-100 animate-pulse"></div></div>'; return; }
             root.innerHTML = conversations.length ? conversations.map(c => {
                 const name = c.otherUser?.fullname || c.placeholderName || 'İstifadəçi';
-                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''} ${c.pending ? 'opacity-70' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(c.pending ? 'Söhbət açılır…' : (c.lastMessage?.text || c.listing?.title || 'Yeni söhbət'))}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
+                return `<button class="conversation-item ${String(c.id) === String(messagingState.activeConversationId) ? 'is-active' : ''} ${c.pending ? 'opacity-70' : ''}" onclick="openConversation('${c.id}')"><img src="${escapeHtml(c.otherUser?.avatarUrl || avatarFallback(name))}" class="w-10 h-10 rounded-full object-cover"><span class="min-w-0 flex-1"><strong class="block truncate">${escapeHtml(name)} ${c.unreadCount ? `(${c.unreadCount})` : ''}</strong><small class="block truncate text-slate-500 font-bold">${escapeHtml(conversationPreviewText(c))}</small></span>${c.unreadCount ? `<b class="rounded-full bg-red-500 text-white text-[10px] px-2 py-1">${c.unreadCount}</b>` : ''}</button>`;
             }).join('') : '<div class="p-8 text-center text-slate-500 font-bold">Söhbət yoxdur</div>';
         }
 
@@ -8517,7 +8560,30 @@ Title: Park Villas
             if (!listing) return '';
             const img = listing.imageUrl || listing.images?.[0]?.imageUrl || listing.images?.[0]?.url || '';
             const code = listing.listingCode || listing.listing_code || listing.code || listing.id;
-            return `<button type="button" onclick="navigateToListingPreview('${escapeHtml(code)}')" class="listing-chat-card text-left hover:border-brand-300 hover:bg-brand-50 transition">${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(code)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml([listing.district, listing.city].filter(Boolean).join(', '))}</div></div></button>`;
+            const location = [listing.district, listing.settlement, listing.city].filter(Boolean).join(', ');
+            const price = formatPrice(listing.price, listing.currency || 'AZN');
+            return `<button type="button" onclick="navigateToListingPreview('${escapeHtml(code)}')" class="listing-chat-card text-left hover:border-brand-300 hover:bg-brand-50 transition"><div class="text-[10px] uppercase tracking-wide font-black text-slate-400">Bu elan haqqında yazılır:</div>${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(code)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml(location || 'Məkan göstərilməyib')}</div><div class="text-xs font-black text-slate-900">${escapeHtml(price)}</div></div></button>`;
+        }
+
+        function formatAzRelativeTime(value) {
+            const date = value ? new Date(value) : null;
+            if (!date || Number.isNaN(date.getTime())) return '';
+            const diffMs = Date.now() - date.getTime();
+            if (diffMs < 0) return formatAzDateTime(value);
+            const minutes = Math.max(1, Math.floor(diffMs / 60000));
+            if (minutes < 60) return `${minutes} dəqiqə əvvəl`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} saat əvvəl`;
+            if (hours < 48) return 'dünən';
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} gün əvvəl`;
+            return formatAzDate(value);
+        }
+
+        function conversationPresenceLine(user) {
+            if (user?.isOnline === true) return '<div class="text-xs text-emerald-600 font-black">● Online</div>';
+            const relative = formatAzRelativeTime(user?.lastSeenAt);
+            return relative ? `<div class="text-xs text-slate-500 font-bold">Son görülmə: ${escapeHtml(relative)}</div>` : '';
         }
 
         async function openConversation(id) {
@@ -8542,7 +8608,7 @@ Title: Park Villas
                 refreshHeaderBadges();
                 const idx = messagingState.conversations.findIndex(c => String(c.id) === String(id));
                 if (idx > -1) messagingState.conversations[idx] = { ...messagingState.conversations[idx], ...result.conversation, unreadCount: 0 };
-                else if (result.conversation) messagingState.conversations.unshift(result.conversation);
+                else if (result.conversation) upsertConversationLocal(result.conversation);
                 renderConversations();
                 writeMessagingCache();
                 renderChatWindow(result.conversation, messagingState.activeMessages);
@@ -8567,7 +8633,8 @@ Title: Park Villas
             messagingState.activeConversation = conversation || messagingState.activeConversation;
             const otherName = conversation?.otherUser?.fullname || conversation?.placeholderName || 'İstifadəçi';
             const loader = loading ? '<div class="typing-placeholder">Söhbət yüklənir…</div>' : '';
-            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong><div class="text-xs text-emerald-600 font-black">● Online <span class="text-slate-400">/ Last seen 5 dəqiqə əvvəl</span></div></div></div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(m => `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''} ${m.failed ? 'border border-red-300 bg-red-50' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            const presenceLine = conversationPresenceLine(conversation?.otherUser);
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong>${presenceLine}</div></div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(m => { const context = messageListingContext(m); return context ? `<div class="my-2" data-message-id="${escapeHtml(m.id)}">${listingChatCard(context)}</div>` : `<div class="chat-bubble ${String(m.senderId) === String(activeUser.id) ? 'is-mine' : ''} ${m.pending ? 'opacity-70' : ''} ${m.failed ? 'border border-red-300 bg-red-50' : ''}" data-message-id="${escapeHtml(m.id)}">${escapeHtml(m.text)}${messageStatus(m)}<div class="text-[10px] opacity-60 mt-1">${formatAzDateTime(m.createdAt)}</div></div>`; }).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
             document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
         }
 
@@ -8637,7 +8704,7 @@ Title: Park Villas
                 const result = await apiRequest('/api/messages/conversations', { method: 'POST', body: JSON.stringify({ listingId }) });
                 messagingState.pendingConversation = null;
                 messagingState.activeConversationId = String(result.conversation.id);
-                messagingState.conversations = [result.conversation, ...messagingState.conversations.filter(c => String(c.id) !== String(result.conversation.id))];
+                upsertConversationLocal(result.conversation);
                 history.replaceState({ tabId: 'messages' }, '', `/profil/mesajlar?conversation=${encodeURIComponent(result.conversation.id)}`);
                 renderConversations();
                 openConversation(result.conversation.id);

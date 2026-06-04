@@ -2,7 +2,7 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate } = require('../middleware/auth');
-const { emitToUser, isUserOnline } = require('../utils/realtime');
+const { emitToUser, isUserOnline, getUserPresence } = require('../utils/realtime');
 
 const router = express.Router();
 
@@ -29,6 +29,39 @@ function listingInclude() {
   return { images: { orderBy: { sortOrder: 'asc' }, take: 1 } };
 }
 
+const LISTING_CONTEXT_PREFIX = '__BESTHOME_LISTING_CONTEXT__';
+
+function listingContextPayload(listing) {
+  if (!listing) return null;
+  return {
+    id: listing.id,
+    listingCode: listing.listingCode || listing.id,
+    title: listing.title || 'Elan',
+    city: listing.city || '',
+    district: listing.district || '',
+    settlement: listing.settlement || '',
+    price: listing.price == null ? null : String(listing.price),
+    currency: listing.currency || 'AZN',
+    imageUrl: listing.imageUrl || listing.images?.[0]?.imageUrl || '',
+  };
+}
+
+async function addListingContextMessage(tx, { conversationId, senderId, receiverId, listing }) {
+  const payload = listingContextPayload(listing);
+  if (!payload) return null;
+  return tx.message.create({
+    data: {
+      conversationId,
+      senderId: Number(senderId),
+      receiverId: Number(receiverId),
+      text: `${LISTING_CONTEXT_PREFIX}${JSON.stringify(payload)}`,
+      isRead: true,
+      deliveredAt: new Date(),
+      readAt: new Date(),
+    },
+  });
+}
+
 const conversationInclude = {
   participants: { include: { user: { select: { id: true, fullname: true, avatarUrl: true } } } },
   listing: { include: listingInclude() },
@@ -40,13 +73,32 @@ async function requireParticipant(conversationId, userId) {
 }
 
 function serializeConversation(conversation, currentUserId, unreadCount = 0) {
-  const other = conversation.participants?.find((p) => String(p.userId) !== String(currentUserId)) || conversation.participants?.[0];
+  const other = conversation.participants?.find((participant) => String(participant.userId) !== String(currentUserId)) || conversation.participants?.[0];
+  const presence = other?.userId ? getUserPresence(other.userId) : null;
   return {
     ...conversation,
-    otherUser: other?.user || null,
+    otherUser: other?.user ? {
+      ...other.user,
+      ...(presence?.isOnline ? { isOnline: true } : {}),
+      ...(presence?.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
+    } : null,
     unreadCount,
     lastMessage: conversation.messages?.[0] || null,
   };
+}
+
+function otherParticipantKey(conversation, currentUserId) {
+  return String(conversation.participants?.find((participant) => String(participant.userId) !== String(currentUserId))?.userId || conversation.id);
+}
+
+function dedupeConversationsByParticipantPair(conversations, currentUserId) {
+  const seen = new Set();
+  return conversations.filter((conversation) => {
+    const key = otherParticipantKey(conversation, currentUserId);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 async function conversationUnreadCounts(userId, ids) {
@@ -77,8 +129,9 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
     include: conversationInclude,
     orderBy: { updatedAt: 'desc' },
   });
-  const counts = await conversationUnreadCounts(req.auth.id, conversations.map((item) => item.id));
-  res.json({ data: conversations.map((conversation) => serializeConversation(conversation, req.auth.id, counts.get(String(conversation.id)) || 0)) });
+  const visibleConversations = dedupeConversationsByParticipantPair(conversations, req.auth.id);
+  const counts = await conversationUnreadCounts(req.auth.id, visibleConversations.map((item) => item.id));
+  res.json({ data: visibleConversations.map((conversation) => serializeConversation(conversation, req.auth.id, counts.get(String(conversation.id)) || 0)) });
 }));
 
 router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
@@ -86,33 +139,59 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
   try {
     const listingId = toBigIntId(req.body.listingId ?? req.body.listing_id);
     let receiverId = toIntId(req.body.receiverId ?? req.body.receiver_id);
+    let listing = null;
 
-    if (listingId && !receiverId) {
-      const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { userId: true, status: true } });
+    if (listingId) {
+      listing = await prisma.listing.findUnique({ where: { id: listingId }, include: listingInclude() });
       if (!listing || listing.status !== 'approved') return res.status(404).json({ message: 'Listing not found.' });
       receiverId = toIntId(listing.userId);
     }
     if (!receiverId) return res.status(400).json({ message: 'Recipient is required.' });
-    if (String(receiverId) === String(req.auth.id)) return res.status(400).json({ message: 'Özünüzə mesaj göndərə bilməzsiniz.' });
+    if (String(receiverId) === String(req.auth.id)) return res.status(400).json({ message: 'Öz elanınıza mesaj yaza bilməzsiniz.' });
 
+    const participantIds = [Number(req.auth.id), receiverId];
     const existingParticipants = await prisma.participant.findMany({
-      where: { userId: { in: [Number(req.auth.id), receiverId] }, ...(listingId ? { conversation: { listingId } } : {}) },
+      where: { userId: { in: participantIds } },
       select: { conversationId: true },
     });
-    const counts = existingParticipants.reduce((acc, p) => acc.set(String(p.conversationId), (acc.get(String(p.conversationId)) || 0) + 1), new Map());
-    const existingId = [...counts.entries()].find(([, count]) => count === 2)?.[0];
+    const participantCounts = existingParticipants.reduce((acc, participant) => {
+      const key = String(participant.conversationId);
+      acc.set(key, (acc.get(key) || 0) + 1);
+      return acc;
+    }, new Map());
+    const matchingIds = [...participantCounts.entries()].filter(([, count]) => count === 2).map(([conversationId]) => BigInt(conversationId));
+    const existing = matchingIds.length ? await prisma.conversation.findFirst({
+      where: { id: { in: matchingIds } },
+      orderBy: { updatedAt: 'desc' },
+      include: conversationInclude,
+    }) : null;
 
-    const conversation = existingId
-      ? await prisma.conversation.findUnique({ where: { id: BigInt(existingId) }, include: conversationInclude })
-      : await prisma.conversation.create({
-        data: {
-          listingId,
-          participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
-        },
-        include: conversationInclude,
-      });
-    console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existingId), durationMs: Math.round(durationMs(startedAt)) });
-    return res.status(existingId ? 200 : 201).json({ conversation: serializeConversation(conversation, req.auth.id, 0) });
+    const shouldUpdateListingContext = existing && listingId && String(existing.listingId || '') !== String(listingId);
+    const shouldAddListingContextMessage = listing && (!existing || shouldUpdateListingContext);
+    const conversation = await prisma.$transaction(async (tx) => {
+      const saved = existing
+        ? (shouldUpdateListingContext
+          ? await tx.conversation.update({
+            where: { id: existing.id },
+            data: { listingId, updatedAt: new Date() },
+            include: conversationInclude,
+          })
+          : existing)
+        : await tx.conversation.create({
+          data: {
+            listingId,
+            participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
+          },
+          include: conversationInclude,
+        });
+      if (shouldAddListingContextMessage) {
+        await addListingContextMessage(tx, { conversationId: saved.id, senderId: req.auth.id, receiverId, listing });
+        return tx.conversation.findUnique({ where: { id: saved.id }, include: conversationInclude });
+      }
+      return saved;
+    });
+    console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existing), durationMs: Math.round(durationMs(startedAt)) });
+    return res.status(existing ? 200 : 201).json({ conversation: serializeConversation(conversation, req.auth.id, 0) });
   } catch (error) {
     console.error('[messages] create/open conversation failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;

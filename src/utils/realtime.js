@@ -1,4 +1,5 @@
 const onlineUsers = new Map();
+const lastSeenAtByUser = new Map();
 let io = null;
 
 function userRoom(userId) {
@@ -39,10 +40,16 @@ function initRealtime(server, { jwtSecret } = {}) {
       socket.join(userRoom(userId));
       const currentCount = onlineUsers.get(userId) || 0;
       onlineUsers.set(userId, currentCount + 1);
+      if (currentCount === 0 && io) io.emit('user:online', toSocketPayload({ userId }));
       socket.on('disconnect', () => {
         const nextCount = (onlineUsers.get(userId) || 1) - 1;
         if (nextCount > 0) onlineUsers.set(userId, nextCount);
-        else onlineUsers.delete(userId);
+        else {
+          onlineUsers.delete(userId);
+          const lastSeenAt = new Date();
+          lastSeenAtByUser.set(userId, lastSeenAt);
+          if (io) io.emit('user:offline', toSocketPayload({ userId, lastSeenAt }));
+        }
       });
       return undefined;
     });
@@ -63,4 +70,12 @@ function isUserOnline(userId) {
   return onlineUsers.has(String(userId));
 }
 
-module.exports = { initRealtime, emitToUser, isUserOnline, toSocketPayload };
+function getUserPresence(userId) {
+  const key = String(userId);
+  return {
+    isOnline: onlineUsers.has(key),
+    lastSeenAt: onlineUsers.has(key) ? null : (lastSeenAtByUser.get(key) || null),
+  };
+}
+
+module.exports = { initRealtime, emitToUser, isUserOnline, getUserPresence, toSocketPayload };
