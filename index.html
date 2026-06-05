@@ -244,6 +244,51 @@
             border-color: rgba(127, 127, 255, .32);
             box-shadow: 0 20px 40px rgba(127, 127, 255, .14);
         }
+        .footer-quick-links {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: .25rem;
+        }
+        .footer-quick-link {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-height: 2.25rem;
+            padding: .35rem 0;
+            color: #4b5563;
+            font-size: .875rem;
+            font-weight: 600;
+            line-height: 1.35;
+            text-align: left;
+            overflow-wrap: anywhere;
+            transition: color 180ms ease, transform 180ms ease;
+        }
+        .footer-quick-link:hover,
+        .footer-quick-link:focus-visible {
+            color: var(--color-primary-hover);
+            transform: translateX(3px);
+        }
+        .footer-quick-link:focus-visible {
+            outline: 2px solid var(--color-primary-border);
+            outline-offset: 2px;
+            border-radius: .375rem;
+        }
+        #listing-hero-slider:not(.hidden) + #agent-listings-area {
+            margin-top: 2rem;
+        }
+        @media (max-width: 767px) {
+            .footer-quick-links { gap: .125rem; }
+            .footer-quick-link {
+                min-height: 2.75rem;
+                padding: .55rem 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .footer-quick-link { transition: color 180ms ease; }
+            .footer-quick-link:hover,
+            .footer-quick-link:focus-visible { transform: none; }
+        }
 
         .add-listing-fab {
             position: fixed;
@@ -3135,7 +3180,7 @@
         </section>
 
         <!-- 2. LISTINGS SECTION -->
-        <section id="tab-listings" class="tab-content hidden space-y-8">
+        <section id="tab-listings" class="tab-content hidden">
 
             <!-- Premium Listing Hero banner -->
             <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
@@ -3152,11 +3197,6 @@
                 <button id="listing-hero-prev" type="button" class="hero-nav-arrow hero-nav-arrow--prev hidden" aria-label="Əvvəlki premium elan">‹</button>
                 <button id="listing-hero-next" type="button" class="hero-nav-arrow hero-nav-arrow--next hidden" aria-label="Növbəti premium elan">›</button>
                 <div id="listing-hero-indicators" class="hero-indicators"></div>
-            </div>
-            <div class="text-center md:text-left space-y-2">
-                <span class="text-brand-500 font-semibold tracking-wider text-sm uppercase">Satış • Kirayə • Günlük kirayə</span>
-                <h1 class="text-3xl md:text-4xl font-black text-gray-900">🏠 Elanlar</h1>
-                <p class="text-gray-700 text-sm font-medium max-w-2xl">Bütün təsdiqlənmiş əmlak kartları bu ayrıca bölmədə toplanıb.</p>
             </div>
             <!-- Agent Digər əraziləri Grid -->
             <div class="space-y-6 " id="agent-listings-area">
@@ -4570,14 +4610,14 @@ Title: Park Villas
 
                 <div>
                     <h3 class="text-gray-900 font-extrabold mb-4">Sürətli Keçidlər</h3>
-                    <nav class="space-y-3 text-sm font-semibold" aria-label="Footer sürətli keçidlər">
-                        <button type="button" onclick="switchTab('seabreeze')" class="block text-left text-gray-600 hover:text-brand-600 transition">Sea Breeze Layihələri</button>
-                        <button type="button" onclick="navigateListingsType('satis')" class="block text-left text-gray-600 hover:text-brand-600 transition">Satış</button>
-                        <button type="button" onclick="navigateListingsType('kiraye')" class="block text-left text-gray-600 hover:text-brand-600 transition">Kirayə</button>
-                        <button type="button" onclick="switchTab('portfolio')" class="block text-left text-gray-600 hover:text-brand-600 transition">Qalereya</button>
-                        <button type="button" onclick="switchTab('career')" class="block text-left text-gray-600 hover:text-brand-600 transition">Vakansiya</button>
-                        <button type="button" onclick="switchTab('home')" class="block text-left text-gray-600 hover:text-brand-600 transition">ℹ️ Haqqımızda</button>
-                        <button type="button" onclick="switchTab('mortgage')" class="block text-left text-gray-600 hover:text-brand-600 transition">🧮 İpoteka Kalkulyatoru</button>
+                    <nav class="footer-quick-links" aria-label="Footer sürətli keçidlər">
+                        <button type="button" onclick="switchTab('seabreeze')" class="footer-quick-link">Sea Breeze Layihələri</button>
+                        <button type="button" onclick="navigateListingsType('satis')" class="footer-quick-link">Satış</button>
+                        <button type="button" onclick="navigateListingsType('kiraye')" class="footer-quick-link">Kirayə</button>
+                        <button type="button" onclick="switchTab('portfolio')" class="footer-quick-link">Qalereya</button>
+                        <button type="button" onclick="switchTab('career')" class="footer-quick-link">Vakansiya</button>
+                        <button type="button" onclick="switchTab('home')" class="footer-quick-link">Haqqımızda</button>
+                        <button type="button" onclick="switchTab('mortgage')" class="footer-quick-link">İpoteka Kalkulyatoru</button>
                     </nav>
                 </div>
 
