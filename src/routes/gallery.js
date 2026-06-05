@@ -59,7 +59,8 @@ async function payload(req, existing = {}) {
   const firstVideoUpload = uploadedPairs.find(({ file }) => file.mimetype.startsWith('video/'));
   const imageUploads = uploadedPairs.filter(({ file }) => file.mimetype.startsWith('image/')).map(({ url }) => url).filter(Boolean);
   const uploadedUrls = uploadedPairs.map(({ url }) => url).filter(Boolean);
-  const mediaType = body.media_type ?? body.mediaType ?? body.type ?? (firstVideoUpload ? 'video' : 'image');
+  const requestedMediaType = String(body.media_type ?? body.mediaType ?? body.type ?? (firstVideoUpload ? 'video' : existing.mediaType || 'image')).toLowerCase();
+  const mediaType = requestedMediaType === 'video' ? 'video' : 'image';
   const submittedImages = parseImages(body.images);
   const existingImages = parseImages(body.existing_images ?? body.existingImages);
   const imageField = body.image_url ?? body.imageUrl;
@@ -98,6 +99,8 @@ function serializeGallery(item) {
   const thumbnailUrl = item.thumbnailUrl || item.thumbnail_url || '';
   const imageUrl = item.imageUrl || item.image_url || '';
   const isFeatured = Boolean(item.isFeatured ?? item.is_featured);
+  const mediaUrls = parseImages(item.mediaUrls ?? item.media_urls);
+  const images = parseImages(item.images);
   return {
     ...item,
     mediaType,
@@ -108,6 +111,9 @@ function serializeGallery(item) {
     thumbnail_url: thumbnailUrl,
     imageUrl,
     image_url: imageUrl,
+    mediaUrls,
+    media_urls: mediaUrls,
+    images,
     mediaPositionX,
     mediaPositionY,
     media_position_x: mediaPositionX,
@@ -169,10 +175,15 @@ router.get('/', asyncHandler(async (req, res) => {
   const page = positiveInt(req.query.page, 1, 1000000);
   const limit = positiveInt(req.query.limit, 1000, 5000);
   const skip = (page - 1) * limit;
+  const requestedMediaType = String(req.query.media_type ?? req.query.mediaType ?? req.query.type ?? '').toLowerCase();
+  const filterMediaType = requestedMediaType === 'video'
+    ? 'video'
+    : (['image', 'event', 'photo', 'gallery'].includes(requestedMediaType) ? 'image' : null);
+  const where = filterMediaType ? { mediaType: filterMediaType } : {};
   try {
     const [items, total] = await Promise.all([
-      prisma.gallery.findMany({ orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }], skip, take: limit }),
-      prisma.gallery.count(),
+      prisma.gallery.findMany({ where, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }, { id: 'desc' }], skip, take: limit }),
+      prisma.gallery.count({ where }),
     ]);
     res.json({ success: true, data: items.map(serializeGallery), items: items.map(serializeGallery), total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
   } catch (error) {
