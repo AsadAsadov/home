@@ -220,7 +220,7 @@ router.get('/', asyncHandler(async (req, res) => {
   }
 
   const featuredProjects = await prisma.project.findMany({
-    where: { featuredInHero: true },
+    where: { featuredInHero: true, isArchived: false },
     orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
   });
   return res.json(featuredProjects

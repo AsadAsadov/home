@@ -3219,7 +3219,7 @@
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div class="space-y-2">
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Qalereya</h2>
-                    <p class="text-gray-700 text-sm font-medium max-w-2xl">Fotolar və videolar eyni tanış qalereya düzülüşündə davam edir.</p>
+                    <p class="text-gray-700 text-sm font-medium max-w-2xl">Layihələrə aid foto və videoları buradan izləyə bilərsiniz.</p>
                 </div>
                 <div class="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
                     <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">Hamısı</button>
@@ -3473,6 +3473,7 @@
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Digər ərazilərim</button>
                 <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
+                <button onclick="switchAdminSubtab('projects-archive')" id="subtab-btn-projects-archive" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Arxiv</button>
                 <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Layihə Hero</button>
                 <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Elan Hero</button>
                 <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
@@ -3844,16 +3845,10 @@
                 </div>
                 <div class="lg:col-span-7 space-y-4">
                     <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <h3 class="text-xl font-extrabold text-white">Layihələrin idarə edilməsi</h3>
-                            <p class="text-gray-400 text-xs">Layihələr backend API və Supabase üzərindən redaktə edilir.</p>
-                        </div>
-                        <div class="flex flex-wrap justify-end gap-2">
-                            <button id="save-project-order-btn" onclick="saveProjectOrder()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-emerald-500/20">
-                                <i class="fa-solid fa-floppy-disk mr-1"></i>Yadda Saxla
-                            </button>
-                            <button onclick="restoreDefaultOfficialProjects()" class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Default bərpa et</button>
-                        </div>
+                        <h3 class="text-xl font-extrabold text-white">Layihələrin idarə edilməsi</h3>
+                        <button id="save-project-order-btn" onclick="saveProjectOrder()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>Yadda Saxla
+                        </button>
                     </div>
                     <div id="admin-project-order-status" class="hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-[11px] text-emerald-300">Sıra dəyişdi. Dəyişikliyi DB-yə yazmaq üçün “Yadda Saxla” düyməsinə basın.</div>
                     <div id="admin-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
@@ -3927,6 +3922,19 @@ Title: Park Villas
                         </div>
                     </div>
                 </div>
+            </div>
+
+
+            <!-- SUBTAB: ARCHIVED PROJECTS (Admin only) -->
+            <div id="admin-subtab-projects-archive" class="hidden space-y-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-xl font-extrabold text-white">Arxivdəki layihələr</h3>
+                        <p class="text-gray-400 text-xs mt-1">Arxivdən çıxarılan layihələr yenidən saytda və elan formasında görünəcək.</p>
+                    </div>
+                    <button type="button" onclick="loadArchivedProjects()" class="bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl transition"><i class="fa-solid fa-rotate mr-1"></i>Yenilə</button>
+                </div>
+                <div id="admin-archived-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
             <!-- SUBTAB: HERO SLIDES -->
@@ -5353,7 +5361,8 @@ Title: Park Villas
                 desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
                 displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
                 slug: p.slug || localSlug(p.title),
-                featuredInHero: Boolean(p.featuredInHero ?? p.featured_in_hero)
+                featuredInHero: Boolean(p.featuredInHero ?? p.featured_in_hero),
+                isArchived: Boolean(p.isArchived ?? p.is_archived)
             };
         }
 
@@ -5926,6 +5935,7 @@ Title: Park Villas
             dashboardStats: null,
             favoriteListingIds: new Set(),
             projects: [],
+            archivedProjects: [],
             listings: [],
             vacancies: defaultVacancies,
             gallery: [],
@@ -6783,7 +6793,8 @@ Title: Park Villas
                 images: normalizeProjectImages(p.images, p.img),
                 display_order: p.displayOrder ?? p.display_order,
                 slug: p.slug,
-                featured_in_hero: Boolean(p.featuredInHero ?? p.featured_in_hero)
+                featured_in_hero: Boolean(p.featuredInHero ?? p.featured_in_hero),
+                is_archived: Boolean(p.isArchived ?? p.is_archived)
             };
         }
 
@@ -11557,6 +11568,7 @@ Təşəkkür edirəm. 🙏`;
         const ADMIN_SUBTAB_ROUTES = {
             'seabreeze-manager': '/admin/listings',
             'projects-manager': '/admin/projects',
+            'projects-archive': '/admin/projects/archive',
             'gallery-manager': '/admin/gallery',
             'vacancy-manager': '/admin/vacancies',
             'site-settings': '/admin/site-settings',
@@ -11568,13 +11580,14 @@ Təşəkkür edirəm. 🙏`;
         };
 
         function switchAdminSubtab(subtab, options = {}) {
-            const isRestrictedDashboardTab = ['projects-manager', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
 
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
             document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-projects-archive').classList.add('hidden');
             document.getElementById('admin-subtab-hero-sections').classList.add('hidden');
             document.getElementById('admin-subtab-listing-hero')?.classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
@@ -11593,7 +11606,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
             });
 
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
+            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'projects-archive' ? 'projects-archive' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
@@ -11610,6 +11623,7 @@ Təşəkkür edirəm. 🙏`;
                 renderBulkProjectPreview();
                 updateProjectImagePreview();
             }
+            if (subtab === 'projects-archive') { loadArchivedProjects(); }
             if (subtab === 'seabreeze-manager') { toggleMetroFieldForCity(); setTimeout(initAdminListingMap, 80); }
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
@@ -12187,6 +12201,7 @@ Təşəkkür edirəm. 🙏`;
                                 <div class="flex items-center justify-end gap-2">
                                     <button type="button" onclick="toggleProjectHero('${project.id}', ${!project.featuredInHero})" class="${project.featuredInHero ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500' : 'bg-white/5 text-gray-300 hover:bg-amber-500'} hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">⭐ Hero</button>
                                     <button onclick="editOfficialProject('${project.id}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                    <button onclick="setProjectArchived('${project.id}', true)" class="bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-box-archive mr-1"></i>Arxiv</button>
                                     <button onclick="deleteOfficialProject('${project.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
                                 </div>
                             </div>
@@ -12194,6 +12209,67 @@ Təşəkkür edirəm. 🙏`;
                     </div>
                 `;
             });
+        }
+
+
+        async function loadArchivedProjects() {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const grid = document.getElementById('admin-archived-projects-grid');
+            if (grid) grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Arxiv yüklənir...</div>';
+            try {
+                const rows = await apiRequest('/api/projects/archived');
+                appData.archivedProjects = (Array.isArray(rows) ? rows : []).map(dbProjectToUi);
+                renderArchivedProjects();
+            } catch (error) {
+                if (grid) grid.innerHTML = `<div class="col-span-full py-10 text-center text-red-400 glass-card rounded-2xl">Arxiv yüklənmədi: ${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        function renderArchivedProjects() {
+            const grid = document.getElementById('admin-archived-projects-grid');
+            if (!grid) return;
+            const projects = Array.isArray(appData.archivedProjects) ? appData.archivedProjects : [];
+            if (!projects.length) {
+                grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Arxivdə layihə yoxdur.</div>';
+                return;
+            }
+            grid.innerHTML = projects.map(project => `
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/5 flex flex-col">
+                    <div class="h-40 relative overflow-hidden">
+                        ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                        <span class="absolute top-3 right-3 bg-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">Arxiv</span>
+                        <h4 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${escapeHtml(project.title)}</h4>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <p class="text-[11px] text-gray-400 line-clamp-2">${escapeHtml(project.desc || '')}</p>
+                        <button type="button" onclick="setProjectArchived('${project.id}', false)" class="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-300 hover:text-white text-xs font-bold px-3 py-2.5 rounded-xl transition"><i class="fa-solid fa-box-open mr-1"></i>Arxivdən çıxar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function setProjectArchived(id, isArchived) {
+            if (!activeUser || activeUser.role !== 'admin') return;
+            const message = isArchived ? 'Bu layihə arxivə göndərilsin?' : 'Bu layihə arxivdən çıxarılsın?';
+            if (!confirm(message)) return;
+            try {
+                const saved = dbProjectToUi(await apiRequest(`/api/projects/${id}/archive`, { method: 'PATCH', body: JSON.stringify({ isArchived }) }));
+                if (isArchived) {
+                    saveOfficialProjects(getOfficialProjects().filter(project => String(project.id) !== String(id)));
+                    appData.archivedProjects = [saved, ...(appData.archivedProjects || []).filter(project => String(project.id) !== String(id))];
+                } else {
+                    appData.archivedProjects = (appData.archivedProjects || []).filter(project => String(project.id) !== String(id));
+                    saveOfficialProjects([...getOfficialProjects(), saved]);
+                }
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+                renderArchivedProjects();
+                renderSeaBreezeHero(0);
+            } catch (error) {
+                alert(`Layihənin arxiv statusu dəyişmədi: ${error.message}`);
+            }
         }
 
 
@@ -14306,6 +14382,7 @@ Təşəkkür edirəm. 🙏`;
             'site-settings': 'site-settings',
             listings: 'seabreeze-manager',
             projects: 'projects-manager',
+            archive: 'projects-archive',
             'project-hero': 'hero-sections',
             'listing-hero': 'listing-hero',
             vacancies: 'vacancy-manager'
@@ -14320,6 +14397,7 @@ Təşəkkür edirəm. 🙏`;
             '/admin/vacancy': 'vacancy-manager',
             '/admin/site-settings': 'site-settings',
             '/admin/projects': 'projects-manager',
+            '/admin/projects/archive': 'projects-archive',
             '/admin/project-hero': 'hero-sections',
             '/admin/listing-hero': 'listing-hero',
             '/admin/vacancies': 'vacancy-manager'

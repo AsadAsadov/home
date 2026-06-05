@@ -23,10 +23,12 @@ model Project {
   displayOrder   Int?        @map("display_order")
   slug           String?     @unique
   featuredInHero Boolean     @default(false) @map("featured_in_hero")
+  isArchived     Boolean     @default(false) @map("is_archived")
   createdAt      DateTime    @default(now()) @map("created_at")
   heroSlides     HeroSlide[]
 
   @@index([displayOrder, id])
+  @@index([isArchived], map: "idx_projects_is_archived")
   @@map("projects")
 }
 

@@ -43,11 +43,11 @@ function parseProjectOrder(body) {
 router.get('/', asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
   const { page, limit, skip, take } = pagination(req.query);
-  const clauses = [];
+  const clauses = [{ isArchived: false }];
   if (q) clauses.push({ OR: [{ title: { contains: q, mode: 'insensitive' } }, { slug: { contains: q, mode: 'insensitive' } }] });
   const yearClause = deliveryYearWhere(req.query.deliveryYear);
   if (yearClause) clauses.push(yearClause);
-  const where = clauses.length ? { AND: clauses } : undefined;
+  const where = { AND: clauses };
   const [data, total] = await Promise.all([
     prisma.project.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], skip, take }),
     prisma.project.count({ where }),
@@ -66,8 +66,36 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
     prisma.project.update({ where: { id: item.id }, data: { displayOrder: item.displayOrder } })
   )));
 
-  const data = await prisma.project.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] });
+  const data = await prisma.project.findMany({ where: { isArchived: false }, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] });
   res.json({ ok: true, data: orderedProjectRows(data) });
+}));
+
+
+router.get('/archived', authenticate, authorize('admin'), asyncHandler(async (_req, res) => {
+  const data = await prisma.project.findMany({
+    where: { isArchived: true },
+    orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
+  });
+  res.json(orderedProjectRows(data));
+}));
+
+router.patch('/:id/archive', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const archiveValue = req.body?.isArchived ?? req.body?.is_archived;
+  if (archiveValue === undefined || archiveValue === null || archiveValue === '') {
+    return res.status(400).json({ message: 'isArchived is required.' });
+  }
+  const isArchived = parseBool(archiveValue);
+  const updated = await prisma.$transaction(async (tx) => {
+    const project = await tx.project.update({
+      where: { id: Number(req.params.id) },
+      data: { isArchived, ...(isArchived ? { featuredInHero: false } : {}) },
+    });
+    if (isArchived) {
+      await tx.heroSlide.updateMany({ where: { projectId: project.id }, data: { isActive: false } });
+    }
+    return project;
+  });
+  res.json(updated);
 }));
 
 
@@ -81,13 +109,13 @@ router.patch('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (
 
 router.get('/slug/:slug', asyncHandler(async (req, res) => {
   const slug = String(req.params.slug || '').trim();
-  const data = await prisma.project.findUnique({ where: { slug } });
+  const data = await prisma.project.findFirst({ where: { slug, isArchived: false } });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
   return res.json(data);
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const data = await prisma.project.findUnique({ where: { id: Number(req.params.id) } });
+  const data = await prisma.project.findFirst({ where: { id: Number(req.params.id), isArchived: false } });
   if (!data) return res.status(404).json({ message: 'Record not found.' });
   return res.json(data);
 }));
