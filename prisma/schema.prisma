@@ -8,24 +8,38 @@ datasource db {
 }
 
 model Project {
-  id             Int         @id @default(autoincrement())
-  title          String
-  category       String?
-  deliveryDate   String?     @map("delivery_date")
-  floorCount     String?     @map("floor_count")
-  area           String?
-  apartmentCount String?     @map("apartment_count")
-  repairStatus   String?     @map("repair_status")
-  features       String?
-  description    String?     @db.Text
-  imageUrl       String?     @map("image_url") @db.Text
-  images         Json?
-  displayOrder   Int?        @map("display_order")
-  slug           String?     @unique
-  featuredInHero Boolean     @default(false) @map("featured_in_hero")
-  isArchived     Boolean     @default(false) @map("is_archived")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  heroSlides     HeroSlide[]
+  id               Int         @id @default(autoincrement())
+  title            String
+  category         String?
+  zone             String?
+  deliveryDate     String?     @map("delivery_date")
+  coastline        String?
+  seaDistance      String?     @map("sea_distance")
+  buildingCount    String?     @map("building_count")
+  floorCount       String?     @map("floor_count")
+  area             String?
+  apartmentCount   String?     @map("apartment_count")
+  parkingSpaces    String?     @map("parking_spaces")
+  repairStatus     String?     @map("repair_status")
+  apartmentFormats String?     @map("apartment_formats") @db.Text
+  apartmentAreas   String?     @map("apartment_areas") @db.Text
+  areaRange        String?     @map("area_range")
+  pricePerM2       String?     @map("price_per_m2")
+  totalPrice       String?     @map("total_price")
+  bankMortgage     String?     @map("bank_mortgage")
+  internalCredit   String?     @map("internal_credit")
+  downPayment      String?     @map("down_payment")
+  infrastructure   String?     @db.Text
+  features         String?     @db.Text
+  description      String?     @db.Text
+  imageUrl         String?     @map("image_url") @db.Text
+  images           Json?
+  displayOrder     Int?        @map("display_order")
+  slug             String?     @unique
+  featuredInHero   Boolean     @default(false) @map("featured_in_hero")
+  isArchived       Boolean     @default(false) @map("is_archived")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  heroSlides       HeroSlide[]
 
   @@index([displayOrder, id])
   @@index([isArchived], map: "idx_projects_is_archived")

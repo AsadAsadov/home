@@ -3280,6 +3280,27 @@
             }
         }
 
+
+        .project-form-section { border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.035); border-radius: 1rem; padding: 1rem; }
+        .project-form-section h4 { color: white; font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .85rem; display: flex; gap: .5rem; align-items: center; }
+        .project-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        .project-form-section label { display: flex; flex-direction: column; gap: .35rem; color: #9ca3af; font-size: .65rem; font-weight: 800; text-transform: uppercase; }
+        .project-form-section input:not([type="checkbox"]), .project-form-section select, .project-form-section textarea { width: 100%; border: 1px solid rgba(255,255,255,.1); border-radius: .75rem; background: rgba(255,255,255,.05); padding: .65rem .75rem; color: white; font-size: .75rem; text-transform: none; outline: none; }
+        .project-form-section select { background-color: #0f172a; }
+        .project-form-section input:focus, .project-form-section select:focus, .project-form-section textarea:focus { border-color: rgba(127,127,255,.7); }
+        .project-form-wide { margin-top: .75rem; }
+        .project-detail-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .project-detail-section { border: 1px solid var(--color-primary-border); background: rgba(234,234,255,.55); border-radius: 1rem; padding: 1rem; }
+        .project-detail-section--wide { grid-column: 1 / -1; }
+        .project-detail-section h4 { color: #1f2937; font-size: .78rem; font-weight: 900; margin-bottom: .75rem; }
+        .project-detail-rows { display: grid; gap: .6rem; }
+        .project-detail-row { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgba(127,127,255,.14); padding-bottom: .5rem; }
+        .project-detail-row:last-child { border-bottom: 0; padding-bottom: 0; }
+        .project-detail-row span { color: #6b7280; font-size: .72rem; font-weight: 700; }
+        .project-detail-row strong { color: #1f2937; font-size: .75rem; text-align: right; white-space: pre-line; overflow-wrap: anywhere; }
+        .project-detail-row--long { display: block; }
+        .project-detail-row--long strong { display: block; text-align: left; margin-top: .35rem; line-height: 1.65; }
+        @media (max-width: 640px) { .project-form-grid, .project-detail-sections { grid-template-columns: 1fr; } .project-detail-section--wide { grid-column: auto; } .project-detail-row { flex-direction: column; gap: .2rem; } .project-detail-row strong { text-align: left; } }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -4034,84 +4055,56 @@
                         </h3>
                         <button type="button" onclick="resetOfficialProjectForm()" class="text-[10px] bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg font-bold transition">Formu təmizlə</button>
                     </div>
-                    <form onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-3">
+                    <form onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-4">
                         <input type="hidden" id="edit-project-id" value="">
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə adı *</label>
-                            <input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">SEO slug</label>
-                            <input type="text" id="project-slug" placeholder="Avtomatik yaradılır (məs: miami-residence)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                            <p class="text-[10px] text-gray-500">Boş saxlasanız yeni layihə üçün başlıqdan avtomatik yaradılır. Redaktədə yalnız lazım olarsa dəyişin.</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Növ *</label>
-                                <select id="project-category" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                                    <option value="Apartment">Mənzil (Apartment)</option>
-                                    <option value="Villa">Şəxsi Villa</option>
-                                    <option value="Townhouse">Taunhaus</option>
-                                </select>
+                        <section class="project-form-section">
+                            <h4><span>📍</span> Ümumi Məlumat</h4>
+                            <div class="project-form-grid">
+                                <label>Layihə adı *<input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner"></label>
+                                <label>Zona<input type="text" id="project-zone" placeholder="Məs: Sea Breeze"></label>
+                                <label>Növ<select id="project-category"><option value="Apartment">Mənzil (Apartment)</option><option value="Villa">Şəxsi Villa</option><option value="Townhouse">Taunhaus</option></select></label>
+                                <label>Təhvil tarixi<input type="text" id="project-year" placeholder="2028"></label>
+                                <label>Sahil xətti<input type="text" id="project-coastline" placeholder="1-ci sahil xətti"></label>
+                                <label>Dənizə məsafə<input type="text" id="project-sea-distance" placeholder="100 m"></label>
                             </div>
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Təhvil tarixi *</label>
-                                <input type="text" id="project-year" required placeholder="2028" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <label class="project-form-wide">SEO slug<input type="text" id="project-slug" placeholder="Avtomatik yaradılır"></label>
+                        </section>
+                        <section class="project-form-section">
+                            <h4><span>🏢</span> Bina Məlumatları</h4>
+                            <div class="project-form-grid">
+                                <label>Binaların sayı<input type="text" id="project-buildings" placeholder="3 bina"></label>
+                                <label>Mərtəbə sayı<input type="text" id="project-floors" placeholder="11 mərtəbə"></label>
+                                <label>Təmir statusu<input type="text" id="project-repair" placeholder="Təmirli"></label>
+                                <label>Ümumi mənzil sayı<input type="text" id="project-apartments" placeholder="226 mənzil"></label>
+                                <label>Parkinq yerləri<input type="text" id="project-parking" placeholder="300 yer"></label>
                             </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mərtəbə sayı *</label>
-                                <input type="text" id="project-floors" required placeholder="11 mərtəbə" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        </section>
+                        <section class="project-form-section">
+                            <h4><span>🏠</span> Mənzillər</h4>
+                            <div class="project-form-grid">
+                                <label>Mənzil formatları<textarea id="project-apartment-formats" rows="4" placeholder="Studio&#10;1 otaqlı&#10;2 otaqlı"></textarea></label>
+                                <label>Mənzil sahələri<textarea id="project-apartment-areas" rows="4" placeholder="Studio: 46–117 m²&#10;1 otaqlı: 73–120 m²"></textarea></label>
+                                <label>Ümumi sahə aralığı<input type="text" id="project-area" placeholder="46–424 m²"></label>
                             </div>
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Sahə *</label>
-                                <input type="text" id="project-area" required placeholder="50-838 m²" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        </section>
+                        <section class="project-form-section">
+                            <h4><span>💰</span> Qiymətlər</h4>
+                            <div class="project-form-grid">
+                                <label>1 m² qiyməti<input type="text" id="project-price-m2" placeholder="3 500 AZN-dən"></label>
+                                <label>Ümumi qiymət<input type="text" id="project-total-price" placeholder="250 000 AZN-dən"></label>
+                                <label>Bank ipotekası<input type="text" id="project-mortgage" placeholder="Mövcuddur / şərtlər"></label>
+                                <label>Daxili kredit<input type="text" id="project-internal-credit" placeholder="36 ayadək"></label>
+                                <label>İlkin ödəniş<input type="text" id="project-down-payment" placeholder="30%-dən"></label>
                             </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Mənzil sayı *</label>
-                                <input type="text" id="project-apartments" required placeholder="226 mənzil" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Təmir statusu *</label>
-                                <input type="text" id="project-repair" required placeholder="Təmirli" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Xüsusiyyətlər *</label>
-                            <textarea id="project-features" rows="2" required placeholder="İcarə xidməti / Yeraltı parkinq / Hovuz" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Təsvir *</label>
-                            <textarea id="project-desc" rows="4" required placeholder="Layihə haqqında geniş təsvir" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                        <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300">
-                            <input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4">
-                            <span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span><br><span class="text-[10px] text-gray-500">Aktiv custom hero slayd yoxdursa layihə avtomatik əsas vitrində görünəcək.</span></span>
-                        </label>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between gap-3">
-                                <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label>
-                                <button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">
-                                    <i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et
-                                </button>
-                            </div>
-                            <input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
-                            <div id="project-images-list" class="space-y-2"></div>
-                            <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40">
-                                <picture class="block w-full h-full imageMove">
-                                    <source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset="">
-                                    <source id="project-preview-source-tablet" media="(min-width: 640px)" srcset="">
-                                    <img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload">
-                                </picture>
-                            </div>
-                            <p class="text-[10px] text-gray-500">Birinci link kartda əsas şəkil kimi göstərilir, bütün linklər isə detal modalında slider/carousel kimi açılır.</p>
-                        </div>
-                        <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20">
-                            <i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla
-                        </button>
+                        </section>
+                        <section class="project-form-section"><h4><span>🌿</span> İnfrastruktur</h4><textarea id="project-infrastructure" rows="5" placeholder="Layihənin infrastrukturu"></textarea></section>
+                        <section class="project-form-section"><h4><span>⭐</span> Xüsusiyyətlər</h4><textarea id="project-features" rows="5" placeholder="Layihənin üstünlükləri"></textarea><label class="project-form-wide">Əlavə təsvir (köhnə layihələr üçün)<textarea id="project-desc" rows="3" placeholder="Layihə haqqında əlavə təsvir"></textarea></label></section>
+                        <section class="project-form-section">
+                            <h4><span>🖼️</span> Media</h4>
+                            <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300"><input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4"><span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span></span></label>
+                            <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
+                        </section>
+                        <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20"><i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla</button>
                     </form>
                 </div>
                 <div class="lg:col-span-7 space-y-4">
@@ -4700,7 +4693,7 @@ Title: Park Villas
                 <div class="p-6 md:p-8 space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
                         <div class="flex">
-                            <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Detallar</button>
+                            <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Məlumat</button>
                             <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
                         </div>
                         <div class="flex items-center gap-2">
@@ -4715,33 +4708,8 @@ Title: Park Villas
                         <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
 
-                    <!-- Tab Content: Details -->
-                    <div id="op-tab-details" class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
-                            <span class="text-xs text-gray-600 block font-semibold">Mərtəbə sayı</span>
-                            <strong id="op-detail-floors" class="text-gray-800"></strong>
-                        </div>
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
-                            <span class="text-xs text-gray-600 block font-semibold">Sahə Ölçüsü</span>
-                            <strong id="op-detail-area" class="text-gray-800"></strong>
-                        </div>
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
-                            <span class="text-xs text-gray-600 block font-semibold">Mənzil Sayı</span>
-                            <strong id="op-detail-apartments" class="text-gray-800"></strong>
-                        </div>
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200">
-                            <span class="text-xs text-gray-600 block font-semibold">Təhvil Tarixi</span>
-                            <strong id="op-detail-year-val" class="text-gray-800"></strong>
-                        </div>
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200 col-span-2">
-                            <span class="text-xs text-gray-600 block font-semibold">Təmir Statusu</span>
-                            <strong id="op-detail-repair" class="text-gray-800"></strong>
-                        </div>
-                        <div class="bg-brand-50/70 p-3 rounded-xl border border-brand-200 col-span-2">
-                            <span class="text-xs text-gray-600 block font-semibold">Özəllikləri & Üstünlükləri</span>
-                            <strong id="op-detail-features" class="text-gray-800"></strong>
-                        </div>
-                    </div>
+                    <!-- Tab Content: Structured project details; empty fields are omitted. -->
+                    <div id="op-tab-details" class="project-detail-sections"></div>
                 </div>
             </div>
         </div>
@@ -5653,8 +5621,10 @@ Title: Park Villas
             return {
                 id: String(p.id), title: p.title || '', category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
                 region: p.region || p.regionType || p.region_type || '', projectArea: p.projectArea || p.project_area || '', location: p.location || '',
-                floors: p.floorCount || p.floor_count || '', area: p.area || '', apartments: p.apartmentCount || p.apartment_count || '',
-                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', features: normalizeFeatures(p.features),
+                zone: p.zone || '', coastline: p.coastline || '', seaDistance: p.seaDistance || p.sea_distance || '',
+                buildings: p.buildingCount || p.building_count || '', floors: p.floorCount || p.floor_count || '', area: p.areaRange || p.area_range || p.area || '', apartments: p.apartmentCount || p.apartment_count || '', parking: p.parkingSpaces || p.parking_spaces || '',
+                repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', apartmentFormats: p.apartmentFormats || p.apartment_formats || '', apartmentAreas: p.apartmentAreas || p.apartment_areas || '',
+                pricePerM2: p.pricePerM2 || p.price_per_m2 || '', totalPrice: p.totalPrice || p.total_price || '', bankMortgage: p.bankMortgage || p.bank_mortgage || '', internalCredit: p.internalCredit || p.internal_credit || '', downPayment: p.downPayment || p.down_payment || '', infrastructure: p.infrastructure || '', features: normalizeFeatures(p.features),
                 desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
                 displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
                 slug: p.slug || localSlug(p.title),
@@ -7081,11 +7051,25 @@ Title: Park Villas
             return {
                 title: p.title,
                 category: p.category,
+                zone: p.zone,
                 delivery_date: p.year,
+                coastline: p.coastline,
+                sea_distance: p.seaDistance,
+                building_count: p.buildings,
                 floor_count: p.floors,
                 area: p.area,
+                area_range: p.area,
                 apartment_count: p.apartments,
+                parking_spaces: p.parking,
                 repair_status: p.repairStatus || p.repair,
+                apartment_formats: p.apartmentFormats,
+                apartment_areas: p.apartmentAreas,
+                price_per_m2: p.pricePerM2,
+                total_price: p.totalPrice,
+                bank_mortgage: p.bankMortgage,
+                internal_credit: p.internalCredit,
+                down_payment: p.downPayment,
+                infrastructure: p.infrastructure,
                 features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
                 description: p.desc,
                 image_url: p.img,
@@ -10466,6 +10450,23 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        function renderOfficialProjectDetails(project) {
+            const clean = value => Array.isArray(value) ? value.filter(Boolean).join(' / ') : String(value || '').trim();
+            const sections = [
+                ['📍 Ümumi Məlumat', [['Zona', project.zone], ['Növ', project.category], ['Təhvil', project.year], ['Sahil xətti', project.coastline], ['Dənizə məsafə', project.seaDistance]]],
+                ['🏢 Bina Məlumatları', [['Binaların sayı', project.buildings], ['Mərtəbə sayı', project.floors], ['Mənzil sayı', project.apartments], ['Parkinq yerləri', project.parking], ['Təmir statusu', project.repairStatus]]],
+                ['🏠 Mənzillər', [['Mənzil formatları', project.apartmentFormats, true], ['Mənzil sahələri', project.apartmentAreas, true], ['Ümumi sahə aralığı', project.area]]],
+                ['💰 Qiymət və Şərtlər', [['1 m² qiyməti', project.pricePerM2], ['Ümumi qiymət', project.totalPrice], ['İpoteka', project.bankMortgage], ['Daxili kredit', project.internalCredit], ['İlkin ödəniş', project.downPayment]]],
+                ['⭐ İnfrastruktur və Üstünlüklər', [['İnfrastruktur', project.infrastructure, true], ['Xüsusiyyətlər', project.features, true]], true]
+            ];
+            const html = sections.map(([title, rows, wide]) => {
+                const visibleRows = rows.filter(([, value]) => clean(value));
+                if (!visibleRows.length) return '';
+                return `<section class="project-detail-section${wide ? ' project-detail-section--wide' : ''}"><h4>${title}</h4><div class="project-detail-rows">${visibleRows.map(([label, value, long]) => `<div class="project-detail-row${long ? ' project-detail-row--long' : ''}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(clean(value))}</strong></div>`).join('')}</div></section>`;
+            }).join('');
+            document.getElementById('op-tab-details').innerHTML = html || '<p class="text-sm text-gray-500">Bu layihə üçün əlavə məlumat yoxdur.</p>';
+        }
+
         function openOfficialProjectModal(id, pushRoute = false) {
             const p = getOfficialProjects().find(item => String(item.id) === String(id) || item.slug === id);
             if (!p) return;
@@ -10482,14 +10483,10 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-modal-title').textContent = localizedTitle;
             document.getElementById('op-modal-year').textContent = p.year;
             document.getElementById('op-modal-desc-text').textContent = localizedDesc;
+            document.getElementById('op-tab-btn-desc').classList.toggle('hidden', !localizedDesc);
+            document.getElementById('op-tab-desc').classList.toggle('hidden', !localizedDesc);
 
-            // Details mapping
-            document.getElementById('op-detail-floors').textContent = p.floors;
-            document.getElementById('op-detail-area').textContent = p.area;
-            document.getElementById('op-detail-apartments').textContent = p.apartments;
-            document.getElementById('op-detail-year-val').textContent = p.year;
-            document.getElementById('op-detail-repair').textContent = p.repairStatus;
-            document.getElementById('op-detail-features').textContent = (Array.isArray(p.features) ? p.features.join(' / ') : p.features);
+            renderOfficialProjectDetails(p);
 
             switchOfficialModalTab('details');
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
@@ -12855,15 +12852,28 @@ Təşəkkür edirəm. 🙏`;
                 id: editId || null,
                 category: document.getElementById('project-category').value,
                 title,
+                zone: document.getElementById('project-zone').value.trim(),
                 year: document.getElementById('project-year').value.trim(),
+                coastline: document.getElementById('project-coastline').value.trim(),
+                seaDistance: document.getElementById('project-sea-distance').value.trim(),
                 img: imageUrl,
                 images: projectImages,
                 picture: buildProjectPictureFromLink(imageUrl, existing.picture),
                 desc: document.getElementById('project-desc').value.trim(),
+                buildings: document.getElementById('project-buildings').value.trim(),
                 floors: document.getElementById('project-floors').value.trim(),
                 area: document.getElementById('project-area').value.trim(),
                 apartments: document.getElementById('project-apartments').value.trim(),
+                parking: document.getElementById('project-parking').value.trim(),
                 repairStatus: document.getElementById('project-repair').value.trim(),
+                apartmentFormats: document.getElementById('project-apartment-formats').value.trim(),
+                apartmentAreas: document.getElementById('project-apartment-areas').value.trim(),
+                pricePerM2: document.getElementById('project-price-m2').value.trim(),
+                totalPrice: document.getElementById('project-total-price').value.trim(),
+                bankMortgage: document.getElementById('project-mortgage').value.trim(),
+                internalCredit: document.getElementById('project-internal-credit').value.trim(),
+                downPayment: document.getElementById('project-down-payment').value.trim(),
+                infrastructure: document.getElementById('project-infrastructure').value.trim(),
                 features: document.getElementById('project-features').value.trim(),
                 slug: document.getElementById('project-slug').value.trim(),
                 featuredInHero: document.getElementById('project-featured-hero')?.checked || false
@@ -12903,12 +12913,25 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-title').value = project.title;
             document.getElementById('project-slug').value = project.slug || '';
             document.getElementById('project-category').value = project.category;
+            document.getElementById('project-zone').value = project.zone || '';
             document.getElementById('project-year').value = project.year;
+            document.getElementById('project-coastline').value = project.coastline || '';
+            document.getElementById('project-sea-distance').value = project.seaDistance || '';
+            document.getElementById('project-buildings').value = project.buildings || '';
             document.getElementById('project-floors').value = project.floors;
             document.getElementById('project-area').value = project.area;
             document.getElementById('project-apartments').value = project.apartments;
+            document.getElementById('project-parking').value = project.parking || '';
             document.getElementById('project-repair').value = project.repairStatus;
-            document.getElementById('project-features').value = project.features;
+            document.getElementById('project-apartment-formats').value = project.apartmentFormats || '';
+            document.getElementById('project-apartment-areas').value = project.apartmentAreas || '';
+            document.getElementById('project-price-m2').value = project.pricePerM2 || '';
+            document.getElementById('project-total-price').value = project.totalPrice || '';
+            document.getElementById('project-mortgage').value = project.bankMortgage || '';
+            document.getElementById('project-internal-credit').value = project.internalCredit || '';
+            document.getElementById('project-down-payment').value = project.downPayment || '';
+            document.getElementById('project-infrastructure').value = project.infrastructure || '';
+            document.getElementById('project-features').value = Array.isArray(project.features) ? project.features.join(' / ') : project.features;
             document.getElementById('project-desc').value = project.desc;
             document.getElementById('project-featured-hero').checked = Boolean(project.featuredInHero);
             document.getElementById('project-hero-badge')?.classList.toggle('hidden', !project.featuredInHero);

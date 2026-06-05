@@ -176,6 +176,36 @@ async function ensurePublicUsersAuthColumns() {
 }
 
 
+async function ensureStructuredProjectColumns() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE public."projects"
+        ADD COLUMN IF NOT EXISTS "zone" TEXT,
+        ADD COLUMN IF NOT EXISTS "coastline" TEXT,
+        ADD COLUMN IF NOT EXISTS "sea_distance" TEXT,
+        ADD COLUMN IF NOT EXISTS "building_count" TEXT,
+        ADD COLUMN IF NOT EXISTS "parking_spaces" TEXT,
+        ADD COLUMN IF NOT EXISTS "apartment_formats" TEXT,
+        ADD COLUMN IF NOT EXISTS "apartment_areas" TEXT,
+        ADD COLUMN IF NOT EXISTS "area_range" TEXT,
+        ADD COLUMN IF NOT EXISTS "price_per_m2" TEXT,
+        ADD COLUMN IF NOT EXISTS "total_price" TEXT,
+        ADD COLUMN IF NOT EXISTS "bank_mortgage" TEXT,
+        ADD COLUMN IF NOT EXISTS "internal_credit" TEXT,
+        ADD COLUMN IF NOT EXISTS "down_payment" TEXT,
+        ADD COLUMN IF NOT EXISTS "infrastructure" TEXT
+    `);
+    await prisma.$executeRawUnsafe('UPDATE public."projects" SET "area_range" = "area" WHERE "area_range" IS NULL AND "area" IS NOT NULL');
+  } catch (error) {
+    if (['P2021', 'P2022'].includes(error.code)) {
+      console.warn('Structured project-column bootstrap skipped until the public.projects table exists:', error.message);
+      return;
+    }
+    throw error;
+  }
+}
+
+
 async function ensureProjectArchiveColumn() {
   try {
     await prisma.$executeRawUnsafe('ALTER TABLE public."projects" ADD COLUMN IF NOT EXISTS "is_archived" BOOLEAN NOT NULL DEFAULT false');
@@ -239,7 +269,7 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn()])
+Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns()])
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
