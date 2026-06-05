@@ -4154,15 +4154,26 @@ Title: Park Villas
                         </div>
 
                         <div id="gallery-video-fields" class="hidden space-y-2">
-                            <input type="url" id="g-video-url" placeholder="YouTube, Vimeo və ya MP4 URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            <input type="url" id="g-video-url" oninput="renderGalleryVideoFormPreview()" placeholder="YouTube, Vimeo və ya MP4 URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                             <input type="file" id="g-video-file" accept="video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300">
+                            <div id="gallery-video-form-preview" class="hidden h-32 rounded-xl overflow-hidden bg-white/5 border border-white/10"></div>
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
                     </form>
                 </div>
-                <div class="lg:col-span-7 space-y-4" id="admin-gallery-list"></div>
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="glass-card p-3 rounded-2xl flex items-center gap-3">
+                        <label for="admin-gallery-filter" class="text-xs font-bold text-gray-300">Media filtri</label>
+                        <select id="admin-gallery-filter" onchange="renderAdminDashboard()" class="ml-auto bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                            <option value="all">Hamısı</option>
+                            <option value="image">Foto/Qalereya</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="space-y-4" id="admin-gallery-list"></div>
+                </div>
             </div>
 
             <!-- SUBTAB 6: ADVERTISEMENT MANAGEMENT -->
@@ -5648,6 +5659,7 @@ Title: Park Villas
                 video_url: videoUrl,
                 thumbnailUrl,
                 thumbnail_url: thumbnailUrl,
+                image: imageUrl,
                 imageUrl,
                 image_url: imageUrl
             };
@@ -5655,21 +5667,22 @@ Title: Park Villas
 
         function dbGalleryToUi(g) {
             const normalizedItem = normalizeGalleryItem(g || {});
-            const mediaType = normalizedItem.mediaType;
+            const mediaType = String(normalizedItem.mediaType || '').toLowerCase() === 'video' ? 'video' : 'image';
             const imageRows = normalizeJsonArray(g.images);
             const mediaRows = normalizeJsonArray(g.mediaUrls || g.media_urls);
             const createdAt = g.createdAt || g.created_at || new Date().toISOString();
-            const thumbnailUrl = g.thumbnailUrl || g.thumbnail_url || '';
+            const thumbnailUrl = g.thumbnailUrl || g.thumbnail_url || g.thumbnail || '';
             const autoThumbnailUrl = g.autoThumbnailUrl || g.auto_thumbnail_url || '';
             const thumbnailFallbackUrl = g.thumbnailFallbackUrl || g.thumbnail_fallback_url || '';
-            const imageUrl = g.imageUrl || g.image_url || '';
-            const images = [...imageRows, ...mediaRows, imageUrl, thumbnailUrl]
+            const imageUrl = g.imageUrl || g.image_url || g.image || '';
+            const videoUrl = g.videoUrl || g.video_url || g.url || mediaRows[0] || '';
+            const images = [...imageRows, ...(mediaType === 'image' ? [...mediaRows, imageUrl, thumbnailUrl] : [])]
                 .map(x => String(x || '').trim())
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
             const isFeatured = Boolean(normalizedItem.isFeatured ?? normalizedItem.is_featured);
             return mediaType === 'video'
-                ? { id: g.id, title: g.title || '', type: 'video', mediaType: 'video', media_type: 'video', url: g.videoUrl || g.video_url || mediaRows[0] || '', videoUrl: g.videoUrl || g.video_url || mediaRows[0] || '', video_url: g.videoUrl || g.video_url || mediaRows[0] || '', thumbnail: thumbnailUrl || autoThumbnailUrl || thumbnailFallbackUrl || imageUrl || '', thumbnailUrl, thumbnail_url: thumbnailUrl, thumbnailFallbackUrl, thumbnail_fallback_url: thumbnailFallbackUrl, autoThumbnailUrl, auto_thumbnail_url: autoThumbnailUrl, imageUrl, image_url: imageUrl, desc: g.description || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
-                : { id: g.id, title: g.title || '', type: 'event', mediaType: 'image', media_type: 'image', images, imageUrl, image_url: imageUrl, thumbnailUrl, thumbnail_url: thumbnailUrl, desc: g.description || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
+                ? { ...g, id: g.id, title: g.title || '', type: 'video', mediaType: 'video', media_type: 'video', url: videoUrl, videoUrl, video_url: videoUrl, thumbnail: thumbnailUrl || autoThumbnailUrl || thumbnailFallbackUrl || imageUrl || '', thumbnailUrl, thumbnail_url: thumbnailUrl, thumbnailFallbackUrl, thumbnail_fallback_url: thumbnailFallbackUrl, autoThumbnailUrl, auto_thumbnail_url: autoThumbnailUrl, imageUrl, image_url: imageUrl, mediaUrls: mediaRows, media_urls: mediaRows, images: imageRows, desc: g.description || g.desc || '', createdAt, duration: g.duration || '', sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured, is_featured: isFeatured }
+                : { ...g, id: g.id, title: g.title || '', type: 'event', mediaType: 'image', media_type: 'image', images, mediaUrls: mediaRows, media_urls: mediaRows, image: imageUrl, imageUrl, image_url: imageUrl, thumbnail: thumbnailUrl, thumbnailUrl, thumbnail_url: thumbnailUrl, desc: g.description || g.desc || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
         }
 
         const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
@@ -6895,15 +6908,21 @@ Title: Park Villas
         }
 
         function uiGalleryToApi(g) {
-            const isVideo = g.type === 'video';
+            const isVideo = String(g.media_type || g.mediaType || g.type).toLowerCase() === 'video';
+            const images = normalizeJsonArray(g.images);
+            const mediaUrls = normalizeJsonArray(g.mediaUrls || g.media_urls);
+            const videoUrl = g.video_url || g.videoUrl || g.url || mediaUrls[0] || '';
+            const imageUrl = g.image_url || g.imageUrl || g.image || images[0] || '';
+            const thumbnailUrl = g.thumbnail_url || g.thumbnailUrl || g.thumbnail || getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl) || '';
             return {
                 title: g.title,
-                description: g.desc,
+                description: g.desc ?? g.description,
                 media_type: isVideo ? 'video' : 'image',
-                image_url: isVideo ? undefined : (g.images?.[0] || ''),
-                video_url: isVideo ? g.url : undefined,
-                thumbnail_url: isVideo ? (g.thumbnail || getYouTubeThumbnail(g.url) || getVimeoThumbnail(g.url)) : (g.images?.[0] || ''),
-                images: isVideo ? undefined : (g.images || [])
+                image_url: isVideo ? (imageUrl || undefined) : imageUrl,
+                video_url: isVideo ? videoUrl : undefined,
+                thumbnail_url: isVideo ? (thumbnailUrl || undefined) : (thumbnailUrl || imageUrl),
+                media_urls: mediaUrls.length ? mediaUrls : (isVideo && videoUrl ? [videoUrl] : images),
+                images: images.length ? images : undefined
             };
         }
 
@@ -10836,6 +10855,7 @@ Təşəkkür edirəm. 🙏`;
                 dataLoadState.gallery.loaded = true;
             }
             renderPortfolio();
+            if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
         }
 
 
@@ -11366,6 +11386,7 @@ Təşəkkür edirəm. 🙏`;
         let isProjectSaveSubmitting = false;
         let isHeroSaveSubmitting = false;
         let isGallerySaveSubmitting = false;
+        let editingGalleryThumbnail = '';
         let isVacancySaveSubmitting = false;
         let isUserActionSubmitting = false;
 
@@ -12969,6 +12990,43 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        function galleryVideoPreviewMarkup(videoUrl, className = 'w-full h-full object-cover') {
+            const normalizedUrl = normalizeGalleryVideoUrl(videoUrl || '');
+            if (!normalizedUrl) return '';
+            if (/youtube\.com\/embed|player\.vimeo\.com\/video/i.test(normalizedUrl)) {
+                return `<iframe src="${escapeHtml(normalizedUrl)}" class="${className}" title="Video önizləmə" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+            }
+            return `<video src="${escapeHtml(normalizedUrl)}" class="${className}" muted controls playsinline preload="metadata"></video>`;
+        }
+
+        function renderAdminGalleryPreview(item = {}) {
+            const wrapper = 'w-24 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-sm flex items-center justify-center';
+            if (item.type === 'event') {
+                const image = item.images?.[0] || item.imageUrl || item.image_url || '';
+                return image
+                    ? `<div class="${wrapper}"><img src="${escapeHtml(image)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover"></div>`
+                    : `<div class="${wrapper} text-gray-400" aria-label="Foto yoxdur"><i class="fa-regular fa-image text-2xl"></i></div>`;
+            }
+            const thumbnail = getGalleryVideoThumbnail(item);
+            if (thumbnail) return `<div class="${wrapper}"><img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover"></div>`;
+            const videoPreview = galleryVideoPreviewMarkup(item.video_url || item.videoUrl || item.url || '');
+            return videoPreview
+                ? `<div class="${wrapper}">${videoPreview}</div>`
+                : `<div class="${wrapper} text-gray-400" aria-label="Video önizləməsi yoxdur"><i class="fa-solid fa-video text-2xl"></i></div>`;
+        }
+
+        function renderGalleryVideoFormPreview() {
+            const preview = document.getElementById('gallery-video-form-preview');
+            if (!preview) return;
+            const videoUrl = document.getElementById('g-video-url')?.value.trim() || '';
+            const thumbnail = editingGalleryThumbnail || getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl);
+            const markup = thumbnail
+                ? `<img src="${escapeHtml(thumbnail)}" alt="Video miniatürü" class="w-full h-full object-contain bg-slate-900">`
+                : galleryVideoPreviewMarkup(videoUrl, 'w-full h-full object-contain bg-slate-900');
+            preview.innerHTML = markup;
+            preview.classList.toggle('hidden', !markup);
+        }
+
         function renderAdminDashboard() {
             if (!activeUser) {
                 switchTab('admin-login');
@@ -13152,21 +13210,19 @@ Təşəkkür edirəm. 🙏`;
                 });
 
                 // 5. Media Gallery
-                const gallery = [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                const galleryFilter = document.getElementById('admin-gallery-filter')?.value || 'all';
+                const gallery = [...appData.gallery]
+                    .filter(item => galleryFilter === 'all' || item.media_type === galleryFilter || item.mediaType === galleryFilter)
+                    .sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
                 const galContainer = document.getElementById('admin-gallery-list');
                 galContainer.innerHTML = '';
                 gallery.forEach((g, index) => {
-                    const thumb = g.type === 'event'
-                        ? (g.images?.[0] || 'https://placehold.co/320x220/f3f4f6/6b7280?text=Foto')
-                        : (getGalleryVideoThumbnail(g) || 'https://placehold.co/320x220/f3f4f6/6b7280?text=Video');
                     galContainer.innerHTML += `
                         <div class="admin-media-card media-card glass-card p-3 rounded-2xl flex gap-3 items-center text-xs" data-gallery-id="${g.id}">
                             <button type="button" class="admin-media-drag-handle shrink-0 bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white w-10 h-10 rounded-xl transition" onpointerdown="startGalleryDrag(event, '${g.id}')" aria-label="Media sırasını dəyiş">
                                 <i class="fa-solid fa-grip-vertical"></i>
                             </button>
-                            <div class="w-24 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 shadow-sm">
-                                <img src="${escapeHtml(thumb)}" alt="${escapeHtml(g.title)}" class="w-full h-full object-contain object-center bg-slate-100">
-                            </div>
+                            ${renderAdminGalleryPreview(g)}
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-black text-white truncate">${escapeHtml(g.title)}</span>
@@ -13863,6 +13919,7 @@ Təşəkkür edirəm. 🙏`;
             } else {
                 document.getElementById('gallery-event-fields').classList.add('hidden');
                 document.getElementById('gallery-video-fields').classList.remove('hidden');
+                renderGalleryVideoFormPreview();
             }
         }
 
@@ -13885,7 +13942,7 @@ Təşəkkür edirəm. 🙏`;
                 desc,
                 images: type === 'event' ? uploadedEventImages : [],
                 url: type === 'video' ? normalizeGalleryVideoUrl(videoUrl) : '',
-                thumbnail: type === 'video' ? (getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : ''
+                thumbnail: type === 'video' ? (editingGalleryThumbnail || getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl)) : ''
             };
             if (type === 'event' && galleryPayload.images.length === 0 && uploadedEventImageFiles.length === 0) {
                 alert('Qalereya üçün ən azı bir şəkil seçin.');
@@ -13932,21 +13989,23 @@ Təşəkkür edirəm. 🙏`;
 
         function editGalleryItem(id) {
             const list = appData.gallery;
-            const g = list.find(x => x.id === id);
+            const g = list.find(x => String(x.id) === String(id));
             if (g) {
                 document.getElementById('edit-g-id').value = g.id;
                 document.getElementById('g-title').value = g.title;
-                document.getElementById('g-type').value = g.type;
+                document.getElementById('g-type').value = g.media_type === 'video' || g.mediaType === 'video' || g.type === 'video' ? 'video' : 'event';
                 document.getElementById('g-desc').value = g.desc || '';
                 toggleGalleryTypeFields();
 
-                if (g.type === 'event') {
+                if (document.getElementById('g-type').value === 'event') {
                     uploadedEventImages = g.images || [];
                     uploadedEventImageFiles = [];
                     document.getElementById('g-images-count').textContent = `${uploadedEventImages.length} şəkil yaddaşdadır`;
                     renderGalleryMultiPreview();
                 } else {
-                    document.getElementById('g-video-url').value = g.url || '';
+                    document.getElementById('g-video-url').value = g.video_url || g.videoUrl || g.url || '';
+                    editingGalleryThumbnail = g.thumbnail_url || g.thumbnailUrl || g.thumbnail || '';
+                    renderGalleryVideoFormPreview();
                 }
                 document.getElementById('gallery-form-title').textContent = "Media Elementini Redaktə Et";
             }
@@ -13957,6 +14016,8 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('g-title').value = '';
             document.getElementById('g-type').value = 'event';
             document.getElementById('g-video-url').value = '';
+            editingGalleryThumbnail = '';
+            renderGalleryVideoFormPreview();
             if (document.getElementById('g-video-file')) document.getElementById('g-video-file').value = '';
             document.getElementById('g-desc').value = '';
             uploadedEventImages = [];
