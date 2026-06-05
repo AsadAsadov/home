@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const path = require('path');
 
 const storage = require('../src/utils/supabaseStorage');
 
@@ -137,15 +138,12 @@ function cryptoRandomUuidForTest() {
   return { restore: () => { crypto.randomUUID = original; } };
 }
 
-test('reklamlar uploads return public URLs from the reklamlar bucket', async () => {
-  process.env.SUPABASE_URL = 'https://demo.supabase.co';
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
-
-  let requestedUrl = '';
+test('reklamlar uploads return local dated URLs without calling Supabase', async () => {
+  let fetchCalled = false;
   const originalFetch = global.fetch;
-  global.fetch = async (url) => {
-    requestedUrl = url;
-    return { ok: true, text: async () => '' };
+  global.fetch = async () => {
+    fetchCalled = true;
+    throw new Error('Supabase must not be called for advertisement uploads.');
   };
 
   try {
@@ -153,10 +151,10 @@ test('reklamlar uploads return public URLs from the reklamlar bucket', async () 
       originalname: 'sidebar-ad.gif',
       mimetype: 'image/gif',
       size: 1024,
-      buffer: Buffer.from('gif'),
+      path: path.join(process.cwd(), 'uploads', 'reklamlar', '2026', '06', 'sidebar-ad.gif'),
     });
-    assert.match(requestedUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/reklamlar\/media\//);
-    assert.match(publicUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/public\/reklamlar\/media\//);
+    assert.equal(fetchCalled, false);
+    assert.equal(publicUrl, '/uploads/reklamlar/2026/06/sidebar-ad.gif');
   } finally {
     global.fetch = originalFetch;
   }

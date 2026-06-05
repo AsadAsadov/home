@@ -1,10 +1,10 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
-const { createUpload } = require('../middleware/upload');
-const upload = createUpload('reklamlar');
+const { createUpload, localUploadUrl } = require('../middleware/upload');
+const { adMediaFileFilter, adMediaTypeForFile } = require('../utils/adMedia');
+const upload = createUpload('reklamlar', { files: 1, fileFilter: adMediaFileFilter });
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
-const { uploadToAdBucket } = require('../utils/supabaseStorage');
 
 const router = express.Router();
 const POSITIONS = new Set(['left', 'right', 'both']);
@@ -51,8 +51,10 @@ function parseDimension(value, fallback, min, max, label) {
   return parsed;
 }
 
-function normalizePayload(body, uploadedUrl = null, existing = {}) {
-  const mediaType = String(body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image').toLowerCase();
+function normalizePayload(body, uploadedUrl = null, existing = {}, uploadedFile = null) {
+  const mediaType = uploadedFile
+    ? adMediaTypeForFile(uploadedFile)
+    : String(body.media_type ?? body.mediaType ?? existing.mediaType ?? 'image').toLowerCase();
   const position = String(body.position ?? existing.position ?? 'left').toLowerCase();
   const objectFit = String(body.object_fit ?? body.objectFit ?? existing.objectFit ?? 'cover').toLowerCase();
   if (!MEDIA_TYPES.has(mediaType)) {
@@ -157,9 +159,8 @@ function activeDateWhere(now = new Date()) {
 }
 
 
-async function uploadAdFileWithFallback(file) {
-  if (!file) return null;
-  return uploadToAdBucket(file);
+function uploadedAdUrl(file) {
+  return file ? localUploadUrl(file) : null;
 }
 
 router.get('/', asyncHandler(async (req, res) => {
@@ -188,8 +189,8 @@ router.post('/:id/click', asyncHandler(async (req, res) => {
 }));
 
 router.post('/', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
-  const uploadedUrl = await uploadAdFileWithFallback(req.file);
-  const data = normalizePayload(req.body, uploadedUrl);
+  const uploadedUrl = uploadedAdUrl(req.file);
+  const data = normalizePayload(req.body, uploadedUrl, {}, req.file);
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
   if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL is required.' });
   const created = await prisma.siteAd.create({ data });
@@ -199,8 +200,8 @@ router.post('/', authenticate, authorize('admin'), upload.single('media'), async
 router.put('/:id', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
   const existing = await prisma.siteAd.findUnique({ where: { id: Number(req.params.id) } });
   if (!existing) return res.status(404).json({ message: 'Advertisement not found.' });
-  const uploadedUrl = await uploadAdFileWithFallback(req.file);
-  const data = normalizePayload(req.body, uploadedUrl, existing);
+  const uploadedUrl = uploadedAdUrl(req.file);
+  const data = normalizePayload(req.body, uploadedUrl, existing, req.file);
   if (!data.title) return res.status(400).json({ message: 'Title is required.' });
   if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL is required.' });
   const updated = await prisma.siteAd.update({ where: { id: existing.id }, data });

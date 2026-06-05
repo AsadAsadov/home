@@ -4187,8 +4187,15 @@ Title: Park Villas
                                 <option value="both">Both</option>
                             </select>
                         </div>
-                        <input type="url" id="ad-media-url" placeholder="Media URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <input type="file" id="ad-media-file" accept="image/*,video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300" onchange="updateAdPreview()">
+                        <label class="block space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Media URL</span>
+                            <input type="text" id="ad-media-url" placeholder="https://example.com/reklam.jpg və ya /uploads/reklamlar/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                        </label>
+                        <label class="block space-y-1">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Media fayl yüklə</span>
+                            <input type="file" id="ad-media-file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300" onchange="handleAdMediaFileSelection()">
+                            <span class="block text-[10px] text-gray-500">JPG, JPEG, PNG, WEBP, GIF, MP4, WEBM və MOV. Fayl seçilərsə Media URL-dən üstün tutulur.</span>
+                        </label>
                         <input type="url" id="ad-click-url" placeholder="Click URL" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <div class="grid grid-cols-2 gap-3">
                             <input type="number" id="ad-display-order" min="0" value="0" placeholder="Display Order" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
@@ -12765,9 +12772,44 @@ Təşəkkür edirəm. 🙏`;
                 </div>`).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Reklam yoxdur.</div>';
         }
 
-        function getAdPreviewUrl() {
+        let adPreviewObjectUrl = '';
+        let adPreviewObjectFile = null;
+
+        function clearAdPreviewObjectUrl() {
+            if (adPreviewObjectUrl) URL.revokeObjectURL(adPreviewObjectUrl);
+            adPreviewObjectUrl = '';
+            adPreviewObjectFile = null;
+        }
+
+        function inferAdMediaType(file, url = '', fallback = 'image') {
+            const mimeType = String(file?.type || '').toLowerCase();
+            const fileName = String(file?.name || url || '').toLowerCase().split(/[?#]/)[0];
+            if (mimeType === 'image/gif' || fileName.endsWith('.gif')) return 'gif';
+            if (mimeType.startsWith('video/') || /\.(mp4|webm|mov)$/.test(fileName)) return 'video';
+            if (mimeType.startsWith('image/') || /\.(jpe?g|png|webp)$/.test(fileName)) return 'image';
+            return fallback;
+        }
+
+        function getAdPreviewMedia() {
             const file = document.getElementById('ad-media-file')?.files?.[0];
-            return file ? URL.createObjectURL(file) : (document.getElementById('ad-media-url')?.value.trim() || '');
+            const externalUrl = document.getElementById('ad-media-url')?.value.trim() || '';
+            const selectedType = document.getElementById('ad-media-type')?.value || 'image';
+            if (!file) {
+                clearAdPreviewObjectUrl();
+                return { url: externalUrl, mediaType: inferAdMediaType(null, externalUrl, selectedType) };
+            }
+            if (file !== adPreviewObjectFile) {
+                clearAdPreviewObjectUrl();
+                adPreviewObjectFile = file;
+                adPreviewObjectUrl = URL.createObjectURL(file);
+            }
+            return { url: adPreviewObjectUrl, mediaType: inferAdMediaType(file, '', selectedType) };
+        }
+
+        function handleAdMediaFileSelection() {
+            const file = document.getElementById('ad-media-file')?.files?.[0];
+            if (file) document.getElementById('ad-media-type').value = inferAdMediaType(file);
+            updateAdPreview();
         }
 
         function getAdFormDimensions() {
@@ -12806,10 +12848,11 @@ Təşəkkür edirəm. 🙏`;
             const box = document.getElementById('ad-admin-preview');
             if (!box) return;
             const dimensions = getAdFormDimensions();
+            const previewMedia = getAdPreviewMedia();
             const ad = {
                 title: document.getElementById('ad-title')?.value || 'Advertisement',
-                mediaType: document.getElementById('ad-media-type')?.value || 'image',
-                mediaUrl: getAdPreviewUrl(),
+                mediaType: previewMedia.mediaType,
+                mediaUrl: previewMedia.url,
                 ...dimensions
             };
             box.style.width = `${dimensions.widthPx}px`;
@@ -12825,6 +12868,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('ad-media-type').value = 'image';
             document.getElementById('ad-media-url').value = '';
             document.getElementById('ad-media-file').value = '';
+            clearAdPreviewObjectUrl();
             document.getElementById('ad-click-url').value = '';
             document.getElementById('ad-position').value = 'left';
             document.getElementById('ad-display-order').value = '0';
@@ -12845,26 +12889,35 @@ Təşəkkür edirəm. 🙏`;
             const id = document.getElementById('edit-ad-id').value;
             if (!validateAdFormDimensions()) return;
             const dimensions = getAdFormDimensions();
-            const formData = new FormData();
-            formData.append('title', document.getElementById('ad-title').value.trim());
-            formData.append('media_type', document.getElementById('ad-media-type').value);
-            formData.append('media_url', document.getElementById('ad-media-url').value.trim());
-            formData.append('click_url', document.getElementById('ad-click-url').value.trim());
-            formData.append('position', document.getElementById('ad-position').value);
-            formData.append('display_order', document.getElementById('ad-display-order').value || '0');
-            formData.append('rotation_order', document.getElementById('ad-rotation-order').value || '0');
-            formData.append('repeat_count', document.getElementById('ad-repeat-count').value || String(AD_DEFAULT_REPEAT_COUNT));
-            formData.append('display_duration', document.getElementById('ad-display-duration').value || String(AD_DEFAULT_DISPLAY_DURATION_SECONDS));
-            formData.append('width_px', String(dimensions.widthPx));
-            formData.append('height_px', String(dimensions.heightPx));
-            formData.append('object_fit', dimensions.objectFit);
-            formData.append('start_date', document.getElementById('ad-start-date').value);
-            formData.append('end_date', document.getElementById('ad-end-date').value);
-            formData.append('is_active', document.getElementById('ad-is-active').checked ? 'true' : 'false');
+            const clickUrl = document.getElementById('ad-click-url').value.trim();
+            const payload = {
+                title: document.getElementById('ad-title').value.trim(),
+                mediaType: document.getElementById('ad-media-type').value,
+                mediaUrl: document.getElementById('ad-media-url').value.trim(),
+                clickUrl,
+                targetUrl: clickUrl,
+                position: document.getElementById('ad-position').value,
+                displayOrder: document.getElementById('ad-display-order').value || '0',
+                rotationOrder: document.getElementById('ad-rotation-order').value || '0',
+                repeatCount: document.getElementById('ad-repeat-count').value || String(AD_DEFAULT_REPEAT_COUNT),
+                displayDuration: document.getElementById('ad-display-duration').value || String(AD_DEFAULT_DISPLAY_DURATION_SECONDS),
+                widthPx: String(dimensions.widthPx),
+                heightPx: String(dimensions.heightPx),
+                objectFit: dimensions.objectFit,
+                startDate: document.getElementById('ad-start-date').value,
+                endDate: document.getElementById('ad-end-date').value,
+                isActive: document.getElementById('ad-is-active').checked
+            };
             const file = document.getElementById('ad-media-file').files[0];
-            if (file) formData.append('media', file);
+            let body = JSON.stringify(payload);
+            if (file) {
+                const formData = new FormData();
+                Object.entries(payload).forEach(([key, value]) => formData.append(key, String(value)));
+                formData.append('media', file);
+                body = formData;
+            }
             try {
-                await apiRequest(id ? `/api/site-ads/${id}` : '/api/site-ads', id ? 'PUT' : 'POST', formData);
+                await apiRequest(id ? `/api/site-ads/${id}` : '/api/site-ads', id ? 'PUT' : 'POST', body);
                 resetAdForm();
                 await loadAdminAds();
             } catch (error) {
