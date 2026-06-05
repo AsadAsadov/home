@@ -3281,14 +3281,23 @@
         }
 
 
-        .project-form-section { border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.035); border-radius: 1rem; padding: 1rem; }
-        .project-form-section h4 { color: white; font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .85rem; display: flex; gap: .5rem; align-items: center; }
-        .project-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
-        .project-form-section label { display: flex; flex-direction: column; gap: .35rem; color: #9ca3af; font-size: .65rem; font-weight: 800; text-transform: uppercase; }
-        .project-form-section input:not([type="checkbox"]), .project-form-section select, .project-form-section textarea { width: 100%; border: 1px solid rgba(255,255,255,.1); border-radius: .75rem; background: rgba(255,255,255,.05); padding: .65rem .75rem; color: white; font-size: .75rem; text-transform: none; outline: none; }
-        .project-form-section select { background-color: #0f172a; }
-        .project-form-section input:focus, .project-form-section select:focus, .project-form-section textarea:focus { border-color: rgba(127,127,255,.7); }
-        .project-form-wide { margin-top: .75rem; }
+        .project-form-section { border: 1px solid rgba(148,163,184,.3); background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(241,245,249,.94)); border-radius: 1rem; padding: .9rem; box-shadow: 0 12px 28px rgba(15,23,42,.12); }
+        .project-form-section h4 { color: #172033; font-size: .78rem; font-weight: 900; letter-spacing: .02em; margin-bottom: .75rem; display: flex; gap: .55rem; align-items: center; }
+        .project-form-section h4 > span:first-child { display: inline-flex; width: 2rem; height: 2rem; flex: 0 0 2rem; align-items: center; justify-content: center; border-radius: .65rem; background: #e7e7ff; border: 1px solid #ccccff; box-shadow: 0 4px 10px rgba(79,70,229,.12); font-size: 1rem; }
+        .project-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem .75rem; }
+        .project-form-section label { display: flex; flex-direction: column; gap: .3rem; color: #475569; font-size: .63rem; font-weight: 900; text-transform: uppercase; }
+        .project-form-section input:not([type="checkbox"]), .project-form-section select, .project-form-section textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: .7rem; background: rgba(255,255,255,.92); padding: .6rem .7rem; color: #172033; font-size: .75rem; text-transform: none; outline: none; box-shadow: inset 0 1px 2px rgba(15,23,42,.04); }
+        .project-form-section input::placeholder, .project-form-section textarea::placeholder { color: #94a3b8; }
+        .project-form-section select { background-color: white; }
+        .project-form-section textarea { min-height: 5.25rem; max-height: 8rem; resize: vertical; line-height: 1.45; }
+        .project-form-section input:focus, .project-form-section select:focus, .project-form-section textarea:focus { border-color: #7f7fff; box-shadow: 0 0 0 3px rgba(127,127,255,.15); }
+        .project-form-section .project-form-wide { margin-top: .65rem; }
+        .project-form-section label.flex { color: #334155 !important; background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        .project-form-section label.flex strong { color: #172033 !important; }
+        .project-form-section .space-y-2 label { color: #475569 !important; }
+        .project-form-section button { color: #334155; background: #f8fafc; border-color: #cbd5e1; }
+        .project-form-section button:hover { background: #eef2ff; }
+        .project-form-section .bg-black\/20 { background: #e2e8f0 !important; border-color: #cbd5e1 !important; }
         .project-detail-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
         .project-detail-section { border: 1px solid var(--color-primary-border); background: rgba(234,234,255,.55); border-radius: 1rem; padding: 1rem; }
         .project-detail-section--wide { grid-column: 1 / -1; }
@@ -4058,7 +4067,7 @@
                     <form onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-4">
                         <input type="hidden" id="edit-project-id" value="">
                         <section class="project-form-section">
-                            <h4><span>📍</span> Ümumi Məlumat</h4>
+                            <h4><span>📍</span><span>Ümumi Məlumat</span></h4>
                             <div class="project-form-grid">
                                 <label>Layihə adı *<input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner"></label>
                                 <label>Zona<input type="text" id="project-zone" placeholder="Məs: Sea Breeze"></label>
@@ -4070,7 +4079,7 @@
                             <label class="project-form-wide">SEO slug<input type="text" id="project-slug" placeholder="Avtomatik yaradılır"></label>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>🏢</span> Bina Məlumatları</h4>
+                            <h4><span>🏢</span><span>Bina Məlumatları</span></h4>
                             <div class="project-form-grid">
                                 <label>Binaların sayı<input type="text" id="project-buildings" placeholder="3 bina"></label>
                                 <label>Mərtəbə sayı<input type="text" id="project-floors" placeholder="11 mərtəbə"></label>
@@ -4080,7 +4089,7 @@
                             </div>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>🏠</span> Mənzillər</h4>
+                            <h4><span>🏠</span><span>Mənzillər</span></h4>
                             <div class="project-form-grid">
                                 <label>Mənzil formatları<textarea id="project-apartment-formats" rows="4" placeholder="Studio&#10;1 otaqlı&#10;2 otaqlı"></textarea></label>
                                 <label>Mənzil sahələri<textarea id="project-apartment-areas" rows="4" placeholder="Studio: 46–117 m²&#10;1 otaqlı: 73–120 m²"></textarea></label>
@@ -4088,7 +4097,7 @@
                             </div>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>💰</span> Qiymətlər</h4>
+                            <h4><span>💰</span><span>Qiymətlər</span></h4>
                             <div class="project-form-grid">
                                 <label>1 m² qiyməti<input type="text" id="project-price-m2" placeholder="3 500 AZN-dən"></label>
                                 <label>Ümumi qiymət<input type="text" id="project-total-price" placeholder="250 000 AZN-dən"></label>
@@ -4097,10 +4106,10 @@
                                 <label>İlkin ödəniş<input type="text" id="project-down-payment" placeholder="30%-dən"></label>
                             </div>
                         </section>
-                        <section class="project-form-section"><h4><span>🌿</span> İnfrastruktur</h4><textarea id="project-infrastructure" rows="5" placeholder="Layihənin infrastrukturu"></textarea></section>
-                        <section class="project-form-section"><h4><span>⭐</span> Xüsusiyyətlər</h4><textarea id="project-features" rows="5" placeholder="Layihənin üstünlükləri"></textarea><label class="project-form-wide">Əlavə təsvir (köhnə layihələr üçün)<textarea id="project-desc" rows="3" placeholder="Layihə haqqında əlavə təsvir"></textarea></label></section>
+                        <section class="project-form-section"><h4><span>🌿</span><span>İnfrastruktur</span></h4><textarea id="project-infrastructure" rows="5" placeholder="Layihənin infrastrukturu"></textarea></section>
+                        <section class="project-form-section"><h4><span>⭐</span><span>Xüsusiyyətlər</span></h4><textarea id="project-features" rows="5" placeholder="Layihənin üstünlükləri"></textarea><label class="project-form-wide">Əlavə təsvir (köhnə layihələr üçün)<textarea id="project-desc" rows="3" placeholder="Layihə haqqında əlavə təsvir"></textarea></label></section>
                         <section class="project-form-section">
-                            <h4><span>🖼️</span> Media</h4>
+                            <h4><span>🖼️</span><span>Media</span></h4>
                             <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300"><input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4"><span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span></span></label>
                             <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
                         </section>
@@ -4136,20 +4145,19 @@
                     <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
                         <div class="xl:col-span-4 space-y-3">
                             <label class="text-[10px] text-gray-400 font-bold uppercase">Layihə blokları</label>
-                            <textarea id="bulk-project-input" rows="16" placeholder="Məsələn:
-Title: Caspian Residence
-Description: Dənizə yaxın premium yaşayış layihəsi...
-Delivery Year: 2028
-Floor Count: 12 mərtəbə
-Area Range: 55-180 m²
-Apartment Count: 240 mənzil
-Townhouse Count: 12 taunhaus
-Renovation Status: Təmirsiz
-Features: Hovuz / Parking / Fitness
+                            <textarea id="bulk-project-input" rows="16" placeholder="Title: THE GRAND
+Zone: 1
+Delivery Date: Təhvil verilib
+Area Range: 46.9–424.55 m²
+Price Per M2: $3400–$3500
+Infrastructure: Restoranlar, butiklər, SPA
+Features: Birinci sahil xətti; Uşaq hovuzları
+Description: Layihə haqqında geniş təsvir
+Images: https://example.com/1.jpg, https://example.com/2.jpg
 
 ---
 
-Title: Park Villas
+Title: CASPIAN DREAM LINER
 ..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-brand-500 transition font-mono leading-relaxed"></textarea>
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" onclick="parseBulkProjectImport()" class="bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-brand-500/20">
@@ -4169,18 +4177,14 @@ Title: Park Villas
                                 </button>
                             </div>
                             <div class="overflow-x-auto rounded-2xl border border-white/10 bg-black/10">
-                                <table class="min-w-[1200px] w-full text-left text-xs">
+                                <table class="min-w-[760px] w-full text-left text-xs">
                                     <thead class="bg-white/[0.03] text-gray-400 uppercase text-[10px]">
                                         <tr>
                                             <th class="p-3">Title *</th>
-                                            <th class="p-3">Description</th>
-                                            <th class="p-3">Delivery Year</th>
-                                            <th class="p-3">Floor Count</th>
-                                            <th class="p-3">Area Range</th>
-                                            <th class="p-3">Apartment Count</th>
-                                            <th class="p-3">Townhouse Count</th>
-                                            <th class="p-3">Renovation Status</th>
-                                            <th class="p-3">Features</th>
+                                            <th class="p-3">Zone</th>
+                                            <th class="p-3">Delivery</th>
+                                            <th class="p-3">Area</th>
+                                            <th class="p-3">Price</th>
                                             <th class="p-3 text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -4692,9 +4696,12 @@ Title: Park Villas
 
                 <div class="p-6 md:p-8 space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                        <div class="flex">
-                            <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Məlumat</button>
-                            <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
+                        <div id="op-modal-tabs" class="flex flex-wrap gap-x-5 gap-y-2">
+                            <button onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Detallar</button>
+                            <button onclick="switchOfficialModalTab('apartments')" id="op-tab-btn-apartments" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Mənzillər</button>
+                            <button onclick="switchOfficialModalTab('prices')" id="op-tab-btn-prices" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Qiymətlər</button>
+                            <button onclick="switchOfficialModalTab('infrastructure')" id="op-tab-btn-infrastructure" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">İnfrastruktur</button>
+                            <button onclick="switchOfficialModalTab('desc')" id="op-tab-btn-desc" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
                         </div>
                         <div class="flex items-center gap-2">
                             <button id="op-modal-share-btn" type="button" onclick="shareOfficialProject()" class="inline-flex items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 text-sm font-black text-slate-950 shadow-lg hover:bg-brand-500 hover:text-white transition">🔗 Paylaş</button>
@@ -4702,14 +4709,14 @@ Title: Park Villas
                         </div>
                     </div>
 
-                    <!-- Tab Content: Desc -->
+                    <div id="op-tab-details" class="project-detail-sections"></div>
+                    <div id="op-tab-apartments" class="hidden project-detail-sections"></div>
+                    <div id="op-tab-prices" class="hidden project-detail-sections"></div>
+                    <div id="op-tab-infrastructure" class="hidden project-detail-sections"></div>
                     <div id="op-tab-desc" class="hidden space-y-2 rounded-2xl bg-brand-50/70 border border-brand-200 p-5">
                         <h4 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h4>
                         <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
-
-                    <!-- Tab Content: Structured project details; empty fields are omitted. -->
-                    <div id="op-tab-details" class="project-detail-sections"></div>
                 </div>
             </div>
         </div>
@@ -10452,19 +10459,25 @@ Təşəkkür edirəm. 🙏`;
 
         function renderOfficialProjectDetails(project) {
             const clean = value => Array.isArray(value) ? value.filter(Boolean).join(' / ') : String(value || '').trim();
-            const sections = [
-                ['📍 Ümumi Məlumat', [['Zona', project.zone], ['Növ', project.category], ['Təhvil', project.year], ['Sahil xətti', project.coastline], ['Dənizə məsafə', project.seaDistance]]],
-                ['🏢 Bina Məlumatları', [['Binaların sayı', project.buildings], ['Mərtəbə sayı', project.floors], ['Mənzil sayı', project.apartments], ['Parkinq yerləri', project.parking], ['Təmir statusu', project.repairStatus]]],
-                ['🏠 Mənzillər', [['Mənzil formatları', project.apartmentFormats, true], ['Mənzil sahələri', project.apartmentAreas, true], ['Ümumi sahə aralığı', project.area]]],
-                ['💰 Qiymət və Şərtlər', [['1 m² qiyməti', project.pricePerM2], ['Ümumi qiymət', project.totalPrice], ['İpoteka', project.bankMortgage], ['Daxili kredit', project.internalCredit], ['İlkin ödəniş', project.downPayment]]],
-                ['⭐ İnfrastruktur və Üstünlüklər', [['İnfrastruktur', project.infrastructure, true], ['Xüsusiyyətlər', project.features, true]], true]
-            ];
-            const html = sections.map(([title, rows, wide]) => {
+            const renderSections = sections => sections.map(([title, rows, wide]) => {
                 const visibleRows = rows.filter(([, value]) => clean(value));
                 if (!visibleRows.length) return '';
                 return `<section class="project-detail-section${wide ? ' project-detail-section--wide' : ''}"><h4>${title}</h4><div class="project-detail-rows">${visibleRows.map(([label, value, long]) => `<div class="project-detail-row${long ? ' project-detail-row--long' : ''}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(clean(value))}</strong></div>`).join('')}</div></section>`;
             }).join('');
-            document.getElementById('op-tab-details').innerHTML = html || '<p class="text-sm text-gray-500">Bu layihə üçün əlavə məlumat yoxdur.</p>';
+            const tabs = {
+                details: [
+                    ['📍 Ümumi Məlumat', [['Zona', project.zone], ['Təhvil', project.year], ['Sahil xətti', project.coastline], ['Dənizə məsafə', project.seaDistance]]],
+                    ['🏢 Bina Məlumatları', [['Binaların sayı', project.buildings], ['Mərtəbə sayı', project.floors], ['Mənzil sayı', project.apartments], ['Parkinq yerləri', project.parking], ['Təmir statusu', project.repairStatus]]]
+                ],
+                apartments: [['🏠 Mənzillər', [['Mənzil formatları', project.apartmentFormats, true], ['Mənzil sahələri', project.apartmentAreas, true], ['Ümumi sahə aralığı', project.area]], true]],
+                prices: [['💰 Qiymətlər', [['1 m² qiyməti', project.pricePerM2], ['Ümumi qiymət', project.totalPrice], ['Bank ipotekası', project.bankMortgage], ['Daxili kredit', project.internalCredit], ['İlkin ödəniş', project.downPayment]], true]],
+                infrastructure: [['🌿 İnfrastruktur', [['İnfrastruktur', project.infrastructure, true], ['Xüsusiyyətlər', project.features, true]], true]]
+            };
+            Object.entries(tabs).forEach(([tab, sections]) => {
+                const html = renderSections(sections);
+                document.getElementById(`op-tab-${tab}`).innerHTML = html || (tab === 'details' ? '<p class="text-sm text-gray-500">Bu layihə üçün əlavə məlumat yoxdur.</p>' : '');
+                if (tab !== 'details') document.getElementById(`op-tab-btn-${tab}`).classList.toggle('hidden', !html);
+            });
         }
 
         function openOfficialProjectModal(id, pushRoute = false) {
@@ -10482,9 +10495,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-modal-img').alt = localizedTitle;
             document.getElementById('op-modal-title').textContent = localizedTitle;
             document.getElementById('op-modal-year').textContent = p.year;
-            document.getElementById('op-modal-desc-text').textContent = localizedDesc;
-            document.getElementById('op-tab-btn-desc').classList.toggle('hidden', !localizedDesc);
-            document.getElementById('op-tab-desc').classList.toggle('hidden', !localizedDesc);
+            document.getElementById('op-modal-desc-text').textContent = localizedDesc || 'Bu layihə üçün əlavə təsvir yoxdur.';
 
             renderOfficialProjectDetails(p);
 
@@ -10579,23 +10590,16 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function switchOfficialModalTab(tab) {
+            const availableButton = document.getElementById(`op-tab-btn-${tab}`);
+            if (!availableButton || availableButton.classList.contains('hidden')) tab = 'details';
             activeOfficialModalTab = tab;
-            const btnDesc = document.getElementById('op-tab-btn-desc');
-            const btnDetails = document.getElementById('op-tab-btn-details');
-            const contentDesc = document.getElementById('op-tab-desc');
-            const contentDetails = document.getElementById('op-tab-details');
-
-            if (tab === 'desc') {
-                btnDesc.className = "pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
-                btnDetails.className = "pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm";
-                contentDesc.classList.remove('hidden');
-                contentDetails.classList.add('hidden');
-            } else {
-                btnDetails.className = "pb-3 pr-6 border-b-2 border-brand-500 text-brand-500 font-bold text-sm";
-                btnDesc.className = "pb-3 pr-6 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm";
-                contentDetails.classList.remove('hidden');
-                contentDesc.classList.add('hidden');
-            }
+            ['details', 'apartments', 'prices', 'infrastructure', 'desc'].forEach(name => {
+                const button = document.getElementById(`op-tab-btn-${name}`);
+                const content = document.getElementById(`op-tab-${name}`);
+                const active = name === tab;
+                if (button) button.className = `${button.classList.contains('hidden') ? 'hidden ' : ''}pb-3 border-b-2 ${active ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-400 hover:text-white'} font-bold text-sm`;
+                if (content) content.classList.toggle('hidden', !active);
+            });
         }
 
         // RENDER PROPERTIES ELAN GRID
@@ -12584,132 +12588,115 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        const bulkProjectFieldDefinitions = [
+            ['title', 'Title', 'text'], ['slug', 'Slug', 'text'], ['category', 'Category', 'text'], ['zone', 'Zone', 'text'],
+            ['deliveryDate', 'Delivery Date', 'text'], ['coastline', 'Coastline', 'text'], ['seaDistance', 'Sea Distance', 'text'],
+            ['buildingCount', 'Building Count', 'text'], ['floorCount', 'Floor Count', 'text'], ['repairStatus', 'Repair Status', 'text'],
+            ['apartmentCount', 'Apartment Count', 'text'], ['parkingSpaces', 'Parking Spaces', 'text'],
+            ['apartmentFormats', 'Apartment Formats', 'textarea'], ['apartmentAreas', 'Apartment Areas', 'textarea'], ['areaRange', 'Area Range', 'text'],
+            ['pricePerM2', 'Price Per M2', 'text'], ['totalPrice', 'Total Price', 'text'], ['bankMortgage', 'Bank Mortgage', 'text'],
+            ['internalCredit', 'Internal Credit', 'text'], ['downPayment', 'Down Payment', 'text'],
+            ['infrastructure', 'Infrastructure', 'textarea'], ['features', 'Features', 'textarea'], ['description', 'Description', 'textarea'],
+            ['images', 'Images', 'textarea'], ['featuredInHero', 'Featured In Hero', 'checkbox']
+        ];
+
         function getBulkProjectEmptyRow() {
-            return {
-                title: '', description: '', deliveryYear: '', floorCount: '', areaRange: '',
-                apartmentCount: '', townhouseCount: '', renovationStatus: '', features: '', category: 'Apartment'
-            };
+            return Object.fromEntries(bulkProjectFieldDefinitions.map(([field]) => [field, field === 'featuredInHero' ? false : '']));
         }
 
         function normalizeBulkProjectLabel(label) {
-            const key = String(label || '').toLowerCase().trim()
-                .replace(/[ə]/g, 'e')
-                .replace(/[ı]/g, 'i')
-                .replace(/[ö]/g, 'o')
-                .replace(/[ü]/g, 'u')
-                .replace(/[ğ]/g, 'g')
-                .replace(/[ç]/g, 'c')
-                .replace(/[ş]/g, 's')
-                .replace(/[^a-z0-9]+/g, '');
-            const map = {
-                title: 'title', name: 'title', projecttitle: 'title', projectname: 'title', layiheadi: 'title', ad: 'title',
-                description: 'description', desc: 'description', tesvir: 'description', aciqlama: 'description', haqqinda: 'description',
-                deliveryyear: 'deliveryYear', deliverydate: 'deliveryYear', year: 'deliveryYear', tehvili: 'deliveryYear', tehviltarixi: 'deliveryYear', tehviliil: 'deliveryYear',
-                floorcount: 'floorCount', floors: 'floorCount', floor: 'floorCount', mertebesayi: 'floorCount', mertebe: 'floorCount',
-                arearange: 'areaRange', area: 'areaRange', sahe: 'areaRange', sahesi: 'areaRange', saheolcusu: 'areaRange',
-                apartmentcount: 'apartmentCount', apartments: 'apartmentCount', menzilsayi: 'apartmentCount', menzil: 'apartmentCount',
-                townhousecount: 'townhouseCount', townhouses: 'townhouseCount', townhouse: 'townhouseCount', taunhaussayi: 'townhouseCount', taunhaus: 'townhouseCount',
-                renovationstatus: 'renovationStatus', repairstatus: 'renovationStatus', renovation: 'renovationStatus', repair: 'renovationStatus', temirstatusu: 'renovationStatus', temir: 'renovationStatus',
-                features: 'features', feature: 'features', amenities: 'features', advantages: 'features', xususiyyetler: 'features', xususiyyetleri: 'features', ozellikler: 'features'
+            const key = String(label || '').toLocaleLowerCase('az-AZ').trim()
+                .replace(/[ə]/g, 'e').replace(/[ı]/g, 'i').replace(/[ö]/g, 'o').replace(/[ü]/g, 'u')
+                .replace(/[ğ]/g, 'g').replace(/[ç]/g, 'c').replace(/[ş]/g, 's')
+                .replace(/[^\p{L}\p{N}]+/gu, '');
+            const aliases = {
+                title: ['title', 'layiheadi', 'проект'], slug: ['slug'], category: ['category', 'kateqoriya', 'категория'],
+                zone: ['zone', 'zona', 'зона'], deliveryDate: ['deliverydate', 'deliveryyear', 'tehvil', 'tehviltarixi', 'сдача'],
+                coastline: ['coastline', 'sahilxetti', 'береговаялиния'], seaDistance: ['seadistance', 'denizemesafe', 'denizemesafesi', 'расстояниедоморя'],
+                buildingCount: ['buildingcount', 'binalarinsayi', 'количествозданий'], floorCount: ['floorcount', 'mertebesayi', 'этажность'],
+                repairStatus: ['repairstatus', 'renovationstatus', 'temir', 'temirstatusu', 'отделка'], apartmentCount: ['apartmentcount', 'menzilsayi', 'umumimenzilsayi', 'общееколвоквартир'],
+                parkingSpaces: ['parkingspaces', 'parkingyerleri', 'parkinqyerleri', 'подземныйпаркинг'], apartmentFormats: ['apartmentformats', 'menzilformatlari', 'форматыквартир'],
+                apartmentAreas: ['apartmentareas', 'menzilsaheleri'], areaRange: ['arearange', 'area', 'sahe', 'площадь'],
+                pricePerM2: ['priceperm2', '1m2qiymeti', '1m²qiymeti', 'ценазам2'], totalPrice: ['totalprice', 'umumiqiymet', 'стоимость'],
+                bankMortgage: ['bankmortgage', 'bankipotekasi', 'банковскаяипотека'], internalCredit: ['internalcredit', 'daxilikredit', 'рассрочка'],
+                downPayment: ['downpayment', 'ilkinodenis'], infrastructure: ['infrastructure', 'infrastruktur', 'инфраструктура'],
+                features: ['features', 'feature', 'xususiyyetler', 'особенности', 'hovuzlar', 'бассейны'], description: ['description', 'desc', 'tesvir', 'aciqlama', 'описание'],
+                images: ['images', 'sekiller', 'изображения'], featuredInHero: ['featuredinhero', 'herodagoster', 'показыватьвhero']
             };
-            return map[key] || null;
+            return Object.entries(aliases).find(([, values]) => values.includes(key))?.[0] || null;
         }
 
         function getBulkProjectTitleMatch(line) {
-            const match = String(line || '').match(/^\s*\d+\.\s+(.+)\s*$/);
-            if (!match) return null;
-            const forbidden = /^(Mərtəbə sayı|Mertebe sayi|Təhvil tarixi|Tehvil tarixi|\d{4}-cu il|Sahəsi|Sahesi|Mənzil sayı|Menzil sayi|Təmir statusu|Temir statusu)$/i;
-            return forbidden.test(match[1].trim()) ? null : match;
+            return String(line || '').match(/^\s*\d+\.\s+(.+)\s*$/);
         }
 
         function isBulkProjectSeparatorLine(line) {
-            return /^[\s\-_=*━─—]{3,}$/.test(String(line || ''));
+            return /^\s*-{3,}\s*$/.test(String(line || ''));
         }
 
         function splitBulkProjectBlocks(input) {
-            const lines = String(input || '').replace(/\r\n/g, '\n').split('\n');
             const blocks = [];
             let current = [];
-
-            lines.forEach(line => {
-                if (getBulkProjectTitleMatch(line)) {
-                    if (current.length) blocks.push(current.join('\n').trim());
-                    current = [line.trim()];
-                    return;
+            String(input || '').replace(/\r\n/g, '\n').split('\n').forEach(line => {
+                const numberedTitle = getBulkProjectTitleMatch(line);
+                if (isBulkProjectSeparatorLine(line) || (numberedTitle && current.length)) {
+                    if (current.some(item => item.trim())) blocks.push(current.join('\n').trim());
+                    current = numberedTitle ? [line] : [];
+                } else {
+                    current.push(line);
                 }
-
-                if (current.length) current.push(line);
             });
-
-            if (current.length) blocks.push(current.join('\n').trim());
+            if (current.some(item => item.trim())) blocks.push(current.join('\n').trim());
             return blocks.filter(Boolean);
         }
 
         function inferBulkProjectCategory(row) {
-            const joined = `${row.title} ${row.description} ${row.apartmentCount} ${row.townhouseCount}`.toLowerCase();
-            if (joined.includes('villa')) return 'Villa';
-            if (joined.includes('townhouse') || joined.includes('taunhaus')) return 'Townhouse';
-            return 'Apartment';
+            return String(row.category || '').trim();
         }
 
-        function appendBulkProjectField(row, descriptionLines, featureLines, field, value) {
+        function appendBulkProjectField(row, field, value) {
             const cleaned = String(value || '').trim();
             if (!field || !cleaned) return;
-            if (field === 'features') {
-                featureLines.push(cleaned.replace(/^[•*-]\s+/, ''));
-            } else if (field === 'description') {
-                descriptionLines.push(cleaned);
-            } else if (field !== 'title') {
-                row[field] = row[field] ? `${row[field]} ${cleaned}`.trim() : cleaned;
+            if (field === 'featuredInHero') {
+                row[field] = ['true', '1', 'yes', 'beli', 'bəli', 'да', 'on'].includes(cleaned.toLowerCase());
+                return;
             }
+            const separator = ['description', 'features', 'infrastructure', 'apartmentFormats', 'apartmentAreas', 'images'].includes(field) ? '\n' : ' ';
+            row[field] = row[field] ? `${row[field]}${separator}${cleaned}`.trim() : cleaned;
         }
 
         function parseBulkProjectBlock(block) {
             const row = getBulkProjectEmptyRow();
-            const descriptionLines = [];
-            const featureLines = [];
-            const lines = String(block || '').split('\n').map(line => line.trim()).filter(Boolean);
+            const lines = String(block || '').split('\n');
             let activeField = null;
-
-            lines.forEach((line, index) => {
-                const titleMatch = getBulkProjectTitleMatch(line);
-                if (titleMatch && index === 0) {
-                    row.title = titleMatch[1].trim();
+            lines.forEach((rawLine, index) => {
+                const line = rawLine.trim();
+                if (!line || isBulkProjectSeparatorLine(line)) return;
+                const numberedTitle = getBulkProjectTitleMatch(line);
+                if (numberedTitle && index === 0) {
+                    row.title = numberedTitle[1].trim();
                     activeField = 'title';
                     return;
                 }
-
-                if (isBulkProjectSeparatorLine(line)) return;
-
                 const inlineMatch = line.match(/^([^:：]{2,60})\s*[:：]\s*(.*)$/);
                 if (inlineMatch) {
                     const field = normalizeBulkProjectLabel(inlineMatch[1]);
                     if (field) {
                         activeField = field;
-                        appendBulkProjectField(row, descriptionLines, featureLines, field, inlineMatch[2]);
-                        return;
+                        appendBulkProjectField(row, field, inlineMatch[2]);
+                    } else {
+                        activeField = 'description';
+                        appendBulkProjectField(row, 'description', line);
                     }
-
-                    const valueField = normalizeBulkProjectLabel(inlineMatch[2]);
-                    if (valueField) {
-                        activeField = valueField;
-                        return;
-                    }
+                    return;
                 }
-
                 const fieldOnly = normalizeBulkProjectLabel(line);
                 if (fieldOnly) {
                     activeField = fieldOnly;
                     return;
                 }
-
-                if (activeField && activeField !== 'title') {
-                    appendBulkProjectField(row, descriptionLines, featureLines, activeField, line);
-                }
+                appendBulkProjectField(row, activeField && activeField !== 'title' ? activeField : 'description', line);
             });
-
-            row.description = descriptionLines.join('\n').trim();
-            row.features = featureLines.join(' / ').replace(/\s*[,;]\s*/g, ' / ').trim();
             row.category = inferBulkProjectCategory(row);
             return row;
         }
@@ -12725,10 +12712,13 @@ Təşəkkür edirəm. 🙏`;
 
         function updateBulkProjectRow(index, field, value) {
             if (!bulkProjectImportRows[index]) return;
-            bulkProjectImportRows[index][field] = value;
-            if (['title', 'description', 'apartmentCount', 'townhouseCount'].includes(field)) {
-                bulkProjectImportRows[index].category = inferBulkProjectCategory(bulkProjectImportRows[index]);
-            }
+            bulkProjectImportRows[index][field] = field === 'featuredInHero' ? Boolean(value) : String(value ?? '');
+        }
+
+        function toggleBulkProjectDetails(index) {
+            if (!bulkProjectImportRows[index]) return;
+            bulkProjectImportRows[index]._expanded = !bulkProjectImportRows[index]._expanded;
+            renderBulkProjectPreview();
         }
 
         function removeBulkProjectRow(index) {
@@ -12736,12 +12726,21 @@ Təşəkkür edirəm. 🙏`;
             renderBulkProjectPreview();
         }
 
-        function bulkProjectInputCell(index, field, value, wide = false) {
-            const safeValue = String(value || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            if (wide) {
-                return `<textarea rows="3" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-56 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">${safeValue}</textarea>`;
-            }
-            return `<input type="text" value="${safeValue}" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-36 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">`;
+        function bulkProjectInputCell(index, field, value) {
+            const safeValue = escapeHtml(String(value ?? ''));
+            return `<input type="text" value="${safeValue}" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-full min-w-24 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">`;
+        }
+
+        function renderBulkProjectDetailEditor(row, index) {
+            return bulkProjectFieldDefinitions.map(([field, label, type]) => {
+                const value = row[field] ?? '';
+                if (type === 'checkbox') return `<label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-[11px] font-bold text-gray-300"><input type="checkbox" ${value ? 'checked' : ''} onchange="updateBulkProjectRow(${index}, '${field}', this.checked)">${label}</label>`;
+                const safeValue = escapeHtml(String(value));
+                const control = type === 'textarea'
+                    ? `<textarea rows="3" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">${safeValue}</textarea>`
+                    : `<input type="text" value="${safeValue}" oninput="updateBulkProjectRow(${index}, '${field}', this.value)" class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[11px] text-white focus:outline-none focus:border-brand-500">`;
+                return `<label class="flex flex-col gap-1 text-[10px] font-bold uppercase text-gray-400">${label}${control}</label>`;
+            }).join('');
         }
 
         function renderBulkProjectPreview() {
@@ -12749,49 +12748,40 @@ Təşəkkür edirəm. 🙏`;
             const saveBtn = document.getElementById('bulk-project-save-btn');
             if (!tbody) return;
             if (!bulkProjectImportRows.length) {
-                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-500">Hələ preview yoxdur. Mətn yapışdırın və “Parse & Preview” düyməsini basın.</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500 text-xs">Parse etdikdən sonra layihələr burada görünəcək.</td></tr>';
                 if (saveBtn) saveBtn.disabled = true;
                 return;
             }
             tbody.innerHTML = bulkProjectImportRows.map((row, index) => `
                 <tr class="align-top hover:bg-white/[0.02]">
                     <td class="p-2">${bulkProjectInputCell(index, 'title', row.title)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'description', row.description, true)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'deliveryYear', row.deliveryYear)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'floorCount', row.floorCount)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'zone', row.zone)}</td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'deliveryDate', row.deliveryDate)}</td>
                     <td class="p-2">${bulkProjectInputCell(index, 'areaRange', row.areaRange)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'apartmentCount', row.apartmentCount)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'townhouseCount', row.townhouseCount)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'renovationStatus', row.renovationStatus)}</td>
-                    <td class="p-2">${bulkProjectInputCell(index, 'features', row.features, true)}</td>
-                    <td class="p-2 text-right"><button type="button" onclick="removeBulkProjectRow(${index})" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">Sil</button></td>
+                    <td class="p-2">${bulkProjectInputCell(index, 'totalPrice', row.totalPrice || row.pricePerM2)}</td>
+                    <td class="p-2 text-right whitespace-nowrap"><button type="button" onclick="toggleBulkProjectDetails(${index})" class="bg-brand-500/15 hover:bg-brand-500 text-brand-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">${row._expanded ? 'Bağla' : 'Ətraflı redaktə'}</button><button type="button" onclick="removeBulkProjectRow(${index})" class="ml-1 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">Sil</button></td>
                 </tr>
+                ${row._expanded ? `<tr><td colspan="6" class="p-4 bg-black/10"><div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">${renderBulkProjectDetailEditor(row, index)}</div></td></tr>` : ''}
             `).join('');
-            if (saveBtn) saveBtn.disabled = !bulkProjectImportRows.some(row => row.title.trim());
+            if (saveBtn) saveBtn.disabled = !bulkProjectImportRows.some(row => String(row.title || '').trim());
         }
 
         function bulkProjectRowToUi(row) {
-            const countParts = [];
-            if (row.apartmentCount) countParts.push(row.apartmentCount);
-            if (row.townhouseCount) countParts.push(row.townhouseCount);
+            const images = String(row.images || '').split(/[\n,]+/).map(value => value.trim()).filter(Boolean);
             return {
-                category: row.category || inferBulkProjectCategory(row),
-                title: row.title.trim(),
-                year: row.deliveryYear.trim(),
-                img: '',
-                images: [],
-                desc: row.description.trim(),
-                floors: row.floorCount.trim(),
-                area: row.areaRange.trim(),
-                apartments: countParts.join(' / '),
-                repairStatus: row.renovationStatus.trim(),
-                features: row.features.trim()
+                title: String(row.title || '').trim(), slug: String(row.slug || '').trim(), category: inferBulkProjectCategory(row),
+                zone: String(row.zone || '').trim(), year: String(row.deliveryDate || '').trim(), coastline: String(row.coastline || '').trim(), seaDistance: String(row.seaDistance || '').trim(),
+                buildings: String(row.buildingCount || '').trim(), floors: String(row.floorCount || '').trim(), repairStatus: String(row.repairStatus || '').trim(), apartments: String(row.apartmentCount || '').trim(), parking: String(row.parkingSpaces || '').trim(),
+                apartmentFormats: String(row.apartmentFormats || '').trim(), apartmentAreas: String(row.apartmentAreas || '').trim(), area: String(row.areaRange || '').trim(),
+                pricePerM2: String(row.pricePerM2 || '').trim(), totalPrice: String(row.totalPrice || '').trim(), bankMortgage: String(row.bankMortgage || '').trim(), internalCredit: String(row.internalCredit || '').trim(), downPayment: String(row.downPayment || '').trim(),
+                infrastructure: String(row.infrastructure || '').trim(), features: String(row.features || '').trim(), desc: String(row.description || '').trim(),
+                img: images[0] || '', images, featuredInHero: Boolean(row.featuredInHero)
             };
         }
 
         async function saveBulkProjectImport() {
             if (!activeUser || activeUser.role !== 'admin') return;
-            const validRows = bulkProjectImportRows.filter(row => row.title.trim());
+            const validRows = bulkProjectImportRows.filter(row => String(row.title || '').trim());
             if (!validRows.length) {
                 alert('Yadda saxlamaq üçün ən azı bir layihə adı olmalıdır.');
                 return;
@@ -12822,7 +12812,7 @@ Təşəkkür edirəm. 🙏`;
             } finally {
                 if (saveBtn) {
                     saveBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1"></i>Bütün layihələri saxla';
-                    saveBtn.disabled = !bulkProjectImportRows.some(row => row.title.trim());
+                    saveBtn.disabled = !bulkProjectImportRows.some(row => String(row.title || '').trim());
                 }
             }
         }
