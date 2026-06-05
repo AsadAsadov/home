@@ -581,19 +581,38 @@
             -webkit-line-clamp: 2;
             line-clamp: 2;
         }
-        .sea-breeze-project-card__meta {
+        .project-card-meta {
+            display: flex;
+            align-items: center;
             flex-wrap: nowrap;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 1rem;
         }
-        .sea-breeze-project-card__meta span {
+        .project-card-meta-badge {
             min-width: 0;
             display: inline-flex;
             align-items: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            gap: 0.4rem;
+            padding: 0.4rem 0.65rem;
+            border: 1px solid rgba(199, 210, 254, 0.8);
+            border-radius: 999px;
+            background: rgba(238, 242, 255, 0.9);
+            color: #334155;
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.2;
             white-space: nowrap;
         }
-        .sea-breeze-project-card__meta i {
+        .project-card-meta-badge i {
             flex: 0 0 auto;
+            color: var(--color-primary);
+            font-size: 0.68rem;
+        }
+        .project-card-meta-badge span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .admin-project-card {
@@ -785,31 +804,19 @@
                 font-size: 0.68rem;
                 line-height: 1.35;
             }
-            .sea-breeze-project-card__meta {
-                margin-top: 0.6rem;
-                padding-top: 0.55rem;
+            .project-card-meta {
+                flex-wrap: wrap;
                 gap: 0.35rem;
-                align-items: center;
-                flex-wrap: nowrap;
-                font-size: 0.62rem;
-                line-height: 1.25;
+                padding-top: 0.65rem;
             }
-            .sea-breeze-project-card__meta span {
-                min-width: 0;
-                display: inline-flex;
-                align-items: center;
-                flex: 1 1 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+            .project-card-meta-badge {
+                max-width: 100%;
+                gap: 0.3rem;
+                padding: 0.3rem 0.5rem;
+                font-size: 0.6rem;
             }
-            .sea-breeze-project-card__meta span:last-child {
-                justify-content: flex-end;
-            }
-            .sea-breeze-project-card__meta i {
-                flex: 0 0 auto;
+            .project-card-meta-badge i {
                 font-size: 0.58rem;
-                margin-right: 0.2rem;
             }
         }
         @media (max-width: 374px) {
@@ -825,8 +832,9 @@
             .sea-breeze-project-card__description {
                 font-size: 0.64rem;
             }
-            .sea-breeze-project-card__meta {
-                font-size: 0.58rem;
+            .project-card-meta-badge {
+                padding-inline: 0.4rem;
+                font-size: 0.56rem;
             }
         }
         ::-webkit-scrollbar {
@@ -1414,7 +1422,6 @@
         .sea-breeze-listing-card__meta,
         .sea-breeze-listing-card__stats span,
         .sea-breeze-project-card__title,
-        .sea-breeze-project-card__meta span,
         .section-readable-text {
             white-space: normal !important;
             overflow: visible !important;
@@ -2673,9 +2680,6 @@
                 gap: 1rem;
             }
         }
-
-        .sea-breeze-project-card__meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; }
-        .sea-breeze-project-card__meta span { flex: 1 1 auto; min-width: max-content; }
 
         .listing-card-badge-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
         .listing-card-badge-row .sea-breeze-listing-card__badge { box-shadow: none; }
@@ -10130,6 +10134,13 @@ Təşəkkür edirəm. 🙏`;
             paged.forEach(p => {
                 const projectTitle = p.title || '—';
                 const projectDesc = p.desc || '';
+                const area = String(p.area || '').trim();
+                const floors = String(p.floors || '').trim();
+                const metaBadges = [
+                    area ? `<span class="project-card-meta-badge" title="${escapeHtml(area)}"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><span>${escapeHtml(area)}</span></span>` : '',
+                    floors ? `<span class="project-card-meta-badge" title="${escapeHtml(floors)}"><i class="fa-solid fa-building" aria-hidden="true"></i><span>${escapeHtml(floors)}</span></span>` : ''
+                ].filter(Boolean).join('');
+                const projectMeta = metaBadges ? `<div class="project-card-meta">${metaBadges}</div>` : '';
                 const cardHtml = `
                     <div onclick="openOfficialProjectModal('${p.id}', true)" class="sea-breeze-project-card group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
@@ -10140,10 +10151,7 @@ Təşəkkür edirəm. 🙏`;
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
                             <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${escapeHtml(projectDesc)}</p>
-                            <div class="sea-breeze-project-card__meta flex items-center justify-between gap-2 text-[11px] text-gray-800 font-semibold mt-4 border-t border-brand-200 pt-3 overflow-hidden">
-                                <span title="${p.area}"><i class="fa-solid fa-expand"></i> ${p.area}</span>
-                                <span title="${p.floors}"><i class="fa-solid fa-building"></i> ${p.floors}</span>
-                            </div>
+                            ${projectMeta}
                         </div>
                     </div>
                 `;
