@@ -207,25 +207,6 @@
             justify-content: flex-end;
             gap: .55rem;
         }
-        .header-whatsapp-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 9999px;
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-            color: #ffffff;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 12px 28px rgba(37, 211, 102, .28);
-            transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-            flex: 0 0 auto;
-        }
-        .header-whatsapp-btn:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 16px 34px rgba(37, 211, 102, .38);
-            filter: saturate(1.08);
-        }
-        .header-whatsapp-btn i { font-size: 1.35rem; line-height: 1; }
         .site-footer-logo {
             height: 88px;
             width: auto;
@@ -504,13 +485,6 @@
             .header-action-btn { padding: .54rem .66rem; }
             .desktop-header-cluster .vacancy-cta { padding: .54rem .66rem !important; }
             .header-actions-row { gap: 10px; }
-            .desktop-whatsapp-link {
-                position: absolute;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 2;
-            }
         }
         @media (min-width: 1280px) {
             .site-header-inner { padding-left: 168px; padding-right: 62px; }
@@ -3310,6 +3284,92 @@
         .project-detail-row--long { display: block; }
         .project-detail-row--long strong { display: block; text-align: left; margin-top: .35rem; line-height: 1.65; }
         @media (max-width: 640px) { .project-form-grid, .project-detail-sections { grid-template-columns: 1fr; } .project-detail-section--wide { grid-column: auto; } .project-detail-row { flex-direction: column; gap: .2rem; } .project-detail-row strong { text-align: left; } }
+
+        /* Project modal navigation and polished header controls. */
+        .site-logo { height: 38px; max-width: 150px; }
+        .nav-link {
+            position: relative;
+            padding: .55rem .25rem;
+            border-bottom: 2px solid transparent;
+            font-size: .82rem;
+            font-weight: 750;
+            letter-spacing: .01em;
+        }
+        .nav-link.border-brand-500 { border-color: var(--color-primary) !important; }
+        button.vacancy-cta {
+            background: rgba(100, 116, 139, .09) !important;
+            color: #475569 !important;
+            border-color: rgba(100, 116, 139, .2);
+            box-shadow: none !important;
+        }
+        button.vacancy-cta:hover { background: rgba(79, 70, 229, .1) !important; color: var(--color-primary) !important; box-shadow: none !important; }
+        .project-modal-content {
+            transition: opacity 120ms ease, transform 120ms ease;
+            will-change: opacity, transform;
+        }
+        .project-modal-content.is-leaving-next { opacity: 0; transform: translateX(-14px); }
+        .project-modal-content.is-leaving-prev { opacity: 0; transform: translateX(14px); }
+        .project-modal-content.is-entering-next { opacity: 0; transform: translateX(14px); }
+        .project-modal-content.is-entering-prev { opacity: 0; transform: translateX(-14px); }
+        .project-modal-counter {
+            display: inline-flex;
+            margin-top: .45rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, .62);
+            padding: .25rem .65rem;
+            color: #fff;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .05em;
+            backdrop-filter: blur(8px);
+        }
+        .project-modal-nav {
+            position: fixed;
+            top: 50%;
+            z-index: 4020;
+            display: inline-flex;
+            width: 48px;
+            height: 48px;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-50%);
+            border: 1px solid rgba(255,255,255,.5);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, .72);
+            color: #fff;
+            box-shadow: 0 14px 32px rgba(15,23,42,.3);
+            transition: transform 180ms ease, background-color 180ms ease;
+        }
+        .project-modal-nav:hover { background: var(--color-primary); transform: translateY(-50%) scale(1.06); }
+        .project-modal-nav.hidden { display: none; }
+        .project-modal-nav--prev { left: max(12px, calc(50% - 598px)); }
+        .project-modal-nav--next { right: max(12px, calc(50% - 598px)); }
+        @media (min-width: 1024px) {
+            .site-header-inner { height: 5.75rem !important; min-height: 5.75rem; padding-left: 158px; padding-right: 0; gap: 12px; }
+            .header-logo-wrap { width: 146px; min-width: 146px; max-width: 146px; }
+            .site-logo { height: 52px !important; max-width: 146px; }
+            .nav-links-wrapper { justify-content: flex-end; gap: clamp(7px, .8vw, 14px); }
+            .desktop-header-cluster .nav-link, .header-action-btn { font-size: clamp(.66rem, .68vw, .76rem); }
+            .header-actions-row { gap: 7px; }
+            .header-action-btn { padding: .55rem .65rem; }
+            .desktop-header-cluster .vacancy-cta { padding: .5rem .7rem !important; }
+        }
+        @media (min-width: 1280px) {
+            .site-header-inner { padding-left: 174px; }
+            .header-logo-wrap { width: 160px; min-width: 160px; max-width: 160px; }
+            .site-logo { height: 52px !important; max-width: 160px; }
+            .nav-links-wrapper { gap: 15px; }
+            .header-actions-row { gap: 9px; }
+        }
+        @media (max-width: 767px) {
+            .project-modal-nav { width: 36px; height: 36px; top: 52%; font-size: .75rem; background: rgba(15,23,42,.66); }
+            .project-modal-nav--prev { left: 12px; }
+            .project-modal-nav--next { right: 12px; }
+            .project-modal-counter { font-size: .65rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .project-modal-content, .project-modal-nav { transition: none !important; }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -3326,28 +3386,19 @@
                 <!-- Desktop Menu -->
                 <div class="hidden lg:flex items-center whitespace-nowrap desktop-header-cluster">
                     <div class="nav-links-wrapper">
-                        <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">🏡 Layihələr</button>
-                        <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">🏠 Elanlar</button>
-                        <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">🎥 Qalereya</button>
-                        <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">🧮 İpoteka</button>
-                        <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">ℹ️ Haqqımızda</button>
-                        <button onclick="switchTab('career')" class="nav-link vacancy-cta inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold shadow-lg hover:shadow-xl transition duration-200" id="nav-career">
-                            <span>Vakansiya</span>
-                            <span class="vacancy-badge rounded-full px-2 py-0.5 text-[10px] font-bold leading-none">Yeni</span>
-                        </button>
+                        <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Layihələr</button>
+                        <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">Elanlar</button>
+                        <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya</button>
+                        <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka</button>
+                        <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
+                        <button onclick="switchTab('career')" class="nav-link vacancy-cta inline-flex items-center px-4 py-2 rounded-full font-semibold transition duration-200" id="nav-career">Vakansiya</button>
                         <div id="header-user-status" class="header-actions-row"></div>
                     </div>
-                    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn desktop-whatsapp-link" aria-label="WhatsApp ilə əlaqə saxla">
-                        <i class="fa-brands fa-whatsapp"></i>
-                    </a>
                 </div>
 
                 <!-- Mobile Menu Button -->
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
-                    <a href="https://wa.me/994703152222" target="_blank" rel="noopener noreferrer" class="header-whatsapp-btn" aria-label="WhatsApp ilə əlaqə saxla">
-                        <i class="fa-brands fa-whatsapp"></i>
-                    </a>
                     <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
                         <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
                     </button>
@@ -3357,9 +3408,9 @@
 
         <!-- Mobile Dropdown Menu -->
         <div class="hidden lg:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
-            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">🎬 Qalereya & Video</button>
-            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">💼 Vakansiya</button>
-            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">ℹ️ Haqqımızda</button>
+            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Qalereya</button>
+            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Vakansiya</button>
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Haqqımızda</button>
             <div id="mobile-user-status-actions" class="hidden"></div>
         </div>
     </nav>
@@ -4672,9 +4723,10 @@ Title: CASPIAN DREAM LINER
     </div>
 
     <!-- RƏSMİ LAYİHƏ DETALLI MODAL -->
-    <div id="project-detail-modal-official" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-4" onclick="if (event.target === this) closeOfficialProjectModal()">
+    <div id="project-detail-modal-official" class="modal-glass-backdrop hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Layihə detalları" onclick="if (event.target === this) closeOfficialProjectModal()">
+        <button type="button" id="op-project-prev" onclick="navigateOfficialProject(-1)" class="project-modal-nav project-modal-nav--prev" aria-label="Əvvəlki layihə"><i class="fa-solid fa-chevron-left"></i></button>
         <div class="modal-glass-panel glass-card max-w-3xl w-full rounded-3xl overflow-hidden border border-white/10 relative flex flex-col justify-between max-h-[90vh]">
-            <div class="overflow-y-auto">
+            <div id="op-modal-scroll" class="project-modal-content overflow-y-auto">
                 <button type="button" onclick="closeOfficialProjectModal()" class="detail-close-btn" aria-label="Bağla">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -4693,6 +4745,7 @@ Title: CASPIAN DREAM LINER
                     <div class="absolute bottom-6 left-6 md:left-8">
                         <span id="op-modal-year" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
                         <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
+                        <p id="op-modal-project-counter" class="project-modal-counter"></p>
                     </div>
                 </div>
 
@@ -4724,6 +4777,7 @@ Title: CASPIAN DREAM LINER
                 </div>
             </div>
         </div>
+        <button type="button" id="op-project-next" onclick="navigateOfficialProject(1)" class="project-modal-nav project-modal-nav--next" aria-label="Növbəti layihə"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
@@ -4898,7 +4952,7 @@ Title: CASPIAN DREAM LINER
     <nav id="mobile-bottom-nav" class="mobile-bottom-nav" aria-label="Mobil alt naviqasiya">
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="seabreeze" onclick="closeMobileProfileMenu(); switchTab('seabreeze')"><span>🏠</span><span>Layihələr</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="listings" onclick="closeMobileProfileMenu(); switchTab('listings')"><span>🔍</span><span>Elanlar</span></button>
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><span>➕</span><span>Elan əlavə et</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="mortgage" onclick="closeMobileProfileMenu(); switchTab('mortgage')"><span>🏦</span><span>İpoteka</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="profile" onclick="toggleMobileProfileMenu()"><span>👤</span><span>Profil</span></button>
     </nav>
@@ -10048,8 +10102,8 @@ Title: CASPIAN DREAM LINER
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
-                    <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
-                    <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button>
+                    <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i><span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
+                    <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar"><i class="fa-solid fa-message"></i><span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button>
                     <div class="relative group">
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
                         <div class="profile-dropdown-shell absolute right-0 top-full z-50 hidden group-hover:block group-focus-within:block">
@@ -10062,7 +10116,7 @@ Title: CASPIAN DREAM LINER
                             </div>
                         </div>
                     </div>
-                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
+                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
                 mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
                 readMessagingCache();
@@ -10074,7 +10128,7 @@ Title: CASPIAN DREAM LINER
             } else {
                 container.innerHTML = `
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
-                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><span>➕</span><span>Elan əlavə et</span></button>
+                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
                 mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
                 mobileActions.innerHTML = ``;
@@ -10395,6 +10449,7 @@ Təşəkkür edirəm. 🙏`;
                     && (!projectSearchQuery || titleText.includes(projectSearchQuery))
                     && (deliveryYear === 'all' || year === deliveryYear);
             });
+            officialProjectNavigationProjects = filtered;
             const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
             projectPage = Math.min(projectPage, totalPages);
             const paged = filtered.slice((projectPage - 1) * PAGE_SIZE, projectPage * PAGE_SIZE);
@@ -10437,6 +10492,8 @@ Təşəkkür edirəm. 🙏`;
         // OPEN OFFICIAL PROJECT MODAL
         let activeOfficialModalTab = 'details';
         let activeOfficialProject = null;
+        let officialProjectNavigationProjects = null;
+        let officialProjectTransitionTimer = null;
 
 
 
@@ -10496,28 +10553,77 @@ Təşəkkür edirəm. 🙏`;
             });
         }
 
-        function openOfficialProjectModal(id, pushRoute = false) {
-            const p = getOfficialProjects().find(item => String(item.id) === String(id) || item.slug === id);
-            if (!p) return;
-            activeOfficialProject = p;
-            if (pushRoute) history.pushState({ route: 'project', id: p.id }, '', projectPath(p));
-            const localizedTitle = p.title;
-            const localizedDesc = p.desc;
-            updateSeo({ title: localizedTitle, description: localizedDesc || DEFAULT_SEO_DESCRIPTION, path: projectPath(p), image: p.img, type: 'article' });
+        function getOfficialProjectNavigationProjects() {
+            const projects = Array.isArray(officialProjectNavigationProjects) ? officialProjectNavigationProjects : getOfficialProjects();
+            return projects.filter(Boolean);
+        }
 
-            officialProjectImages = getProjectImages(p);
+        function resetOfficialProjectModalScroll() {
+            const content = document.getElementById('op-modal-scroll');
+            const panel = content?.closest('.modal-glass-panel');
+            if (content) content.scrollTop = 0;
+            if (panel) panel.scrollTop = 0;
+        }
+
+        function renderOfficialProjectModalContent(project) {
+            activeOfficialProject = project;
+            const localizedTitle = project.title || 'Layihə';
+            const localizedDesc = project.desc || '';
+            updateSeo({ title: localizedTitle, description: localizedDesc || DEFAULT_SEO_DESCRIPTION, path: projectPath(project), image: project.img, type: 'article' });
+
+            officialProjectImages = getProjectImages(project);
             officialProjectImageIndex = 0;
             updateOfficialProjectImage();
             document.getElementById('op-modal-img').alt = localizedTitle;
             document.getElementById('op-modal-title').textContent = localizedTitle;
-            document.getElementById('op-modal-year').textContent = p.year;
+            document.getElementById('op-modal-year').textContent = project.year || '';
             document.getElementById('op-modal-desc-text').textContent = localizedDesc || 'Bu layihə üçün əlavə təsvir yoxdur.';
 
-            renderOfficialProjectDetails(p);
+            const projects = getOfficialProjectNavigationProjects();
+            const currentIndex = projects.findIndex(item => String(item.id) === String(project.id));
+            document.getElementById('project-detail-modal-official').setAttribute('aria-label', `${localizedTitle} layihə detalları`);
+            document.getElementById('op-modal-project-counter').textContent = `${Math.max(currentIndex, 0) + 1} / ${projects.length || 1}`;
+            const hasMultipleProjects = projects.length > 1;
+            document.getElementById('op-project-prev').classList.toggle('hidden', !hasMultipleProjects);
+            document.getElementById('op-project-next').classList.toggle('hidden', !hasMultipleProjects);
 
+            renderOfficialProjectDetails(project);
             switchOfficialModalTab('details');
+        }
+
+        function openOfficialProjectModal(id, pushRoute = false) {
+            const projects = getOfficialProjectNavigationProjects();
+            const project = projects.find(item => String(item.id) === String(id) || item.slug === id)
+                || getOfficialProjects().find(item => String(item.id) === String(id) || item.slug === id);
+            if (!project) return;
+            if (!projects.some(item => String(item.id) === String(project.id))) officialProjectNavigationProjects = getOfficialProjects();
+            renderOfficialProjectModalContent(project);
+            if (pushRoute) history.pushState({ route: 'project', id: project.id }, '', projectPath(project));
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
+            resetOfficialProjectModalScroll();
             setModalOpenState(true);
+        }
+
+        function navigateOfficialProject(direction) {
+            if (!activeOfficialProject || officialProjectTransitionTimer) return;
+            const projects = getOfficialProjectNavigationProjects();
+            if (projects.length < 2) return;
+            const currentIndex = projects.findIndex(item => String(item.id) === String(activeOfficialProject.id));
+            const nextIndex = (Math.max(currentIndex, 0) + direction + projects.length) % projects.length;
+            const nextProject = projects[nextIndex];
+            const content = document.getElementById('op-modal-scroll');
+            content.classList.remove('is-entering-next', 'is-entering-prev');
+            content.classList.add(direction > 0 ? 'is-leaving-next' : 'is-leaving-prev');
+
+            officialProjectTransitionTimer = window.setTimeout(() => {
+                renderOfficialProjectModalContent(nextProject);
+                history.replaceState({ route: 'project', id: nextProject.id }, '', projectPath(nextProject));
+                resetOfficialProjectModalScroll();
+                content.classList.remove('is-leaving-next', 'is-leaving-prev');
+                content.classList.add(direction > 0 ? 'is-entering-next' : 'is-entering-prev');
+                requestAnimationFrame(() => requestAnimationFrame(() => content.classList.remove('is-entering-next', 'is-entering-prev')));
+                officialProjectTransitionTimer = null;
+            }, 120);
         }
 
 
@@ -10597,6 +10703,8 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function closeOfficialProjectModal() {
+            clearTimeout(officialProjectTransitionTimer);
+            officialProjectTransitionTimer = null;
             document.getElementById('project-detail-modal-official').classList.add('hidden');
             syncModalOpenState();
             if (window.location.pathname.startsWith('/project/')) {
@@ -14851,8 +14959,8 @@ Təşəkkür edirəm. 🙏`;
                 changeModalImage(deltaX > 0 ? -1 : 1);
                 return;
             }
-            if (!document.getElementById('project-detail-modal-official').classList.contains('hidden') && officialProjectImages.length > 1) {
-                changeOfficialProjectImage(deltaX > 0 ? -1 : 1);
+            if (!document.getElementById('project-detail-modal-official').classList.contains('hidden')) {
+                navigateOfficialProject(deltaX > 0 ? -1 : 1);
             }
         }
 
@@ -14872,12 +14980,12 @@ Təşəkkür edirəm. 🙏`;
             if (event.key === 'ArrowLeft') {
                 if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(-1); return; }
                 if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(-1);
-                if (projectOpen && officialProjectImages.length > 1) changeOfficialProjectImage(-1);
+                if (projectOpen) { event.preventDefault(); navigateOfficialProject(-1); }
             }
             if (event.key === 'ArrowRight') {
                 if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(1); return; }
                 if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(1);
-                if (projectOpen && officialProjectImages.length > 1) changeOfficialProjectImage(1);
+                if (projectOpen) { event.preventDefault(); navigateOfficialProject(1); }
             }
         });
 
