@@ -4180,6 +4180,7 @@ Title: CASPIAN DREAM LINER
                                 <table class="min-w-[760px] w-full text-left text-xs">
                                     <thead class="bg-white/[0.03] text-gray-400 uppercase text-[10px]">
                                         <tr>
+                                            <th class="p-3">Status</th>
                                             <th class="p-3">Title *</th>
                                             <th class="p-3">Zone</th>
                                             <th class="p-3">Delivery</th>
@@ -12601,7 +12602,7 @@ Təşəkkür edirəm. 🙏`;
         ];
 
         function getBulkProjectEmptyRow() {
-            return Object.fromEntries(bulkProjectFieldDefinitions.map(([field]) => [field, field === 'featuredInHero' ? false : '']));
+            return Object.fromEntries(bulkProjectFieldDefinitions.map(([field]) => [field, '']));
         }
 
         function normalizeBulkProjectLabel(label) {
@@ -12701,18 +12702,67 @@ Təşəkkür edirəm. 🙏`;
             return row;
         }
 
-        function parseBulkProjectImport() {
+        function normalizeBulkProjectTitle(value) {
+            return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+        }
+
+        function findBulkProjectMatch(row) {
+            const slug = localSlug(row.slug);
+            if (slug) {
+                const slugMatch = getOfficialProjects().find(project => localSlug(project.slug) === slug);
+                if (slugMatch) return slugMatch;
+            }
+            const title = String(row.title || '').trim().toLowerCase();
+            const exactMatch = getOfficialProjects().find(project => String(project.title || '').trim().toLowerCase() === title);
+            if (exactMatch) return exactMatch;
+            const normalized = normalizeBulkProjectTitle(row.title);
+            return getOfficialProjects().find(project => normalizeBulkProjectTitle(project.title) === normalized) || null;
+        }
+
+        function refreshBulkProjectRowAction(row) {
+            row._action = String(row.title || '').trim() ? (findBulkProjectMatch(row) ? 'UPDATE' : 'CREATE') : 'SKIP';
+        }
+
+        function bulkProjectRowsForApi(rows) {
+            return rows.map(row => {
+                const payload = Object.fromEntries(bulkProjectFieldDefinitions
+                    .map(([field]) => [field, row[field]])
+                    .filter(([, value]) => value !== '' && value !== undefined && value !== null));
+                if (payload.images) payload.images = String(payload.images).split(/[\n,]+/).map(value => value.trim()).filter(Boolean);
+                return payload;
+            });
+        }
+
+        async function parseBulkProjectImport() {
             const input = document.getElementById('bulk-project-input');
             const status = document.getElementById('bulk-project-import-status');
             const blocks = splitBulkProjectBlocks(input?.value || '');
             bulkProjectImportRows = blocks.map(parseBulkProjectBlock).filter(row => row.title || row.description);
+            bulkProjectImportRows.forEach(refreshBulkProjectRowAction);
             renderBulkProjectPreview();
-            if (status) status.textContent = bulkProjectImportRows.length ? `${bulkProjectImportRows.length} layihə tapıldı.` : 'Layihə bloku tapılmadı.';
+            if (!bulkProjectImportRows.length) {
+                if (status) status.textContent = 'Layihə bloku tapılmadı.';
+                return;
+            }
+            try {
+                const preview = await apiRequest('/api/projects/bulk/preview', { method: 'POST', body: JSON.stringify({ projects: bulkProjectRowsForApi(bulkProjectImportRows) }) });
+                (preview.rows || []).forEach(item => {
+                    if (bulkProjectImportRows[item.index]) bulkProjectImportRows[item.index]._action = item.action;
+                });
+                renderBulkProjectPreview();
+            } catch (_error) {
+                // The locally loaded projects still provide a useful preview if the preview request fails.
+            }
+            if (status) status.textContent = `${bulkProjectImportRows.length} layihə tapıldı.`;
         }
 
         function updateBulkProjectRow(index, field, value) {
             if (!bulkProjectImportRows[index]) return;
             bulkProjectImportRows[index][field] = field === 'featuredInHero' ? Boolean(value) : String(value ?? '');
+            if (field === 'title' || field === 'slug') {
+                refreshBulkProjectRowAction(bulkProjectImportRows[index]);
+                renderBulkProjectPreview();
+            }
         }
 
         function toggleBulkProjectDetails(index) {
@@ -12748,12 +12798,13 @@ Təşəkkür edirəm. 🙏`;
             const saveBtn = document.getElementById('bulk-project-save-btn');
             if (!tbody) return;
             if (!bulkProjectImportRows.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500 text-xs">Parse etdikdən sonra layihələr burada görünəcək.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-500 text-xs">Parse etdikdən sonra layihələr burada görünəcək.</td></tr>';
                 if (saveBtn) saveBtn.disabled = true;
                 return;
             }
             tbody.innerHTML = bulkProjectImportRows.map((row, index) => `
                 <tr class="align-top hover:bg-white/[0.02]">
+                    <td class="p-2 whitespace-nowrap"><span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black ${row._action === 'UPDATE' ? 'bg-amber-500/15 text-amber-300' : row._action === 'CREATE' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-gray-500/15 text-gray-400'}">${row._action === 'UPDATE' ? '✓ UPDATE' : row._action === 'CREATE' ? '+ CREATE' : 'SKIP'}</span></td>
                     <td class="p-2">${bulkProjectInputCell(index, 'title', row.title)}</td>
                     <td class="p-2">${bulkProjectInputCell(index, 'zone', row.zone)}</td>
                     <td class="p-2">${bulkProjectInputCell(index, 'deliveryDate', row.deliveryDate)}</td>
@@ -12761,7 +12812,7 @@ Təşəkkür edirəm. 🙏`;
                     <td class="p-2">${bulkProjectInputCell(index, 'totalPrice', row.totalPrice || row.pricePerM2)}</td>
                     <td class="p-2 text-right whitespace-nowrap"><button type="button" onclick="toggleBulkProjectDetails(${index})" class="bg-brand-500/15 hover:bg-brand-500 text-brand-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">${row._expanded ? 'Bağla' : 'Ətraflı redaktə'}</button><button type="button" onclick="removeBulkProjectRow(${index})" class="ml-1 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">Sil</button></td>
                 </tr>
-                ${row._expanded ? `<tr><td colspan="6" class="p-4 bg-black/10"><div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">${renderBulkProjectDetailEditor(row, index)}</div></td></tr>` : ''}
+                ${row._expanded ? `<tr><td colspan="7" class="p-4 bg-black/10"><div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">${renderBulkProjectDetailEditor(row, index)}</div></td></tr>` : ''}
             `).join('');
             if (saveBtn) saveBtn.disabled = !bulkProjectImportRows.some(row => String(row.title || '').trim());
         }
@@ -12793,19 +12844,19 @@ Təşəkkür edirəm. 🙏`;
                 saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Saving...';
             }
             try {
-                const created = [];
-                for (const row of validRows) {
-                    const saved = await apiRequest('/api/projects', { method: 'POST', body: JSON.stringify(uiProjectToApi(bulkProjectRowToUi(row))) });
-                    created.push(dbProjectToUi(saved));
-                }
-                saveOfficialProjects([...created, ...getOfficialProjects()]);
+                const result = await apiRequest('/api/projects/bulk', { method: 'POST', body: JSON.stringify({ projects: bulkProjectRowsForApi(bulkProjectImportRows) }) });
+                const savedProjects = (result.projects || []).map(dbProjectToUi);
+                const projectsById = new Map(getOfficialProjects().map(project => [String(project.id), project]));
+                savedProjects.forEach(project => projectsById.set(String(project.id), project));
+                saveOfficialProjects([...projectsById.values()]);
                 bulkProjectImportRows = [];
                 document.getElementById('bulk-project-input').value = '';
                 renderBulkProjectPreview();
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderAdminProjects();
-                if (status) status.textContent = `${created.length} layihə uğurla yadda saxlandı.`;
+                const summary = result.summary || {};
+                if (status) status.textContent = `Created: ${summary.created || 0} · Updated: ${summary.updated || 0} · Skipped: ${summary.skipped || 0}`;
             } catch (error) {
                 alert('Bulk layihələr API-yə yazılmadı: ' + error.message);
                 if (status) status.textContent = 'Yadda saxlanma zamanı xəta baş verdi.';

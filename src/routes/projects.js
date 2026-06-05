@@ -4,6 +4,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
 const { makeUniqueSlug, normalizeManualSlug } = require('../utils/seo');
+const { projectImportPreview, upsertProjectImports } = require('../utils/projectBulkImport');
 const router = express.Router();
 
 function pagination(query) {
@@ -53,6 +54,18 @@ router.get('/', asyncHandler(async (req, res) => {
     prisma.project.count({ where }),
   ]);
   res.json({ data: orderedProjectRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
+}));
+
+router.post('/bulk/preview', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const rows = Array.isArray(req.body?.projects) ? req.body.projects : [];
+  const projects = await prisma.project.findMany({ orderBy: { id: 'asc' } });
+  res.json({ rows: projectImportPreview(rows, projects) });
+}));
+
+router.post('/bulk', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const rows = Array.isArray(req.body?.projects) ? req.body.projects : [];
+  const result = await prisma.$transaction((tx) => upsertProjectImports(tx, rows));
+  res.json(result);
 }));
 
 router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
