@@ -1562,6 +1562,233 @@
             white-space: nowrap;
         }
 
+        /* Admin dashboard and navigation */
+        .admin-dashboard-shell {
+            width: min(100%, 88rem);
+            margin-inline: auto;
+        }
+        .admin-dashboard-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            width: min(100%, 76rem);
+            margin-inline: auto;
+        }
+        .admin-stat-card {
+            min-height: 136px;
+            padding: 1.1rem !important;
+            border-radius: 1.25rem;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .08) !important;
+        }
+        .admin-stat-card__icon {
+            width: 2.8rem;
+            height: 2.8rem;
+            flex: 0 0 2.8rem;
+            border: 1px solid rgba(255,255,255,.28);
+            box-shadow: 0 8px 20px rgba(15,23,42,.08);
+        }
+        .admin-subtabs {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .55rem;
+            padding: .55rem;
+            border: 1px solid rgba(127,127,255,.16);
+            border-radius: 1.25rem;
+            background: rgba(255,255,255,.65);
+            box-shadow: 0 12px 30px rgba(127,127,255,.08);
+        }
+        .admin-subtab-button,
+        #admin-subtabs-container .admin-subtab-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: .65rem .9rem;
+            border: 1px solid transparent;
+            border-radius: .85rem;
+            color: #64748b;
+            font-size: .82rem;
+            line-height: 1.2;
+            font-weight: 800;
+            text-align: center;
+            transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        }
+        #admin-subtabs-container .admin-subtab-button:hover {
+            color: #4f46e5;
+            border-color: rgba(127,127,255,.22);
+            background: rgba(127,127,255,.07);
+        }
+        #admin-subtabs-container .admin-subtab-button.is-active {
+            color: #fff;
+            border-color: rgba(127,127,255,.75);
+            background: linear-gradient(135deg, #7f7fff, #6366f1);
+            box-shadow: 0 8px 18px rgba(99,102,241,.24);
+        }
+
+        /* Admin listing status filters */
+        .admin-listing-filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .6rem;
+        }
+        .admin-listing-filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            min-height: 40px;
+            padding: .6rem .9rem;
+            border: 1px solid currentColor;
+            border-radius: 999px;
+            font-size: .78rem;
+            line-height: 1.1;
+            font-weight: 800;
+            white-space: nowrap;
+            opacity: .76;
+            transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+        .admin-listing-filter-pill:hover { opacity: 1; transform: translateY(-1px); }
+        .admin-listing-filter-pill.is-active { opacity: 1; box-shadow: 0 0 0 3px rgba(255,255,255,.72), 0 7px 18px rgba(15,23,42,.14); }
+        .admin-listing-filter-pill--pending { color: #b45309; background: #fffbeb; }
+        .admin-listing-filter-pill--approved { color: #047857; background: #ecfdf5; }
+        .admin-listing-filter-pill--rejected { color: #b91c1c; background: #fef2f2; }
+
+        /* Admin listing management cards */
+        .admin-listing-management-card {
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 1.15rem;
+            border-color: rgba(127,127,255,.2);
+            background: rgba(255,255,255,.98);
+            box-shadow: 0 14px 36px rgba(79,70,229,.09);
+        }
+        .admin-listing-management-card__summary {
+            align-items: stretch;
+            gap: 1rem;
+        }
+        .admin-listing-management-card__thumb {
+            width: 132px;
+            height: 132px;
+            flex: 0 0 132px;
+            border-radius: .9rem;
+            object-fit: cover;
+            object-position: center;
+            border: 1px solid #e2e8f0;
+        }
+        .admin-listing-management-card__info { gap: .55rem; align-content: start; }
+        .admin-listing-management-card__heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: .75rem;
+        }
+        .admin-listing-management-card__title {
+            color: #0f172a;
+            font-size: 1rem;
+            line-height: 1.35;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }
+        .admin-listing-management-card__status {
+            flex: 0 0 auto;
+            padding: .42rem .68rem;
+            border-radius: 999px;
+            font-size: .72rem;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .admin-listing-management-card__status.text-amber-400 { color: #92400e; }
+        .admin-listing-management-card__status.text-emerald-400 { color: #047857; }
+        .admin-listing-management-card__status.text-red-400 { color: #b91c1c; }
+        .admin-listing-management-card__location {
+            display: flex;
+            align-items: flex-start;
+            gap: .4rem;
+            color: #475569;
+            font-size: .8rem;
+            line-height: 1.35;
+            font-weight: 700;
+        }
+        .admin-listing-management-card__location i { margin-top: .12rem; color: #7f7fff; }
+        .admin-listing-management-card__facts,
+        .admin-listing-management-card__footer-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .45rem .8rem;
+        }
+        .admin-listing-management-card__facts span,
+        .admin-listing-management-card__footer-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            color: #475569;
+            font-size: .75rem;
+            line-height: 1.2;
+            font-weight: 800;
+        }
+        .admin-listing-management-card__facts i,
+        .admin-listing-management-card__footer-meta i { color: #818cf8; }
+        .admin-listing-management-card__code { color: #64748b; font-size: .74rem; }
+        .admin-listing-management-card__price { color: #0f172a; font-size: .92rem; }
+        .admin-listing-management-card__actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .55rem;
+            overflow: visible;
+            padding-top: .8rem;
+            padding-bottom: 0;
+            margin: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .admin-listing-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .42rem;
+            min-height: 38px;
+            padding: .55rem .8rem;
+            border: 1px solid transparent;
+            border-radius: .72rem;
+            font-size: .76rem;
+            line-height: 1;
+            font-weight: 850;
+            white-space: nowrap;
+            transition: transform 150ms ease, filter 150ms ease, box-shadow 150ms ease;
+        }
+        .admin-listing-action:hover { transform: translateY(-1px); filter: saturate(1.12); box-shadow: 0 6px 14px rgba(15,23,42,.1); }
+        .admin-listing-action--approve { color: #fff; background: #059669; }
+        .admin-listing-action--deactivate { color: #92400e; border-color: #fbbf24; background: #fef3c7; }
+        .admin-listing-action--reject { color: #fff; background: #dc2626; }
+        .admin-listing-action--hero { color: #854d0e; border-color: #facc15; background: #fef9c3; }
+        .admin-listing-action--hero-add { color: #6d28d9; border-color: #c4b5fd; background: #f5f3ff; }
+        .admin-listing-action--open { color: #334155; border-color: #cbd5e1; background: #f1f5f9; }
+        .admin-listing-action--edit { color: #fff; background: #2563eb; }
+        .admin-listing-action--delete { width: 38px; padding-inline: 0; color: #fff; background: #dc2626; }
+        .admin-listing-management-card__hero-btn { min-width: 0; }
+
+        @media (min-width: 640px) {
+            .admin-dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1024px) {
+            .admin-dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .admin-listing-filter-pills { flex-wrap: nowrap; }
+        }
+        @media (max-width: 639px) {
+            .admin-subtabs { gap: .4rem; padding: .45rem; }
+            .admin-subtab-button, #admin-subtabs-container .admin-subtab-button { flex: 1 1 calc(50% - .4rem); padding-inline: .55rem; }
+            .admin-listing-management-card { padding: .8rem; }
+            .admin-listing-management-card__summary { flex-direction: column; }
+            .admin-listing-management-card__thumb { width: 100%; height: 190px; flex-basis: 190px; }
+            .admin-listing-management-card__heading { flex-wrap: wrap; }
+            .admin-listing-action { flex: 1 1 auto; }
+            .admin-listing-action--delete { flex: 0 0 38px; }
+        }
+
         @media (min-width: 1024px) and (max-width: 1439px) {
             #admin-subtab-seabreeze-manager,
             #admin-subtab-projects-manager,
@@ -3501,7 +3728,7 @@
             </div>
         </section>
 
-        <section id="tab-admin-dashboard" class="tab-content hidden space-y-8">
+        <section id="tab-admin-dashboard" class="tab-content hidden space-y-8 admin-dashboard-shell">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
                 <div>
                     <h2 id="dashboard-user-title" class="text-2xl font-black text-white">İdarəetmə Paneli</h2>
@@ -3510,24 +3737,24 @@
                 <button onclick="logoutAdmin()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">Çıxış</button>
             </div>
 
-            <div id="admin-dashboard-cards" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 admin-only-element"></div>
+            <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
-            <div class="flex flex-wrap border-b border-white/10 gap-4" id="admin-subtabs-container">
-                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Yeni Elan / Digər ərazilərim</button>
-                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm user-only-element hidden">Profil</button>
-                <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Layihələr</button>
-                <button onclick="switchAdminSubtab('projects-archive')" id="subtab-btn-projects-archive" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Arxiv</button>
-                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Layihə Hero</button>
-                <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">⭐ Elan Hero</button>
-                <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Namizəd CV-ləri</button>
-                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">İstifadəçilər</button>
-                <button onclick="switchAdminSubtab('google-email')" id="subtab-btn-google-email" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Google email</button>
-                <button onclick="switchAdminSubtab('broadcast-notifications')" id="subtab-btn-broadcast-notifications" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Bildiriş göndər</button>
-                <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Karyera & Vakansiyalar</button>
-                <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Media Qalereya</button>
-                <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Advertisement Management</button>
-                <button onclick="switchAdminSubtab('site-settings')" id="subtab-btn-site-settings" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm admin-only-element">Sayt Ayarları</button>
+            <div id="admin-subtabs-container" class="admin-subtabs" aria-label="Admin bölmələri">
+                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="admin-subtab-button is-active">Elanlar</button>
+                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button user-only-element hidden">Profil</button>
+                <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="admin-subtab-button admin-only-element">Layihələr</button>
+                <button onclick="switchAdminSubtab('projects-archive')" id="subtab-btn-projects-archive" class="admin-subtab-button admin-only-element">Arxiv</button>
+                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="admin-subtab-button admin-only-element">⭐ Layihə Hero</button>
+                <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="admin-subtab-button admin-only-element">⭐ Elan Hero</button>
+                <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="admin-subtab-button admin-only-element">Namizəd CV-ləri</button>
+                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="admin-subtab-button admin-only-element">İstifadəçilər</button>
+                <button onclick="switchAdminSubtab('google-email')" id="subtab-btn-google-email" class="admin-subtab-button admin-only-element">Google email</button>
+                <button onclick="switchAdminSubtab('broadcast-notifications')" id="subtab-btn-broadcast-notifications" class="admin-subtab-button admin-only-element">Bildiriş göndər</button>
+                <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="admin-subtab-button admin-only-element">Karyera & Vakansiyalar</button>
+                <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="admin-subtab-button admin-only-element">Media Qalereya</button>
+                <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="admin-subtab-button admin-only-element">Reklam</button>
+                <button onclick="switchAdminSubtab('site-settings')" id="subtab-btn-site-settings" class="admin-subtab-button admin-only-element">Sayt Ayarları</button>
             </div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
@@ -3707,10 +3934,10 @@
                 <div class="lg:col-span-7 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="text-lg font-bold text-white">Mənim / Bütün Digər ərazilər</h3>
-                        <div class="flex flex-wrap gap-2 text-[10px] font-bold">
-                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Gözləyən elanlar</span>
-                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Təsdiqlənmiş elanlar</span>
-                            <span class="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">Rədd edilmiş elanlar</span>
+                        <div class="admin-listing-filter-pills" aria-label="Elan statusuna görə filtr">
+                            <button type="button" data-listing-status-filter="pending" onclick="setAdminListingStatusFilter('pending')" class="admin-listing-filter-pill admin-listing-filter-pill--pending"><i class="fa-regular fa-clock"></i><span>Gözləyən elanlar</span></button>
+                            <button type="button" data-listing-status-filter="approved" onclick="setAdminListingStatusFilter('approved')" class="admin-listing-filter-pill admin-listing-filter-pill--approved"><i class="fa-regular fa-circle-check"></i><span>Təsdiqlənmiş elanlar</span></button>
+                            <button type="button" data-listing-status-filter="rejected" onclick="setAdminListingStatusFilter('rejected')" class="admin-listing-filter-pill admin-listing-filter-pill--rejected"><i class="fa-regular fa-circle-xmark"></i><span>Rədd edilmiş elanlar</span></button>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
@@ -11648,13 +11875,13 @@ Təşəkkür edirəm. 🙏`;
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
                 const restrictedClass = btn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
                 const hiddenClass = activeUser && activeUser.role !== 'admin' && !['subtab-btn-sb','subtab-btn-user-profile'].includes(btn.id) ? ' hidden' : (activeUser?.role === 'admin' && btn.id === 'subtab-btn-user-profile' ? ' hidden' : '');
-                btn.className = `pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm${restrictedClass}${hiddenClass}`;
+                btn.className = `admin-subtab-button${restrictedClass}${hiddenClass}`;
             });
 
             const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'projects-archive' ? 'projects-archive' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
                 const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
-                activeBtn.className = `pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm${restrictedClass}`;
+                activeBtn.className = `admin-subtab-button is-active${restrictedClass}`;
             }
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
@@ -13223,6 +13450,21 @@ Təşəkkür edirəm. 🙏`;
             preview.classList.toggle('hidden', !markup);
         }
 
+        let adminListingStatusFilter = 'all';
+
+        function setAdminListingStatusFilter(status) {
+            adminListingStatusFilter = adminListingStatusFilter === status ? 'all' : status;
+            renderAdminDashboard();
+        }
+
+        function syncAdminListingStatusFilters() {
+            document.querySelectorAll('[data-listing-status-filter]').forEach(button => {
+                const isActive = button.dataset.listingStatusFilter === adminListingStatusFilter;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', String(isActive));
+            });
+        }
+
         function renderAdminDashboard() {
             if (!activeUser) {
                 switchTab('admin-login');
@@ -13247,12 +13489,14 @@ Təşəkkür edirəm. 🙏`;
             }
 
             // 1. Listings Grid
+            syncAdminListingStatusFilters();
             const codeSearch = document.getElementById('admin-listing-code-search')?.value.trim() || '';
             const regionFilter = document.getElementById('admin-listing-region-filter')?.value || 'all';
             const districtFilter = document.getElementById('admin-listing-district-filter')?.value || 'all';
             const properties = appData.listings.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || Number(b.id || 0) - Number(a.id || 0)).filter(item => {
                 const listingRegion = getListingRegionType(item);
                 const listingDistrict = getListingDistrict(item);
+                if (adminListingStatusFilter !== 'all' && normalizeListingStatus(item.status) !== adminListingStatusFilter) return false;
                 if (codeSearch && !String(item.listingCode || '').includes(codeSearch.replace(/^BH/i, '')) && !formatListingCode(item.listingCode).toLowerCase().includes(codeSearch.toLowerCase())) return false;
                 if (regionFilter !== 'all' && listingRegion !== regionFilter) return false;
                 if (districtFilter !== 'all' && listingDistrict !== districtFilter) return false;
@@ -13267,45 +13511,58 @@ Təşəkkür edirəm. 🙏`;
 
                 const normalizedStatus = normalizeListingStatus(p.status);
                 const isApproved = normalizedStatus === 'approved';
-                const label = listingStatusLabel(normalizedStatus);
+                const label = { pending: 'Gözləyir', approved: 'Aktiv', rejected: 'Rədd edildi' }[normalizedStatus];
                 const badge = listingStatusBadgeClass(normalizedStatus);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
                 const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
                 const districtLabel = getListingDistrict(p) || (regionLabel === 'Unknown' ? '—' : regionLabel);
                 const adminListingTitle = p.title || '—';
                 const listingHeroItem = listingHeroItemForListing(p.id);
+                const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
+                const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
                 const heroAction = activeUser.role === 'admin' ? (listingHeroItem
-                    ? `<button onclick="removeListingFromHero('${p.id}')" class="admin-listing-management-card__hero-btn bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero-dan çıxar</button>`
-                    : `<button onclick="addListingToHero('${p.id}')" class="admin-listing-management-card__hero-btn bg-purple-500/10 text-purple-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">⭐ Hero əlavə et</button>`) : '';
+                    ? `<button onclick="removeListingFromHero('${p.id}')" class="admin-listing-action admin-listing-action--hero"><i class="fa-solid fa-star"></i>Hero-dan çıxar</button>`
+                    : `<button onclick="addListingToHero('${p.id}')" class="admin-listing-action admin-listing-action--hero-add"><i class="fa-regular fa-star"></i>Hero əlavə et</button>`) : '';
 
                 pContainer.innerHTML += `
-                    <div class="admin-listing-management-card glass-card">
+                    <article class="admin-listing-management-card glass-card">
                         <div class="admin-listing-management-card__summary">
-                            <img src="${mainImage}" class="admin-listing-management-card__thumb" alt="${escapeHtml(adminListingTitle)}">
+                            <img src="${mainImage}" class="admin-listing-management-card__thumb" alt="${escapeHtml(adminListingTitle)}" loading="lazy">
                             <div class="admin-listing-management-card__info">
-                                <h4 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h4>
-                                <span class="admin-listing-management-card__code">${formatListingCode(p.listingCode)}</span>
-                                <strong class="admin-listing-management-card__price">${formatPrice(p.price, p.currency)}</strong>
-                                <span class="admin-listing-management-card__status text-[9px] px-2 py-0.5 rounded ${badge}">${label}</span>
-                                <span class="admin-listing-management-card__meta">${regionLabel} • ${districtLabel} • ${p.rooms ?? '—'} ot • ${p.viewCount || 0} views • ${p.favoritesCount || 0} fav</span>
+                                <div class="admin-listing-management-card__heading">
+                                    <h4 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h4>
+                                    <span class="admin-listing-management-card__status ${badge}">${label}</span>
+                                </div>
+                                <div class="admin-listing-management-card__location"><i class="fa-solid fa-location-dot"></i><span>${escapeHtml(regionLabel)} • ${escapeHtml(districtLabel)}</span></div>
+                                <div class="admin-listing-management-card__facts">
+                                    <span><i class="fa-solid fa-door-open"></i>${p.rooms ?? '—'} otaq</span>
+                                    <span><i class="fa-solid fa-ruler-combined"></i>${areaLabel}</span>
+                                    <span><i class="fa-solid fa-building"></i>${escapeHtml(floorLabel)} mərtəbə</span>
+                                </div>
+                                <div class="admin-listing-management-card__footer-meta">
+                                    <span class="admin-listing-management-card__code">${formatListingCode(p.listingCode)}</span>
+                                    <strong class="admin-listing-management-card__price">${formatPrice(p.price, p.currency)}</strong>
+                                    <span><i class="fa-regular fa-eye"></i>${p.viewCount || 0}</span>
+                                    <span><i class="fa-regular fa-heart"></i>${p.favoritesCount || 0}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-listing-management-card__actions">
                             ${activeUser.role === 'admin' && !isApproved ? `
-                                <button onclick="approveListing(${p.id})" class="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Approve</button>
+                                <button onclick="approveListing(${p.id})" class="admin-listing-action admin-listing-action--approve"><i class="fa-solid fa-check"></i>Təsdiqlə</button>
                             ` : ''}
                             ${activeUser.role === 'admin' && isApproved ? `
-                                <button onclick="deactivateListing(${p.id})" class="bg-amber-500/10 text-amber-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Deactivate</button>
+                                <button onclick="deactivateListing(${p.id})" class="admin-listing-action admin-listing-action--deactivate"><i class="fa-solid fa-pause"></i>Deaktiv et</button>
                             ` : ''}
                             ${activeUser.role === 'admin' && normalizedStatus !== 'rejected' ? `
-                                <button onclick="rejectListing(${p.id})" class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Reject</button>
+                                <button onclick="rejectListing(${p.id})" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
                             ` : ''}
                             ${heroAction}
-                            <button onclick="openPropertyModal('${p.id}', true)" class="bg-white/5 text-gray-300 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Aç</button>
-                            <button onclick="editSeaBreezeItem(${p.id})" class="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2.5 py-1.5 rounded-lg">Düzəliş</button>
-                            <button onclick="deleteSeaBreezeItem(${p.id})" class="text-red-400 px-2.5 py-1.5 rounded-lg bg-red-500/10" aria-label="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="openPropertyModal('${p.id}', true)" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
+                            <button onclick="editSeaBreezeItem(${p.id})" class="admin-listing-action admin-listing-action--edit"><i class="fa-solid fa-pen"></i>Düzəliş</button>
+                            <button onclick="deleteSeaBreezeItem(${p.id})" class="admin-listing-action admin-listing-action--delete" aria-label="Elanı sil" title="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
-                    </div>
+                    </article>
                 `;
             });
 
@@ -14670,7 +14927,7 @@ Təşəkkür edirəm. 🙏`;
             if (path.startsWith('/admin') && activeUser.role !== 'admin') {
                 document.querySelectorAll('[id^="admin-subtab-"]').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
-                    btn.className = 'pb-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm hidden';
+                    btn.className = 'admin-subtab-button hidden';
                 });
                 const dashboard = document.getElementById('tab-admin-dashboard');
                 if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
