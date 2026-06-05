@@ -150,6 +150,15 @@ function serializeSiteAd(ad) {
   };
 }
 
+function parseAdOrder(body) {
+  const raw = Array.isArray(body?.order) ? body.order : [];
+  return raw.map((item, index) => ({
+    id: Number.parseInt(typeof item === 'object' ? item.id : item, 10),
+    displayOrder: index + 1,
+    rotationOrder: index + 1,
+  })).filter((item) => Number.isInteger(item.id) && item.id > 0);
+}
+
 function activeDateWhere(now = new Date()) {
   return {
     isActive: true,
@@ -195,6 +204,21 @@ router.post('/', authenticate, authorize('admin'), upload.single('media'), async
   if (!data.mediaUrl) return res.status(400).json({ message: 'Media URL is required.' });
   const created = await prisma.siteAd.create({ data });
   res.status(201).json(serializeSiteAd(created));
+}));
+
+router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const items = parseAdOrder(req.body);
+  if (!items.length) return res.status(400).json({ message: 'Advertisement order array is required.' });
+  if (new Set(items.map((item) => item.id)).size !== items.length) {
+    return res.status(400).json({ message: 'Advertisement IDs must be unique.' });
+  }
+
+  await prisma.$transaction(items.map((item) => prisma.siteAd.update({
+    where: { id: item.id },
+    data: { displayOrder: item.displayOrder, rotationOrder: item.rotationOrder },
+  })));
+  const ads = await prisma.siteAd.findMany({ orderBy: [{ rotationOrder: 'asc' }, { displayOrder: 'asc' }, { id: 'asc' }] });
+  res.json({ ok: true, items: ads.map(serializeSiteAd) });
 }));
 
 router.put('/:id', authenticate, authorize('admin'), upload.single('media'), asyncHandler(async (req, res) => {
