@@ -176,6 +176,20 @@ async function ensurePublicUsersAuthColumns() {
 }
 
 
+async function ensureProjectArchiveColumn() {
+  try {
+    await prisma.$executeRawUnsafe('ALTER TABLE public."projects" ADD COLUMN IF NOT EXISTS "is_archived" BOOLEAN NOT NULL DEFAULT false');
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_projects_is_archived" ON public."projects"("is_archived")');
+  } catch (error) {
+    if (['P2021', 'P2022'].includes(error.code)) {
+      console.warn('Project archive bootstrap skipped until the public.projects table exists:', error.message);
+      return;
+    }
+    throw error;
+  }
+}
+
+
 async function ensureSeoIdentifiers() {
   try {
     const projects = await prisma.project.findMany({ where: { slug: null }, orderBy: { id: 'asc' } });
@@ -225,7 +239,7 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-ensurePublicUsersAuthColumns()
+Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn()])
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);

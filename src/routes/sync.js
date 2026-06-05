@@ -36,6 +36,7 @@ function projectData(p) {
     imageUrl: images[0] || null,
     images: images.length ? images : undefined,
     displayOrder: int(p.display_order ?? p.displayOrder ?? p.order),
+    isArchived: Boolean(p.is_archived ?? p.isArchived),
   };
 }
 
@@ -83,7 +84,7 @@ function appData(a) {
 
 router.get('/', asyncHandler(async (_req, res) => {
   const [projects, listings, vacancies, applications, users] = await Promise.all([
-    prisma.project.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] }),
+    prisma.project.findMany({ where: { isArchived: false }, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] }),
     prisma.listing.findMany({ orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], include: { images: { orderBy: { sortOrder: 'asc' } } } }),
     prisma.vacancy.findMany({ orderBy: { createdAt: 'desc' } }),
     prisma.application.findMany({ orderBy: { createdAt: 'desc' }, include: { vacancy: true } }),

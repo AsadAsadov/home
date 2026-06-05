@@ -87,6 +87,7 @@ const serializers = {
     displayOrder: toInt(body.display_order ?? body.displayOrder),
     slug: cleanString(body.slug),
     featuredInHero: toBool(body.featured_in_hero ?? body.featuredInHero),
+    isArchived: toBool(body.is_archived ?? body.isArchived),
   }),
   listing: (body) => {
     const area = cleanString(body.area);
