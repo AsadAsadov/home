@@ -1,18 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
+const { createUpload } = require('../middleware/upload');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadAvatarImage, assertValidListingImage } = require('../utils/supabaseStorage');
 const router = express.Router();
 
-const avatarUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: Number(process.env.MAX_AVATAR_IMAGE_SIZE_BYTES || 5 * 1024 * 1024), files: 1 },
-  fileFilter: (_req, file, cb) => {
-    try { assertValidListingImage({ ...file, size: file.size || 0 }); cb(null, true); } catch (error) { cb(error); }
-  },
+const avatarUpload = createUpload('avatars', {
+  fileSize: Number(process.env.MAX_AVATAR_IMAGE_SIZE_BYTES || 5 * 1024 * 1024), files: 1,
+  fileFilter: (_req, file, cb) => { try { assertValidListingImage({ ...file, size: file.size || 0 }); cb(null, true); } catch (error) { cb(error); } },
 });
 
 function publicUser(user) {

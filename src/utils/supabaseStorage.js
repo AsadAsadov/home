@@ -132,155 +132,41 @@ function normalizeStorageObjectPath(filePath = '', bucket = CAREER_CV_BUCKET) {
   return safeDecode(value).replace(/^\/+/, '');
 }
 
-async function uploadToSupabaseBucket({ bucket, objectPath, file, cacheControl = 'public, max-age=31536000', upsert = false }) {
-  const { url, serviceKey } = getSupabaseConfig();
-  const uploadUrl = `${url}/storage/v1/object/${bucket}/${encodeStorageObjectPath(objectPath)}`;
-  const body = file.buffer || (file.path ? require('fs').readFileSync(file.path) : undefined);
-  if (!body) {
-    const error = new Error('Yükləmə üçün fayl məzmunu tapılmadı.');
+function localUploadUrl(file) {
+  if (!file?.path) {
+    const error = new Error('Yükləmə üçün lokal fayl tapılmadı.');
     error.status = 400;
     throw error;
   }
-  const response = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${serviceKey}`,
-      apikey: serviceKey,
-      'Content-Type': file.mimetype,
-      'Cache-Control': cacheControl,
-      'x-upsert': upsert ? 'true' : 'false',
-    },
-    body,
-  });
-  if (!response.ok) {
-    const details = await response.text().catch(() => '');
-    const error = new Error(`Supabase Storage bucketinə yüklənmədi.${details ? ` ${details}` : ''}`);
-    error.status = response.status;
-    throw error;
-  }
-  return { bucket, objectPath };
+  return require('../middleware/upload').localUploadUrl(file);
 }
 
-function buildPublicUrl(bucket, objectPath) {
-  const { url } = getSupabaseConfig();
-  return `${url}/storage/v1/object/public/${bucket}/${encodeStorageObjectPath(objectPath)}`;
-}
-
-async function uploadCareerCv(file) {
-  assertValidCvFile(file);
-  const originalName = file.originalname;
-  const sanitizedName = sanitizeFileName(originalName);
-  console.info('[supabaseStorage] CV filename sanitized', {
-    originalValue: originalName,
-    sanitizedValue: sanitizedName,
-    nullByteFound: typeof originalName === 'string' && originalName.includes('\0'),
-  });
-  const objectPath = buildCareerCvPath(sanitizedName);
-  await uploadToSupabaseBucket({
-    bucket: CAREER_CV_BUCKET,
-    objectPath,
-    file,
-    cacheControl: 'private, max-age=31536000',
-  });
-  return `${CAREER_CV_BUCKET}/${objectPath}`;
-}
+async function uploadCareerCv(file) { assertValidCvFile(file); return localUploadUrl(file); }
 
 function assertValidGalleryFile(file) {
-  if (!file) {
-    const error = new Error('Qalereya faylı tələb olunur.');
-    error.status = 400;
-    throw error;
-  }
+  if (!file) { const error = new Error('Qalereya faylı tələb olunur.'); error.status = 400; throw error; }
   const isImage = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
   const isVideo = ['video/mp4', 'video/webm', 'video/quicktime'].includes(file.mimetype);
-  if (!isImage && !isVideo) {
-    const error = new Error('Qalereya üçün yalnız şəkil və MP4/WebM/MOV video faylları qəbul olunur.');
-    error.status = 400;
-    throw error;
-  }
+  if (!isImage && !isVideo) { const error = new Error('Qalereya üçün yalnız şəkil və MP4/WebM/MOV video faylları qəbul olunur.'); error.status = 400; throw error; }
 }
 
 function assertValidHeroFile(file) {
-  if (!file) {
-    const error = new Error('Hero media faylı tələb olunur.');
-    error.status = 400;
-    throw error;
-  }
-  const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']);
-  if (!allowedMimeTypes.has(file.mimetype)) {
-    const error = new Error('Hero üçün yalnız JPG, PNG, WEBP, GIF, MP4 və WEBM faylları qəbul olunur.');
-    error.status = 400;
-    throw error;
-  }
+  if (!file) { const error = new Error('Hero media faylı tələb olunur.'); error.status = 400; throw error; }
+  if (!new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']).has(file.mimetype)) { const error = new Error('Hero üçün yalnız JPG, PNG, WEBP, GIF, MP4 və WEBM faylları qəbul olunur.'); error.status = 400; throw error; }
 }
 
 function assertValidAdFile(file) {
-  if (!file) {
-    const error = new Error('Reklam faylı tələb olunur.');
-    error.status = 400;
-    throw error;
-  }
+  if (!file) { const error = new Error('Reklam faylı tələb olunur.'); error.status = 400; throw error; }
   const isImage = ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype);
   const isVideo = ['video/mp4', 'video/webm', 'video/quicktime'].includes(file.mimetype);
-  if (!isImage && !isVideo) {
-    const error = new Error('Reklam üçün yalnız şəkil/GIF və MP4/WebM/MOV video faylları qəbul olunur.');
-    error.status = 400;
-    throw error;
-  }
+  if (!isImage && !isVideo) { const error = new Error('Reklam üçün yalnız şəkil/GIF və MP4/WebM/MOV video faylları qəbul olunur.'); error.status = 400; throw error; }
 }
 
-async function uploadToHeroBucket(file) {
-  assertValidHeroFile(file);
-  const originalName = file.originalname || 'hero-media';
-  const sanitizedName = sanitizeFileName(originalName);
-  const folder = file.mimetype?.startsWith('video/') ? 'hero/videos' : 'hero/images';
-  const objectPath = buildStoragePath(sanitizedName, folder);
-  await uploadToSupabaseBucket({ bucket: HERO_BUCKET, objectPath, file });
-  return buildPublicUrl(HERO_BUCKET, objectPath);
-}
-
-async function uploadToAdBucket(file) {
-  assertValidAdFile(file);
-  const originalName = file.originalname || 'advertisement-file';
-  const sanitizedName = sanitizeFileName(originalName);
-  const folder = file.mimetype?.startsWith('video/') ? 'videos' : 'media';
-  const objectPath = buildStoragePath(sanitizedName, folder);
-  await uploadToSupabaseBucket({ bucket: ADS_BUCKET, objectPath, file });
-  return buildPublicUrl(ADS_BUCKET, objectPath);
-}
-
-async function uploadToGalleryBucket(file) {
-  assertValidGalleryFile(file);
-  const originalName = file.originalname || 'gallery-file';
-  const sanitizedName = sanitizeFileName(originalName);
-  const folder = file.mimetype?.startsWith('video/') ? 'videos' : 'images';
-  const objectPath = buildStoragePath(sanitizedName, folder);
-  await uploadToSupabaseBucket({ bucket: GALLERY_BUCKET, objectPath, file });
-  return buildPublicUrl(GALLERY_BUCKET, objectPath);
-}
-
-async function uploadAvatarImage(file, userId = 'user') {
-  assertValidListingImage(file);
-  const originalName = file.originalname || 'avatar.jpg';
-  const sanitizedName = sanitizeFileName(originalName);
-  const objectPath = buildStoragePath(sanitizedName, `users/${String(userId || 'user').replace(/[^a-zA-Z0-9_-]/g, '') || 'user'}`);
-  await uploadToSupabaseBucket({ bucket: AVATARS_BUCKET, objectPath, file, upsert: true });
-  return buildPublicUrl(AVATARS_BUCKET, objectPath);
-}
-
-async function uploadListingImage(file) {
-  assertValidListingImage(file);
-  const originalName = file.originalname || 'elan.jpg';
-  const sanitizedName = sanitizeFileName(originalName);
-  console.info('[supabaseStorage] listing filename sanitized', {
-    originalValue: originalName,
-    sanitizedValue: sanitizedName,
-    nullByteFound: typeof originalName === 'string' && originalName.includes('\0'),
-  });
-  const objectPath = buildStoragePath(sanitizedName, 'listings');
-  await uploadToSupabaseBucket({ bucket: LISTINGS_BUCKET, objectPath, file });
-  return buildPublicUrl(LISTINGS_BUCKET, objectPath);
-}
+async function uploadToHeroBucket(file) { assertValidHeroFile(file); return localUploadUrl(file); }
+async function uploadToAdBucket(file) { assertValidAdFile(file); return localUploadUrl(file); }
+async function uploadToGalleryBucket(file) { assertValidGalleryFile(file); return localUploadUrl(file); }
+async function uploadAvatarImage(file) { assertValidListingImage(file); return localUploadUrl(file); }
+async function uploadListingImage(file) { assertValidListingImage(file); return localUploadUrl(file); }
 
 async function checkSupabaseStorageObjectExists(bucket, objectPath) {
   const { url, serviceKey } = getSupabaseConfig();

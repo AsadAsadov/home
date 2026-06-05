@@ -1,7 +1,7 @@
 const express = require('express');
-const fs = require('fs/promises');
 const prisma = require('../lib/prisma');
-const upload = require('../middleware/upload');
+const { createUpload } = require('../middleware/upload');
+const upload = createUpload('siteimage');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadToHeroBucket } = require('../utils/supabaseStorage');
@@ -48,11 +48,7 @@ function inferMediaType(file, requested = 'image', mediaUrl = '') {
 
 async function uploadHeroFileWithFallback(file) {
   if (!file) return null;
-  try {
-    return await uploadToHeroBucket(file);
-  } finally {
-    if (file.path) await fs.unlink(file.path).catch(() => {});
-  }
+  return uploadToHeroBucket(file);
 }
 
 function firstProjectImage(project) {

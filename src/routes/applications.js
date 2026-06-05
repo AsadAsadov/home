@@ -1,5 +1,5 @@
 const express = require('express');
-const multer = require('multer');
+const { createUpload } = require('../middleware/upload');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
@@ -18,15 +18,10 @@ const {
 
 const router = express.Router();
 
-const cvUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_CV_SIZE_BYTES, files: 1 },
+const cvUpload = createUpload('career-cv', {
+  fileSize: MAX_CV_SIZE_BYTES, files: 1,
   fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_CV_MIME_TYPES.has(file.mimetype)) {
-      const error = new Error('Yalnız PDF, DOC və DOCX CV faylları qəbul olunur.');
-      error.status = 400;
-      return cb(error);
-    }
+    if (!ALLOWED_CV_MIME_TYPES.has(file.mimetype)) { const error = new Error('Yalnız PDF, DOC və DOCX CV faylları qəbul olunur.'); error.status = 400; return cb(error); }
     return cb(null, true);
   },
 });
@@ -64,6 +59,23 @@ router.post('/:id/cv-signed-url', authenticate, authorize('admin'), asyncHandler
   const application = await prisma.application.findUnique({ where: { id: Number(req.params.id) } });
   if (!application) return res.status(404).json({ message: 'Müraciət tapılmadı.' });
   if (!application.cvFile) return res.status(404).json({ message: 'Bu müraciətdə CV faylı yoxdur.' });
+  if (String(application.cvFile).startsWith('/uploads/')) {
+    const normalizedPath = String(application.cvFile).replace(/^\/uploads\/career-cv\//, '');
+    return res.json({
+      signedUrl: application.cvFile,
+      bucket: CAREER_CV_BUCKET,
+      originalPath: application.cvFile,
+      filePath: application.cvFile,
+      normalizedPath,
+      createSignedUrlPath: normalizedPath,
+      createSignedUrlParams: null,
+      createSignedUrlResponse: null,
+      storageLocations: null,
+      supabaseResponse: { data: null, error: null },
+      supabaseRawResponse: null,
+      expiresIn: null,
+    });
+  }
   try {
     const originalPath = application.cvFile;
     const normalizedPath = normalizeStorageObjectPath(originalPath, CAREER_CV_BUCKET);

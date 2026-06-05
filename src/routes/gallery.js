@@ -1,7 +1,7 @@
 const express = require('express');
-const fs = require('fs/promises');
 const prisma = require('../lib/prisma');
-const upload = require('../middleware/upload');
+const { createUpload } = require('../middleware/upload');
+const upload = createUpload('gallery');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { getYouTubeThumbnailFallbackUrl, getYouTubeThumbnailUrl, normalizeVideo } = require('../utils/media');
@@ -46,28 +46,10 @@ function normalizeMediaPosition(value, allowed, fallback = 'center') {
   return allowed.has(normalized) ? normalized : fallback;
 }
 
-function localUploadUrl(file) {
-  return file?.filename ? `/uploads/${file.filename}` : null;
-}
-
-async function removeLocalUploadedFile(file) {
-  if (!file?.path) return;
-  await fs.unlink(file.path).catch(() => {});
-}
 
 async function uploadGalleryFileWithFallback(file) {
-  try {
-    const publicUrl = await uploadToGalleryBucket(file);
-    await removeLocalUploadedFile(file);
-    return publicUrl;
-  } catch (error) {
-    console.warn('[gallery] Supabase Storage upload unavailable; using local upload fallback.', {
-      file: file?.originalname,
-      status: error.status,
-      message: error.message,
-    });
-    return localUploadUrl(file);
-  }
+  if (!file) return null;
+  return uploadToGalleryBucket(file);
 }
 
 async function payload(req, existing = {}) {
