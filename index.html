@@ -151,8 +151,7 @@
             justify-content: center;
             padding: 1rem;
         }
-        .listing-submission-card,
-        .listing-success-card {
+        .listing-submission-card {
             width: min(320px, calc(100vw - 2rem));
             border-radius: 16px;
             background: #ffffff;
@@ -173,44 +172,6 @@
             margin: 0 auto 1rem;
             animation: loginSpinnerRotate 720ms linear infinite;
         }
-        .listing-success-card {
-            padding: 1.25rem;
-        }
-        .listing-success-icon {
-            width: 56px;
-            height: 56px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9999px;
-            background: #ecfdf5;
-            font-size: 2rem;
-            margin-bottom: 0.75rem;
-        }
-        .listing-success-thumb {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 14px;
-            margin-bottom: 0.85rem;
-            background: #f1f5f9;
-        }
-        .listing-success-actions {
-            display: grid;
-            gap: 0.65rem;
-            margin-top: 1rem;
-        }
-        .listing-success-actions button {
-            border: 0;
-            border-radius: 14px;
-            padding: 0.85rem 1rem;
-            font-weight: 900;
-            cursor: pointer;
-            transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease;
-        }
-        .listing-success-actions button:hover { transform: translateY(-1px); }
-        .listing-success-primary { background: var(--color-primary); color: #ffffff; }
-        .listing-success-secondary { background: #f1f5f9; color: #334155; }
         .listing-form-disabled {
             opacity: 0.72;
             pointer-events: none;
@@ -2122,8 +2083,16 @@
             padding: .7rem;
         }
         .listing-detail-action {
-            box-shadow: 0 14px 30px rgba(15, 23, 42, .12);
+            flex: 1 1 7rem;
             min-width: 0;
+            max-width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .375rem;
+            overflow: hidden;
+            font-size: .82rem;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, .12);
         }
         .listing-detail-action.is-disabled {
             background: #e5e7eb !important;
@@ -2138,11 +2107,21 @@
             filter: none;
         }
         .listing-detail-action i,
+        .listing-detail-action svg {
+            flex: 0 0 auto;
+            font-size: 1rem;
+        }
         .listing-detail-action span {
-            flex-shrink: 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .listing-detail-contact-actions {
             width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .625rem;
         }
 
         .listing-location-lines {
@@ -2502,8 +2481,8 @@
         }
 
         @media (max-width: 480px) {
-            .listing-detail-contact-actions {
-                grid-template-columns: minmax(0, 1fr) !important;
+            .listing-detail-action {
+                flex-basis: 100%;
             }
         }
 
@@ -4335,11 +4314,11 @@ Title: Park Villas
                                     <span id="p-modal-agent-phone" class="text-xs text-gray-600"></span>
                                 </div>
                             </div>
-                            <div class="listing-detail-contact-actions grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-brands fa-whatsapp text-lg"></i><span>WhatsApp</span></a>
-                                <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
-                                <button id="p-modal-message-btn" type="button" class="listing-detail-action min-h-[48px] bg-brand-600 hover:bg-brand-700 text-white text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden transition"><i class="fa-regular fa-comment-dots"></i><span>Satıcıya yaz</span></button>
-                                <button id="p-modal-favorite-btn" type="button" class="listing-detail-action min-h-[48px] bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-black py-3 px-4 md:px-5 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden border border-rose-100 transition"><i class="fa-regular fa-heart"></i><span>Favori</span></button>
+                            <div class="listing-detail-contact-actions">
+                                <a id="p-modal-whatsapp-btn" target="_blank" rel="noopener noreferrer" class="listing-detail-action min-h-[48px] bg-green-500 hover:bg-green-600 text-white font-black py-3 px-3 rounded-2xl transition"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+                                <a id="p-modal-call-btn" class="listing-detail-action min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-3 rounded-2xl transition"><i class="fa-solid fa-phone"></i><span>Zəng et</span></a>
+                                <button id="p-modal-message-btn" type="button" class="listing-detail-action min-h-[48px] bg-brand-600 hover:bg-brand-700 text-white font-black py-3 px-3 rounded-2xl transition"><i class="fa-regular fa-comment-dots"></i><span>Satıcıya yaz</span></button>
+                                <button id="p-modal-favorite-btn" type="button" class="listing-detail-action min-h-[48px] bg-rose-50 hover:bg-rose-100 text-rose-600 font-black py-3 px-3 rounded-2xl border border-rose-100 transition"><i class="fa-regular fa-heart"></i><span>Favori</span></button>
                             </div>
                         </div>
                     </div>
@@ -8943,7 +8922,6 @@ Title: Park Villas
                 cacheData('listings', [savedUi, ...(appData.listings || []).filter(x => String(x.id) !== String(savedUi.id))]);
                 renderPublicListingForm(true, savedUi);
                 hideListingSubmissionOverlay();
-                showListingSuccessPopup(savedListing);
             } catch(error) { hideListingSubmissionOverlay(); alert('Elan göndərilmədi: '+error.message); }
             finally { publicListingSubmitting=false; setPublicSubmitLoading(false); setListingFormDisabled('public-listing-form', false); }
         }
@@ -11427,47 +11405,6 @@ Təşəkkür edirəm. 🙏`;
             setModalOpenState(true);
         }
 
-        function closeListingSuccessPopup() {
-            document.getElementById('listing-success-popup')?.remove();
-            syncModalOpenState();
-        }
-
-        function viewCreatedListing(id) {
-            closeListingSuccessPopup();
-            const listing = (appData.listings || []).find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
-            if (listing) {
-                openPropertyModal(listing.id, true);
-                return;
-            }
-            window.location.href = `/listing/${encodeURIComponent(id)}`;
-        }
-
-        function showListingSuccessPopup(listingResponse) {
-            const listing = dbListingToUi(extractListingFromResponse(listingResponse));
-            if (!listing?.id) return;
-            closeListingSuccessPopup();
-            const location = getListingLocationLabel(listing) || listing.city || listing.district || '';
-            const thumb = listing.img ? `<img class="listing-success-thumb" src="${escapeHtml(listing.img)}" alt="${escapeHtml(listing.title || 'Elan şəkli')}">` : '';
-            document.body.insertAdjacentHTML('beforeend', `<div id="listing-success-popup" class="listing-submission-overlay" role="dialog" aria-modal="true" aria-labelledby="listing-success-title">
-                <div class="listing-success-card">
-                    ${thumb}
-                    <div class="listing-success-icon" aria-hidden="true">✅</div>
-                    <h3 id="listing-success-title" class="text-xl font-black">Elan uğurla yerləşdirildi</h3>
-                    <p class="mt-2 text-sm font-semibold text-slate-600">Elanınız uğurla əlavə edildi.</p>
-                    <div class="mt-4 rounded-2xl bg-slate-50 border border-slate-100 p-3 text-left">
-                        <h4 class="font-black text-slate-950 line-clamp-2">${escapeHtml(listing.title || 'Yeni elan')}</h4>
-                        <p class="mt-1 text-lg font-black text-brand-700">${escapeHtml(formatPrice(listing.price, listing.currency))}</p>
-                        ${location ? `<p class="mt-1 text-xs font-bold text-slate-500">📍 ${escapeHtml(location)}</p>` : ''}
-                    </div>
-                    <div class="listing-success-actions">
-                        <button type="button" class="listing-success-primary" onclick="viewCreatedListing('${escapeHtml(String(listing.id))}')">👁 Elana bax</button>
-                        <button type="button" class="listing-success-secondary" onclick="closeListingSuccessPopup()">Bağla</button>
-                    </div>
-                </div>
-            </div>`);
-            setModalOpenState(true);
-        }
-
         function setRegisterButtonLoading(isLoading) {
             setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', '📧 Qeydiyyat');
         }
@@ -13473,7 +13410,6 @@ Təşəkkür edirəm. 🙏`;
                 renderAdminDashboard();
                 renderSeaBreeze();
                 hideListingSubmissionOverlay();
-                if (!editId) showListingSuccessPopup(savedListing);
             } catch (error) {
                 hideListingSubmissionOverlay();
                 alert('Elan API-yə yazılmadı: ' + error.message);
