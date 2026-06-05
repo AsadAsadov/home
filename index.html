@@ -1543,8 +1543,8 @@
         }
         .admin-dashboard-stats {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
             width: min(100%, 76rem);
             margin-inline: auto;
         }
@@ -1745,12 +1745,14 @@
         .admin-listing-action--delete { width: 38px; padding-inline: 0; color: #fff; background: #dc2626; }
         .admin-listing-management-card__hero-btn { min-width: 0; }
 
-        @media (min-width: 640px) {
-            .admin-dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
         @media (min-width: 1024px) {
             .admin-dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .admin-listing-filter-pills { flex-wrap: nowrap; }
+        }
+        @media (max-width: 768px) {
+            .admin-dashboard-stats { gap: .75rem; }
+            .admin-stat-card { min-height: 108px; padding: .875rem !important; }
+            .admin-stat-card__icon { width: 2.625rem; height: 2.625rem; flex-basis: 2.625rem; font-size: .875rem; }
         }
         @media (max-width: 639px) {
             .admin-subtabs { gap: .4rem; padding: .45rem; }
@@ -3701,9 +3703,21 @@
             .header-action-btn--primary { width: 42px; padding: 0; }
         }
         @media (max-width: 1023px) {
-            :root { --header-height: 64px; }
-            .site-header > .max-w-7xl { width: min(calc(100% - 24px), 1320px); }
-            .site-header-inner { gap: 10px; }
+            :root { --header-height: calc(64px + env(safe-area-inset-top)); }
+            body { margin-top: 0; }
+            .site-header.glass-nav {
+                top: 0 !important;
+                height: var(--header-height);
+                margin-top: 0 !important;
+                padding-top: env(safe-area-inset-top);
+                background: #fff;
+            }
+            .site-header > .max-w-7xl {
+                width: min(calc(100% - 24px), 1320px);
+                height: 64px;
+                margin-top: 0;
+            }
+            .site-header-inner { height: 64px !important; min-height: 64px; gap: 10px; margin-top: 0; }
             .header-logo-wrap { flex: 0 1 auto; max-width: calc(100% - 108px); }
             .site-logo,
             .header-logo-wrap > img,
@@ -4186,14 +4200,6 @@
         </section>
 
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-8 admin-dashboard-shell">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
-                <div>
-                    <h2 id="dashboard-user-title" class="text-2xl font-black text-white">İdarəetmə Paneli</h2>
-                    <p id="dashboard-user-subtitle" class="text-gray-400 text-xs"></p>
-                </div>
-                <button onclick="logoutAdmin()" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition">Çıxış</button>
-            </div>
-
             <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
@@ -5318,6 +5324,7 @@ Title: CASPIAN DREAM LINER
     <div id="mobile-profile-backdrop" class="mobile-profile-backdrop" onclick="closeMobileProfileMenu()" aria-hidden="true"></div>
     <div id="mobile-profile-sheet" class="mobile-profile-sheet" role="menu" aria-label="Profil menyusu">
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToProfileInfo(); closeMobileProfileMenu()">👤 Profil məlumatları</button>
+        <button type="button" class="mobile-profile-sheet__item" onclick="navigateToMessages(); closeMobileProfileMenu()">💬 Mesajlar</button>
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToMyListings(); closeMobileProfileMenu()">📋 Mənim elanlarım</button>
         <button type="button" class="mobile-profile-sheet__item" onclick="navigateToFavorites(); closeMobileProfileMenu()">❤️ Favorilər</button>
         <button type="button" class="mobile-profile-sheet__item text-red-600" onclick="logoutAdmin(); closeMobileProfileMenu()">🚪 Çıxış</button>
@@ -14038,14 +14045,10 @@ Təşəkkür edirəm. 🙏`;
             if (activeUser.role === 'user') {
                 adminTags.forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.remove('hidden'));
-                document.getElementById('dashboard-user-title').textContent = `BestHome İstifadəçi Kabineti`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Salam, ${activeUser.name}. Digər ərazilərinizi yerləşdirin və redaktə edin.`;
                 switchAdminSubtab('seabreeze-manager');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.add('hidden'));
-                document.getElementById('dashboard-user-title').textContent = `BestHome İdarəetmə Paneli (Admin)`;
-                document.getElementById('dashboard-user-subtitle').textContent = `Sistemdəki bütün elanları, layihələri, hero bölmələrini, namizəd məlumatlarını və istifadəçiləri idarə edin.`;
             }
 
             // 1. Listings Grid
