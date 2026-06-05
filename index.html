@@ -626,6 +626,27 @@
         .admin-project-drag-handle:active {
             cursor: grabbing;
         }
+        .admin-ad-card {
+            transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .admin-ad-card.is-dragging {
+            opacity: 0.45;
+            transform: scale(0.99);
+            border-color: var(--color-primary);
+            box-shadow: 0 18px 45px rgba(127, 127, 255, 0.22);
+        }
+        .admin-ad-card.is-drop-target {
+            border-color: var(--color-primary);
+            transform: translateY(3px);
+        }
+        .admin-ad-drag-handle {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+        }
+        .admin-ad-drag-handle:active {
+            cursor: grabbing;
+        }
 
         .desktop-ad-layout {
             width: 100%;
@@ -3830,6 +3851,10 @@
                         </button>
                     </div>
                     <div id="admin-project-order-status" class="hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-[11px] text-emerald-300">Sıra dəyişdi. Dəyişikliyi DB-yə yazmaq üçün “Yadda Saxla” düyməsinə basın.</div>
+                    <label class="relative block">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        <input id="admin-project-search" type="search" oninput="setAdminProjectSearch(this.value)" placeholder="Layihə adına görə axtar" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500/60">
+                    </label>
                     <div id="admin-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
 
@@ -3913,6 +3938,10 @@ Title: Park Villas
                     </div>
                     <button type="button" onclick="loadArchivedProjects()" class="bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl transition"><i class="fa-solid fa-rotate mr-1"></i>Yenilə</button>
                 </div>
+                <label class="relative block">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                    <input id="admin-archived-project-search" type="search" oninput="setAdminProjectSearch(this.value)" placeholder="Layihə adına görə axtar" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500/60">
+                </label>
                 <div id="admin-archived-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
@@ -4235,7 +4264,7 @@ Title: Park Villas
                             <div id="ad-admin-preview" class="ad-preview-box flex items-center justify-center text-xs text-gray-400">Media URL daxil edin</div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button type="submit" class="bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
+                            <button type="submit" id="ad-save-submit-btn" class="async-submit-btn bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
                             <button type="button" onclick="resetAdForm()" class="bg-white/5 border border-white/10 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Təmizlə</button>
                         </div>
                     </form>
@@ -8572,6 +8601,9 @@ Title: Park Villas
         let bulkProjectImportRows = [];
         let projectOrderDirty = false;
         let draggedProjectId = null;
+        let adminProjectSearchQuery = '';
+        let draggedAdId = null;
+        let isAdSaveSubmitting = false;
 
         // SESSION CONTROL
         async function initializeAuth() {
@@ -11444,6 +11476,7 @@ Təşəkkür edirəm. 🙏`;
         function setHeroSaveButtonLoading(isLoading) { setSubmitButtonLoading('hero-form-submit', isLoading, 'Hero saxlanılır…', 'Yadda Saxla'); }
         function setGallerySaveButtonLoading(isLoading) { setSubmitButtonLoading('gallery-save-submit-btn', isLoading, 'Qalereya saxlanılır…', 'Saxla'); }
         function setVacancySaveButtonLoading(isLoading) { setSubmitButtonLoading('vacancy-save-submit-btn', isLoading, 'Vakansiya saxlanılır…', 'Yadda Saxla'); }
+        function setAdSaveButtonLoading(isLoading) { setSubmitButtonLoading('ad-save-submit-btn', isLoading, 'Yadda saxlanılır…', 'Yadda Saxla'); }
         function setUserCreateButtonLoading(isLoading) { setSubmitButtonLoading('user-create-submit-btn', isLoading, 'İstifadəçi yaradılır…', 'Yarat'); }
         function setUserEditButtonLoading(isLoading) { setSubmitButtonLoading('user-edit-submit-btn', isLoading, 'İstifadəçi saxlanılır…', 'Yadda saxla'); }
         function setUserActionStatusLoading(isLoading, text = 'İstifadəçi əməliyyatı icra olunur…') {
@@ -11962,6 +11995,26 @@ Təşəkkür edirəm. 🙏`;
             updateProjectImagePreview();
         }
 
+        function normalizeAdminSearchValue(value) {
+            return String(value || '').trim().toLocaleLowerCase('az-AZ');
+        }
+
+        function projectMatchesAdminSearch(project) {
+            const query = normalizeAdminSearchValue(adminProjectSearchQuery);
+            if (!query) return true;
+            return [project?.title, project?.name].some(value => normalizeAdminSearchValue(value).includes(query));
+        }
+
+        function setAdminProjectSearch(value) {
+            adminProjectSearchQuery = String(value || '');
+            ['admin-project-search', 'admin-archived-project-search'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.value !== adminProjectSearchQuery) input.value = adminProjectSearchQuery;
+            });
+            renderAdminProjects();
+            renderArchivedProjects();
+        }
+
         function setProjectOrderDirty(isDirty) {
             projectOrderDirty = Boolean(isDirty);
             const saveBtn = document.getElementById('save-project-order-btn');
@@ -11991,7 +12044,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function startProjectDrag(event, projectId) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || activeUser.role !== 'admin' || adminProjectSearchQuery.trim()) return;
             const card = event.target.closest('.admin-project-card');
             const grid = document.getElementById('admin-projects-grid');
             if (!card || !grid) return;
@@ -12128,12 +12181,12 @@ Təşəkkür edirəm. 🙏`;
         function renderAdminProjects() {
             const grid = document.getElementById('admin-projects-grid');
             if (!grid) return;
-            const projects = getOfficialProjects();
+            const projects = getOfficialProjects().filter(projectMatchesAdminSearch);
             grid.innerHTML = '';
             setProjectOrderDirty(projectOrderDirty);
 
             if (projects.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Layihə tapılmadı.</div>`;
+                grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">${adminProjectSearchQuery.trim() ? 'Uyğun layihə tapılmadı.' : 'Layihə tapılmadı.'}</div>`;
                 return;
             }
 
@@ -12193,9 +12246,9 @@ Təşəkkür edirəm. 🙏`;
         function renderArchivedProjects() {
             const grid = document.getElementById('admin-archived-projects-grid');
             if (!grid) return;
-            const projects = Array.isArray(appData.archivedProjects) ? appData.archivedProjects : [];
+            const projects = (Array.isArray(appData.archivedProjects) ? appData.archivedProjects : []).filter(projectMatchesAdminSearch);
             if (!projects.length) {
-                grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Arxivdə layihə yoxdur.</div>';
+                grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">${adminProjectSearchQuery.trim() ? 'Uyğun layihə tapılmadı.' : 'Arxivdə layihə yoxdur.'}</div>`;
                 return;
             }
             grid.innerHTML = projects.map(project => `
@@ -12770,14 +12823,88 @@ Təşəkkür edirəm. 🙏`;
             ].map(([label, value]) => `<div class="rounded-2xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase font-black text-gray-400">${label}</div><div class="text-xl font-black text-white mt-1">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
         }
 
+        function getOrderedAdminAds() {
+            return [...(appData.ads || [])].sort((a, b) => (Number(a.rotationOrder || 0) - Number(b.rotationOrder || 0)) || (Number(a.displayOrder || 0) - Number(b.displayOrder || 0)) || Number(a.id) - Number(b.id));
+        }
+
+        function clearAdDropTargets() {
+            document.querySelectorAll('#admin-ads-list .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
+        }
+
+        function getAdminAdOrderFromDom() {
+            return Array.from(document.querySelectorAll('#admin-ads-list .admin-ad-card')).map(card => String(card.dataset.adId || '')).filter(Boolean);
+        }
+
+        async function persistAdminAdOrder(ids) {
+            if (!ids.length) return;
+            const byId = new Map((appData.ads || []).map(ad => [String(ad.id), ad]));
+            const ordered = ids.map((id, index) => ({ ...byId.get(id), displayOrder: index + 1, rotationOrder: index + 1 })).filter(ad => ad.id != null);
+            cacheData('ads', ordered);
+            renderAdminAds();
+            renderDesktopAds();
+            try {
+                const response = await apiRequest('/api/site-ads/reorder', { method: 'PUT', body: JSON.stringify({ order: ids.map(id => ({ id: Number(id) })) }) });
+                if (Array.isArray(response?.items)) cacheData('ads', response.items.map(dbAdToUi));
+                renderAdminAds();
+                renderDesktopAds();
+            } catch (error) {
+                alert('Reklam sırası yadda saxlanılmadı: ' + error.message);
+                await loadAdminAds();
+            }
+        }
+
+        function startAdDrag(event, adId) {
+            if (!activeUser || activeUser.role !== 'admin' || window.matchMedia('(max-width: 639px)').matches) return;
+            const card = event.target.closest('.admin-ad-card');
+            const list = document.getElementById('admin-ads-list');
+            if (!card || !list) return;
+            event.preventDefault();
+            const initialOrder = getAdminAdOrderFromDom().join(',');
+            draggedAdId = String(adId);
+            card.classList.add('is-dragging');
+            card.setPointerCapture?.(event.pointerId);
+
+            const onPointerMove = (moveEvent) => {
+                const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.('.admin-ad-card');
+                if (!target || target === card || !list.contains(target)) return;
+                clearAdDropTargets();
+                target.classList.add('is-drop-target');
+                const rect = target.getBoundingClientRect();
+                list.insertBefore(card, moveEvent.clientY > rect.top + rect.height / 2 ? target.nextSibling : target);
+            };
+            const onPointerUp = () => {
+                card.classList.remove('is-dragging');
+                clearAdDropTargets();
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('pointercancel', onPointerUp);
+                draggedAdId = null;
+                const ids = getAdminAdOrderFromDom();
+                if (ids.join(',') !== initialOrder) persistAdminAdOrder(ids);
+            };
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            window.addEventListener('pointerup', onPointerUp, { once: true });
+            window.addEventListener('pointercancel', onPointerUp, { once: true });
+        }
+
+        function moveAdminAd(adId, direction) {
+            const ids = getOrderedAdminAds().map(ad => String(ad.id));
+            const index = ids.indexOf(String(adId));
+            const nextIndex = index + direction;
+            if (index < 0 || nextIndex < 0 || nextIndex >= ids.length) return;
+            [ids[index], ids[nextIndex]] = [ids[nextIndex], ids[index]];
+            persistAdminAdOrder(ids);
+        }
+
         function renderAdminAds() {
             renderAdminAdStats();
             const list = document.getElementById('admin-ads-list');
             if (!list) return;
-            const ads = [...(appData.ads || [])].sort((a, b) => (a.rotationOrder - b.rotationOrder) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || (a.position || '').localeCompare(b.position || '') || a.displayOrder - b.displayOrder || Number(a.id) - Number(b.id));
-            list.innerHTML = ads.length ? ads.map(ad => `
-                <div class="glass-card p-4 rounded-xl flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}">
+            const ads = getOrderedAdminAds();
+            list.innerHTML = ads.length ? ads.map((ad, index) => `
+                <div class="admin-ad-card glass-card p-4 rounded-xl border border-transparent flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}" data-ad-id="${ad.id}">
                     <div class="flex items-center gap-3 min-w-0">
+                        <button type="button" class="admin-ad-drag-handle hidden sm:flex h-9 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gray-400 hover:bg-brand-500/20 hover:text-white" onpointerdown="startAdDrag(event, '${ad.id}')" aria-label="Reklam sırasını dəyiş" title="Sürükləyərək sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button>
                         <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia({ ...ad, widthPx: 72, heightPx: 72, objectFit: 'cover' }, 'w-full h-full')}</div>
                         <div class="min-w-0">
                             <h4 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h4>
@@ -12786,9 +12913,11 @@ Təşəkkür edirəm. 🙏`;
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="editAd('${ad.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
-                        <button onclick="toggleAd('${ad.id}', ${!ad.isActive})" class="${ad.isActive ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${ad.isActive ? 'Aktiv' : 'Deaktiv'}</button>
-                        <button onclick="deleteAd('${ad.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                        <button type="button" onclick="moveAdminAd('${ad.id}', -1)" class="sm:hidden text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-30" ${index === 0 ? 'disabled' : ''} aria-label="Yuxarı daşı"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button type="button" onclick="moveAdminAd('${ad.id}', 1)" class="sm:hidden text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-30" ${index === ads.length - 1 ? 'disabled' : ''} aria-label="Aşağı daşı"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button type="button" onclick="editAd('${ad.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
+                        <button type="button" onclick="toggleAd('${ad.id}', ${!ad.isActive})" class="${ad.isActive ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${ad.isActive ? 'Aktiv' : 'Deaktiv'}</button>
+                        <button type="button" onclick="deleteAd('${ad.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>`).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Reklam yoxdur.</div>';
         }
@@ -12907,6 +13036,7 @@ Təşəkkür edirəm. 🙏`;
 
         async function handleSaveAd(event) {
             event.preventDefault();
+            if (isAdSaveSubmitting) return;
             const id = document.getElementById('edit-ad-id').value;
             if (!validateAdFormDimensions()) return;
             const dimensions = getAdFormDimensions();
@@ -12937,12 +13067,25 @@ Təşəkkür edirəm. 🙏`;
                 formData.append('media', file);
                 body = formData;
             }
+            isAdSaveSubmitting = true;
+            setAdSaveButtonLoading(true);
             try {
                 await apiRequest(id ? `/api/site-ads/${id}` : '/api/site-ads', id ? 'PUT' : 'POST', body);
                 resetAdForm();
                 await loadAdminAds();
+                const button = document.getElementById('ad-save-submit-btn');
+                if (button) {
+                    button.disabled = false;
+                    button.classList.remove('is-loading');
+                    button.setAttribute('aria-busy', 'false');
+                    button.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Yadda saxlanıldı';
+                }
+                await new Promise(resolve => setTimeout(resolve, 1200));
             } catch (error) {
                 alert('Reklam yadda saxlanılmadı: ' + error.message);
+            } finally {
+                isAdSaveSubmitting = false;
+                setAdSaveButtonLoading(false);
             }
         }
 
