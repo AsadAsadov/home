@@ -5,6 +5,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 const { serializers, compact } = require('./crud');
 const { makeUniqueSlug, normalizeManualSlug } = require('../utils/seo');
 const { projectImportPreview, upsertProjectImports } = require('../utils/projectBulkImport');
+const { orderedProjectRows, projectOrderBy } = require('../utils/projectOrdering');
 const router = express.Router();
 
 function pagination(query) {
@@ -20,10 +21,9 @@ function deliveryYearWhere(year) {
   return { deliveryDate: { contains: value, mode: 'insensitive' } };
 }
 
-function orderedProjectRows(rows) {
+function legacyOrderedProjectRows(rows) {
   return [...rows].sort((a, b) => (a.displayOrder ?? a.id) - (b.displayOrder ?? b.id) || a.id - b.id);
 }
-
 
 function parseBool(value, fallback = false) {
   if (value === undefined || value === null || value === '') return fallback;
@@ -44,16 +44,17 @@ function parseProjectOrder(body) {
 router.get('/', asyncHandler(async (req, res) => {
   const q = String(req.query.q || '').trim();
   const { page, limit, skip, take } = pagination(req.query);
+  const returnAll = String(req.query.all || '').toLowerCase() === 'true';
   const clauses = [{ isArchived: false }];
   if (q) clauses.push({ OR: [{ title: { contains: q, mode: 'insensitive' } }, { slug: { contains: q, mode: 'insensitive' } }] });
   const yearClause = deliveryYearWhere(req.query.deliveryYear);
   if (yearClause) clauses.push(yearClause);
   const where = { AND: clauses };
   const [data, total] = await Promise.all([
-    prisma.project.findMany({ where, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }], skip, take }),
+    prisma.project.findMany({ where, orderBy: projectOrderBy, ...(returnAll ? {} : { skip, take }) }),
     prisma.project.count({ where }),
   ]);
-  res.json({ data: orderedProjectRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
+  res.json({ data: orderedProjectRows(data), total, page: returnAll ? 1 : page, totalPages: returnAll ? 1 : Math.max(Math.ceil(total / limit), 1) });
 }));
 
 router.post('/bulk/preview', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
@@ -80,7 +81,7 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
   )));
 
   const data = await prisma.project.findMany({ where: { isArchived: false }, orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }] });
-  res.json({ ok: true, data: orderedProjectRows(data) });
+  res.json({ ok: true, data: legacyOrderedProjectRows(data) });
 }));
 
 
@@ -89,7 +90,7 @@ router.get('/archived', authenticate, authorize('admin'), asyncHandler(async (_r
     where: { isArchived: true },
     orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
   });
-  res.json(orderedProjectRows(data));
+  res.json(legacyOrderedProjectRows(data));
 }));
 
 router.patch('/:id/archive', authenticate, authorize('admin'), asyncHandler(async (req, res) => {

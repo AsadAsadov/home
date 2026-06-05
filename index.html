@@ -3409,7 +3409,10 @@
                     <div class="premium-filter-field">
                         <span class="premium-filter-label">Əmlak tipi</span>
                         <div class="project-category-segment" id="project-category-filters">
-                            <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn inline-flex items-center bg-brand-500 text-white transition duration-200 font-bold text-sm">
+                            <button onclick="switchProjectCategory('all')" id="p-cat-all" class="project-cat-btn inline-flex items-center bg-brand-500 text-white transition duration-200 font-bold text-sm">
+                                <i class="fa-solid fa-layer-group mr-2"></i> Hamısı
+                            </button>
+                            <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
                                 <i class="fa-solid fa-building mr-2"></i> Mənzillər
                             </button>
                             <button onclick="switchProjectCategory('Villa')" id="p-cat-Villa" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
@@ -5594,6 +5597,8 @@ Title: CASPIAN DREAM LINER
             return response.status === 204 ? null : response.json();
         }
 
+        const PROJECT_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2e8f0"/><stop offset="1" stop-color="#cbd5e1"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><g fill="none" stroke="#64748b" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" opacity=".72"><rect x="455" y="225" width="290" height="220" rx="24"/><circle cx="540" cy="310" r="32"/><path d="m475 420 95-90 70 65 45-42 40 38"/></g><text x="600" y="545" text-anchor="middle" fill="#475569" font-family="Arial, sans-serif" font-size="42" font-weight="700">Şəkil əlavə olunmayıb</text></svg>`)}`;
+
         function normalizeProjectImages(images, fallback = '') {
             const arr = Array.isArray(images) ? images : [];
             return [...arr, fallback].map(x => String(x || '').trim()).filter((x, idx, all) => x && all.indexOf(x) === idx);
@@ -5625,16 +5630,21 @@ Title: CASPIAN DREAM LINER
         function dbProjectToUi(p) {
             const primaryImage = String(p.imageUrl || p.image_url || '').trim();
             const images = normalizeProjectImages(p.images, primaryImage);
-            const img = primaryImage || images[0] || '';
+            const img = primaryImage || images[0] || PROJECT_IMAGE_PLACEHOLDER;
+            const deliveryDate = p.deliveryDate || p.delivery_date || '';
+            const floorCount = p.floorCount || p.floor_count || '';
+            const areaRange = p.areaRange || p.area_range || p.area || '';
+            const apartmentCount = p.apartmentCount || p.apartment_count || '';
             return {
-                id: String(p.id), title: p.title || '', category: p.category || 'Apartment', year: p.deliveryDate || p.delivery_date || '',
+                id: String(p.id), title: p.title || '', category: p.category || 'Apartment', year: deliveryDate, deliveryDate,
                 region: p.region || p.regionType || p.region_type || '', projectArea: p.projectArea || p.project_area || '', location: p.location || '',
                 zone: p.zone || '', coastline: p.coastline || '', seaDistance: p.seaDistance || p.sea_distance || '',
-                buildings: p.buildingCount || p.building_count || '', floors: p.floorCount || p.floor_count || '', area: p.areaRange || p.area_range || p.area || '', apartments: p.apartmentCount || p.apartment_count || '', parking: p.parkingSpaces || p.parking_spaces || '',
+                buildings: p.buildingCount || p.building_count || '', floors: floorCount, floorCount, area: areaRange, areaRange, apartments: apartmentCount, apartmentCount, parking: p.parkingSpaces || p.parking_spaces || '',
                 repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', apartmentFormats: p.apartmentFormats || p.apartment_formats || '', apartmentAreas: p.apartmentAreas || p.apartment_areas || '',
                 pricePerM2: p.pricePerM2 || p.price_per_m2 || '', totalPrice: p.totalPrice || p.total_price || '', bankMortgage: p.bankMortgage || p.bank_mortgage || '', internalCredit: p.internalCredit || p.internal_credit || '', downPayment: p.downPayment || p.down_payment || '', infrastructure: p.infrastructure || '', features: normalizeFeatures(p.features),
-                desc: p.description || '', img, images, picture: buildProjectPictureFromLink(img),
-                displayOrder: Number(p.displayOrder ?? p.display_order ?? p.id),
+                desc: p.description || '', img, imageUrl: primaryImage || images[0] || PROJECT_IMAGE_PLACEHOLDER, images, picture: buildProjectPictureFromLink(img),
+                displayOrder: p.displayOrder ?? p.display_order ?? null,
+                createdAt: p.createdAt || p.created_at || '',
                 slug: p.slug || localSlug(p.title),
                 featuredInHero: Boolean(p.featuredInHero ?? p.featured_in_hero),
                 isArchived: Boolean(p.isArchived ?? p.is_archived)
@@ -7336,7 +7346,7 @@ Title: CASPIAN DREAM LINER
             dataLoadState.projects.loading = true;
             renderOfficialProjects();
             try {
-                const projects = await apiRequest('/api/projects?page=1&limit=100');
+                const projects = await apiRequest('/api/projects?all=true');
                 const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
                 cacheData('projects', projectRows.map(dbProjectToUi));
             } catch (error) {
@@ -7494,14 +7504,18 @@ Title: CASPIAN DREAM LINER
             }
         }
 
-        function getDisplayOrderValue(item, fallbackIndex = 0) {
-            const parsed = Number(item?.displayOrder ?? item?.display_order);
-            return Number.isFinite(parsed) ? parsed : fallbackIndex + 1;
-        }
-
         function getOfficialProjects() {
             const projects = Array.isArray(appData.projects) ? appData.projects : [];
-            return [...projects].sort((a, b) => getDisplayOrderValue(a, projects.indexOf(a)) - getDisplayOrderValue(b, projects.indexOf(b)));
+            return [...projects].sort((a, b) => {
+                const aOrder = Number(a.displayOrder ?? a.display_order);
+                const bOrder = Number(b.displayOrder ?? b.display_order);
+                const aHasOrder = Number.isFinite(aOrder);
+                const bHasOrder = Number.isFinite(bOrder);
+                if (aHasOrder !== bHasOrder) return aHasOrder ? -1 : 1;
+                if (aHasOrder && aOrder !== bOrder) return aOrder - bOrder;
+                const createdDifference = (Date.parse(b.createdAt || b.created_at || '') || 0) - (Date.parse(a.createdAt || a.created_at || '') || 0);
+                return createdDifference || Number(b.id || 0) - Number(a.id || 0);
+            });
         }
 
         function saveOfficialProjects(projects) {
@@ -7529,7 +7543,7 @@ Title: CASPIAN DREAM LINER
         async function fetchProjectsBySearch() {
             try {
                 const year = document.getElementById('project-delivery-year-filter')?.value || 'all';
-                const params = new URLSearchParams({ page: '1', limit: '100' });
+                const params = new URLSearchParams({ all: 'true' });
                 if (projectSearchQuery) params.set('q', projectSearchQuery);
                 if (year !== 'all') params.set('deliveryYear', year);
                 const projects = await apiRequest(`/api/projects?${params.toString()}`);
@@ -7543,7 +7557,8 @@ Title: CASPIAN DREAM LINER
         }
 
         function getProjectImages(project) {
-            return normalizeProjectImages(project?.images, project?.img);
+            return normalizeProjectImages(project?.images, project?.imageUrl)
+                .filter(image => image && image !== PROJECT_IMAGE_PLACEHOLDER);
         }
 
         let projectImageInputRows = [{ id: Date.now(), url: '' }];
@@ -8848,7 +8863,7 @@ Title: CASPIAN DREAM LINER
         }
 
         let activeUser = null;
-        let selectedProjectCategory = 'Apartment';
+        let selectedProjectCategory = 'all';
         let projectSearchQuery = '';
         let projectPage = 1;
         let listingPage = 1;
@@ -10376,7 +10391,7 @@ Təşəkkür edirəm. 🙏`;
             const filtered = allProjects.filter(p => {
                 const titleText = String(p.title || '').toLowerCase();
                 const year = String(p.year || '').match(/\d{4}/)?.[0] || '';
-                return p.category === selectedProjectCategory
+                return (selectedProjectCategory === 'all' || p.category === selectedProjectCategory)
                     && (!projectSearchQuery || titleText.includes(projectSearchQuery))
                     && (deliveryYear === 'all' || year === deliveryYear);
             });
@@ -10405,7 +10420,7 @@ Təşəkkür edirəm. 🙏`;
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            <span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${p.year}</span>
+                            ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
                             <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h4>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
