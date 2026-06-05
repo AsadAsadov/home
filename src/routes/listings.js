@@ -1,5 +1,5 @@
 const express = require('express');
-const multer = require('multer');
+const { createUpload } = require('../middleware/upload');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth');
@@ -260,19 +260,11 @@ function sanitizeImageUrls(imageUrls) {
 }
 
 
-const listingUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024),
-    files: Number(process.env.MAX_LISTING_IMAGES || 20),
-  },
+const listingUpload = createUpload('elanlar/listings', {
+  fileSize: Number(process.env.MAX_LISTING_IMAGE_SIZE_BYTES || 15 * 1024 * 1024),
+  files: Number(process.env.MAX_LISTING_IMAGES || 20),
   fileFilter: (_req, file, cb) => {
-    try {
-      assertValidListingImage({ ...file, size: file.size || 0 });
-      cb(null, true);
-    } catch (error) {
-      cb(error);
-    }
+    try { assertValidListingImage({ ...file, size: file.size || 0 }); cb(null, true); } catch (error) { cb(error); }
   },
 });
 

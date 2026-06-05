@@ -1,7 +1,7 @@
 const express = require('express');
-const fs = require('fs/promises');
 const prisma = require('../lib/prisma');
-const upload = require('../middleware/upload');
+const { createUpload } = require('../middleware/upload');
+const upload = createUpload('reklamlar');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadToAdBucket } = require('../utils/supabaseStorage');
@@ -156,21 +156,10 @@ function activeDateWhere(now = new Date()) {
   };
 }
 
-async function removeLocalUploadedFile(file) {
-  if (!file?.path) return;
-  await fs.unlink(file.path).catch(() => {});
-}
 
 async function uploadAdFileWithFallback(file) {
   if (!file) return null;
-  try {
-    const publicUrl = await uploadToAdBucket(file);
-    await removeLocalUploadedFile(file);
-    return publicUrl;
-  } catch (error) {
-    console.warn('[siteAds] Supabase Storage upload unavailable; using local upload fallback.', { file: file?.originalname, status: error.status, message: error.message });
-    return file?.filename ? `/uploads/${file.filename}` : null;
-  }
+  return uploadToAdBucket(file);
 }
 
 router.get('/', asyncHandler(async (req, res) => {

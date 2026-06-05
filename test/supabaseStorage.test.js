@@ -55,29 +55,16 @@ test('createCareerCvSignedUrl prefixes storage v1 for Supabase object-relative s
   }
 });
 
-test('elanlar uploads return public URLs from the elanlar bucket', async () => {
-  process.env.SUPABASE_URL = 'https://demo.supabase.co';
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key';
-
-  let requestedUrl = '';
+test('new listing uploads return their relative local URL without using Supabase', async () => {
   const originalFetch = global.fetch;
-  global.fetch = async (url) => {
-    requestedUrl = url;
-    return { ok: true, text: async () => '' };
-  };
-
+  global.fetch = async () => { throw new Error('Supabase must not be called for new uploads'); };
   try {
     const publicUrl = await storage.uploadListingImage({
-      originalname: 'Mənzil şəkli.png',
-      mimetype: 'image/png',
-      size: 1024,
-      buffer: Buffer.from('image'),
+      originalname: 'Mənzil şəkli.png', mimetype: 'image/png', size: 1024,
+      path: require('path').join(process.cwd(), 'uploads', 'elanlar', 'listings', '2026', '06', 'file.png'),
     });
-    assert.match(requestedUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/elanlar\/listings\//);
-    assert.match(publicUrl, /^https:\/\/demo\.supabase\.co\/storage\/v1\/object\/public\/elanlar\/listings\//);
-  } finally {
-    global.fetch = originalFetch;
-  }
+    assert.equal(publicUrl, '/uploads/elanlar/listings/2026/06/file.png');
+  } finally { global.fetch = originalFetch; }
 });
 
 test('career-cv debug signed URL reports normalized path and Supabase response', async () => {
