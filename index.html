@@ -3415,6 +3415,214 @@
         }
 
 
+        /* Listing image lightbox: match the compact professional project popup gallery. */
+        #property-lightbox:not(.hidden),
+        #property-lightbox.property-lightbox:not(.hidden) {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 4100 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 24px !important;
+            background: rgba(2, 6, 23, .70) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            overflow: hidden !important;
+        }
+        #property-lightbox.is-closing { opacity: 0; }
+        #property-lightbox > .property-lightbox__panel {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            transform: translateY(10px) scale(.985) !important;
+            width: min(900px, calc(100vw - 48px)) !important;
+            max-width: 900px !important;
+            height: auto !important;
+            max-height: 88vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border-radius: 22px !important;
+            border: 1px solid rgba(255,255,255,.12) !important;
+            background: #0f172a !important;
+            box-shadow: 0 24px 80px rgba(0,0,0,.35) !important;
+        }
+        #property-lightbox:not(.hidden) > .property-lightbox__panel { transform: translateY(0) scale(1) !important; }
+        #property-lightbox .property-lightbox__topbar {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            min-height: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: 10px 14px 10px 18px;
+            pointer-events: auto;
+            border-bottom: 1px solid rgba(255,255,255,.10);
+            background: linear-gradient(180deg, rgba(15,23,42,.98), rgba(15,23,42,.92));
+            z-index: 3 !important;
+        }
+        #property-lightbox .property-lightbox__title {
+            min-width: 0;
+            max-width: calc(100% - 56px);
+            padding: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        #property-lightbox .property-lightbox__title p:first-child { line-height: 1.15; }
+        #property-lightbox .property-lightbox__close {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,.14);
+            background: rgba(255,255,255,.10);
+            color: #fff;
+            box-shadow: none;
+        }
+        #property-lightbox .property-lightbox__stage {
+            position: relative;
+            flex: 1 1 auto;
+            width: 100%;
+            height: auto;
+            min-height: 0;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #020617;
+        }
+        #property-lightbox .property-lightbox__image-wrap {
+            width: 100%;
+            height: auto;
+            min-height: 0;
+            max-height: 70vh;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #property-lightbox .property-lightbox__image {
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: min(70vh, calc(88vh - 150px)) !important;
+            object-fit: contain !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+        }
+        #property-lightbox .property-lightbox__nav {
+            top: 50%;
+            width: 44px;
+            height: 44px;
+            z-index: 2;
+            background: rgba(15,23,42,.72);
+            border: 1px solid rgba(255,255,255,.18);
+            box-shadow: 0 14px 34px rgba(0,0,0,.28);
+        }
+        #property-lightbox .property-lightbox__nav--prev { left: 14px; }
+        #property-lightbox .property-lightbox__nav--next { right: 14px; }
+        #property-lightbox .property-lightbox__thumbs {
+            position: relative;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            flex: 0 0 auto;
+            min-height: 70px;
+            max-height: 86px;
+            padding: 10px 12px;
+            gap: 8px;
+            border: 0;
+            border-top: 1px solid rgba(255,255,255,.10);
+            border-radius: 0;
+            background: rgba(15,23,42,.98);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        #property-lightbox .property-lightbox__thumb {
+            width: 76px;
+            height: 54px;
+            flex: 0 0 76px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,.14);
+            background: rgba(255,255,255,.06);
+        }
+        #property-lightbox .property-lightbox__thumb.is-active,
+        #property-lightbox .property-lightbox__thumb:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 10px 24px rgba(127,127,255,.28);
+        }
+        @media (max-width: 767px) {
+            #property-lightbox:not(.hidden),
+            #property-lightbox.property-lightbox:not(.hidden) {
+                padding: 0 !important;
+            }
+            #property-lightbox > .property-lightbox__panel {
+                width: calc(100% - 28px) !important;
+                max-width: calc(100% - 28px) !important;
+                max-height: 88vh !important;
+                border-radius: 22px !important;
+            }
+            #property-lightbox .property-lightbox__topbar {
+                height: 64px;
+                min-height: 64px;
+                flex-basis: 64px;
+                padding: 9px 10px 9px 14px;
+            }
+            #property-lightbox .property-lightbox__close {
+                width: 42px !important;
+                height: 42px !important;
+                min-width: 42px;
+            }
+            #property-lightbox .property-lightbox__image-wrap {
+                max-height: 58vh;
+                padding: 10px;
+            }
+            #property-lightbox .property-lightbox__image { max-height: min(58vh, calc(88vh - 142px)) !important; }
+            #property-lightbox .property-lightbox__nav {
+                width: 40px;
+                height: 40px;
+                background: rgba(15,23,42,.68);
+            }
+            #property-lightbox .property-lightbox__nav--prev { left: 8px; }
+            #property-lightbox .property-lightbox__nav--next { right: 8px; }
+            #property-lightbox .property-lightbox__thumbs {
+                min-height: 70px;
+                max-height: 78px;
+                padding: 8px 10px 10px;
+                gap: 7px;
+                scrollbar-width: none;
+            }
+            #property-lightbox .property-lightbox__thumbs::-webkit-scrollbar { display: none; }
+            #property-lightbox .property-lightbox__thumb {
+                width: 66px;
+                height: 50px;
+                flex-basis: 66px;
+                border-radius: 10px;
+            }
+        }
+
+
         /* Gallery detail modal: desktop 70/30 media-first layout. */
         #media-modal:not(.hidden) {
             align-items: flex-start !important;
@@ -11970,7 +12178,7 @@ Təşəkkür edirəm. 🙏`;
             container.innerHTML = '';
             images.forEach((url, index) => {
                 container.insertAdjacentHTML('beforeend', `
-                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}" aria-label="${index + 1}-ci elan şəklini göstər" aria-current="${index === 0 ? 'true' : 'false'}">
+                    <button type="button" onclick="openPropertyLightbox(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}" aria-label="${index + 1}-ci elan şəklini qalereyada aç" aria-current="${index === 0 ? 'true' : 'false'}">
                         <img src="${escapeHtml(url)}" alt="Elan şəkli ${index + 1}">
                     </button>
                 `);
