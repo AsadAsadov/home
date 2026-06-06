@@ -3294,6 +3294,13 @@
         }
 
 
+        .project-form-card { transition: box-shadow 220ms ease, border-color 220ms ease; }
+        .project-form-header { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.035); border-radius: 1rem; padding: .85rem; }
+        .project-form-collapse { max-height: 0; opacity: 0; overflow: hidden; pointer-events: none; transform: translateY(-6px); transition: max-height 360ms ease, opacity 220ms ease, transform 260ms ease; }
+        .project-form-card.is-expanded .project-form-collapse { max-height: 5200px; opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .project-form-card.is-expanded #project-form-reset-btn { display: inline-flex; }
+        .project-form-close-btn { justify-content: center; }
+        @media (max-width: 640px) { .project-form-header { padding: .75rem; } .project-form-header > div:last-child { width: 100%; } #project-form-toggle-btn, #project-form-reset-btn { flex: 1 1 0; text-align: center; justify-content: center; } .project-form-close-btn { width: 100% !important; } }
         .project-form-section { border: 1px solid rgba(148,163,184,.3); background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(241,245,249,.94)); border-radius: 1rem; padding: .9rem; box-shadow: 0 12px 28px rgba(15,23,42,.12); }
         .project-form-section h4 { color: #172033; font-size: .78rem; font-weight: 900; letter-spacing: .02em; margin-bottom: .75rem; display: flex; gap: .55rem; align-items: center; }
         .project-form-section h4 > span:first-child { display: inline-flex; width: 2rem; height: 2rem; flex: 0 0 2rem; align-items: center; justify-content: center; border-radius: .65rem; background: #e7e7ff; border: 1px solid #ccccff; box-shadow: 0 4px 10px rgba(79,70,229,.12); font-size: 1rem; }
@@ -4527,15 +4534,23 @@
             </div>
             <!-- SUBTAB 2: OFFICIAL PROJECTS MANAGER (Admin only) -->
             <div id="admin-subtab-projects-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                            <i class="fa-solid fa-diagram-project text-brand-500"></i>
-                            <span id="project-form-action-title">Yeni Layihə Əlavə Et</span>
-                        </h3>
-                        <button type="button" onclick="resetOfficialProjectForm()" class="text-[10px] bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg font-bold transition">Formu təmizlə</button>
+                <div id="official-project-form-card" class="lg:col-span-5 glass-card p-4 sm:p-6 rounded-2xl space-y-4 project-form-card">
+                    <div class="project-form-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-diagram-project text-brand-500"></i>
+                                <span id="project-form-action-title">Yeni Layihə Əlavə Et</span>
+                            </h3>
+                            <p class="text-[11px] text-gray-400 mt-1">Layihə məlumatlarını daxil etmək üçün açın</p>
+                        </div>
+                        <div class="flex items-center gap-2 sm:justify-end">
+                            <button id="project-form-reset-btn" type="button" onclick="resetOfficialProjectForm()" class="hidden text-[10px] bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-2 rounded-lg font-bold transition">Formu təmizlə</button>
+                            <button id="project-form-toggle-btn" type="button" onclick="toggleOfficialProjectForm()" aria-expanded="false" aria-controls="official-project-form-collapse" class="shrink-0 bg-brand-500 hover:bg-brand-600 text-white text-[11px] font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-brand-500/20">Formu aç</button>
+                        </div>
                     </div>
-                    <form onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-4">
+                    <div id="project-save-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs font-semibold">Layihə uğurla saxlanıldı.</div>
+                    <div id="official-project-form-collapse" class="project-form-collapse" aria-hidden="true" inert>
+                    <form id="official-project-form" onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-4">
                         <input type="hidden" id="edit-project-id" value="">
                         <section class="project-form-section">
                             <h4><span>📍</span><span>Ümumi Məlumat</span></h4>
@@ -4584,8 +4599,12 @@
                             <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300"><input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4"><span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span></span></label>
                             <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
                         </section>
-                        <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20"><i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla</button>
+                        <div class="space-y-2">
+                            <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20"><i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla</button>
+                            <button type="button" onclick="collapseOfficialProjectForm()" class="project-form-close-btn w-full sm:w-auto sm:min-w-[140px] bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-3 px-5 rounded-xl transition">Bağla</button>
+                        </div>
                     </form>
+                    </div>
                 </div>
                 <div class="lg:col-span-7 space-y-4">
                     <div class="flex items-center justify-between gap-3">
@@ -12634,6 +12653,7 @@ Təşəkkür edirəm. 🙏`;
         let isRegisterSubmitting = false;
         let isListingSaveSubmitting = false;
         let isProjectSaveSubmitting = false;
+        let isOfficialProjectFormExpanded = false;
         let isHeroSaveSubmitting = false;
         let isGallerySaveSubmitting = false;
         let editingGalleryThumbnail = '';
@@ -13208,14 +13228,53 @@ Təşəkkür edirəm. 🙏`;
             if (img) img.src = imageUrl;
         }
 
+        function setOfficialProjectFormExpanded(expanded, options = {}) {
+            isOfficialProjectFormExpanded = Boolean(expanded);
+            const card = document.getElementById('official-project-form-card');
+            const content = document.getElementById('official-project-form-collapse');
+            const toggleBtn = document.getElementById('project-form-toggle-btn');
+            if (card) card.classList.toggle('is-expanded', isOfficialProjectFormExpanded);
+            if (content) {
+                content.setAttribute('aria-hidden', isOfficialProjectFormExpanded ? 'false' : 'true');
+                if (isOfficialProjectFormExpanded) {
+                    content.removeAttribute('inert');
+                } else {
+                    content.setAttribute('inert', '');
+                }
+            }
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-expanded', isOfficialProjectFormExpanded ? 'true' : 'false');
+                toggleBtn.textContent = isOfficialProjectFormExpanded ? 'Formu bağla' : 'Formu aç';
+            }
+            if (options.hideSuccess !== false) {
+                document.getElementById('project-save-success')?.classList.add('hidden');
+            }
+        }
+
+        function toggleOfficialProjectForm() {
+            setOfficialProjectFormExpanded(!isOfficialProjectFormExpanded);
+        }
+
+        function collapseOfficialProjectForm() {
+            setOfficialProjectFormExpanded(false);
+        }
+
+        function showProjectSaveSuccess(message = 'Layihə uğurla saxlanıldı.') {
+            const success = document.getElementById('project-save-success');
+            if (!success) return;
+            success.textContent = message;
+            success.classList.remove('hidden');
+        }
+
         function resetOfficialProjectForm() {
             document.getElementById('edit-project-id').value = '';
             document.getElementById('project-slug').value = '';
             document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
-            document.querySelector('#admin-subtab-projects-manager form').reset();
+            document.getElementById('official-project-form')?.reset();
             document.getElementById('project-featured-hero').checked = false;
             document.getElementById('project-hero-badge')?.classList.add('hidden');
-                        renderProjectImageInputs(['']);
+            document.getElementById('project-save-success')?.classList.add('hidden');
+            renderProjectImageInputs(['']);
             updateProjectImagePreview();
         }
 
@@ -13880,6 +13939,8 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjects();
                 renderAdminProjects();
                 resetOfficialProjectForm();
+                collapseOfficialProjectForm();
+                showProjectSaveSuccess('Layihə uğurla saxlanıldı. Siyahı yeniləndi.');
             } catch (error) {
                 alert('Layihə API-yə yazılmadı: ' + error.message);
             } finally {
@@ -13892,7 +13953,7 @@ Təşəkkür edirəm. 🙏`;
             const project = getOfficialProjects().find(item => item.id === id);
             if (!project) return;
             document.getElementById('edit-project-id').value = project.id;
-            document.getElementById('project-form-action-title').textContent = 'Layihəni Redaktə Et';
+            document.getElementById('project-form-action-title').textContent = 'Layihəni redaktə et';
             document.getElementById('project-title').value = project.title;
             document.getElementById('project-slug').value = project.slug || '';
             document.getElementById('project-category').value = project.category;
@@ -13922,7 +13983,8 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-img').value = images[0] || project.img || '';
             renderProjectImageInputs(images.length ? images : ['']);
             updateProjectImagePreview();
-            document.getElementById('admin-subtab-projects-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setOfficialProjectFormExpanded(true);
+            document.getElementById('official-project-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         async function deleteOfficialProject(id) {
