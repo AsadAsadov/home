@@ -2853,6 +2853,36 @@
             transition: all .25s ease;
         }
         .listing-detail-image-action:hover { background: var(--primary, var(--color-primary)); color: #fff; transform: translateY(-1px); }
+        .listing-detail-carousel-nav {
+            position: absolute;
+            top: 50%;
+            z-index: 18;
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, .62);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.28);
+            box-shadow: 0 16px 36px rgba(15,23,42,.24);
+            backdrop-filter: blur(12px);
+            transform: translateY(-50%);
+            transition: background .22s ease, transform .22s ease, opacity .22s ease;
+        }
+        .listing-detail-carousel-nav:hover { background: var(--primary, var(--color-primary)); transform: translateY(-50%) scale(1.06); }
+        .listing-detail-carousel-nav--prev { left: 1rem; }
+        .listing-detail-carousel-nav--next { right: 1rem; }
+        .listing-detail-carousel-nav.hidden { display: none; }
+        @media (max-width: 640px) {
+            .listing-detail-carousel-nav { width: 34px; height: 34px; font-size: .75rem; background: rgba(15,23,42,.58); }
+            .listing-detail-carousel-nav--prev { left: .55rem; }
+            .listing-detail-carousel-nav--next { right: .55rem; }
+            #p-modal-image-counter { top: .65rem !important; left: .65rem !important; font-size: .68rem !important; padding: .32rem .62rem !important; }
+        }
+        .project-lightbox { z-index: 120; }
+        #project-lightbox:not(.hidden) { display: flex; }
         .listing-detail-thumbnail {
             overflow: hidden;
             background: #fff !important;
@@ -4996,6 +5026,8 @@ Title: CASPIAN DREAM LINER
                         <div class="relative listing-detail-main-image">
                             <img id="p-modal-img" class="w-full h-full object-cover cursor-zoom-in" src="" alt="Elan şəkli">
                             <div id="p-modal-image-counter" class="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">1 / 1</div>
+                            <button type="button" id="p-modal-prev-image" onclick="changePropertyMainImage(-1)" class="listing-detail-carousel-nav listing-detail-carousel-nav--prev hidden" aria-label="Əvvəlki elan şəkli"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" id="p-modal-next-image" onclick="changePropertyMainImage(1)" class="listing-detail-carousel-nav listing-detail-carousel-nav--next hidden" aria-label="Növbəti elan şəkli"><i class="fa-solid fa-chevron-right"></i></button>
                             <div class="listing-detail-image-actions">
                                 <button type="button" id="p-modal-share-top-btn" class="listing-detail-image-action" aria-label="Elanı paylaş"><i class="fa-solid fa-link"></i><span>Paylaş</span></button>
                             </div>
@@ -5208,6 +5240,32 @@ Title: CASPIAN DREAM LINER
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
             <div id="property-lightbox-thumbnails" class="property-lightbox__thumbs" aria-label="Şəkil miniatürləri"></div>
+        </div>
+    </div>
+
+    <div id="project-lightbox" class="modal-glass-backdrop property-lightbox project-lightbox hidden fixed inset-0 z-[120] items-center justify-center" role="dialog" aria-modal="true" aria-label="Layihə şəkil qalereyası" onclick="if (event.target === this) closeProjectLightbox()">
+        <div class="modal-glass-panel property-lightbox__panel relative overflow-hidden">
+            <div class="property-lightbox__topbar">
+                <div class="property-lightbox__title rounded-2xl px-4 py-3">
+                    <p id="project-lightbox-title" class="truncate text-sm md:text-base font-black text-white">Layihə şəkilləri</p>
+                    <p id="project-lightbox-counter" class="text-[11px] font-bold text-slate-300">1 / 1</p>
+                </div>
+                <button type="button" onclick="closeProjectLightbox()" class="property-lightbox__close w-11 h-11 rounded-full text-xl hover:bg-brand-500 transition" aria-label="Layihə qalereyasını bağla">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="property-lightbox__stage">
+                <div class="property-lightbox__image-wrap">
+                    <img id="project-lightbox-img" class="property-lightbox__image" src="" alt="Layihə şəkli">
+                </div>
+            </div>
+            <button type="button" id="project-lightbox-prev" onclick="changeProjectLightboxImage(-1)" class="property-lightbox__nav property-lightbox__nav--prev" aria-label="Əvvəlki layihə şəkli">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button type="button" id="project-lightbox-next" onclick="changeProjectLightboxImage(1)" class="property-lightbox__nav property-lightbox__nav--next" aria-label="Növbəti layihə şəkli">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <div id="project-lightbox-thumbnails" class="property-lightbox__thumbs" aria-label="Layihə şəkil miniatürləri"></div>
         </div>
     </div>
 
@@ -9005,6 +9063,7 @@ Title: CASPIAN DREAM LINER
             setModalOpenState(
                 isElementVisibleById('property-detail-modal') ||
                 isElementVisibleById('project-detail-modal-official') ||
+                isElementVisibleById('project-lightbox') ||
                 isElementVisibleById('media-modal') ||
                 isElementVisibleById('property-lightbox') ||
                 isElementVisibleById('fullscreen-map-modal')
@@ -11173,6 +11232,109 @@ Təşəkkür edirəm. 🙏`;
             updateOfficialProjectImage();
         }
 
+        function isProjectLightboxOpen() {
+            const modal = document.getElementById('project-lightbox');
+            return Boolean(modal && !modal.classList.contains('hidden'));
+        }
+
+        function renderProjectLightboxThumbnails() {
+            const strip = document.getElementById('project-lightbox-thumbnails');
+            if (!strip) return;
+            strip.innerHTML = officialProjectImages.map((url, index) => `
+                <button type="button" onclick="setProjectLightboxImage(${index})" class="property-lightbox__thumb ${index === officialProjectImageIndex ? 'is-active' : ''}" aria-label="${index + 1}-ci layihə şəklini aç" aria-current="${index === officialProjectImageIndex ? 'true' : 'false'}">
+                    <img src="${escapeHtml(url)}" loading="lazy" decoding="async" alt="Layihə miniaturu ${index + 1}">
+                </button>
+            `).join('');
+        }
+
+        function updateProjectLightboxControls() {
+            const hasMany = officialProjectImages.length > 1;
+            document.getElementById('project-lightbox-prev')?.classList.toggle('hidden', !hasMany);
+            document.getElementById('project-lightbox-next')?.classList.toggle('hidden', !hasMany);
+            document.getElementById('project-lightbox-thumbnails')?.classList.toggle('hidden', !hasMany);
+        }
+
+        function setProjectLightboxImage(index) {
+            if (!officialProjectImages.length) return;
+            officialProjectImageIndex = (index + officialProjectImages.length) % officialProjectImages.length;
+            updateOfficialProjectImage();
+            const selectedUrl = officialProjectImages[officialProjectImageIndex];
+            const lightboxImg = document.getElementById('project-lightbox-img');
+            const counter = document.getElementById('project-lightbox-counter');
+            const title = document.getElementById('project-lightbox-title');
+            const projectTitle = activeOfficialProject?.title || 'Layihə şəkilləri';
+
+            if (title) title.textContent = projectTitle;
+            if (counter) counter.textContent = `${officialProjectImageIndex + 1} / ${officialProjectImages.length}`;
+            if (lightboxImg) {
+                lightboxImg.classList.remove('is-loaded');
+                resetPropertyLightboxImageFit(lightboxImg);
+                lightboxImg.onload = () => {
+                    applyPropertyLightboxImageFit(lightboxImg);
+                    lightboxImg.classList.add('is-loaded');
+                };
+                lightboxImg.onerror = () => {
+                    resetPropertyLightboxImageFit(lightboxImg);
+                    lightboxImg.classList.add('is-loaded');
+                };
+                lightboxImg.src = selectedUrl;
+                lightboxImg.alt = `${projectTitle} - ${officialProjectImageIndex + 1}`;
+                if (lightboxImg.complete && lightboxImg.naturalWidth) lightboxImg.onload();
+            }
+
+            document.querySelectorAll('#project-lightbox .property-lightbox__thumb').forEach((btn, idx) => {
+                const active = idx === officialProjectImageIndex;
+                btn.classList.toggle('is-active', active);
+                btn.setAttribute('aria-current', active ? 'true' : 'false');
+                if (active) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            });
+        }
+
+        function openProjectLightbox(index = officialProjectImageIndex) {
+            if (!officialProjectImages.length) return;
+            officialProjectImageIndex = Math.max(0, Math.min(index, officialProjectImages.length - 1));
+            renderProjectLightboxThumbnails();
+            updateProjectLightboxControls();
+            const modal = document.getElementById('project-lightbox');
+            modal?.classList.remove('is-closing', 'hidden');
+            setModalOpenState(true);
+            setProjectLightboxImage(officialProjectImageIndex);
+            window.setTimeout(() => applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img')), 0);
+        }
+
+        function resetProjectLightboxElement() {
+            const lightboxImg = document.getElementById('project-lightbox-img');
+            if (lightboxImg) {
+                lightboxImg.removeAttribute('src');
+                resetPropertyLightboxImageFit(lightboxImg);
+                lightboxImg.classList.remove('is-loaded');
+            }
+        }
+
+        function closeProjectLightbox({ immediate = false } = {}) {
+            const modal = document.getElementById('project-lightbox');
+            if (!modal || modal.classList.contains('hidden')) return;
+            if (immediate) {
+                modal.classList.add('hidden');
+                modal.classList.remove('is-closing');
+                resetProjectLightboxElement();
+                syncModalOpenState();
+                return;
+            }
+            modal.classList.add('is-closing');
+            window.setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('is-closing');
+                resetProjectLightboxElement();
+                syncModalOpenState();
+            }, 200);
+        }
+
+        function changeProjectLightboxImage(direction) {
+            if (officialProjectImages.length <= 1) return;
+            setProjectLightboxImage(officialProjectImageIndex + direction);
+        }
+
         async function copyTextToClipboard(text) {
             if (navigator.clipboard?.writeText) {
                 await navigator.clipboard.writeText(text);
@@ -11214,6 +11376,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function closeOfficialProjectModal() {
+            if (isProjectLightboxOpen()) closeProjectLightbox({ immediate: true });
             clearTimeout(officialProjectTransitionTimer);
             officialProjectTransitionTimer = null;
             document.getElementById('project-detail-modal-official').classList.add('hidden');
@@ -11428,9 +11591,16 @@ Təşəkkür edirəm. 🙏`;
         let activePropertyImageIndex = 0;
         let activePropertyListing = null;
 
+        function updatePropertyMainCarouselControls() {
+            const hasMany = activePropertyImages.length > 1;
+            document.getElementById('p-modal-prev-image')?.classList.toggle('hidden', !hasMany);
+            document.getElementById('p-modal-next-image')?.classList.toggle('hidden', !hasMany);
+        }
+
         function setPropertyMainImage(index) {
             if (!activePropertyImages.length) return;
-            activePropertyImageIndex = Math.max(0, Math.min(index, activePropertyImages.length - 1));
+            activePropertyImageIndex = (index + activePropertyImages.length) % activePropertyImages.length;
+            updatePropertyMainCarouselControls();
             const image = document.getElementById('p-modal-img');
             const imageFrame = image.closest('.listing-detail-main-image');
             const selectedUrl = activePropertyImages[activePropertyImageIndex];
@@ -11445,7 +11615,17 @@ Təşəkkür edirəm. 🙏`;
             image.src = selectedUrl;
             image.onclick = () => openPropertyLightbox(activePropertyImageIndex);
             document.getElementById('p-modal-image-counter').textContent = `${activePropertyImageIndex + 1} / ${activePropertyImages.length}`;
-            document.querySelectorAll('.listing-detail-thumbnail').forEach((btn, idx) => btn.classList.toggle('is-active', idx === activePropertyImageIndex));
+            document.querySelectorAll('.listing-detail-thumbnail').forEach((btn, idx) => {
+                const active = idx === activePropertyImageIndex;
+                btn.classList.toggle('is-active', active);
+                btn.setAttribute('aria-current', active ? 'true' : 'false');
+                if (active) btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            });
+        }
+
+        function changePropertyMainImage(direction) {
+            if (activePropertyImages.length <= 1) return;
+            setPropertyMainImage(activePropertyImageIndex + direction);
         }
 
         function renderPropertyThumbnails(images) {
@@ -11453,7 +11633,7 @@ Təşəkkür edirəm. 🙏`;
             container.innerHTML = '';
             images.forEach((url, index) => {
                 container.insertAdjacentHTML('beforeend', `
-                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}">
+                    <button type="button" onclick="setPropertyMainImage(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}" aria-label="${index + 1}-ci elan şəklini göstər" aria-current="${index === 0 ? 'true' : 'false'}">
                         <img src="${escapeHtml(url)}" alt="Elan şəkli ${index + 1}">
                     </button>
                 `);
@@ -11513,7 +11693,7 @@ Təşəkkür edirəm. 🙏`;
                 if (lightboxImg.complete && lightboxImg.naturalWidth) lightboxImg.onload();
             }
 
-            document.querySelectorAll('.property-lightbox__thumb').forEach((btn, idx) => {
+            document.querySelectorAll('#property-lightbox .property-lightbox__thumb').forEach((btn, idx) => {
                 const active = idx === activePropertyImageIndex;
                 btn.classList.toggle('is-active', active);
                 btn.setAttribute('aria-current', active ? 'true' : 'false');
@@ -15372,9 +15552,7 @@ Təşəkkür edirəm. 🙏`;
 
         function openProjectLightboxFromModal() {
             if (!officialProjectImages.length) return;
-            openEventLightbox(encodeURIComponent(JSON.stringify(officialProjectImages)), activeOfficialProject?.title || 'Layihə şəkilləri');
-            activeModalMediaIndex = officialProjectImageIndex;
-            renderModalMedia();
+            openProjectLightbox(officialProjectImageIndex);
         }
 
         function openMediaModal(type, url, title) {
@@ -15476,8 +15654,16 @@ Təşəkkür edirəm. 🙏`;
             const deltaY = touch.clientY - touchStartY;
             if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
+            if (isProjectLightboxOpen() && officialProjectImages.length > 1) {
+                changeProjectLightboxImage(deltaX > 0 ? -1 : 1);
+                return;
+            }
             if (isPropertyLightboxOpen() && activePropertyImages.length > 1) {
                 changePropertyLightboxImage(deltaX > 0 ? -1 : 1);
+                return;
+            }
+            if (!document.getElementById('property-detail-modal').classList.contains('hidden') && activePropertyImages.length > 1) {
+                changePropertyMainImage(deltaX > 0 ? -1 : 1);
                 return;
             }
             if (!document.getElementById('media-modal').classList.contains('hidden') && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) {
@@ -15490,12 +15676,14 @@ Təşəkkür edirəm. 🙏`;
         }
 
         document.addEventListener('keydown', (event) => {
+            const projectLightboxOpen = isProjectLightboxOpen();
             const propertyLightboxOpen = isPropertyLightboxOpen();
             const mediaOpen = !document.getElementById('media-modal').classList.contains('hidden');
             const projectOpen = !document.getElementById('project-detail-modal-official').classList.contains('hidden');
             const propertyOpen = !document.getElementById('property-detail-modal').classList.contains('hidden');
 
             if (event.key === 'Escape') {
+                if (projectLightboxOpen) { closeProjectLightbox(); return; }
                 if (propertyLightboxOpen) { closePropertyLightbox(); return; }
                 if (mediaOpen) closeModal();
                 if (projectOpen) closeOfficialProjectModal();
@@ -15503,13 +15691,17 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (event.key === 'ArrowLeft') {
-                if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(-1); return; }
-                if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(-1);
+                if (projectLightboxOpen && officialProjectImages.length > 1) { event.preventDefault(); changeProjectLightboxImage(-1); return; }
+                if (propertyLightboxOpen && activePropertyImages.length > 1) { event.preventDefault(); changePropertyLightboxImage(-1); return; }
+                if (propertyOpen && activePropertyImages.length > 1) { event.preventDefault(); changePropertyMainImage(-1); return; }
+                if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) { event.preventDefault(); changeModalImage(-1); return; }
                 if (projectOpen) { event.preventDefault(); navigateOfficialProject(-1); }
             }
             if (event.key === 'ArrowRight') {
-                if (propertyLightboxOpen && activePropertyImages.length > 1) { changePropertyLightboxImage(1); return; }
-                if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) changeModalImage(1);
+                if (projectLightboxOpen && officialProjectImages.length > 1) { event.preventDefault(); changeProjectLightboxImage(1); return; }
+                if (propertyLightboxOpen && activePropertyImages.length > 1) { event.preventDefault(); changePropertyLightboxImage(1); return; }
+                if (propertyOpen && activePropertyImages.length > 1) { event.preventDefault(); changePropertyMainImage(1); return; }
+                if (mediaOpen && (lightboxImages.length > 1 || activeModalGalleryItems.length > 1)) { event.preventDefault(); changeModalImage(1); return; }
                 if (projectOpen) { event.preventDefault(); navigateOfficialProject(1); }
             }
         });
@@ -15517,9 +15709,10 @@ Təşəkkür edirəm. 🙏`;
         document.getElementById('modal-content')?.addEventListener('dblclick', toggleLightboxZoom);
         window.addEventListener('resize', () => {
             if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
         });
 
-        ['media-modal', 'project-detail-modal-official', 'property-lightbox'].forEach((id) => {
+        ['media-modal', 'project-detail-modal-official', 'property-detail-modal', 'property-lightbox', 'project-lightbox'].forEach((id) => {
             const modal = document.getElementById(id);
             if (modal) {
                 modal.addEventListener('touchstart', handleModalTouchStart, { passive: true });
@@ -15794,6 +15987,7 @@ Təşəkkür edirəm. 🙏`;
             renderDesktopAds();
             updateMobileModalMetrics();
             if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
