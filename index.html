@@ -10450,10 +10450,10 @@ Title: CASPIAN DREAM LINER
 
         async function startListingConversation(listingId) {
             const startedAt = performance.now();
+            closeListingModalForMessageNavigation();
             if (!activeUser) { setPendingAuthRoute(`/listing/${listingId}`); switchTab('admin-login'); return; }
             const pendingId = `pending-${Date.now()}`;
             const listing = appData.listings?.find(item => String(item.id) === String(listingId)) || null;
-            closePropertyModal();
             messagingState.pendingConversation = { id: pendingId, pending: true, placeholderName: 'Satıcı', listing };
             messagingState.activeConversationId = pendingId;
             messagingState.activeMessages = [];
@@ -11422,19 +11422,30 @@ Təşəkkür edirəm. 🙏`;
             window.setTimeout(() => applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img')), 0);
         }
 
-        function closePropertyLightbox() {
+        function resetPropertyLightboxElement() {
+            const lightboxImg = document.getElementById('property-lightbox-img');
+            if (lightboxImg) {
+                lightboxImg.removeAttribute('src');
+                resetPropertyLightboxImageFit(lightboxImg);
+                lightboxImg.classList.remove('is-loaded');
+            }
+        }
+
+        function closePropertyLightbox({ immediate = false } = {}) {
             const modal = document.getElementById('property-lightbox');
             if (!modal || modal.classList.contains('hidden')) return;
+            if (immediate) {
+                modal.classList.add('hidden');
+                modal.classList.remove('is-closing');
+                resetPropertyLightboxElement();
+                syncModalOpenState();
+                return;
+            }
             modal.classList.add('is-closing');
             window.setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('is-closing');
-                const lightboxImg = document.getElementById('property-lightbox-img');
-                if (lightboxImg) {
-                    lightboxImg.removeAttribute('src');
-                    resetPropertyLightboxImageFit(lightboxImg);
-                    lightboxImg.classList.remove('is-loaded');
-                }
+                resetPropertyLightboxElement();
                 syncModalOpenState();
             }, 200);
         }
@@ -11567,15 +11578,22 @@ Təşəkkür edirəm. 🙏`;
             if (normalizeListingStatus(p.status) === 'approved') await trackListingView(id);
         }
 
-        function closePropertyModal() {
-            if (isPropertyLightboxOpen()) closePropertyLightbox();
+        function closePropertyModal({ updateRoute = true, immediateLightbox = false } = {}) {
+            if (isPropertyLightboxOpen()) closePropertyLightbox({ immediate: immediateLightbox });
             document.getElementById('property-detail-modal').classList.add('hidden');
             syncModalOpenState();
             if (detailListingMap) setTimeout(() => detailListingMap.invalidateSize(), 50);
-            if (window.location.pathname.startsWith('/listing/')) {
+            if (updateRoute && window.location.pathname.startsWith('/listing/')) {
                 history.pushState({ tabId: 'seabreeze' }, '', '/');
                 updateSeo({ title: SITE_NAME, path: '/' });
             }
+        }
+
+        function closeListingModalForMessageNavigation() {
+            closePropertyModal({ updateRoute: false, immediateLightbox: true });
+            document.getElementById('property-detail-modal')?.classList.add('hidden');
+            document.getElementById('property-lightbox')?.classList.add('hidden');
+            syncModalOpenState();
         }
 
         // PORTFOLIO AND LIGHTBOX ENGINE
