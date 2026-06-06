@@ -17,6 +17,23 @@ function normalizeType(type) {
   return NOTIFICATION_TYPES.has(normalized) ? normalized : 'system';
 }
 
+function isMessageNotificationType(type) {
+  return ['new_message', 'message'].includes(String(type || '').toLowerCase());
+}
+
+function nonMessageUnreadNotificationWhere(userId) {
+  return {
+    userId: Number(userId),
+    isRead: false,
+    type: { notIn: ['new_message', 'message'] },
+  };
+}
+
+async function getUnreadNotificationCount(userId, tx = prisma) {
+  if (!userId) return 0;
+  return tx.notification.count({ where: nonMessageUnreadNotificationWhere(userId) });
+}
+
 async function createNotification({ userId, title, message, type = 'system', link = null, imageUrl = null, videoUrl = null }, tx = prisma) {
   if (!userId) return null;
   const notification = await tx.notification.create({
@@ -30,7 +47,8 @@ async function createNotification({ userId, title, message, type = 'system', lin
       videoUrl: videoUrl ? String(videoUrl) : null,
     },
   });
-  emitToUser(userId, 'notification:new', notification);
+  const unreadCount = isMessageNotificationType(notification.type) ? undefined : await getUnreadNotificationCount(userId, tx);
+  emitToUser(userId, 'notification:new', { notification, unreadCount });
   return notification;
 }
 
@@ -39,4 +57,4 @@ async function notifyAdmins(payload, tx = prisma) {
   return Promise.all(admins.map((admin) => createNotification({ ...payload, userId: admin.id }, tx)));
 }
 
-module.exports = { createNotification, notifyAdmins, NOTIFICATION_TYPES };
+module.exports = { createNotification, notifyAdmins, NOTIFICATION_TYPES, getUnreadNotificationCount, isMessageNotificationType };
