@@ -9786,7 +9786,7 @@ Title: CASPIAN DREAM LINER
 
 
         const MESSAGE_NOTIFICATION_TYPES = new Set(['new_message', 'message']);
-        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], messagesByConversation: new Map(), socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null };
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], messagesByConversation: new Map(), socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null, notificationsReadAllInFlight: null };
 
         function isMessageNotification(item) {
             return MESSAGE_NOTIFICATION_TYPES.has(String(item?.type || '').toLowerCase());
@@ -9883,13 +9883,22 @@ Title: CASPIAN DREAM LINER
             renderNotificationsPanel({ full: panel.classList.contains('notification-panel--full') });
         }
 
+        function isNotificationsPanelOpen() {
+            return Boolean(document.getElementById('notification-panel'));
+        }
+
         function handleRealtimeNotificationNew(payload) {
             const notification = payload?.notification || payload;
             const unreadCount = Number(payload?.unreadCount);
             if (!notification || isMessageNotification(notification)) return;
+            const panelOpen = isNotificationsPanelOpen();
+            const localNotification = panelOpen ? { ...notification, isRead: true } : notification;
             const alreadyVisible = messagingState.notifications.some(n => String(n.id) === String(notification.id));
-            messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))];
-            if (Number.isFinite(unreadCount)) {
+            messagingState.notifications = [localNotification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))];
+            if (panelOpen) {
+                messagingState.notificationsUnread = 0;
+                apiRequest(`/api/notifications/${notification.id}/read`, { method: 'PATCH' }).catch(error => console.warn('Notification auto-read failed', error));
+            } else if (Number.isFinite(unreadCount)) {
                 messagingState.notificationsUnread = Math.max(0, unreadCount);
             } else if (!alreadyVisible && !notification.isRead) {
                 messagingState.notificationsUnread += 1;
@@ -10019,12 +10028,58 @@ Title: CASPIAN DREAM LINER
             setTimeout(() => { document.addEventListener('click', handleNotificationOutsideClick, true); document.addEventListener('keydown', handleNotificationKeydown, true); }, 0);
         }
 
+        function markNotificationsReadLocal() {
+            const previousUnread = messagingState.notificationsUnread;
+            const previousNotifications = messagingState.notifications.map(n => ({ ...n }));
+            messagingState.notificationsUnread = 0;
+            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
+            refreshHeaderBadges();
+            writeMessagingCache();
+            return { previousUnread, previousNotifications };
+        }
+
+        function restoreNotificationsReadLocal(snapshot) {
+            if (!snapshot) return;
+            messagingState.notificationsUnread = snapshot.previousUnread;
+            messagingState.notifications = snapshot.previousNotifications;
+            refreshHeaderBadges();
+            writeMessagingCache();
+        }
+
+        async function markNotificationsReadAllRequest() {
+            const result = await apiRequest('/api/notifications/read-all', { method: 'PATCH' });
+            const nextUnread = Number(result?.unreadCount);
+            if (Number.isFinite(nextUnread)) messagingState.notificationsUnread = Math.max(0, nextUnread);
+            else messagingState.notificationsUnread = 0;
+            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
+            refreshHeaderBadges();
+            writeMessagingCache();
+            return result;
+        }
+
+        async function markNotificationsReadOnPanelOpen() {
+            if (messagingState.notificationsUnread <= 0) return;
+            if (messagingState.notificationsReadAllInFlight) return messagingState.notificationsReadAllInFlight;
+            const snapshot = markNotificationsReadLocal();
+            updateOpenNotificationsPanel();
+            messagingState.notificationsReadAllInFlight = markNotificationsReadAllRequest()
+                .catch(error => {
+                    restoreNotificationsReadLocal(snapshot);
+                    updateOpenNotificationsPanel();
+                    console.warn('Notification panel auto-read failed', error);
+                    throw error;
+                })
+                .finally(() => { messagingState.notificationsReadAllInFlight = null; });
+            return messagingState.notificationsReadAllInFlight;
+        }
+
         async function toggleNotificationsPanel() {
             const startedAt = performance.now();
             const existing = document.getElementById('notification-panel');
             if (existing && !existing.classList.contains('notification-panel--full')) { closeNotificationsPanel(); return; }
             renderNotificationsPanel({ loading: !visibleNotifications().length });
             perfLog('notifications_open_ms', startedAt);
+            try { await markNotificationsReadOnPanelOpen(); } catch (_error) {}
             if (Date.now() - (messagingState.notificationsLoadedAt || 0) < 15000) return;
             try {
                 const result = await apiRequest('/api/notifications');
@@ -10038,6 +10093,7 @@ Title: CASPIAN DREAM LINER
         async function openAllNotifications() {
             closeNotificationsPanel();
             renderNotificationsPanel({ full: true, loading: !visibleNotifications().length });
+            try { await markNotificationsReadOnPanelOpen(); } catch (_error) {}
             try {
                 const result = await apiRequest('/api/notifications?all=true&limit=1000');
                 messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
@@ -10195,14 +10251,20 @@ Title: CASPIAN DREAM LINER
         }
 
         async function markAllNotificationsRead() {
-            const previousUnread = messagingState.notificationsUnread;
-            const previousNotifications = messagingState.notifications.map(n => ({ ...n }));
-            messagingState.notificationsUnread = 0;
-            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
-            refreshHeaderBadges();
-            renderNotificationsPanel({ full: document.getElementById('notification-panel')?.classList.contains('notification-panel--full') });
-            try { await apiRequest('/api/notifications/read-all', { method: 'PATCH' }); }
-            catch (error) { messagingState.notificationsUnread = previousUnread; messagingState.notifications = previousNotifications; refreshHeaderBadges(); renderNotificationsPanel({ error: error.message || 'Hamısını oxu alınmadı.' }); }
+            if (messagingState.notificationsReadAllInFlight) {
+                try { await messagingState.notificationsReadAllInFlight; } catch (_error) {}
+                return;
+            }
+            const snapshot = markNotificationsReadLocal();
+            const full = document.getElementById('notification-panel')?.classList.contains('notification-panel--full');
+            renderNotificationsPanel({ full });
+            messagingState.notificationsReadAllInFlight = markNotificationsReadAllRequest()
+                .catch(error => {
+                    restoreNotificationsReadLocal(snapshot);
+                    renderNotificationsPanel({ full, error: error.message || 'Hamısını oxu alınmadı.' });
+                })
+                .finally(() => { messagingState.notificationsReadAllInFlight = null; });
+            await messagingState.notificationsReadAllInFlight;
         }
 
         function navigateToMessages(conversationId = '') {
