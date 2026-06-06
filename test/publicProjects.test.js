@@ -18,6 +18,14 @@ test('projects without media receive a visible placeholder and remain modal-comp
   assert.match(homepage, /officialProjectImages\[officialProjectImageIndex\] \|\| p\.img \|\| ''/);
 });
 
+test('project detail images open the project lightbox gallery', () => {
+  assert.match(homepage, /<img id="op-modal-img" onclick="openProjectLightboxFromModal\(\)"/);
+  assert.match(homepage, /onclick="openProjectLightbox\(\$\{idx\}\)"/);
+  assert.match(homepage, /id="project-lightbox"/);
+  assert.match(homepage, /changeProjectLightboxImage\(direction\)/);
+  assert.match(homepage, /if \(projectLightboxOpen\) \{ closeProjectLightbox\(\); return; \}/);
+});
+
 test('public projects API only requires a project to be non-archived', () => {
   assert.match(projectsRoute, /const clauses = \[\{ isArchived: false \}\];/);
   assert.doesNotMatch(projectsRoute, /clauses\.push\(\{ featuredInHero:/);

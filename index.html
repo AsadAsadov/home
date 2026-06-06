@@ -11344,8 +11344,8 @@ Təşəkkür edirəm. 🙏`;
             thumbs.classList.toggle('hidden', !hasMany);
             counter.textContent = hasMany ? `${officialProjectImageIndex + 1} / ${officialProjectImages.length}` : '';
             thumbs.innerHTML = hasMany ? officialProjectImages.map((img, idx) => `
-                <button onclick="setOfficialProjectImage(${idx})" class="h-16 rounded-xl overflow-hidden border ${idx === officialProjectImageIndex ? 'border-brand-500' : 'border-white/10'} transition">
-                    <img src="${img}" class="w-full h-full object-cover" alt="${escapeHtml(projectTitle)}">
+                <button type="button" onclick="openProjectLightbox(${idx})" class="h-16 rounded-xl overflow-hidden border ${idx === officialProjectImageIndex ? 'border-brand-500' : 'border-white/10'} transition cursor-zoom-in" aria-label="${idx + 1}-ci layihə şəklini böyük qalereyada aç">
+                    <img src="${escapeHtml(img)}" class="w-full h-full object-cover" alt="${escapeHtml(projectTitle)}">
                 </button>
             `).join('') : '';
         }
