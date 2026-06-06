@@ -3001,8 +3001,8 @@
                 justify-content: center;
             }
             #mobile-user-status-icon > div { display: flex; align-items: center; gap: .45rem; flex-wrap: nowrap; }
-            .header-mobile-actions span:not(.header-badge-btn__badge),
-            #mobile-user-status-icon span:not(.header-badge-btn__badge) { display: none; }
+            .header-mobile-actions span:not(.header-badge-btn__badge):not(.header-badge-btn__slot),
+            #mobile-user-status-icon span:not(.header-badge-btn__badge):not(.header-badge-btn__slot) { display: none; }
             main.flex-grow { padding-top: 5.5rem !important; }
             .listing-detail-main-image {
                 min-height: 220px;
@@ -3011,8 +3011,12 @@
         }
 
         .header-badge-btn { position: relative; min-width: 44px; min-height: 44px; justify-content: center; }
+        .header-badge-btn__slot { display: inline; }
         .header-badge-btn__badge { position: absolute; top: -7px; right: -8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; line-height: 18px; font-weight: 900; box-shadow: 0 8px 18px rgba(239,68,68,.35); }
         .header-badge-btn__badge.is-empty { display: none; }
+        .mobile-notification-btn { position: relative; }
+        .mobile-notification-badge { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #6c5ce7; color: white; font-size: 11px; font-weight: 700; line-height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(108, 92, 231, .35); }
+        .mobile-notification-badge.is-empty { display: none; }
         .notification-panel { position: fixed; z-index: 80; width: min(380px, calc(100vw - 28px)); max-height: 72vh; overflow:auto; border-radius: 24px; background: rgba(255,255,255,.98); border: 1px solid rgba(226,232,240,.9); box-shadow: 0 30px 70px rgba(15,23,42,.22); padding: 14px; }
         .notification-panel--full { left: 50% !important; right: auto !important; top: 96px !important; transform: translateX(-50%); width: min(720px, calc(100vw - 28px)); max-height: calc(100dvh - 124px); }
         .notification-full-backdrop { position: fixed; inset: 0; z-index: 79; background: rgba(15,23,42,.28); backdrop-filter: blur(3px); }
@@ -3516,7 +3520,7 @@
             .nav-links-wrapper { gap: 13px; }
             .header-actions-row { gap: 7px; padding-left: 10px; }
             .header-action-btn { padding-inline: .65rem; }
-            .header-actions-row .header-action-btn:not(.header-action-btn--primary) span:not(.header-badge-btn__badge) { display: none; }
+            .header-actions-row .header-action-btn:not(.header-action-btn--primary) span:not(.header-badge-btn__badge):not(.header-badge-btn__slot) { display: none; }
             .header-action-btn--primary { padding-inline: .8rem; }
             .desktop-header-cluster .nav-link { font-size: .78rem; }
         }
@@ -3699,7 +3703,7 @@
             .nav-links-wrapper { gap: 8px; }
             .header-actions-row { gap: 6px; margin-left: 4px; }
             .header-action-btn { padding-inline: 10px; }
-            .header-actions-row .header-action-btn span:not(.header-badge-btn__badge) { display: none; }
+            .header-actions-row .header-action-btn span:not(.header-badge-btn__badge):not(.header-badge-btn__slot) { display: none; }
             .header-action-btn--primary { width: 42px; padding: 0; }
         }
         @media (max-width: 1023px) {
@@ -9819,17 +9823,30 @@ Title: CASPIAN DREAM LINER
             } catch (_error) {}
         }
 
-        function badgeHtml(count) {
+        function badgeHtml(count, extraClass = '') {
             const value = Number(count || 0);
-            return `<span class="header-badge-btn__badge ${value ? '' : 'is-empty'}">${value > 99 ? '99+' : value}</span>`;
+            const classes = ['header-badge-btn__badge', extraClass, value ? '' : 'is-empty'].filter(Boolean).join(' ');
+            return `<span class="${classes}">${value > 99 ? '99+' : value}</span>`;
+        }
+
+        function badgeSlotHtml(type, count, options = {}) {
+            const attr = type === 'message' ? 'data-message-badge' : 'data-notification-badge';
+            const variant = options.variant ? ` data-badge-variant="${escapeHtml(options.variant)}"` : '';
+            return `<span ${attr} class="header-badge-btn__slot"${variant}>${badgeHtml(count, options.badgeClass || '')}</span>`;
+        }
+
+        function badgeClassForSlot(el, type) {
+            return type === 'notification' && el?.dataset?.badgeVariant === 'mobile' ? 'mobile-notification-badge' : '';
         }
 
         function refreshHeaderBadges() {
             clearTimeout(messagingState.badgeRefreshTimer);
-            messagingState.badgeRefreshTimer = setTimeout(() => {
-                document.querySelectorAll('[data-notification-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.notificationsUnread));
-                document.querySelectorAll('[data-message-badge]').forEach(el => el.innerHTML = badgeHtml(messagingState.messagesUnread));
-            }, 80);
+            document.querySelectorAll('[data-notification-badge]').forEach(el => {
+                el.innerHTML = badgeHtml(messagingState.notificationsUnread, badgeClassForSlot(el, 'notification'));
+            });
+            document.querySelectorAll('[data-message-badge]').forEach(el => {
+                el.innerHTML = badgeHtml(messagingState.messagesUnread, badgeClassForSlot(el, 'message'));
+            });
         }
 
         function perfLog(label, startedAt) {
@@ -10534,8 +10551,8 @@ Title: CASPIAN DREAM LINER
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
-                    <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i><span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button>
-                    <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar"><i class="fa-solid fa-message"></i><span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button>
+                    <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>
+                    <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar"><i class="fa-solid fa-message"></i>${badgeSlotHtml('message', messagingState.messagesUnread)}</button>
                     <div class="relative group">
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
                         <div class="profile-dropdown-shell absolute right-0 top-full z-50 hidden group-hover:block group-focus-within:block">
@@ -10550,7 +10567,7 @@ Title: CASPIAN DREAM LINER
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon">🔔<span data-notification-badge>${badgeHtml(messagingState.notificationsUnread)}</span></button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon">💬<span data-message-badge>${badgeHtml(messagingState.messagesUnread)}</span></button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon mobile-notification-btn" aria-label="Bildirişlər">🔔${badgeSlotHtml('notification', messagingState.notificationsUnread, { variant: 'mobile', badgeClass: 'mobile-notification-badge' })}</button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon" aria-label="Mesajlar">💬${badgeSlotHtml('message', messagingState.messagesUnread)}</button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
                 readMessagingCache();
                 refreshHeaderBadges();
                 loadBadgeSummary();
