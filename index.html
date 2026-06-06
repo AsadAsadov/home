@@ -9845,6 +9845,7 @@ Title: CASPIAN DREAM LINER
                 messagingState.notificationsUnread = summary.notificationsUnread || 0;
                 messagingState.messagesUnread = summary.messagesUnread || 0;
                 refreshHeaderBadges();
+                writeMessagingCache();
             } catch (error) { console.warn('Badge summary failed', error); }
         }
 
@@ -9859,11 +9860,57 @@ Title: CASPIAN DREAM LINER
             });
         }
 
+        function updateOpenNotificationsPanel() {
+            const panel = document.getElementById('notification-panel');
+            if (!panel) return;
+            renderNotificationsPanel({ full: panel.classList.contains('notification-panel--full') });
+        }
+
+        function handleRealtimeNotificationNew(payload) {
+            const notification = payload?.notification || payload;
+            const unreadCount = Number(payload?.unreadCount);
+            if (!notification || isMessageNotification(notification)) return;
+            const alreadyVisible = messagingState.notifications.some(n => String(n.id) === String(notification.id));
+            messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))];
+            if (Number.isFinite(unreadCount)) {
+                messagingState.notificationsUnread = Math.max(0, unreadCount);
+            } else if (!alreadyVisible && !notification.isRead) {
+                messagingState.notificationsUnread += 1;
+            }
+            refreshHeaderBadges();
+            updateOpenNotificationsPanel();
+            writeMessagingCache();
+        }
+
+        function handleRealtimeNotificationRead({ notificationId, unreadCount } = {}) {
+            if (notificationId) {
+                const item = messagingState.notifications.find(n => String(n.id) === String(notificationId) && !isMessageNotification(n));
+                if (item) item.isRead = true;
+            }
+            const nextCount = Number(unreadCount);
+            if (Number.isFinite(nextCount)) messagingState.notificationsUnread = Math.max(0, nextCount);
+            refreshHeaderBadges();
+            updateOpenNotificationsPanel();
+            writeMessagingCache();
+        }
+
+        function handleRealtimeNotificationsReadAll({ unreadCount } = {}) {
+            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
+            const nextCount = Number(unreadCount);
+            messagingState.notificationsUnread = Number.isFinite(nextCount) ? Math.max(0, nextCount) : 0;
+            refreshHeaderBadges();
+            updateOpenNotificationsPanel();
+            writeMessagingCache();
+        }
+
         async function connectRealtime() {
             if (!activeUser || messagingState.socket) return;
             if (!await ensureSocketClientScript()) return;
             messagingState.socket = io({ auth: { token: getAuthToken() }, transports: ['websocket', 'polling'] });
-            messagingState.socket.on('notification:new', (notification) => { if (isMessageNotification(notification)) return; messagingState.notificationsUnread += 1; messagingState.notifications = [notification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))]; refreshHeaderBadges(); writeMessagingCache(); });
+            messagingState.socket.on('connect', () => loadBadgeSummary());
+            messagingState.socket.on('notification:new', handleRealtimeNotificationNew);
+            messagingState.socket.on('notification:read', handleRealtimeNotificationRead);
+            messagingState.socket.on('notification:read-all', handleRealtimeNotificationsReadAll);
             messagingState.socket.on('message:new', ({ message }) => {
                 if (!message || messagingState.seenMessageIds.has(String(message.id))) return;
                 messagingState.seenMessageIds.add(String(message.id));
@@ -9902,7 +9949,12 @@ Title: CASPIAN DREAM LINER
         }
 
         function disconnectRealtime() {
-            if (messagingState.socket) messagingState.socket.disconnect();
+            if (messagingState.socket) {
+                messagingState.socket.off('notification:new', handleRealtimeNotificationNew);
+                messagingState.socket.off('notification:read', handleRealtimeNotificationRead);
+                messagingState.socket.off('notification:read-all', handleRealtimeNotificationsReadAll);
+                messagingState.socket.disconnect();
+            }
             messagingState.socket = null;
         }
 

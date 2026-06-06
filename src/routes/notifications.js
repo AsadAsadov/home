@@ -2,6 +2,8 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate } = require('../middleware/auth');
+const { emitToUser } = require('../utils/realtime');
+const { getUnreadNotificationCount } = require('../utils/inAppNotifications');
 
 const router = express.Router();
 
@@ -63,8 +65,10 @@ router.patch('/read-all', authenticate, asyncHandler(async (req, res) => {
   const startedAt = process.hrtime.bigint();
   try {
     const result = await prisma.notification.updateMany({ where: { ...nonMessageNotificationWhere(req), isRead: false }, data: { isRead: true } });
+    const unreadCount = await getUnreadNotificationCount(req.auth.id);
+    emitToUser(req.auth.id, 'notification:read-all', { unreadCount });
     console.log('[notifications] mark all read durationMs', { userId: req.auth.id, count: result.count, durationMs: Math.round(durationMs(startedAt)) });
-    res.json({ success: true, count: result.count });
+    res.json({ success: true, count: result.count, unreadCount });
   } catch (error) {
     console.error('[notifications] mark all read failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code });
     throw error;
@@ -77,7 +81,9 @@ router.patch('/:id/read', authenticate, asyncHandler(async (req, res) => {
   const notification = await prisma.notification.findFirst({ where: { id, ...nonMessageNotificationWhere(req) } });
   if (!notification) return res.status(404).json({ message: 'Notification not found.' });
   const updated = await prisma.notification.update({ where: { id }, data: { isRead: true } });
-  res.json(updated);
+  const unreadCount = await getUnreadNotificationCount(req.auth.id);
+  emitToUser(req.auth.id, 'notification:read', { notificationId: id, unreadCount });
+  res.json({ ...updated, unreadCount });
 }));
 
 module.exports = router;
