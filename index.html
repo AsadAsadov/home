@@ -4330,6 +4330,16 @@
             .header-action-btn { transition: none; }
         }
 
+        /* Page shell spacing: the sticky header is in normal document flow, so do not
+           add a second header-height offset to the main content. Keep the hero/ad row
+           close to the header and aligned by placing one small gap on the shared shell. */
+        :root { --page-top-gap: 12px; }
+        .desktop-ad-layout { padding-top: var(--page-top-gap); }
+        .desktop-ad-layout > main.flex-grow { padding-top: 0 !important; }
+        @media (max-width: 640px) {
+            :root { --page-top-gap: 10px; }
+        }
+
         /* Responsive header guardrails: desktop navigation and actions never crowd the mobile row. */
         @media (max-width: 1023px) {
             .desktop-header-cluster,
@@ -16786,7 +16796,6 @@ Təşəkkür edirəm. 🙏`;
             }
             if (path === '/projects') {
                 switchTab('seabreeze', { skipPush: true });
-                document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 updateSeo({ title: 'Layihələr', path });
                 return;
             }
