@@ -44,7 +44,18 @@ test('public projects API only requires a project to be non-archived', () => {
 function extractFunctionSource(source, functionName) {
   const start = source.indexOf(`function ${functionName}`);
   assert.notEqual(start, -1, `${functionName} should exist`);
-  const bodyStart = source.indexOf('{', start);
+  const signatureStart = source.indexOf('(', start);
+  let parenDepth = 0;
+  let bodyStart = -1;
+  for (let index = signatureStart; index < source.length; index += 1) {
+    if (source[index] === '(') parenDepth += 1;
+    if (source[index] === ')') parenDepth -= 1;
+    if (parenDepth === 0) {
+      bodyStart = source.indexOf('{', index);
+      break;
+    }
+  }
+  assert.notEqual(bodyStart, -1, `${functionName} body should exist`);
   let depth = 0;
   for (let index = bodyStart; index < source.length; index += 1) {
     if (source[index] === '{') depth += 1;
@@ -182,4 +193,37 @@ test('project modal tab switch activates only the selected panel and updates ari
   assert.equal(elements['op-tab-apartments'].classList.contains('hidden'), true);
   assert.match(elements['op-tab-btn-pricing'].className, /border-brand-500 text-brand-500/);
   assert.match(elements['op-tab-btn-details'].className, /border-transparent text-gray-400/);
+});
+
+test('public Add Listing project dropdown uses unique title-cased database projects only', () => {
+  const appData = {
+    projects: [
+      { id: 1, title: 'BRABUS ISLAND', region: 'Sea Breeze' },
+      { id: 2, title: 'Brabus Island', region: 'Sea Breeze' },
+      { id: 3, title: 'monaco residence', region: 'Sea Breeze' },
+      { id: 4, title: 'ARABIAN RANCHES', region: 'Sea Breeze' },
+    ],
+  };
+  const script = [
+    extractFunctionSource(homepage, 'projectTitleCase'),
+    extractFunctionSource(homepage, 'normalizeProjectOptionKey'),
+    'function getSeaBreezeProjects() { return appData.projects; }',
+    extractFunctionSource(homepage, 'getUniqueSeaBreezeProjectNames'),
+    extractFunctionSource(homepage, 'getPublicSeaBreezeProjectNames'),
+    'return getPublicSeaBreezeProjectNames;',
+  ].join('\n');
+  const getPublicSeaBreezeProjectNames = new Function('appData', script)(appData);
+
+  assert.deepEqual(getPublicSeaBreezeProjectNames(), [
+    'Arabian Ranches',
+    'Brabus Island',
+    'Monaco Residence',
+  ]);
+});
+
+test('public Add Listing project dropdown does not use hardcoded known place names', () => {
+  const getPublicProjectsSource = extractFunctionSource(homepage, 'getPublicSeaBreezeProjectNames');
+  assert.doesNotMatch(getPublicProjectsSource, /KNOWN_SEA_BREEZE_PLACES/);
+  assert.doesNotMatch(getPublicProjectsSource, /knownNames/);
+  assert.doesNotMatch(homepage, /Brabus Tower/);
 });
