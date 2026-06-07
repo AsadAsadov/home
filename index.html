@@ -1343,6 +1343,121 @@
             .project-category-segment .project-cat-btn { flex: 1 1 100%; justify-content: center; }
         }
 
+
+        .sea-breeze-project-heading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+        }
+        .sea-breeze-project-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+            padding: .42rem .78rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, .62);
+            background: linear-gradient(135deg, rgba(127, 127, 255, .16), rgba(37, 99, 235, .10) 48%, rgba(255, 255, 255, .72));
+            color: #4f46e5;
+            box-shadow: 0 10px 28px rgba(79, 70, 229, .12), inset 0 1px 0 rgba(255, 255, 255, .82);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .22em;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .sea-breeze-project-heading h2 { letter-spacing: -.025em; }
+        @media (min-width: 768px) {
+            .sea-breeze-project-heading { align-items: flex-start; }
+        }
+        .project-filter-panel {
+            max-width: none;
+            padding: 1rem;
+            gap: 1rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, .4);
+            background: rgba(255, 255, 255, .85);
+            box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+        }
+        .project-filter-panel .premium-filter-field {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .project-filter-panel .premium-filter-field--search {
+            flex: 1 1 300px;
+            max-width: none;
+        }
+        .project-filter-panel .premium-filter-field:not(.premium-filter-field--search):not(.premium-filter-field--compact) {
+            flex: 1 1 455px;
+        }
+        .project-filter-panel .premium-filter-field--compact { flex: 0 1 170px; }
+        .project-filter-panel .premium-filter-control {
+            border-color: rgba(255, 255, 255, .72) !important;
+            background: rgba(255, 255, 255, .78) !important;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .05), inset 0 1px 0 rgba(255, 255, 255, .9);
+        }
+        .project-filter-panel .premium-filter-control:hover {
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .075), inset 0 1px 0 rgba(255, 255, 255, .95);
+        }
+        .project-filter-panel .project-category-segment { gap: .6rem; }
+        .project-filter-panel .project-category-segment .project-cat-btn {
+            min-height: 44px;
+            padding: 0 1.05rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, .65);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .055), inset 0 1px 0 rgba(255, 255, 255, .82);
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, color 180ms ease, background 180ms ease;
+        }
+        .project-filter-panel .project-category-segment .project-cat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(79, 70, 229, .14), inset 0 1px 0 rgba(255, 255, 255, .92);
+        }
+        .project-filter-panel .project-category-segment .project-cat-btn.bg-brand-500 {
+            border-color: rgba(127, 127, 255, .42) !important;
+            background: linear-gradient(135deg, #7f7fff 0%, #6d5dfc 48%, #8b5cf6 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 18px 34px rgba(109, 93, 252, .27), inset 0 1px 0 rgba(255, 255, 255, .35);
+        }
+        .project-filter-panel .project-category-segment .project-cat-btn:not(.bg-brand-500) {
+            border-color: rgba(255, 255, 255, .68) !important;
+            background: rgba(255, 255, 255, .76) !important;
+            color: #475569 !important;
+        }
+        .project-filter-panel .project-category-segment .project-cat-btn:not(.bg-brand-500):hover {
+            border-color: rgba(127, 127, 255, .30) !important;
+            background: rgba(255, 255, 255, .94) !important;
+            color: #4f46e5 !important;
+        }
+        @media (max-width: 767.98px) {
+            .project-filter-panel {
+                padding: .85rem;
+                gap: .85rem;
+                border-radius: 22px;
+            }
+            .project-filter-panel .premium-filter-field,
+            .project-filter-panel .premium-filter-field--search,
+            .project-filter-panel .premium-filter-field--compact {
+                flex: 1 1 100%;
+                min-width: 100%;
+                max-width: 100%;
+            }
+            .project-filter-panel .project-category-segment { gap: .55rem; }
+            .project-filter-panel .project-category-segment .project-cat-btn {
+                flex: 1 1 calc(50% - .55rem);
+                justify-content: center;
+                padding: 0 .85rem;
+            }
+        }
+        @media (max-width: 420px) {
+            .project-filter-panel .project-category-segment .project-cat-btn { flex-basis: 100%; }
+        }
+
         .bg-brand-500 {
             background-color: var(--color-primary) !important;
         }
@@ -4456,7 +4571,8 @@
 
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
             <div class="space-y-6">
-                <div class="text-center md:text-left">
+                <div class="sea-breeze-project-heading text-center md:text-left">
+                    <span class="sea-breeze-project-badge">SEA BREEZE COLLECTION</span>
                     <h2 class="text-2xl font-extrabold text-gray-900">Sea Breeze Layihələri</h2>
                     <p class="text-gray-700 text-xs font-medium">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
                 </div>
@@ -4474,16 +4590,16 @@
                         <span class="premium-filter-label">Əmlak tipi</span>
                         <div class="project-category-segment" id="project-category-filters">
                             <button onclick="switchProjectCategory('all')" id="p-cat-all" class="project-cat-btn inline-flex items-center bg-brand-500 text-white transition duration-200 font-bold text-sm">
-                                <i class="fa-solid fa-layer-group mr-2"></i> Hamısı
+                                <i class="fa-solid fa-layer-group mr-2"></i> All
                             </button>
                             <button onclick="switchProjectCategory('Apartment')" id="p-cat-Apartment" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
-                                <i class="fa-solid fa-building mr-2"></i> Mənzillər
+                                <i class="fa-solid fa-building mr-2"></i> Apartments
                             </button>
                             <button onclick="switchProjectCategory('Villa')" id="p-cat-Villa" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
-                                <i class="fa-solid fa-tents mr-2"></i> Villalar
+                                <i class="fa-solid fa-tents mr-2"></i> Villas
                             </button>
                             <button onclick="switchProjectCategory('Townhouse')" id="p-cat-Townhouse" class="project-cat-btn inline-flex items-center bg-brand-50 text-gray-500 hover:text-brand-500 transition duration-200 font-bold text-sm">
-                                <i class="fa-solid fa-house-flag mr-2"></i> Taunhauslar
+                                <i class="fa-solid fa-house-flag mr-2"></i> Townhouses
                             </button>
                         </div>
                     </div>
@@ -5140,7 +5256,7 @@
                             <div class="project-form-grid">
                                 <label>Layihə adı *<input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner"></label>
                                 <label>Zona<input type="text" id="project-zone" placeholder="Məs: Sea Breeze"></label>
-                                <label>Növ<select id="project-category"><option value="Apartment">Mənzil (Apartment)</option><option value="Villa">Şəxsi Villa</option><option value="Townhouse">Taunhaus</option></select></label>
+                                <label>Növ<select id="project-category"><option value="Apartment">Mənzil (Apartment)</option><option value="Villa">Şəxsi Villa</option><option value="Townhouse">Townhouses</option></select></label>
                                 <label>Təhvil tarixi<input type="text" id="project-year" placeholder="2028"></label>
                                 <label>Sahil xətti<input type="text" id="project-coastline" placeholder="1-ci sahil xətti"></label>
                                 <label>Dənizə məsafə<input type="text" id="project-sea-distance" placeholder="100 m"></label>
