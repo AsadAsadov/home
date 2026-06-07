@@ -9114,10 +9114,7 @@ Title: CASPIAN DREAM LINER
                     if (hidden) hidden.value = event.target.value || '';
                 });
                 document.getElementById('sb-project')?.addEventListener('change', () => {
-                    syncGeneralDistrictSelect();
-                    toggleMetroFieldForCity();
-                    setTimeout(initAdminListingMap, 50);
-                    debouncedAdminLocationSearch();
+                    handleAdminProjectSelectionChange();
                 });
             }
         }
@@ -9162,6 +9159,7 @@ Title: CASPIAN DREAM LINER
             ensureGeneralDistrictField();
             syncGeneralDistrictSelect();
             toggleMetroFieldForCity();
+            clearAdminListingCoordinates({ resetMapView: true });
             setTimeout(initAdminListingMap, 50);
             toggleFormFieldsBasedOnCategory();
         }
@@ -9216,7 +9214,8 @@ Title: CASPIAN DREAM LINER
         const BAKU_DEFAULT_ZOOM = 12;
 
         function adminMapDefaultCenter() {
-            return BAKU_DEFAULT_CENTER;
+            const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
+            return region === 'seabreeze' ? SEA_BREEZE_DEFAULT_CENTER : BAKU_DEFAULT_CENTER;
         }
 
         function setAdminListingCoordinates(lat, lng, { moveMap = true, reverse = true, zoom = 16, manual = false } = {}) {
@@ -9240,6 +9239,47 @@ Title: CASPIAN DREAM LINER
                 if (moveMap) adminListingMap.setView(point, Math.max(adminListingMap.getZoom(), zoom));
             }
             if (reverse) reverseGeocodeAdminListingLocation(latNum, lngNum);
+        }
+
+        function clearAdminListingCoordinates({ clearSearch = false, clearAddress = false, resetMapView = false } = {}) {
+            const latInput = document.getElementById('sb-latitude');
+            const lngInput = document.getElementById('sb-longitude');
+            if (latInput) latInput.value = '';
+            if (lngInput) lngInput.value = '';
+            const searchInput = document.getElementById('sb-location-search');
+            if (searchInput) {
+                delete searchInput.dataset.selectedLocation;
+                if (clearSearch) searchInput.value = '';
+            }
+            if (clearAddress) {
+                const streetInput = document.getElementById('sb-street-address');
+                if (streetInput) streetInput.value = '';
+            }
+            document.getElementById('sb-location-results')?.classList.add('hidden');
+            document.getElementById('sb-manual-pin-note')?.classList.add('hidden');
+            window.__lastAdminLocationResults = [];
+            window.__lastAdminLocationSearchToken = `cleared-${Date.now()}`;
+            if (adminListingMarker) {
+                adminListingMarker.remove();
+                adminListingMarker = null;
+            }
+            if (resetMapView && adminListingMap) adminListingMap.setView(adminMapDefaultCenter(), 12);
+        }
+
+        function handleAdminProjectSelectionChange() {
+            syncGeneralDistrictSelect();
+            toggleMetroFieldForCity();
+            const selectedProject = document.getElementById('sb-project')?.value || '';
+            const regionType = document.getElementById('sb-region-type')?.value || 'seabreeze';
+            if (regionType === 'seabreeze') {
+                const districtInput = document.getElementById('sb-district');
+                if (districtInput) districtInput.value = selectedProject;
+                const streetInput = document.getElementById('sb-street-address');
+                if (streetInput && selectedProject) streetInput.value = selectedProject;
+                const searchInput = document.getElementById('sb-location-search');
+                if (searchInput && selectedProject) searchInput.value = selectedProject;
+            }
+            clearAdminListingCoordinates({ resetMapView: true });
         }
 
         function initAdminListingMap() {
@@ -9410,26 +9450,7 @@ Title: CASPIAN DREAM LINER
         }
 
         const SEA_BREEZE_DEFAULT_CENTER = [40.5912, 49.9867];
-        const KNOWN_SEA_BREEZE_PLACES = [
-            { title: 'Marina Village', lat: 40.5867, lon: 49.9879, keywords: 'marina village marina vilage marina villag' },
-            { title: 'Sea Breeze', lat: 40.5912, lon: 49.9867, keywords: 'sea breeze seabreeze si briz sea bree' },
-            { title: 'Arabian Ranches', lat: 40.5912, lon: 49.9867, keywords: 'arabian ranches arabian ranch arab ranches' },
-            { title: 'Lighthouse', lat: 40.5912, lon: 49.9867, keywords: 'lighthouse light house laythaus mayak' },
-            { title: 'Lighthouse 1', lat: 40.5912, lon: 49.9867, keywords: 'lighthouse 1 lighthouse one light house 1' },
-            { title: 'Lighthouse 2', lat: 40.5912, lon: 49.9867, keywords: 'lighthouse 2 lighthouse two light house 2' },
-            { title: 'Caspian Dream Liner', lat: 40.5912, lon: 49.9867, keywords: 'caspian dream liner kaspian dreamliner' },
-            { title: 'Gardens Residences', lat: 40.5912, lon: 49.9867, keywords: 'gardens residences garden residence gardens' },
-            { title: 'Palm Beach', lat: 40.5912, lon: 49.9867, keywords: 'palm beach palm bich' },
-            { title: 'Palazzo Del Mare', lat: 40.5912, lon: 49.9867, keywords: 'palazzo del mare palazo mare' },
-            { title: 'Prime Residence', lat: 40.5912, lon: 49.9867, keywords: 'prime residence prime rezidens' },
-            { title: 'Park Residences', lat: 40.5912, lon: 49.9867, keywords: 'park residences park residence' },
-            { title: 'Sky Park', lat: 40.5912, lon: 49.9867, keywords: 'sky park skay park' },
-            { title: 'Miami Residence', lat: 40.5912, lon: 49.9867, keywords: 'miami residence mayami residence' },
-            { title: 'Blue Waters', lat: 40.5912, lon: 49.9867, keywords: 'blue waters blue water blu waters' },
-            { title: 'Harbour Residence', lat: 40.5912, lon: 49.9867, keywords: 'harbour residence harbor residence harbour' },
-            { title: 'Monaco Residence', lat: 40.5912, lon: 49.9867, keywords: 'monaco residence monako residence' },
-            { title: 'Brabus Island', lat: 40.5912, lon: 49.9867, keywords: 'brabus island brabus adasi' }
-        ];
+        const KNOWN_SEA_BREEZE_PLACES = [];
         const LOCAL_LOCATION_INDEX = [
             ...KNOWN_SEA_BREEZE_PLACES.map(place => ({ ...place, city: 'Sea Breeze', knownPlace: true, addressText: `${place.title}, Sea Breeze, Baku, Azerbaijan` })),
             { title: 'Sadıqcan küçəsi', city: 'Bakı', lat: 40.4055, lon: 49.8738, keywords: 'sadıqcan küçəsi sadiqcan kucesi sadigcan kuchesi sadiqcan kuce sadıqcan küç sadigcan kuc sadigcan street' },
@@ -9455,9 +9476,6 @@ Title: CASPIAN DREAM LINER
             { title: 'Buzovna', city: 'Bakı', lat: 40.5194, lon: 50.1139, keywords: 'buzovna buzovna qesebesi' },
             { title: 'Mərdəkan', city: 'Bakı', lat: 40.4920, lon: 50.1429, keywords: 'merdekan mərdekan mərdəkan mardakan' },
             { title: 'Bilgəh', city: 'Bakı', lat: 40.5680, lon: 50.0378, keywords: 'bilgeh bilgəh bilgah' },
-            { title: 'Sea Breeze', city: 'Sea Breeze', lat: 40.5912, lon: 49.9867, keywords: 'sea breeze seabreeze sea bree si briz' },
-            { title: 'West Town', city: 'Sea Breeze', lat: 40.5918, lon: 49.9846, keywords: 'west town west tow vest taun sea breeze' },
-            { title: 'Marina Village', city: 'Sea Breeze', lat: 40.5867, lon: 49.9879, keywords: 'marina village marina vilage sea breeze' },
             { title: 'Park Azure', city: 'Bakı', lat: 40.3832, lon: 49.8758, keywords: 'park azure park azur azure xetai' },
             { title: 'Port Baku', city: 'Bakı', lat: 40.3736, lon: 49.8586, keywords: 'port baku port baki port bakı' },
             { title: 'Ağ Şəhər', city: 'Bakı', lat: 40.3843, lon: 49.8876, keywords: 'ag seher ağ şəhər ag sheher white city' },
@@ -9529,30 +9547,8 @@ Title: CASPIAN DREAM LINER
                 .slice(0, 6);
         }
 
-        function projectLocationRowsForQuery(query = '') {
-            const q = String(query || '').trim();
-            if (q.length < 3) return [];
-            const rows = [];
-            const seen = new Set();
-            getOfficialProjects()
-                .filter(project => locationTextContains([project.title, project.slug, project.desc, project.features, project.category].filter(Boolean).join(' '), q))
-                .forEach(project => {
-                    const title = String(project.title || '').trim();
-                    const key = normalizeLocationSearchText(title);
-                    if (!title || seen.has(key)) return;
-                    seen.add(key);
-                    rows.push({
-                        source: 'project',
-                        type: 'project',
-                        class: 'place',
-                        lat: project.latitude || project.lat || SEA_BREEZE_DEFAULT_CENTER[0],
-                        lon: project.longitude || project.lng || project.lon || SEA_BREEZE_DEFAULT_CENTER[1],
-                        display_name: `${title}, Sea Breeze, Azerbaijan`,
-                        address: { city: 'Sea Breeze', city_district: title, suburb: title, neighbourhood: title },
-                        projectTitle: title,
-                    });
-                });
-            return rows.slice(0, 6);
+        function projectLocationRowsForQuery(_query = '') {
+            return [];
         }
 
         function locationRowsBeforeRemote(query = '') {
@@ -9638,7 +9634,7 @@ Title: CASPIAN DREAM LINER
             const region = document.getElementById('sb-region-type')?.value || '';
             const city = document.getElementById('sb-project')?.value || '';
             if (region === 'general' && city) return city;
-            return 'Bakı';
+            return 'Sea Breeze, Bakı';
         }
 
 
@@ -9813,7 +9809,7 @@ Title: CASPIAN DREAM LINER
             }).slice(0, 8);
         }
 
-        async function searchLocationsWithPriority(query = '', { city = 'Bakı', district = '' } = {}) {
+        async function searchLocationsWithPriority(query = '', { city = 'Bakı', district = '', includeLocal = true } = {}) {
             const q = String(query || '').trim();
             console.info('[map-search] query', q);
             if (q.length < 3) {
@@ -9823,7 +9819,7 @@ Title: CASPIAN DREAM LINER
                 console.info('[map-search] final count', 0);
                 return [];
             }
-            const localRows = mergeLocationRows(localLocationRowsForQuery(q), projectLocationRowsForQuery(q), 10);
+            const localRows = includeLocal ? mergeLocationRows(localLocationRowsForQuery(q), projectLocationRowsForQuery(q), 10) : [];
             console.info('[map-search] provider local count', localRows.length);
             let mapboxRows = [];
             let nominatimRows = [];
@@ -9872,12 +9868,18 @@ Title: CASPIAN DREAM LINER
 
         function debouncedAdminLocationSearch() {
             clearTimeout(window.__adminLocationSearchTimer);
-            const query = (document.getElementById('sb-location-search')?.value || '').trim();
+            const queryInput = document.getElementById('sb-location-search');
+            const query = (queryInput?.value || '').trim();
             const resultsEl = document.getElementById('sb-location-results');
             if (!resultsEl) return;
+            if (queryInput?.dataset.selectedLocation && query !== queryInput.dataset.selectedLocation) {
+                delete queryInput.dataset.selectedLocation;
+                clearAdminListingCoordinates();
+            }
             window.__lastAdminLocationSearchToken = `typing-${Date.now()}`;
             if (query.length < 3) {
                 window.__lastAdminLocationResults = [];
+                if (!query.length) clearAdminListingCoordinates({ clearAddress: true });
                 resultsEl.innerHTML = query.length ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Axtarış üçün ən az 3 hərf yazın</div>' : '';
                 resultsEl.classList.toggle('hidden', !query.length);
                 return;
@@ -9895,13 +9897,13 @@ Title: CASPIAN DREAM LINER
             const token = `${Date.now()}-${query}`;
             window.__lastAdminLocationSearchToken = token;
             resultsEl.classList.remove('hidden');
-            const instantRows = locationRowsBeforeRemote(query);
+            const instantRows = [];
             window.__lastAdminLocationResults = instantRows;
             renderAdminLocationResults(instantRows, query, { loading: true });
             const city = adminLocationSearchCity();
             const district = document.getElementById('sb-district')?.value || '';
             try {
-                const rows = await searchLocationsWithPriority(query, { city, district });
+                const rows = await searchLocationsWithPriority(query, { city, district, includeLocal: false });
                 if (!isSearchResponseCurrent('sb-location-search', '__lastAdminLocationSearchToken', token, query)) return;
                 window.__lastAdminLocationResults = rows;
                 renderAdminLocationResults(rows, query, { error: false });
@@ -9926,7 +9928,10 @@ Title: CASPIAN DREAM LINER
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
             setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false, zoom });
             fillLocationFieldsFromAddress(item.address || {}, item.display_name || item.name || '');
-            if (searchInput) searchInput.value = item.display_name || item.name || searchInput.value;
+            if (searchInput) {
+                searchInput.value = item.display_name || item.name || searchInput.value;
+                searchInput.dataset.selectedLocation = searchInput.value;
+            }
             if (fullscreenMapSource === 'admin') {
                 updateFullscreenMarker([Number(item.lat), Number(item.lon)], true);
                 fullscreenMap?.setView([Number(item.lat), Number(item.lon)], zoom);
@@ -15991,6 +15996,14 @@ Təşəkkür edirəm. 🙏`;
             const streetAddress = document.getElementById('sb-street-address')?.value.trim() || '';
             const latitude = safeNumber(document.getElementById('sb-latitude')?.value);
             const longitude = safeNumber(document.getElementById('sb-longitude')?.value);
+
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                alert('Xəritədə dəqiq yeri seçin və ya axtarış nəticəsindən seçin.');
+                document.getElementById('sb-location-search')?.focus();
+                isListingSaveSubmitting = false;
+                setListingSaveButtonLoading(false);
+                return;
+            }
 
             if (!editId && !(await ensureListingContactPhone())) {
                 isListingSaveSubmitting = false;
