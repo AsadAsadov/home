@@ -3990,6 +3990,118 @@
         .project-detail-row--long strong { display: block; text-align: left; margin-top: .35rem; line-height: 1.65; }
         @media (max-width: 640px) { .project-form-grid, .project-detail-sections { grid-template-columns: 1fr; } .project-detail-section--wide { grid-column: auto; } .project-detail-row { flex-direction: column; gap: .2rem; } .project-detail-row strong { text-align: left; } }
 
+        /* Mobile-first official project modal refinements. */
+        #project-detail-modal-official .detail-close-btn {
+            position: sticky;
+            top: 12px;
+            z-index: 4050;
+        }
+        .op-modal-tabs-row { min-width: 0; }
+        .op-modal-tabs { min-width: 0; }
+        .op-modal-tabs button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            border-radius: 999px 999px 0 0;
+        }
+        #op-tab-description { width: 100%; }
+        @media (max-width: 767px) {
+            #project-detail-modal-official {
+                align-items: stretch;
+                padding: 10px 8px;
+            }
+            #project-detail-modal-official .modal-glass-panel {
+                max-height: calc(100dvh - 20px);
+                border-radius: 1.35rem;
+            }
+            #project-detail-modal-official > .glass-card > .overflow-y-auto > .detail-close-btn {
+                margin: 10px 10px -54px auto;
+                width: 40px;
+                min-width: 40px;
+                height: 40px;
+                min-height: 40px;
+            }
+            .op-modal-body {
+                padding: 1rem !important;
+                padding-inline: clamp(.9rem, 4vw, 1.15rem) !important;
+                gap: 1rem !important;
+            }
+            .op-modal-tabs-row {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr);
+                padding-right: 48px;
+                gap: .75rem;
+            }
+            .op-modal-tabs {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: .55rem !important;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: .15rem .35rem .65rem 0;
+                scroll-padding-inline: .25rem 4.25rem;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+            .op-modal-tabs button {
+                padding: .55rem .75rem .7rem !important;
+                background: rgba(255,255,255,.72);
+                color: #475569 !important;
+                border-bottom-width: 2px !important;
+                box-shadow: inset 0 0 0 1px rgba(148,163,184,.22);
+                font-size: .82rem !important;
+                line-height: 1;
+            }
+            .op-modal-tabs button.border-brand-500 {
+                background: rgba(127,127,255,.12);
+                color: var(--color-primary) !important;
+                box-shadow: inset 0 0 0 1px rgba(127,127,255,.28);
+            }
+            .op-modal-share {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .op-modal-share-btn {
+                min-height: 40px;
+                padding-inline: .9rem !important;
+                border-radius: 999px !important;
+                font-size: .82rem !important;
+            }
+            .project-detail-sections:not(.hidden) {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) !important;
+                gap: .85rem;
+                width: 100%;
+            }
+            .project-detail-section,
+            #op-tab-description {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+                padding: 1rem;
+                border-radius: 1.15rem;
+            }
+            .project-detail-section--wide { grid-column: auto; }
+            .project-detail-row {
+                min-width: 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: .25rem;
+            }
+            .project-detail-row strong,
+            .project-detail-row span,
+            #op-modal-desc-text {
+                width: 100%;
+                max-width: 100%;
+                overflow-wrap: anywhere;
+                word-break: normal;
+                white-space: pre-line;
+                text-align: left;
+            }
+            #op-tab-description h3 { margin-bottom: .35rem; }
+        }
+
         /* Project modal navigation and polished header controls. */
         .site-logo { height: 38px; max-width: 150px; }
         .nav-link {
@@ -4067,9 +4179,9 @@
             .header-actions-row { gap: 9px; }
         }
         @media (max-width: 767px) {
-            .project-modal-nav { width: 36px; height: 36px; top: 52%; font-size: .75rem; background: rgba(15,23,42,.66); }
-            .project-modal-nav--prev { left: 12px; }
-            .project-modal-nav--next { right: 12px; }
+            .project-modal-nav { width: 32px; height: 32px; top: 50%; font-size: .68rem; background: rgba(15,23,42,.72); }
+            .project-modal-nav--prev { left: 2px; }
+            .project-modal-nav--next { right: 2px; }
             .project-modal-counter { font-size: .65rem; }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -5903,17 +6015,17 @@ Title: CASPIAN DREAM LINER
 
                 <div id="op-modal-thumbnails" class="hidden px-6 md:px-8 pt-5 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
 
-                <div class="p-6 md:p-8 space-y-6">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                        <div id="op-modal-tabs" class="flex flex-wrap gap-x-5 gap-y-2">
+                <div class="op-modal-body p-6 md:p-8 space-y-6">
+                    <div class="op-modal-tabs-row flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+                        <div id="op-modal-tabs" class="op-modal-tabs flex flex-wrap gap-x-5 gap-y-2" role="tablist" aria-label="Layihə məlumat bölmələri">
                             <button data-tab="details" onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Detallar</button>
                             <button data-tab="apartments" onclick="switchOfficialModalTab('apartments')" id="op-tab-btn-apartments" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Mənzillər</button>
                             <button data-tab="pricing" onclick="switchOfficialModalTab('pricing')" id="op-tab-btn-pricing" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Qiymətlər</button>
                             <button data-tab="infrastructure" onclick="switchOfficialModalTab('infrastructure')" id="op-tab-btn-infrastructure" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">İnfrastruktur</button>
                             <button data-tab="description" onclick="switchOfficialModalTab('description')" id="op-tab-btn-description" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button id="op-modal-share-btn" type="button" onclick="shareOfficialProject()" class="inline-flex items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 text-sm font-black text-slate-950 shadow-lg hover:bg-brand-500 hover:text-white transition">🔗 Paylaş</button>
+                        <div class="op-modal-share flex items-center gap-2">
+                            <button id="op-modal-share-btn" type="button" onclick="shareOfficialProject()" class="op-modal-share-btn inline-flex items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 text-sm font-black text-slate-950 shadow-lg hover:bg-brand-500 hover:text-white transition">🔗 Paylaş</button>
                             <span id="op-modal-share-status" class="hidden text-xs font-black text-green-300">✅ Link kopyalandı</span>
                         </div>
                     </div>
@@ -10552,7 +10664,7 @@ Title: CASPIAN DREAM LINER
                         <div class="public-section-box space-y-4">
                             <input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
                             <span class="public-form-label">Ünvan və xəritə</span>
-                            <label class="relative block public-form-field"><span class="public-form-label">Xəritədə axtar</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="handlePublicLocationSearchKeydown(event)" class="public-form-input" placeholder="🔍 Ünvan və ya obyekt axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
+                            <label class="relative block public-form-field"><span class="public-form-label">Xəritədə axtar</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="handlePublicLocationSearchKeydown(event)" class="public-form-input" placeholder="🔍 Ünvan və ya obyekt axtar…" aria-controls="pl-location-results" aria-expanded="false" autocomplete="off"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div><p id="pl-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
                         </div>
                         <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-700"><p class="mt-3 text-xs font-bold leading-5 text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
@@ -10641,6 +10753,7 @@ Title: CASPIAN DREAM LINER
                 } else publicListingMarker.setLatLng(point);
                 if (moveMap) publicListingMap.setView(point, Math.max(publicListingMap.getZoom(), zoom));
             }
+            closePublicAddressSuggestions();
             if (reverse) reverseGeocodePublicListingLocation(latNum, lngNum);
         }
 
@@ -10707,10 +10820,32 @@ Title: CASPIAN DREAM LINER
         }
 
         function publicLocationCity() { return document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı'; }
+        function closePublicAddressSuggestions() {
+            const suggestionsBox = document.getElementById('pl-location-results');
+            const searchInput = document.getElementById('pl-location-search');
+            if (suggestionsBox) {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.classList.add('hidden');
+                suggestionsBox.classList.remove('is-open');
+            }
+            if (searchInput) searchInput.setAttribute('aria-expanded', 'false');
+        }
+
+        function openPublicAddressSuggestions() {
+            const suggestionsBox = document.getElementById('pl-location-results');
+            const searchInput = document.getElementById('pl-location-search');
+            if (suggestionsBox) {
+                suggestionsBox.classList.remove('hidden');
+                suggestionsBox.classList.add('is-open');
+            }
+            if (searchInput) searchInput.setAttribute('aria-expanded', 'true');
+        }
+
         function renderPublicLocationResults(rows, query, target='pl', { loading = false, error = false } = {}) {
             const el = document.getElementById(target === 'fullscreen' ? 'fullscreen-location-results' : 'pl-location-results');
             if (!el) return;
-            el.classList.remove('hidden');
+            if (target === 'pl') openPublicAddressSuggestions();
+            else el.classList.remove('hidden');
             const hasRows = Array.isArray(rows) && rows.length;
             const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="flex items-center gap-2"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span>${renderLocationSuggestionBadge(item)}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('') : '';
             if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>' : ''}`; return; }
@@ -10725,17 +10860,17 @@ Title: CASPIAN DREAM LINER
             const el=document.getElementById('pl-location-results');
             if(!el) return;
             window.__lastPublicLocationToken = `typing-${Date.now()}`;
-            if(q.length<3){ window.__lastPublicLocationResults=[]; el.innerHTML=q.length ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>' : ''; el.classList.toggle('hidden', !q.length); return; }
+            if(q.length<3){ window.__lastPublicLocationResults=[]; el.innerHTML=q.length ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>' : ''; if(q.length) openPublicAddressSuggestions(); else closePublicAddressSuggestions(); return; }
             el.innerHTML='<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>';
-            el.classList.remove('hidden');
+            openPublicAddressSuggestions();
             window.__publicLocationTimer=setTimeout(searchPublicListingLocation,600);
         }
-        function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!el) return; if(q.length<3){el.innerHTML=q.length?'<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; el.classList.toggle('hidden',!q.length); return;} el.classList.remove('hidden'); }
+        function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!el) return; if(q.length<3){el.innerHTML=q.length?'<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; if(q.length) openPublicAddressSuggestions(); else closePublicAddressSuggestions(); return;} openPublicAddressSuggestions(); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
         async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<3) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:false}); } catch(e){ if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
-        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; document.getElementById('pl-location-results')?.classList.add('hidden'); }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
 
-        async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
+        async function handlePublicLocationSearchKeydown(event) { if(event.key==='Escape') { event.preventDefault(); closePublicAddressSuggestions(); return; } if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
         function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'Yerləşdirilir...':'Yerləşdir'; }
         function togglePublicLandField() {
@@ -12446,6 +12581,9 @@ Təşəkkür edirəm. 🙏`;
                     const hidden = button.classList.contains('hidden');
                     button.className = `${hidden ? 'hidden ' : ''}pb-3 border-b-2 ${active ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-400 hover:text-white'} font-bold text-sm`;
                     button.setAttribute('aria-selected', String(active));
+                    button.setAttribute('role', 'tab');
+                    button.setAttribute('aria-controls', `op-tab-${name}`);
+                    if (active && !hidden) button.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
                 }
                 if (content) content.classList.toggle('hidden', !active);
             });
@@ -16771,7 +16909,16 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        document.addEventListener('click', (event) => {
+            const suggestionsBox = document.getElementById('pl-location-results');
+            const searchInput = document.getElementById('pl-location-search');
+            if (!suggestionsBox || !searchInput || suggestionsBox.classList.contains('hidden')) return;
+            if (searchInput.contains(event.target) || suggestionsBox.contains(event.target)) return;
+            closePublicAddressSuggestions();
+        }, true);
+
         document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closePublicAddressSuggestions();
             const projectLightboxOpen = isProjectLightboxOpen();
             const propertyLightboxOpen = isPropertyLightboxOpen();
             const mediaOpen = !document.getElementById('media-modal').classList.contains('hidden');
