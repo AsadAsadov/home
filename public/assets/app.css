@@ -522,9 +522,10 @@
 .mb-6{margin-bottom:1.5rem}
 .text-brand-700{color:#5656E8}
 .hover\:underline:hover{text-decoration-line:underline}
-@media (min-width:640px){.sm\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
-.h-auto{height:auto}
 .h-\[2\.75rem\]{height:2.75rem}
+.border-slate-300{border-color:#cbd5e1}
+.leading-5{line-height:1.25rem}
+@media (min-width:640px){.sm\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .py-4{padding-top:1rem;padding-bottom:1rem}
 .aspect-square{aspect-ratio:1 / 1}
 .left-1{left:0.25rem}
@@ -8049,7 +8050,6 @@
 .hover\:border-slate-200:hover{border-color:#e2e8f0}
 .focus\:border-slate-200:focus{border-color:#e2e8f0}
 .focus-visible\:border-slate-200:focus-visible{border-color:#e2e8f0}
-.border-slate-300{border-color:#cbd5e1}
 @media (min-width:640px){.sm\:border-slate-300{border-color:#cbd5e1}}
 @media (min-width:768px){.md\:border-slate-300{border-color:#cbd5e1}}
 @media (min-width:1024px){.lg\:border-slate-300{border-color:#cbd5e1}}

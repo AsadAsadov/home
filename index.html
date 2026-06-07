@@ -116,6 +116,15 @@
             flex: 0 0 auto;
             animation: loginSpinnerRotate 700ms linear infinite;
         }
+        .button-spinner.hidden,
+        #pl-submit-btn:not(.is-loading) #pl-submit-spinner {
+            display: none !important;
+            animation: none !important;
+        }
+        #pl-submit-btn.is-loading #pl-submit-spinner {
+            display: inline-block !important;
+            animation: loginSpinnerRotate 700ms linear infinite !important;
+        }
         @keyframes loginSpinnerRotate {
             to { transform: rotate(360deg); }
         }
@@ -377,7 +386,12 @@
         .public-form-card { max-width: 1120px; margin: 0 auto; background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,250,252,.97)); border: 1px solid rgba(207,207,255,.9); box-shadow: 0 28px 80px rgba(79,70,229,.14), 0 8px 24px rgba(15,23,42,.06); }
         .public-form-field { min-width: 0; }
         .public-title-field { width: 100%; }
-        @media (min-width: 768px) { .public-title-field { max-width: 60%; } }
+        .public-form-row { display:grid; grid-template-columns:minmax(0, 1fr); gap:1rem; align-items:end; width:100%; }
+        .public-form-row--owner { max-width:360px; }
+        @media (min-width: 768px) {
+            .public-form-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .public-form-row--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
         .public-form-grid { display:grid; grid-template-columns: minmax(0, 1fr); gap:1rem; align-items:end; }
         @media (min-width: 768px) { .public-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (min-width: 1024px) { .public-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -2681,22 +2695,22 @@
             box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 18px 45px rgba(15,23,42,.10);
         }
         .map-frame.is-background-disabled .leaflet-container,
-        .map-frame.is-background-disabled .map-expand-btn,
         .public-location-map.is-background-disabled,
         .admin-location-map.is-background-disabled,
         .listing-location-map.is-background-disabled {
             pointer-events: none !important;
         }
-        .map-frame.is-background-disabled .leaflet-container,
-        .map-frame.is-background-disabled .map-expand-btn {
+        .map-frame.is-background-disabled .leaflet-container {
             visibility: hidden;
         }
-        .leaflet-pane,
-        .leaflet-control-container {
-            z-index: 2;
+        .map-frame .leaflet-pane {
+            z-index: 2 !important;
         }
-        .leaflet-control {
-            z-index: 3;
+        .map-frame .leaflet-control-container {
+            z-index: 20 !important;
+        }
+        .map-frame .leaflet-control {
+            z-index: 30 !important;
         }
         .map-frame--admin {
             border-color: rgba(255,255,255,.12);
@@ -2721,7 +2735,8 @@
             position: absolute;
             top: .75rem;
             right: .75rem;
-            z-index: 4;
+            z-index: 1200 !important;
+            pointer-events: auto !important;
             display: inline-flex;
             align-items: center;
             gap: .4rem;
@@ -10421,6 +10436,26 @@ Title: CASPIAN DREAM LINER
             listingPage = 1;
         }
 
+        function getPublicSeaBreezeProjectNames() {
+            const dynamicNames = (Array.isArray(appData.projects) ? appData.projects : [])
+                .map(project => project?.title || project?.name || project?.projectName)
+                .filter(Boolean);
+            const knownNames = (Array.isArray(KNOWN_SEA_BREEZE_PLACES) ? KNOWN_SEA_BREEZE_PLACES : [])
+                .map(place => place?.title)
+                .filter(title => title && title.toLocaleLowerCase('az-AZ') !== 'sea breeze');
+            return [...new Set([...dynamicNames, ...knownNames])]
+                .sort((a, b) => String(a).localeCompare(String(b), 'az-AZ'));
+        }
+
+        function publicProjectOptionsHtml(selected = '') {
+            const names = getPublicSeaBreezeProjectNames();
+            return names.map((name, index) => {
+                const value = escapeHtml(name);
+                const isSelected = selected ? name === selected : index === 0;
+                return `<option value="${value}"${isSelected ? ' selected' : ''}>${value}</option>`;
+            }).join('');
+        }
+
         function renderPublicListingForm(success = false, createdListing = null) {
             const root = document.getElementById('public-listing-root');
             if (!root) return;
@@ -10445,22 +10480,29 @@ Title: CASPIAN DREAM LINER
                 <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
                     <form id="public-listing-form" onsubmit="submitPublicListing(event)" class="space-y-6">
-                        <label class="public-form-field public-title-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
                         <input type="hidden" id="pl-city" value=""><input type="hidden" id="pl-district" value=""><input type="hidden" id="pl-settlement" value=""><input type="hidden" id="pl-metro" value="">
-                        <div class="public-location-grid">
+                        <div class="public-form-row public-form-row--3">
+                            <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
                             <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="seabreeze" selected>Sea Breeze</option></select></label>
+                            <label class="public-form-field"><span class="public-form-label">Layihə</span><select id="pl-project" onchange="syncPublicProjectFields()" class="public-form-input" required>${publicProjectOptionsHtml()}</select></label>
                         </div>
-                        <div class="public-form-grid">
+                        <div class="public-form-row public-form-row--4">
                             <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" onchange="togglePublicLandField()" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Elan növü</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
                             <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
-                            <div class="public-form-grid md:col-span-2 lg:col-span-3">
-                                <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
-                                <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
-                                <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
-                                <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
-                            </div>
+                        </div>
+                        <div class="public-form-row public-form-row--4">
+                            <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
+                            <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
+                            <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
+                            <label class="public-form-field"><span class="public-form-label">Mərtəbə sayı</span><input id="pl-floor-count" type="number" min="1" required class="public-form-input" value="1"></label>
+                        </div>
+                        <div class="public-form-row public-form-row--owner">
+                            <label class="public-form-field min-w-0"><span class="public-form-label">Elan sahibi</span><select id="pl-owner-type" class="public-form-input"><option value="owner">Əmlak sahibi</option><option value="agent">Vasitəçi</option></select></label>
+                            <label class="public-checkbox-pill public-checkbox-pill--document h-[2.75rem]"><input type="checkbox" id="pl-has-document" class="accent-emerald-500 shrink-0"><span>Kupça / Çıxarış var</span></label>
+                        </div>
+                        <div class="public-form-row public-form-row--owner">
                             <label id="pl-land-wrap" class="public-form-field"><span class="public-form-label">Torpaq sahəsi (Sot)</span><input id="pl-land" type="number" min="0" step="any" class="public-form-input" placeholder="Məs: 4.5"></label>
                         </div>
                         <label class="public-checkbox-pill"><input type="checkbox" id="pl-is-credit" onchange="togglePublicCreditFields()" class="accent-red-600"><span>Kredit</span></label>
@@ -10478,17 +10520,24 @@ Title: CASPIAN DREAM LINER
                         </div>
                         <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-700"><p class="mt-3 text-xs font-bold leading-5 text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
                         <label class="public-form-field block"><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="6" class="public-form-input" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
-                        <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
-                            <label class="public-form-field min-w-0"><span class="public-form-label">Elan sahibi</span><select id="pl-owner-type" class="public-form-input"><option value="owner">Əmlak sahibi</option><option value="agent">Vasitəçi</option></select></label>
-                            <label class="public-checkbox-pill public-checkbox-pill--document h-[2.75rem]"><input type="checkbox" id="pl-has-document" class="accent-emerald-500 shrink-0"><span>Kupça / Çıxarış var</span></label>
-                        </div>
                         <button id="pl-submit-btn" type="submit" class="async-submit-btn w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black py-4 transition"><span id="pl-submit-spinner" class="button-spinner hidden"></span><span id="pl-submit-text">Yerləşdir</span></button>
                     </form>
                 </div>`;
             handlePublicListingRegionChange();
+            syncPublicProjectFields();
             togglePublicLandField();
             setTimeout(initPublicListingMap, 120);
             setTimeout(() => publicListingMap?.invalidateSize?.(), 360);
+        }
+
+        function syncPublicProjectFields() {
+            const project = document.getElementById('pl-project')?.value || '';
+            const districtInput = document.getElementById('pl-district');
+            const settlementInput = document.getElementById('pl-settlement');
+            const streetInput = document.getElementById('pl-street-address');
+            if (districtInput) districtInput.value = project;
+            if (settlementInput && !settlementInput.value) settlementInput.value = project;
+            if (streetInput && !streetInput.value) streetInput.value = project;
         }
 
         function handlePublicListingRegionChange() {
@@ -10502,6 +10551,7 @@ Title: CASPIAN DREAM LINER
             if (districtInput) districtInput.value = '';
             if (settlementInput) settlementInput.value = '';
             if (metroInput) metroInput.value = '';
+            syncPublicProjectFields();
             document.getElementById('pl-city-wrap')?.classList.add('hidden');
             document.getElementById('pl-district-wrap')?.classList.add('hidden');
             document.getElementById('pl-settlement-wrap')?.classList.add('hidden');
@@ -10528,11 +10578,13 @@ Title: CASPIAN DREAM LINER
                 regionSelect.value = 'seabreeze';
                 handlePublicListingRegionChange();
             }
-            const districtSelect = document.getElementById('pl-district');
-            if (districtSelect?.options) {
-                const option = Array.from(districtSelect.options).find(opt => opt.value.toLocaleLowerCase('az-AZ') === title.toLocaleLowerCase('az-AZ'));
-                if (option) districtSelect.value = option.value;
+            const projectSelect = document.getElementById('pl-project');
+            if (projectSelect?.options) {
+                const option = Array.from(projectSelect.options).find(opt => opt.value.toLocaleLowerCase('az-AZ') === title.toLocaleLowerCase('az-AZ'));
+                if (option) projectSelect.value = option.value;
             }
+            const districtInput = document.getElementById('pl-district');
+            if (districtInput) districtInput.value = document.getElementById('pl-project')?.value || title;
             const settlementInput = document.getElementById('pl-settlement');
             if (settlementInput) settlementInput.value = title;
             const streetInput = document.getElementById('pl-street-address');
@@ -10684,10 +10736,11 @@ Title: CASPIAN DREAM LINER
                 if (!(await ensureListingContactPhone())) return;
                 const regionType=document.getElementById('pl-region-type').value;
                 const city=document.getElementById('pl-city')?.value || '';
-                const district=document.getElementById('pl-district')?.value || '';
+                const selectedProject=document.getElementById('pl-project')?.value || document.getElementById('pl-district')?.value || '';
+                const district=selectedProject;
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
-                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
-                const formData = new FormData(); const apiPayload = { ...uiListingToApi(payload), region_type: 'seabreeze', city: '', district: '', project_name: '' }; Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
+                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?selectedProject:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
+                const formData = new FormData(); const apiPayload = { ...uiListingToApi(payload), region_type: 'seabreeze', city: '', district: selectedProject, project_name: selectedProject }; Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
                 setListingFormDisabled('public-listing-form', true);
                 showListingSubmissionOverlay();
                 const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST');
