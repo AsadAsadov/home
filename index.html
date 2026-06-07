@@ -3844,9 +3844,11 @@
         .project-form-section button { color: #334155; background: #f8fafc; border-color: #cbd5e1; }
         .project-form-section button:hover { background: #eef2ff; }
         .project-form-section .bg-black\/20 { background: #e2e8f0 !important; border-color: #cbd5e1 !important; }
-        .project-detail-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .project-detail-sections:not(.hidden) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .project-detail-sections.hidden { display: none !important; }
         .project-detail-section { border: 1px solid var(--color-primary-border); background: rgba(234,234,255,.55); border-radius: 1rem; padding: 1rem; }
         .project-detail-section--wide { grid-column: 1 / -1; }
+        .project-detail-section h3,
         .project-detail-section h4 { color: #1f2937; font-size: .78rem; font-weight: 900; margin-bottom: .75rem; }
         .project-detail-rows { display: grid; gap: .6rem; }
         .project-detail-row { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgba(127,127,255,.14); padding-bottom: .5rem; }
@@ -7212,7 +7214,7 @@ Title: CASPIAN DREAM LINER
 
         function updateDesktopAdStickyOffset() {
             const headerHeight = document.querySelector('.site-header')?.offsetHeight || 80;
-            document.documentElement.style.setProperty('--desktop-ad-sticky-top', `${headerHeight + 20}px`);
+            document.documentElement.style.setProperty('--desktop-ad-sticky-top', `${headerHeight + 12}px`);
         }
 
         function renderDesktopAds(options = {}) {
