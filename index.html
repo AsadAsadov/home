@@ -373,12 +373,16 @@
             .mobile-profile-sheet__item:focus-visible { background: #f1f5ff; outline: none; }
             .mobile-profile-sheet__item:active { transform: scale(.98); }
         }
-        .public-listing-shell { max-width: 1200px; margin: 0 auto; }
-        .public-form-card { background: rgba(255,255,255,.97); border: 1px solid rgba(207,207,255,.85); box-shadow: 0 24px 70px rgba(79,70,229,.13); }
+        .public-listing-shell { max-width: 1280px; margin: 0 auto; }
+        .public-form-card { max-width: 1120px; margin: 0 auto; background: linear-gradient(180deg, rgba(255,255,255,.99), rgba(248,250,252,.97)); border: 1px solid rgba(207,207,255,.9); box-shadow: 0 28px 80px rgba(79,70,229,.14), 0 8px 24px rgba(15,23,42,.06); }
         .public-form-field { min-width: 0; }
-        .public-form-grid { display:grid; grid-template-columns: minmax(0, 1fr); gap:.75rem; }
+        .public-title-field { width: 100%; }
+        @media (min-width: 768px) { .public-title-field { max-width: 60%; } }
+        .public-form-grid { display:grid; grid-template-columns: minmax(0, 1fr); gap:1rem; align-items:end; }
         @media (min-width: 768px) { .public-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (min-width: 1024px) { .public-form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .public-form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .public-location-grid { display:grid; grid-template-columns:minmax(0, 1fr); gap:1rem; }
+        @media (min-width: 768px) { .public-location-grid { grid-template-columns:minmax(180px, .42fr) minmax(0, 1fr); } }
         .desktop-header-cluster {
             min-width: 0;
             flex: 1 1 auto;
@@ -477,17 +481,19 @@
             .desktop-header-cluster .vacancy-cta { padding: .625rem .95rem !important; }
             .header-actions-row { gap: 20px; }
         }
-        .public-form-label { display:block; font-size:12px; line-height:1.15; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.35rem; }
-        .public-form-input { width:100%; height:2.75rem; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:0 .85rem; font-size:.86rem; color:#0f172a; outline:none; }
-        .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(127,127,255,.14); }
-        .public-section-box { border-radius:1.5rem; border:1px solid #e2e8f0; background:#f8fafc; padding:1rem; }
+        .public-form-label { display:block; font-size:11px; line-height:1.2; white-space:nowrap; font-weight:900; text-transform:uppercase; letter-spacing:.06em; color:#64748b; margin-bottom:.4rem; }
+        .public-form-input { width:100%; height:3rem; border-radius:1rem; border:1px solid #dbe3ef; background:#fff; padding:0 .95rem; font-size:.9rem; color:#0f172a; outline:none; box-shadow:0 1px 1px rgba(15,23,42,.02); transition:border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
+        .public-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 4px rgba(127,127,255,.16), 0 10px 24px rgba(127,127,255,.08); }
+        textarea.public-form-input { min-height:150px; height:auto; padding:1rem 1.05rem; border-radius:1.25rem; line-height:1.65; resize:vertical; }
+        .public-section-box { border-radius:1.5rem; border:1px solid #e0e7f1; background:linear-gradient(180deg,#f8fafc,#ffffff); padding:1rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.75); }
         .public-checkbox-pill { display:inline-flex; width:max-content; max-width:100%; align-items:center; gap:.5rem; border-radius:.85rem; border:1px solid rgba(220,38,38,.28); background:rgba(220,38,38,.08); color:#111827; padding:.62rem .85rem; font-size:.78rem; font-weight:900; white-space:nowrap; }
         .public-checkbox-pill--document { border-color:rgba(16,185,129,.32); background:rgba(16,185,129,.10); }
         .public-calc-box { border-radius:.9rem; border:1px solid rgba(127,127,255,.22); background:rgba(127,127,255,.10); padding:.85rem; font-size:.8rem; color:#0f172a; }
         .public-location-suggestions, .fullscreen-location-suggestions { max-height:260px; overflow-y:auto; scrollbar-width:thin; }
         .public-location-suggestion { display:block; width:100%; text-align:left; border-radius:1rem; border:1px solid #e2e8f0; background:#fff; padding:.75rem .85rem; color:#0f172a; transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease; }
         .public-location-suggestion:hover, .public-location-suggestion:focus-visible { background:#f4f4ff; border-color:var(--color-primary-border); transform:translateX(2px); outline:none; }
-        .public-location-map { width:100%; height:320px; min-height:260px; border-radius:1.25rem; overflow:hidden; background:#e5e7eb; }
+        .public-location-map { width:100%; height:400px; min-height:360px; border-radius:1.25rem; overflow:hidden; background:#e5e7eb; }
+        @media (max-width: 640px) { .public-location-map { height:300px; min-height:280px; } }
         .known-place-badge { display:inline-flex; align-items:center; border-radius:999px; padding:0.125rem 0.375rem; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:.02em; background:#dcfce7; color:#166534; }
         .admin-location-suggestion .known-place-badge { background:rgba(34,197,94,.18); color:#bbf7d0; }
         .manual-pin-note { font-size:10px; font-weight:800; color:#16a34a; }
@@ -10438,19 +10444,18 @@ Title: CASPIAN DREAM LINER
             root.innerHTML = `<div class="mb-6"><button onclick="switchTab('seabreeze')" class="text-sm font-black text-brand-700 hover:underline">← Ana səhifə</button></div>
                 <div class="public-form-card rounded-[2rem] p-4 sm:p-6 md:p-8">
                     <div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">➕ Elan əlavə et</h1><p class="text-slate-600 font-semibold mt-2">Elan moderator yoxlamasından sonra yayımlanacaq.</p></div>
-                    <form id="public-listing-form" onsubmit="submitPublicListing(event)" class="space-y-5">
-                        <label class="public-form-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
+                    <form id="public-listing-form" onsubmit="submitPublicListing(event)" class="space-y-6">
+                        <label class="public-form-field public-title-field block"><span class="public-form-label">Başlıq</span><input id="pl-title" type="text" required class="public-form-input" placeholder="Məs: 2 otaqlı dəniz mənzərəli mənzil"></label>
+                        <input type="hidden" id="pl-city" value=""><input type="hidden" id="pl-district" value=""><input type="hidden" id="pl-settlement" value=""><input type="hidden" id="pl-metro" value="">
+                        <div class="public-location-grid">
+                            <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="seabreeze" selected>Sea Breeze</option></select></label>
+                        </div>
                         <div class="public-form-grid">
-                            <label class="public-form-field"><span class="public-form-label">Region</span><select id="pl-region-type" onchange="handlePublicListingRegionChange()" class="public-form-input"><option value="general">Digər ərazilər</option><option value="seabreeze">Sea Breeze</option></select></label>
-                            <label id="pl-city-wrap" class="public-form-field"><span class="public-form-label">Şəhər</span><select id="pl-city" onchange="handlePublicListingRegionChange()" class="public-form-input"></select></label>
-                            <label id="pl-district-wrap" class="public-form-field"><span id="pl-district-label" class="public-form-label">Rayon</span><select id="pl-district" class="public-form-input"></select></label>
-                            <label id="pl-settlement-wrap" class="public-form-field"><span class="public-form-label">Qəsəbə</span><input id="pl-settlement" type="text" class="public-form-input" placeholder="Qəsəbə / mikrorayon"></label>
-                            <label id="pl-metro-wrap" class="public-form-field"><span class="public-form-label">Metro</span><select id="pl-metro" class="public-form-input"><option value="">Metro seçilməyib</option>${BAKU_METRO_STATIONS.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('')}</select></label>
                             <label class="public-form-field"><span class="public-form-label">Kateqoriya</span><select id="pl-category" onchange="togglePublicLandField()" class="public-form-input"><option value="Apartment">Mənzil</option><option value="Villa">Villa</option><option value="Townhouse">Taunhaus</option><option value="LandSale">Torpaq</option><option value="Commercial">Obyekt</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Elan növü</span><select id="pl-listing-type" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="Satis">Satış</option><option value="Kiraye">Kirayə</option><option value="GunlukKiraye">Günlük kirayə</option></select></label>
                             <label class="public-form-field"><span class="public-form-label">Qiymət</span><input id="pl-price" type="number" min="1" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="Məs: 185000"></label>
                             <label class="public-form-field"><span class="public-form-label">Valyuta</span><select id="pl-currency" onchange="calculatePublicSqPrice()" class="public-form-input"><option value="AZN">AZN</option><option value="USD">USD</option></select></label>
-                            <div class="listing-form-grid-2 sm:col-span-2 lg:col-span-4">
+                            <div class="public-form-grid md:col-span-2 lg:col-span-3">
                                 <label class="public-form-field"><span class="public-form-label">Otaq sayı</span><input id="pl-rooms" type="number" min="1" required class="public-form-input" value="2"></label>
                                 <label class="public-form-field"><span class="public-form-label">Sahə</span><input id="pl-area" type="number" min="1" step="any" required oninput="calculatePublicSqPrice()" class="public-form-input" placeholder="m²"></label>
                                 <label class="public-form-field"><span class="public-form-label">Mərtəbə</span><input id="pl-floor-number" type="number" min="1" required class="public-form-input" value="1"></label>
@@ -10465,14 +10470,14 @@ Title: CASPIAN DREAM LINER
                             <label class="public-form-field"><span class="public-form-label">Müddət (il)</span><input type="number" id="pl-credit-years" min="1" class="public-form-input"></label>
                         </div>
                         <div id="pl-calc-result-box" class="public-calc-box"><strong>1 m² üçün qiymət:</strong> <span id="pl-calc-val">0 ₼</span></div>
-                        <div class="public-section-box space-y-3">
+                        <div class="public-section-box space-y-4">
                             <input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
                             <span class="public-form-label">Ünvan və xəritə</span>
-                            <label class="relative block public-form-field"><span class="public-form-label">Xəritə</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="handlePublicLocationSearchKeydown(event)" class="public-form-input" placeholder="🔍 Ünvan, metro və ya rayon axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
+                            <label class="relative block public-form-field"><span class="public-form-label">Xəritədə axtar</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="handlePublicLocationSearchKeydown(event)" class="public-form-input" placeholder="🔍 Ünvan və ya obyekt axtar…"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div><p id="pl-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
                         </div>
-                        <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full text-sm text-slate-700"><p class="mt-2 text-[10px] font-bold text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
-                        <label class="public-form-field block"><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="5" class="public-form-input h-auto py-3" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
+                        <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-700"><p class="mt-3 text-xs font-bold leading-5 text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <label class="public-form-field block"><span class="public-form-label">Təsvir</span><textarea id="pl-desc" required rows="6" class="public-form-input" placeholder="Əmlak haqqında məlumat yazın..."></textarea></label>
                         <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-end">
                             <label class="public-form-field min-w-0"><span class="public-form-label">Elan sahibi</span><select id="pl-owner-type" class="public-form-input"><option value="owner">Əmlak sahibi</option><option value="agent">Vasitəçi</option></select></label>
                             <label class="public-checkbox-pill public-checkbox-pill--document h-[2.75rem]"><input type="checkbox" id="pl-has-document" class="accent-emerald-500 shrink-0"><span>Kupça / Çıxarış var</span></label>
@@ -10483,42 +10488,33 @@ Title: CASPIAN DREAM LINER
             handlePublicListingRegionChange();
             togglePublicLandField();
             setTimeout(initPublicListingMap, 120);
+            setTimeout(() => publicListingMap?.invalidateSize?.(), 360);
         }
 
         function handlePublicListingRegionChange() {
-            const settings = currentSiteSettings();
-            const region = document.getElementById('pl-region-type')?.value || 'general';
-            const citySelect = document.getElementById('pl-city');
-            const previousCity = citySelect?.value || 'Bakı';
-            const visibleCities = getVisibleGeneralCities();
-            if (citySelect) {
-                citySelect.innerHTML = visibleCities.length
-                    ? visibleCities.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('')
-                    : '<option value="">Şəhər deaktivdir</option>';
-                citySelect.value = visibleCities.some(item => item.value === previousCity) ? previousCity : (visibleCities[0]?.value || '');
+            const regionSelect = document.getElementById('pl-region-type');
+            if (regionSelect) regionSelect.value = 'seabreeze';
+            const cityInput = document.getElementById('pl-city');
+            const districtInput = document.getElementById('pl-district');
+            const settlementInput = document.getElementById('pl-settlement');
+            const metroInput = document.getElementById('pl-metro');
+            if (cityInput) cityInput.value = '';
+            if (districtInput) districtInput.value = '';
+            if (settlementInput) settlementInput.value = '';
+            if (metroInput) metroInput.value = '';
+            document.getElementById('pl-city-wrap')?.classList.add('hidden');
+            document.getElementById('pl-district-wrap')?.classList.add('hidden');
+            document.getElementById('pl-settlement-wrap')?.classList.add('hidden');
+            document.getElementById('pl-metro-wrap')?.classList.add('hidden');
+            if (publicListingMap) {
+                publicListingMap.setView(publicMapDefaultCenter(), 12);
+                setTimeout(() => publicListingMap?.invalidateSize?.(), 80);
             }
-            const city = citySelect?.value || '';
-            const district = document.getElementById('pl-district');
-            if (!district) return;
-            let options = region === 'seabreeze' ? getSeaBreezeProjects().map(p=>p.title).filter(Boolean).concat('Digər') : (city === 'Bakı' ? BAKI_DISTRICTS : (city === 'Abşeron' ? ABSHERON_DISTRICTS : (city === 'Sumqayıt' ? SUMQAYIT_DISTRICTS : [])));
-            district.innerHTML = options.map(x=>`<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
-            const showDistrict = settings.showRayonFilter !== false;
-            const showSettlement = settings.showQesebeFilter !== false && region !== 'seabreeze';
-            const showMetro = settings.showMetroFilter !== false && (city === 'Bakı' || region === 'seabreeze');
-            document.getElementById('pl-city-wrap')?.classList.toggle('hidden', region === 'seabreeze');
-            document.getElementById('pl-district-wrap')?.classList.toggle('hidden', !showDistrict);
-            document.getElementById('pl-settlement-wrap')?.classList.toggle('hidden', !showSettlement);
-            document.getElementById('pl-metro-wrap')?.classList.toggle('hidden', !showMetro);
-            if (!showDistrict) district.value = '';
-            if (!showSettlement && document.getElementById('pl-settlement')) document.getElementById('pl-settlement').value = '';
-            if (!showMetro && document.getElementById('pl-metro')) document.getElementById('pl-metro').value = '';
-            const districtLabel = document.getElementById('pl-district-label');
-            if (districtLabel) districtLabel.textContent = region === 'seabreeze' ? 'Layihə' : 'Rayon / Layihə';
-            if (publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), 12);
         }
 
         function publicMapDefaultCenter() {
-            const city = document.getElementById('pl-city')?.value || getVisibleGeneralCities()[0]?.value || 'Bakı';
+            const city = document.getElementById('pl-city')?.value || 'Sea Breeze';
+            if (city === 'Sea Breeze') return [40.591, 49.986];
             if (city === 'Abşeron') return [40.457, 49.75];
             if (city === 'Sumqayıt') return [40.585, 49.631];
             return [40.4093, 49.8671];
@@ -10533,7 +10529,7 @@ Title: CASPIAN DREAM LINER
                 handlePublicListingRegionChange();
             }
             const districtSelect = document.getElementById('pl-district');
-            if (districtSelect) {
+            if (districtSelect?.options) {
                 const option = Array.from(districtSelect.options).find(opt => opt.value.toLocaleLowerCase('az-AZ') === title.toLocaleLowerCase('az-AZ'));
                 if (option) districtSelect.value = option.value;
             }
@@ -10653,7 +10649,7 @@ Title: CASPIAN DREAM LINER
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
-        function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'◌ Elan göndərilir…':'Yerləşdir'; }
+        function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'Yerləşdirilir...':'Yerləşdir'; }
         function togglePublicLandField() {
             const category = document.getElementById('pl-category')?.value || '';
             const wrap = document.getElementById('pl-land-wrap');
@@ -10691,7 +10687,7 @@ Title: CASPIAN DREAM LINER
                 const district=document.getElementById('pl-district')?.value || '';
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
                 const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?district:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
-                const formData = new FormData(); const apiPayload = uiListingToApi(payload); Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
+                const formData = new FormData(); const apiPayload = { ...uiListingToApi(payload), region_type: 'seabreeze', city: '', district: '', project_name: '' }; Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
                 setListingFormDisabled('public-listing-form', true);
                 showListingSubmissionOverlay();
                 const saved = await uploadFormDataWithProgress('/api/listings', formData, 'pl-upload-progress', 'POST');
