@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "db:seed": "node prisma/seed.js",
-    "db:audit:listings": "node scripts/audit-listings-db.js"
+    "db:audit:listings": "node scripts/audit-listings-db.js",
+    "build:css": "node scripts/generate-local-tailwind.js"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

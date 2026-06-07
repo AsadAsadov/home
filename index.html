@@ -15,41 +15,17 @@
     <meta name="twitter:title" content="BestHome.az">
     <meta name="twitter:description" content="Daşınmaz Əmlak Digər əraziləri">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- OpenStreetMap + Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
+    <link rel="preload" href="/public/assets/app.css" as="style">
+    <link rel="stylesheet" href="/public/assets/app.css">
+    <!-- FontAwesome Icons are used throughout the app; load asynchronously to avoid render blocking. -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+    <!-- Leaflet is loaded on demand by map views. -->
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#EAEAFF',
-                            100: '#EAEAFF',
-                            200: '#CFCFFF',
-                            300: '#B8B8FF',
-                            500: '#7F7FFF',
-                            600: '#6B6BFF',
-                            700: '#5656E8',
-                            900: '#34348F',
-                        },
-                        darkBg: '#F8FAFF',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         :root {
             --header-height: 88px;
@@ -187,6 +163,7 @@
             height: 68px;
             width: auto;
             max-height: 100%;
+            aspect-ratio: 9 / 4;
             object-fit: contain;
             image-rendering: auto;
         }
@@ -210,6 +187,7 @@
         .site-footer-logo {
             height: 88px;
             width: auto;
+            aspect-ratio: 55 / 27;
             object-fit: contain;
             image-rendering: auto;
         }
@@ -636,6 +614,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        .sea-breeze-project-card__year,
+        .portfolio-filter-btn.bg-brand-500,
+        .portfolio-filter-btn.bg-brand-700,
+        .sea-breeze-listing-card__promo-badge.bg-purple-600\/90 {
+            background-color: #5656E8 !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255,255,255,.28);
+        }
 
 
         @keyframes homepageSkeletonPulse {
@@ -867,6 +853,40 @@
         .ad-preview-box img,
         .ad-preview-box video {
             display: block;
+        }
+
+        /* Performance: reserve image/video slots to reduce CLS while media loads. */
+        .hero-slide-media,
+        .hero-slide-media img,
+        .hero-slide-media video {
+            width: 100%;
+            height: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+        .sea-breeze-project-card__image,
+        .sea-breeze-listing-card__media,
+        .listing-card-image-strip__thumb,
+        .property-lightbox__thumb {
+            aspect-ratio: 4 / 3;
+            background: #eef2ff;
+        }
+        .sea-breeze-listing-card__media {
+            contain: layout paint;
+        }
+        .gallery-card-media,
+        .featured-video-thumb {
+            aspect-ratio: 16 / 9;
+            background: #f1f5f9;
+        }
+        .desktop-ad-media,
+        .desktop-ad-card img,
+        .desktop-ad-card video {
+            aspect-ratio: var(--ad-width, 300px) / var(--ad-height, 650px);
+        }
+        .property-lightbox__image,
+        .premium-lightbox-image {
+            aspect-ratio: 16 / 9;
         }
 
         @media (max-width: 767px) {
@@ -4313,7 +4333,7 @@
             <div class="site-header-inner flex items-center justify-between h-20 md:h-24">
                 <!-- Logo -->
                 <div class="header-logo-wrap flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
-                    <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-logo" decoding="async">
+                    <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-logo" width="180" height="80" loading="eager" fetchpriority="high" decoding="async">
                 </div>
 
                 <!-- Desktop Menu -->
@@ -4523,7 +4543,7 @@
                     <p class="text-gray-700 text-sm font-medium max-w-2xl">Layihələrə aid foto və videoları buradan izləyə bilərsiniz.</p>
                 </div>
                 <div class="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
-                    <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white">Hamısı</button>
+                    <button onclick="filterPortfolio('all')" id="filter-all" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-700 text-white">Hamısı</button>
                     <button onclick="filterPortfolio('event')" id="filter-event" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Fotolar</button>
                     <button onclick="filterPortfolio('video')" id="filter-video" class="portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Videolar</button>
                 </div>
@@ -4988,7 +5008,7 @@
                         <div class="flex items-center gap-4">
                             <img id="profile-avatar-preview" src="" onclick="openAvatarModal(this.src)" class="w-20 h-20 rounded-full object-cover border-2 border-brand-500/40 cursor-zoom-in bg-white/10" onerror="this.src='https://ui-avatars.com/api/?name=BestHome&background=7F7FFF&color=fff'">
                             <div class="space-y-2 flex-1">
-                                <h4 class="text-sm font-black text-white">Profile Photo</h4>
+                                <h3 class="text-sm font-black text-white">Profile Photo</h3>
                                 <input id="profile-avatar-file" type="file" accept="image/*" onchange="previewProfileAvatar(this.files?.[0])" class="block w-full text-xs text-gray-300 file:mr-3 file:rounded-xl file:border-0 file:bg-brand-500 file:px-3 file:py-2 file:text-white">
                                 <div class="flex flex-wrap gap-2"><button type="button" onclick="uploadProfileAvatar()" class="bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-3 py-2 rounded-xl">Upload / Replace</button><button type="button" onclick="deleteProfileAvatar()" class="bg-red-500/10 text-red-300 text-xs font-bold px-3 py-2 rounded-xl">Delete photo</button></div>
                             </div>
@@ -5025,7 +5045,7 @@
                     </div>
                     <form onsubmit="saveSiteSettings(event)" class="space-y-5">
                         <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                            <h4 class="text-sm font-black text-white uppercase tracking-wide">Region görünürlüğü</h4>
+                            <h3 class="text-sm font-black text-white uppercase tracking-wide">Region görünürlüğü</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-baki" class="accent-brand-500"> Bakı göstər</label>
                                 <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-sumqayit" class="accent-brand-500"> Sumqayıt göstər</label>
@@ -5033,7 +5053,7 @@
                             </div>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-                            <h4 class="text-sm font-black text-white uppercase tracking-wide">Filter və forma sahələri</h4>
+                            <h3 class="text-sm font-black text-white uppercase tracking-wide">Filter və forma sahələri</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-metro" class="accent-brand-500"> Metro göstər</label>
                                 <label class="inline-flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 text-sm font-bold text-gray-200"><input type="checkbox" id="setting-show-rayon" class="accent-brand-500"> Rayon göstər</label>
@@ -5068,7 +5088,7 @@
                     <form id="official-project-form" onsubmit="handleSaveOfficialProject(event)" class="admin-responsive-form space-y-4">
                         <input type="hidden" id="edit-project-id" value="">
                         <section class="project-form-section">
-                            <h4><span>📍</span><span>Ümumi Məlumat</span></h4>
+                            <h3><span>📍</span><span>Ümumi Məlumat</span></h3>
                             <div class="project-form-grid">
                                 <label>Layihə adı *<input type="text" id="project-title" required placeholder="Məs: Caspian Dream Liner"></label>
                                 <label>Zona<input type="text" id="project-zone" placeholder="Məs: Sea Breeze"></label>
@@ -5080,7 +5100,7 @@
                             <label class="project-form-wide">SEO slug<input type="text" id="project-slug" placeholder="Avtomatik yaradılır"></label>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>🏢</span><span>Bina Məlumatları</span></h4>
+                            <h3><span>🏢</span><span>Bina Məlumatları</span></h3>
                             <div class="project-form-grid">
                                 <label>Binaların sayı<input type="text" id="project-buildings" placeholder="3 bina"></label>
                                 <label>Mərtəbə sayı<input type="text" id="project-floors" placeholder="11 mərtəbə"></label>
@@ -5090,7 +5110,7 @@
                             </div>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>🏠</span><span>Mənzillər</span></h4>
+                            <h3><span>🏠</span><span>Mənzillər</span></h3>
                             <div class="project-form-grid">
                                 <label>Mənzil formatları<textarea id="project-apartment-formats" rows="4" placeholder="Studio&#10;1 otaqlı&#10;2 otaqlı"></textarea></label>
                                 <label>Mənzil sahələri<textarea id="project-apartment-areas" rows="4" placeholder="Studio: 46–117 m²&#10;1 otaqlı: 73–120 m²"></textarea></label>
@@ -5098,7 +5118,7 @@
                             </div>
                         </section>
                         <section class="project-form-section">
-                            <h4><span>💰</span><span>Qiymətlər</span></h4>
+                            <h3><span>💰</span><span>Qiymətlər</span></h3>
                             <div class="project-form-grid">
                                 <label>1 m² qiyməti<input type="text" id="project-price-m2" placeholder="3 500 AZN-dən"></label>
                                 <label>Ümumi qiymət<input type="text" id="project-total-price" placeholder="250 000 AZN-dən"></label>
@@ -5107,10 +5127,10 @@
                                 <label>İlkin ödəniş<input type="text" id="project-down-payment" placeholder="30%-dən"></label>
                             </div>
                         </section>
-                        <section class="project-form-section"><h4><span>🌿</span><span>İnfrastruktur</span></h4><textarea id="project-infrastructure" rows="5" placeholder="Layihənin infrastrukturu"></textarea></section>
-                        <section class="project-form-section"><h4><span>⭐</span><span>Xüsusiyyətlər</span></h4><textarea id="project-features" rows="5" placeholder="Layihənin üstünlükləri"></textarea><label class="project-form-wide">Əlavə təsvir (köhnə layihələr üçün)<textarea id="project-desc" rows="3" placeholder="Layihə haqqında əlavə təsvir"></textarea></label></section>
+                        <section class="project-form-section"><h3><span>🌿</span><span>İnfrastruktur</span></h3><textarea id="project-infrastructure" rows="5" placeholder="Layihənin infrastrukturu"></textarea></section>
+                        <section class="project-form-section"><h3><span>⭐</span><span>Xüsusiyyətlər</span></h3><textarea id="project-features" rows="5" placeholder="Layihənin üstünlükləri"></textarea><label class="project-form-wide">Əlavə təsvir (köhnə layihələr üçün)<textarea id="project-desc" rows="3" placeholder="Layihə haqqında əlavə təsvir"></textarea></label></section>
                         <section class="project-form-section">
-                            <h4><span>🖼️</span><span>Media</span></h4>
+                            <h3><span>🖼️</span><span>Media</span></h3>
                             <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300"><input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4"><span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span></span></label>
                             <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
                         </section>
@@ -5174,7 +5194,7 @@ Title: CASPIAN DREAM LINER
                         <div class="xl:col-span-8 space-y-3">
                             <div class="flex items-center justify-between gap-3">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white">Preview table</h4>
+                                    <h3 class="text-sm font-bold text-white">Preview table</h3>
                                     <p class="text-[11px] text-gray-500">Saxlamadan əvvəl bütün xanaları birbaşa redaktə edə bilərsiniz.</p>
                                 </div>
                                 <button id="bulk-project-save-btn" type="button" onclick="saveBulkProjectImport()" disabled class="bg-emerald-500/20 text-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-emerald-500 hover:enabled:text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">
@@ -5273,7 +5293,7 @@ Title: CASPIAN DREAM LINER
                             <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.55));"></div>
                             <div id="hero-preview-panel" class="hero-preview-panel relative z-10 rounded-2xl p-5 text-left space-y-2 mb-5 ml-5 mr-auto">
                                 <span id="hero-preview-badge" class="hidden inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]"></span>
-                                <h4 id="hero-preview-title" class="text-2xl md:text-3xl font-semibold leading-tight tracking-[0.08em] uppercase drop-shadow-2xl"></h4>
+                                <h3 id="hero-preview-title" class="text-2xl md:text-3xl font-semibold leading-tight tracking-[0.08em] uppercase drop-shadow-2xl"></h3>
                                 <p id="hero-preview-description" class="hidden text-sm font-medium leading-relaxed drop-shadow-lg"></p>
                                 <span id="hero-preview-button" class="hero-luxury-link hero-button-animated inline-flex text-xs font-semibold uppercase transition duration-300">Layihəyə Bax →</span>
                                 <p id="hero-preview-duration" class="text-[10px] font-bold uppercase tracking-wide text-white/70">10 saniyə</p>
@@ -5417,7 +5437,7 @@ Title: CASPIAN DREAM LINER
             <div id="admin-subtab-vacancy-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-4 space-y-6">
                     <div class="glass-card p-6 rounded-2xl space-y-3">
-                        <h4 class="text-xs font-bold text-white uppercase" id="vac-form-title">Yeni Vakansiya</h4>
+                        <h3 class="text-xs font-bold text-white uppercase" id="vac-form-title">Yeni Vakansiya</h3>
                         <form onsubmit="handleSaveVacancy(event)" class="space-y-2">
                             <input type="hidden" id="edit-vac-id">
                             <input type="text" id="vac-title" required placeholder="Vakansiya Adı" class="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-white">
@@ -5596,7 +5616,7 @@ Title: CASPIAN DREAM LINER
                         </div>
 
                         <div id="p-modal-credit" class="hidden credit-info-panel listing-detail-credit-panel space-y-3 shadow-sm">
-                            <div class="flex items-center justify-between gap-3"><h4 class="text-sm font-black text-red-700 uppercase tracking-wider">Kredit Məlumatları</h4><span class="credit-badge text-[10px] font-semibold px-3 py-1 rounded-full uppercase">KREDİT</span></div>
+                            <div class="flex items-center justify-between gap-3"><h3 class="text-sm font-black text-red-700 uppercase tracking-wider">Kredit Məlumatları</h3><span class="credit-badge text-[10px] font-semibold px-3 py-1 rounded-full uppercase">KREDİT</span></div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                 <div><span class="block text-[10px] uppercase font-black text-gray-400">İlkin ödəniş:</span><strong id="p-modal-credit-down" class="text-gray-950 text-lg"></strong></div>
                                 <div><span class="block text-[10px] uppercase font-black text-gray-400">Aylıq ödəniş:</span><strong id="p-modal-credit-monthly" class="text-gray-950 text-lg"></strong></div>
@@ -5611,7 +5631,7 @@ Title: CASPIAN DREAM LINER
                         </div>
 
                         <div id="p-modal-location-section" class="listing-detail-location-section bg-slate-50 border border-slate-200 space-y-3">
-                            <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">📍 Ünvan</h4>
+                            <h3 class="text-sm font-black text-gray-950 uppercase tracking-wider">📍 Ünvan</h3>
                             <div class="text-sm">
                                 <div class="rounded-2xl bg-white border border-slate-200 px-4 py-3 shadow-sm"><strong id="p-modal-street-address" class="text-gray-950">—</strong></div>
                             </div>
@@ -5622,7 +5642,7 @@ Title: CASPIAN DREAM LINER
                         </div>
 
                         <div class="space-y-2">
-                            <h4 class="text-sm font-black text-gray-950 uppercase tracking-wider">Təsvir</h4>
+                            <h3 class="text-sm font-black text-gray-950 uppercase tracking-wider">Təsvir</h3>
                             <p id="p-modal-desc" class="text-gray-700 text-sm md:text-base font-medium leading-7 whitespace-pre-line"></p>
                         </div>
 
@@ -5653,7 +5673,7 @@ Title: CASPIAN DREAM LINER
     <!-- İSTİFADƏÇİ REDAKTƏ MODALI -->
     <div id="user-edit-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full rounded-3xl border border-white/10 p-6 space-y-4 relative">
-            <button onclick="closeUserEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeUserEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white" aria-label="İstifadəçi redaktəsini bağla"><i class="fa-solid fa-xmark"></i></button>
             <div>
                 <h3 class="text-lg font-extrabold text-white">İstifadəçini redaktə et</h3>
                 <p class="text-xs text-gray-400">Tam ad, e-poçt və rol məlumatlarını yeniləyin.</p>
@@ -5691,12 +5711,12 @@ Title: CASPIAN DREAM LINER
                     </picture>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
                     <div id="op-modal-slider-controls" class="hidden absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 pointer-events-none z-10">
-                        <button onclick="changeOfficialProjectImage(-1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button onclick="changeOfficialProjectImage(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button onclick="changeOfficialProjectImage(-1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition" aria-label="Əvvəlki layihə şəkli"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="changeOfficialProjectImage(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition" aria-label="Növbəti layihə şəkli"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                     <div id="op-modal-image-counter" class="hidden absolute top-4 left-4 bg-black/50 text-white text-[10px] font-bold px-3 py-1 rounded-full z-10"></div>
                     <div class="absolute bottom-6 left-6 md:left-8">
-                        <span id="op-modal-year" class="bg-brand-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
+                        <span id="op-modal-year" class="bg-brand-700 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
                         <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
                         <p id="op-modal-project-counter" class="project-modal-counter"></p>
                     </div>
@@ -5724,7 +5744,7 @@ Title: CASPIAN DREAM LINER
                     <div id="op-tab-prices" class="hidden project-detail-sections"></div>
                     <div id="op-tab-infrastructure" class="hidden project-detail-sections"></div>
                     <div id="op-tab-desc" class="hidden space-y-2 rounded-2xl bg-brand-50/70 border border-brand-200 p-5">
-                        <h4 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h4>
+                        <h3 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h3>
                         <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
                 </div>
@@ -5840,7 +5860,7 @@ Title: CASPIAN DREAM LINER
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
                 <div class="space-y-4 sm:col-span-2 lg:col-span-1">
                     <button type="button" class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')" aria-label="BestHome.az ana səhifə">
-                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-footer-logo" decoding="async">
+                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-footer-logo" width="220" height="108" loading="lazy" decoding="async">
                     </button>
                     <p class="text-sm leading-6 text-gray-600 max-w-sm">
                         BestHome.az Sea Breeze və premium daşınmaz əmlak bazarında etibarlı seçimlər, aktual satış/kirayə elanları və peşəkar məsləhət təqdim edir.
@@ -7911,7 +7931,7 @@ Title: CASPIAN DREAM LINER
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-[88px] h-[64px] rounded-xl overflow-hidden bg-white/5 shrink-0">${slide.media_type === 'video' ? `<video src="${escapeHtml(slide.media_url)}" class="w-full h-full object-cover" muted playsinline></video>` : `<img src="${escapeHtml(slide.media_url)}" class="w-full h-full object-cover" alt="">`}</div>
                         <div class="min-w-0">
-                            <h4 class="font-bold text-white truncate">${escapeHtml(slide.title)}</h4>
+                            <h3 class="font-bold text-white truncate">${escapeHtml(slide.title)}</h3>
                             <div class="text-gray-400">${slide.media_type} • order ${slide.display_order} • ${slide.slide_duration}s • ${slide.button_text || 'buttonsuz'}</div>
                         </div>
                     </div>
@@ -8086,7 +8106,7 @@ Title: CASPIAN DREAM LINER
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-[96px] h-[68px] rounded-xl overflow-hidden bg-white/5 shrink-0">${item.media_type === 'video' ? `<video src="${escapeHtml(image)}" class="w-full h-full object-cover" muted playsinline></video>` : `<img src="${escapeHtml(image)}" class="w-full h-full object-cover" loading="lazy" alt="">`}</div>
                         <div class="min-w-0 space-y-1">
-                            <h4 class="font-bold text-white truncate">${escapeHtml(item.title || listing.title || '—')}</h4>
+                            <h3 class="font-bold text-white truncate">${escapeHtml(item.title || listing.title || '—')}</h3>
                             <div class="text-gray-400">Kod: ${formatListingCode(listing.listingCode)} • ${formatPrice(listing.price, listing.currency || 'AZN')} • ${item.region || '—'} • ${item.slide_duration}s</div>
                             <div class="text-gray-500">${escapeHtml(item.badge_text || 'Badge yoxdur')} • ${item.is_active ? 'Aktiv' : 'Deaktiv'}</div>
                         </div>
@@ -8851,7 +8871,8 @@ Title: CASPIAN DREAM LINER
 
         function initAdminListingMap() {
             const el = document.getElementById('sb-location-map');
-            if (!el || typeof L === 'undefined') return;
+            if (!el) return;
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initAdminListingMap).catch(error => console.error(error)); return; }
             if (!adminListingMap) {
                 setMapLoading('sb-location-map-loading', true);
                 adminListingMap = L.map(el, { scrollWheelZoom: true }).setView(adminMapDefaultCenter(), 12);
@@ -9667,6 +9688,37 @@ Title: CASPIAN DREAM LINER
             document.getElementById('fullscreen-map-results')?.classList.add('hidden');
         }
 
+
+        let leafletLoadPromise = null;
+        function ensureLeafletLoaded() {
+            if (typeof L !== 'undefined') return Promise.resolve();
+            if (leafletLoadPromise) return leafletLoadPromise;
+            leafletLoadPromise = new Promise((resolve, reject) => {
+                const existingCss = document.querySelector('link[data-leaflet-css]');
+                if (!existingCss) {
+                    const css = document.createElement('link');
+                    css.rel = 'stylesheet';
+                    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    css.dataset.leafletCss = 'true';
+                    document.head.appendChild(css);
+                }
+                const existingScript = document.querySelector('script[data-leaflet-js]');
+                if (existingScript) {
+                    existingScript.addEventListener('load', resolve, { once: true });
+                    existingScript.addEventListener('error', reject, { once: true });
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.defer = true;
+                script.dataset.leafletJs = 'true';
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Leaflet xəritə kitabxanası yüklənmədi.'));
+                document.head.appendChild(script);
+            });
+            return leafletLoadPromise;
+        }
+
         function addOpenStreetMapLayer(map) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -9712,7 +9764,7 @@ Title: CASPIAN DREAM LINER
             const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
             if (!mapEl) return;
             frameEl?.classList.remove('hidden');
-            if (typeof L === 'undefined') return;
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => console.error(error)); return; }
             const point = hasCoordinates ? [lat, lng] : BAKU_DEFAULT_CENTER;
             const zoom = hasCoordinates ? 15 : BAKU_DEFAULT_ZOOM;
             setTimeout(() => {
@@ -9857,7 +9909,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function openFullscreenMap(source = 'detail') {
-            if (typeof L === 'undefined') return;
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => openFullscreenMap(source)).catch(error => console.error(error)); return; }
             fullscreenMapSource = source;
             const modal = document.getElementById('fullscreen-map-modal');
             const canvas = document.getElementById('fullscreen-map-canvas');
@@ -10300,7 +10352,8 @@ Title: CASPIAN DREAM LINER
 
         function initPublicListingMap() {
             const el = document.getElementById('pl-location-map');
-            if (!el || typeof L === 'undefined') return;
+            if (!el) return;
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initPublicListingMap).catch(error => console.error(error)); return; }
             if (publicListingMap) { publicListingMap.remove(); publicListingMap = null; publicListingMarker = null; }
             setMapLoading('pl-location-map-loading', true);
             publicListingMap = L.map(el, { scrollWheelZoom: true }).setView(publicMapDefaultCenter(), 12);
@@ -11382,7 +11435,7 @@ Title: CASPIAN DREAM LINER
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
+                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" aria-label="Mobil giriş və admin paneli" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
                 mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
@@ -11511,7 +11564,7 @@ Title: CASPIAN DREAM LINER
                 <picture class="block w-full h-full imageMove">
                     <source media="(min-width: 1024px)" srcset="${desktopSrc}">
                     <source media="(min-width: 640px)" srcset="${tabletSrc}">
-                    <img src="${mobileSrc}" alt="${escapeHtml(projectTitle)}" loading="lazy" data-parallax="true" class="${imgClasses} lazyload">
+                    <img src="${mobileSrc}" alt="${escapeHtml(projectTitle)}" width="1200" height="675" loading="lazy" decoding="async" data-parallax="true" class="${imgClasses} lazyload">
                 </picture>
             `;
         }
@@ -11736,8 +11789,8 @@ Təşəkkür edirəm. 🙏`;
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
-                            <h4 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h4>
+                            ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
+                            <h3 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h3>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
                             <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${escapeHtml(projectDesc)}</p>
@@ -11796,7 +11849,7 @@ Təşəkkür edirəm. 🙏`;
             const renderSections = sections => sections.map(([title, rows, wide]) => {
                 const visibleRows = rows.filter(([, value]) => clean(value));
                 if (!visibleRows.length) return '';
-                return `<section class="project-detail-section${wide ? ' project-detail-section--wide' : ''}"><h4>${title}</h4><div class="project-detail-rows">${visibleRows.map(([label, value, long]) => `<div class="project-detail-row${long ? ' project-detail-row--long' : ''}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(clean(value))}</strong></div>`).join('')}</div></section>`;
+                return `<section class="project-detail-section${wide ? ' project-detail-section--wide' : ''}"><h3>${title}</h3><div class="project-detail-rows">${visibleRows.map(([label, value, long]) => `<div class="project-detail-row${long ? ' project-detail-row--long' : ''}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(clean(value))}</strong></div>`).join('')}</div></section>`;
             }).join('');
             const tabs = {
                 details: [
@@ -11907,7 +11960,7 @@ Təşəkkür edirəm. 🙏`;
             counter.textContent = hasMany ? `${officialProjectImageIndex + 1} / ${officialProjectImages.length}` : '';
             thumbs.innerHTML = hasMany ? officialProjectImages.map((img, idx) => `
                 <button type="button" onclick="openProjectLightbox(${idx})" class="h-16 rounded-xl overflow-hidden border ${idx === officialProjectImageIndex ? 'border-brand-500' : 'border-white/10'} transition cursor-zoom-in" aria-label="${idx + 1}-ci layihə şəklini böyük qalereyada aç">
-                    <img src="${escapeHtml(img)}" class="w-full h-full object-cover" alt="${escapeHtml(projectTitle)}">
+                    <img src="${escapeHtml(img)}" width="800" height="600" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="${escapeHtml(projectTitle)}">
                 </button>
             `).join('') : '';
         }
@@ -11933,7 +11986,7 @@ Təşəkkür edirəm. 🙏`;
             if (!strip) return;
             strip.innerHTML = officialProjectImages.map((url, index) => `
                 <button type="button" onclick="setProjectLightboxImage(${index})" class="property-lightbox__thumb ${index === officialProjectImageIndex ? 'is-active' : ''}" aria-label="${index + 1}-ci layihə şəklini aç" aria-current="${index === officialProjectImageIndex ? 'true' : 'false'}">
-                    <img src="${escapeHtml(url)}" loading="lazy" decoding="async" alt="Layihə miniaturu ${index + 1}">
+                    <img src="${escapeHtml(url)}" width="160" height="120" loading="lazy" decoding="async" alt="Layihə miniaturu ${index + 1}">
                 </button>
             `).join('');
         }
@@ -12184,7 +12237,7 @@ Təşəkkür edirəm. 🙏`;
                 const cardHtml = `
                     <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
                         <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative min-w-0 max-w-full">
-                            <img src="${mainImage}" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
+                            <img src="${mainImage}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
                             <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
@@ -12192,7 +12245,7 @@ Təşəkkür edirəm. 🙏`;
                         <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
                             <div class="space-y-1.5">
                                 ${locationLinesHtml || (locationLabel ? `<p class="sea-breeze-listing-card__meta text-sm font-extrabold text-slate-700"><i class="fa-solid fa-location-dot text-brand-600 mr-1.5"></i>${escapeHtml(locationLabel)}</p>` : '')}
-                                <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base leading-snug truncate">${escapeHtml(listingTitle)}</h4>
+                                <h3 class="sea-breeze-listing-card__title text-gray-950 font-black text-base leading-snug truncate">${escapeHtml(listingTitle)}</h3>
                             </div>
                             <div class="sea-breeze-listing-card__price min-w-0 max-w-full">
                                 <strong class="text-xl md:text-2xl font-black text-gray-950 tracking-tight">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /gün</span>' : ''}</strong>
@@ -12325,7 +12378,7 @@ Təşəkkür edirəm. 🙏`;
             images.forEach((url, index) => {
                 container.insertAdjacentHTML('beforeend', `
                     <button type="button" onclick="openPropertyLightbox(${index})" class="listing-detail-thumbnail ${index === 0 ? 'is-active' : ''}" aria-label="${index + 1}-ci elan şəklini qalereyada aç" aria-current="${index === 0 ? 'true' : 'false'}">
-                        <img src="${escapeHtml(url)}" alt="Elan şəkli ${index + 1}">
+                        <img src="${escapeHtml(url)}" width="960" height="720" loading="lazy" decoding="async" alt="Elan şəkli ${index + 1}">
                     </button>
                 `);
             });
@@ -12398,7 +12451,7 @@ Təşəkkür edirəm. 🙏`;
             if (!strip) return;
             strip.innerHTML = activePropertyImages.map((url, index) => `
                 <button type="button" onclick="setPropertyLightboxImage(${index})" class="property-lightbox__thumb ${index === activePropertyImageIndex ? 'is-active' : ''}" aria-label="${index + 1}-ci şəkli aç" aria-current="${index === activePropertyImageIndex ? 'true' : 'false'}">
-                    <img src="${escapeHtml(url)}" loading="lazy" decoding="async" alt="Elan miniaturu ${index + 1}">
+                    <img src="${escapeHtml(url)}" width="160" height="120" loading="lazy" decoding="async" alt="Elan miniaturu ${index + 1}">
                 </button>
             `).join('');
         }
@@ -12611,7 +12664,7 @@ Təşəkkür edirəm. 🙏`;
                 btn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition duration-200";
             });
             const activeBtn = document.getElementById('filter-' + type);
-            if (activeBtn) activeBtn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-500 text-white";
+            if (activeBtn) activeBtn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-700 text-white";
             renderPortfolio();
         }
 
@@ -12822,7 +12875,7 @@ Təşəkkür edirəm. 🙏`;
                     grid.insertAdjacentHTML('beforeend', `
                         <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
                             <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden">
-                                <img data-gallery-src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full transition duration-500">
+                                <img data-gallery-src="${escapeHtml(thumb)}" width="600" height="338" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full transition duration-500">
                             </div>
                         </article>
                     `);
@@ -12832,7 +12885,7 @@ Təşəkkür edirəm. 🙏`;
                     grid.insertAdjacentHTML('beforeend', `
                         <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
                             <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden relative">
-                                <img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-cover w-full h-full transition duration-500">
+                                <img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} width="600" height="338" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-cover w-full h-full transition duration-500">
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-90"></div>
                             <div class="absolute top-3 left-3 md:top-4 md:left-4 w-10 h-10 rounded-full bg-white/90 text-slate-950 flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div>
@@ -12869,7 +12922,7 @@ Təşəkkür edirəm. 🙏`;
                     <div class="glass-card rounded-2xl overflow-hidden border-l-4 border-brand-500">
                         <div onclick="openVacancyRoute('${v.id}')" class="p-4 flex justify-between items-center cursor-pointer hover:bg-brand-50/70 transition">
                             <div>
-                                <h4 class="text-sm md:text-base font-bold text-gray-900">${escapeHtml(v.title)}</h4>
+                                <h3 class="text-sm md:text-base font-bold text-gray-900">${escapeHtml(v.title)}</h3>
                                 <div class="flex flex-wrap gap-2 text-[11px] md:text-xs text-gray-700 mt-1">
                                     <span><i class="fa-solid fa-location-dot mr-1"></i> ${escapeHtml(v.location)}</span>
                                     <span><i class="fa-solid fa-money-bill mr-1"></i> ${escapeHtml(v.salary)}</span>
@@ -12880,7 +12933,7 @@ Təşəkkür edirəm. 🙏`;
                         <div id="vac-detail-${v.id}" class="hidden p-4 bg-brand-50/80 border-t border-brand-200 text-xs text-gray-700 space-y-3 whitespace-pre-line">
                             ${escapeHtml(v.desc)}
                             <div class="pt-2 flex justify-end">
-                                <button onclick="selectVacancy('${v.title}')" class="bg-brand-500 text-white text-[10px] font-bold px-4 py-2 rounded-xl">Müraciət et</button>
+                                <button onclick="selectVacancy('${v.title}')" class="bg-brand-700 text-white text-[10px] font-bold px-4 py-2 rounded-xl">Müraciət et</button>
                             </div>
                         </div>
                     </div>
@@ -14041,9 +14094,9 @@ Təşəkkür edirəm. 🙏`;
                         <div class="h-40 relative overflow-hidden">
                             ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            <span class="absolute top-3 right-3 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${project.year}</span>
+                            <span class="absolute top-3 right-3 bg-brand-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${project.year}</span>
                             <span class="absolute top-3 left-3 bg-black/50 text-white text-[10px] font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-images mr-1"></i>${getProjectImages(project).length}</span>
-                            <h4 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${project.title}</h4>
+                            <h3 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${project.title}</h3>
                         </div>
                         <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
                             <div class="space-y-2">
@@ -14102,7 +14155,7 @@ Təşəkkür edirəm. 🙏`;
                         ${getProjectPictureMarkup(project, 'w-full h-full object-cover transition duration-500')}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                         <span class="absolute top-3 right-3 bg-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">Arxiv</span>
-                        <h4 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${escapeHtml(project.title)}</h4>
+                        <h3 class="absolute bottom-3 left-3 right-3 text-white font-extrabold text-sm line-clamp-1">${escapeHtml(project.title)}</h3>
                     </div>
                     <div class="p-4 space-y-3">
                         <p class="text-[11px] text-gray-400 line-clamp-2">${escapeHtml(project.desc || '')}</p>
@@ -14674,7 +14727,7 @@ Təşəkkür edirəm. 🙏`;
                 const recent = (user.recentListings || []).map(dbListingToUi).slice(0, 4);
                 const activity = user.recentActivity || [];
                 const listingHtml = listings.length ? listings.slice(0, 8).map(item => `<button onclick="openPropertyModal('${item.id}', true)" class="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"><div><div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div><div class="text-[10px] text-gray-400">Kod: ${formatListingCode(item.listingCode)} • ${formatAzDate(item.createdAt)} • Baxış: ${item.viewCount} • Seçilmiş: ${item.favoritesCount}</div></div><span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span></button>`).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
-                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h4 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h4><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Bloklanıb' : 'Aktiv'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Elanlar', uiUser.listingsCount], ['Təsdiqlənmiş', uiUser.approvedListingsCount], ['Gözləyən', uiUser.pendingListingsCount], ['Baxışlar', uiUser.totalListingViews], ['Seçilmişlər', uiUser.totalFavorites], ['Tamamlanma', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Telefon:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Qeydiyyat:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Son giriş:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h4 class="pt-3 text-sm font-black text-white">Son elanlar</h4><div class="space-y-2">${listingHtml}</div><h4 class="pt-3 text-sm font-black text-white">Son aktivlik</h4><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
+                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h3 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h3><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Bloklanıb' : 'Aktiv'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Elanlar', uiUser.listingsCount], ['Təsdiqlənmiş', uiUser.approvedListingsCount], ['Gözləyən', uiUser.pendingListingsCount], ['Baxışlar', uiUser.totalListingViews], ['Seçilmişlər', uiUser.totalFavorites], ['Tamamlanma', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Telefon:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Qeydiyyat:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Son giriş:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h3 class="pt-3 text-sm font-black text-white">Son elanlar</h3><div class="space-y-2">${listingHtml}</div><h3 class="pt-3 text-sm font-black text-white">Son aktivlik</h3><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
                 showInlineModal('İstifadəçi profili', body);
             } catch (error) {
                 alert('İstifadəçi məlumatları oxunmadı: ' + error.message);
@@ -14817,7 +14870,7 @@ Təşəkkür edirəm. 🙏`;
                         <button type="button" class="admin-ad-drag-handle hidden sm:flex h-9 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gray-400 hover:bg-brand-500/20 hover:text-white" onpointerdown="startAdDrag(event, '${ad.id}')" aria-label="Reklam sırasını dəyiş" title="Sürükləyərək sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button>
                         <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia({ ...ad, widthPx: 72, heightPx: 72, objectFit: 'cover' }, 'w-full h-full')}</div>
                         <div class="min-w-0">
-                            <h4 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h4>
+                            <h3 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h3>
                             <div class="text-gray-400">${ad.position} • ${ad.mediaType} • ${ad.widthPx}×${ad.heightPx}px • ${ad.objectFit} • display ${ad.displayOrder} • rotation ${ad.rotationOrder} • repeat ${ad.repeatCount}× • ${ad.displayDuration}s</div>
                             <div class="text-gray-500">${ad.startDate || 'başlanğıc yoxdur'} → ${ad.endDate || 'son yoxdur'} • ${ad.viewCount} views • ${ad.clickCount} clicks</div>
                         </div>
@@ -15156,7 +15209,7 @@ Təşəkkür edirəm. 🙏`;
                             <img src="${mainImage}" class="admin-listing-management-card__thumb" alt="${escapeHtml(adminListingTitle)}" loading="lazy">
                             <div class="admin-listing-management-card__info">
                                 <div class="admin-listing-management-card__heading">
-                                    <h4 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h4>
+                                    <h3 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h3>
                                     <span class="admin-listing-management-card__status ${badge}">${label}</span>
                                 </div>
                                 <div class="admin-listing-management-card__location"><i class="fa-solid fa-location-dot"></i><span>${escapeHtml(regionLabel)} • ${escapeHtml(districtLabel)}</span></div>
@@ -15242,7 +15295,7 @@ Təşəkkür edirəm. 🙏`;
                                 <img src="${avatar}" onclick="event.stopPropagation(); openAvatarModal(this.src)" class="w-16 h-16 rounded-2xl object-cover bg-brand-500/10 shrink-0 cursor-zoom-in" onerror="this.outerHTML='<div class=&quot;w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center font-black shrink-0&quot;>${initials}</div>'">
                                 <div class="min-w-0 flex-1 space-y-2">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <h4 class="font-extrabold text-white text-base">${escapeHtml(fullname)}</h4>
+                                        <h3 class="font-extrabold text-white text-base">${escapeHtml(fullname)}</h3>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10">${roleLabel(a.role)}</span>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full ${a.emailVerified ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'}">${a.emailVerified ? 'Email təsdiqli' : 'Email təsdiqsiz'}</span>
@@ -15276,7 +15329,7 @@ Təşəkkür edirəm. 🙏`;
                     vacList.innerHTML += `
                         <div class="glass-card p-4 rounded-xl flex justify-between items-center text-xs transition ${(v.isActive ?? v.status === 'Aktiv') ? '' : 'opacity-50 grayscale'}">
                             <div>
-                                <h4 class="font-bold text-white">${v.title} (${(v.isActive ?? v.status === 'Aktiv') ? 'Aktiv' : 'Bloklanıb'})</h4>
+                                <h3 class="font-bold text-white">${v.title} (${(v.isActive ?? v.status === 'Aktiv') ? 'Aktiv' : 'Bloklanıb'})</h3>
                                 <span class="text-gray-400">${v.location} • ${v.salary}</span><br><span class="text-[10px] text-gray-500">Slug: ${v.slug || '—'}</span>
                             </div>
                             <div class="flex space-x-2">
@@ -16167,7 +16220,7 @@ Təşəkkür edirəm. 🙏`;
             strip.classList.remove('hidden');
             strip.innerHTML = media.map((src, idx) => `
                 <button onclick="selectModalMedia(${idx})" class="aspect-square rounded-xl overflow-hidden border-2 transition ${idx === activeModalMediaIndex ? 'border-brand-500 ring-2 ring-brand-100' : 'border-transparent opacity-75 hover:opacity-100'}">
-                    <img src="${escapeHtml(src)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Miniatür ${idx + 1}">
+                    <img src="${escapeHtml(src)}" width="160" height="120" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="Miniatür ${idx + 1}">
                 </button>
             `).join('');
         }
@@ -16484,13 +16537,13 @@ Təşəkkür edirəm. 🙏`;
             const isFavorite = appData.favoriteListingIds?.has(String(p.id));
             return `<article onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
                 <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative">
-                    <img src="${escapeHtml(mainImage)}" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}">
+                    <img src="${escapeHtml(mainImage)}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}">
                     <span class="absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full ${listingStatusBadgeClass(p.status || 'approved')}">${listingStatusLabel(p.status || 'approved')}</span>
                     <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                 </div>
                 <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1">
                     ${locationLinesHtml}
-                    <h4 class="sea-breeze-listing-card__title text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h4>
+                    <h3 class="sea-breeze-listing-card__title text-gray-950 font-black text-base truncate">${escapeHtml(p.title || '—')}</h3>
                     <strong class="block text-xl font-black text-gray-950">${formattedPrice}${isRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /ay</span>' : ''}${isDailyRent && formattedPrice !== '—' ? '<span class="sea-breeze-listing-card__price-period text-sm"> /gün</span>' : ''}</strong>
                     <div class="listing-card-badge-row">${renderListingBadgeStack(p)}</div>
                     <div class="listing-info-row"><span class="listing-info-row__item">🛏 <strong>${escapeHtml(roomFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">📐 <strong>${escapeHtml(areaFact)}</strong></span><span class="listing-info-row__divider">|</span><span class="listing-info-row__item">🏢 <strong>${escapeHtml(floorFact)}</strong></span></div>
