@@ -4323,7 +4323,7 @@
                     </div>
                     <div class="premium-filter-field premium-filter-field--compact">
                         <label class="premium-filter-label" for="project-delivery-year-filter">Təhvil ili</label>
-                        <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects(); fetchProjectsBySearch()" class="premium-filter-control px-4 text-sm">
+                        <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects()" class="premium-filter-control px-4 text-sm">
                             <option value="all">Bütün illər</option>
                         </select>
                     </div>
@@ -8476,19 +8476,9 @@ Title: CASPIAN DREAM LINER
         }
 
         async function fetchProjectsBySearch() {
-            try {
-                const year = document.getElementById('project-delivery-year-filter')?.value || 'all';
-                const params = new URLSearchParams({ all: 'true' });
-                if (projectSearchQuery) params.set('q', projectSearchQuery);
-                if (year !== 'all') params.set('deliveryYear', year);
-                const projects = await apiRequest(`/api/projects?${params.toString()}`);
-                const rows = Array.isArray(projects) ? projects : (projects.data || []);
-                cacheData('projects', rows.map(dbProjectToUi));
-                renderOfficialProjectOptions();
-                renderOfficialProjects();
-            } catch (error) {
-                console.warn('Layihə axtarışı API-dən oxunmadı:', error.message);
-            }
+            // Project filters are applied client-side against the full project source so
+            // delivery year options are never rebuilt from a filtered API response.
+            renderOfficialProjects();
         }
 
         function getProjectImages(project) {
@@ -11516,11 +11506,16 @@ Zəhmət olmasa mənimlə əlaqə saxlayın.
 Təşəkkür edirəm. 🙏`;
         }
 
+        function extractProjectDeliveryYear(project = {}) {
+            const deliveryText = String(project.deliveryDate || project.delivery_date || project.year || '');
+            return deliveryText.match(/\d{4}/)?.[0] || '';
+        }
+
         function renderProjectYearOptions(projects) {
             const select = document.getElementById('project-delivery-year-filter');
             if (!select) return;
             const current = select.value || 'all';
-            const years = [...new Set(projects.map(p => String(p.year || '').match(/\d{4}/)?.[0]).filter(Boolean))].sort();
+            const years = [...new Set(projects.map(extractProjectDeliveryYear).filter(Boolean))].sort();
             select.innerHTML = '<option value="all">Bütün illər</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
             select.value = years.includes(current) ? current : 'all';
         }
@@ -11559,7 +11554,7 @@ Təşəkkür edirəm. 🙏`;
             const deliveryYear = document.getElementById('project-delivery-year-filter')?.value || 'all';
             const filtered = allProjects.filter(p => {
                 const titleText = String(p.title || '').toLowerCase();
-                const year = String(p.year || '').match(/\d{4}/)?.[0] || '';
+                const year = extractProjectDeliveryYear(p);
                 return (selectedProjectCategory === 'all' || p.category === selectedProjectCategory)
                     && (!projectSearchQuery || titleText.includes(projectSearchQuery))
                     && (deliveryYear === 'all' || year === deliveryYear);
