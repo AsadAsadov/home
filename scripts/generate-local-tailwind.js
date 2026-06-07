@@ -21,7 +21,7 @@ const spacing = n => `${Number(n)*0.25}rem`;
 function esc(s){return s.replace(/([^a-zA-Z0-9_-])/g,'\\$1')}
 function colorVal(v){
   const [name,op] = v.split('/'); const c=colors[name]; if(!c) return null;
-  if(!op) return c; const a=Number(op)/100; if(c==='#fff') return `rgba(255,255,255,${a})`; if(c==='#000') return `rgba(0,0,0,${a})`;
+  if(!op) return c; const a=op.startsWith('[')&&op.endsWith(']') ? Number(op.slice(1,-1)) : Number(op)/100; if(!Number.isFinite(a)) return c; if(c==='#fff') return `rgba(255,255,255,${a})`; if(c==='#000') return `rgba(0,0,0,${a})`;
   const m=c.match(/^#(..)(..)(..)$/); return m?`rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`:c;
 }
 function arbitrary(v){ return v.startsWith('[')&&v.endsWith(']') ? v.slice(1,-1).replace(/_/g,' ') : null; }
@@ -48,7 +48,7 @@ function decl(base){
   if((m=base.match(/^grid-cols-(\d+)$/))) return `grid-template-columns:repeat(${m[1]},minmax(0,1fr))`;
   if((a=arbitrary(base.match(/^grid-cols-(\[.*\])$/)?.[1]||''))) return `grid-template-columns:${a}`;
   if((m=base.match(/^(gap|gap-x|gap-y|p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml)-([\d.]+)$/))){ const prop={gap:'gap','gap-x':'column-gap','gap-y':'row-gap',p:'padding',px:'padding-left:VAL;padding-right',py:'padding-top:VAL;padding-bottom',pt:'padding-top',pr:'padding-right',pb:'padding-bottom',pl:'padding-left',m:'margin',mx:'margin-left:VAL;margin-right',my:'margin-top:VAL;margin-bottom',mt:'margin-top',mr:'margin-right',mb:'margin-bottom',ml:'margin-left'}[m[1]]; const val=spacing(m[2]); return prop.includes('VAL')?prop.replace(/VAL/g,val)+`:${val}`:`${prop}:${val}`; }
-  if((m=base.match(/^(w|h|min-h|min-w|max-w|max-h)-([\d.]+)$/))) return `${m[1].replace('w','width').replace('h','height').replace('min-height','min-height').replace('min-width','min-width').replace('max-width','max-width').replace('max-height','max-height')}:${spacing(m[2])}`;
+  if((m=base.match(/^(w|h|min-h|min-w|max-w|max-h)-([\d.]+)$/))) return `${{w:'width',h:'height','min-h':'min-height','min-w':'min-width','max-w':'max-width','max-h':'max-height'}[m[1]]}:${spacing(m[2])}`;
   if((a=arbitrary(base.match(/^(w|h|min-h|max-w|max-h)-(.+)$/)?.[2]||''))) return `${{w:'width',h:'height','min-h':'min-height','max-w':'max-width','max-h':'max-height'}[base.split('-').slice(0,-1).join('-')]}:${a}`;
   if((m=base.match(/^max-w-(xs|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl)$/))) return `max-width:${{xs:'20rem',sm:'24rem',md:'28rem',lg:'32rem',xl:'36rem','2xl':'42rem','3xl':'48rem','4xl':'56rem','5xl':'64rem','6xl':'72rem','7xl':'80rem'}[m[1]]}`;
   if((m=base.match(/^rounded(?:-(sm|md|lg|xl|2xl|3xl|\[.*\]))?$/))){ const r=m[1]? (arbitrary(m[1])||{sm:'.125rem',md:'.375rem',lg:'.5rem',xl:'.75rem','2xl':'1rem','3xl':'1.5rem'}[m[1]]) : '.25rem'; return `border-radius:${r}`; }
@@ -60,12 +60,20 @@ function decl(base){
   if((m=base.match(/^space-y-([\d.]+)$/))) return `--space-y:${spacing(m[1])}`;
   return '';
 }
-let css=`:root{--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-scale-x:1;--tw-scale-y:1}*{border-style:solid;border-width:0}body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.container{width:100%}.space-y-1>*+*{margin-top:.25rem}.space-y-1\\.5>*+*{margin-top:.375rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}.space-y-5>*+*{margin-top:1.25rem}.space-y-6>*+*{margin-top:1.5rem}.space-y-8>*+*{margin-top:2rem}.space-y-10>*+*{margin-top:2.5rem}.divide-y>*+*{border-top-width:1px}.selection\\:bg-brand-500::selection{background-color:#7F7FFF}.selection\\:text-white::selection{color:#fff}\n`;
+let css=`:root{--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-scale-x:1;--tw-scale-y:1}*{border-style:solid;border-width:0}html,body{background:#fff;color:#1f2937}body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.container{width:100%}.space-y-1>*+*{margin-top:.25rem}.space-y-1\\.5>*+*{margin-top:.375rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}.space-y-5>*+*{margin-top:1.25rem}.space-y-6>*+*{margin-top:1.5rem}.space-y-8>*+*{margin-top:2rem}.space-y-10>*+*{margin-top:2.5rem}.divide-y>*+*{border-top-width:1px}.selection\\:bg-brand-500::selection{background-color:#7F7FFF}.selection\\:text-white::selection{color:#fff}\n`;
 const rules=[];
 for(const t of tokens){
   const parts=t.split(':'); const base=parts.pop(); const d=decl(base); if(!d) continue;
   let selector='.'+esc(t); const pseudos=[]; let media='';
-  for(const p of parts){ if(screens[p]) media=screens[p]; else if(['hover','focus','focus-visible','active','disabled'].includes(p)) pseudos.push(':'+p); else if(p==='group-hover') selector='.group:hover '+selector; }
+  let supported = true;
+  for(const p of parts){
+    if(screens[p]) media=screens[p];
+    else if(['hover','focus','focus-visible','active','disabled'].includes(p)) pseudos.push(':'+p);
+    else if(p==='selection') pseudos.push('::selection');
+    else if(p==='group-hover') selector='.group:hover '+selector;
+    else supported = false;
+  }
+  if(!supported) continue;
   const rule=`${selector}${pseudos.join('')}{${d}}`;
   rules.push(media?`@media (min-width:${media}){${rule}}`:rule);
 }
