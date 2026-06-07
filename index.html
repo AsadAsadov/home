@@ -1371,22 +1371,11 @@
         }
 
 
-        .sea-breeze-project-heading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: .7rem;
+        .sea-breeze-projects-shell {
+            margin-top: 1.25rem;
         }
-        .sea-breeze-project-heading h2 {
-            font-weight: 800;
-            letter-spacing: -.018em;
-            line-height: 1.12;
-        }
-        .sea-breeze-project-heading p {
-            line-height: 1.55;
-        }
-        @media (min-width: 768px) {
-            .sea-breeze-project-heading { align-items: flex-start; }
+        @media (max-width: 640px) {
+            .sea-breeze-projects-shell { margin-top: 1rem; }
         }
         .project-filter-panel {
             max-width: none;
@@ -4698,12 +4687,7 @@
 
 
             <!-- Rəsmi Layihələr Kateqoriyaları (3-lü Bölmə) -->
-            <div class="space-y-6">
-                <div class="sea-breeze-project-heading text-center md:text-left">
-                    <h2 class="text-2xl font-extrabold text-gray-900">Sea Breeze Layihələri</h2>
-                    <p class="text-gray-700 text-xs font-medium">Kateqoriyanı seçin və yaşayış tərzinizə uyğun layihələri nəzərdən keçirin</p>
-                </div>
-
+            <div class="sea-breeze-projects-shell space-y-6">
                 <!-- Premium single-row project filter bar -->
                 <div class="premium-filter-bar project-filter-panel" aria-label="Sea Breeze layihə filterləri">
                     <div class="premium-filter-field premium-filter-field--search">
