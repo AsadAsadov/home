@@ -637,6 +637,79 @@
             text-overflow: ellipsis;
         }
 
+
+        @keyframes homepageSkeletonPulse {
+            0%, 100% { opacity: 0.62; }
+            50% { opacity: 1; }
+        }
+        .homepage-shell-skeleton {
+            display: none;
+            gap: 1.5rem;
+        }
+        #tab-seabreeze.homepage-loading .homepage-shell-skeleton {
+            display: grid;
+        }
+        #tab-seabreeze.homepage-loading #seabreeze-home-content {
+            display: none;
+        }
+        .homepage-skeleton-hero,
+        .homepage-skeleton-heading span,
+        .homepage-skeleton-heading small,
+        .homepage-skeleton-filters,
+        .homepage-skeleton-grid span,
+        .desktop-ad-rail.is-loading::before {
+            background: linear-gradient(110deg, #eef2ff 8%, #f8fafc 18%, #e0e7ff 33%);
+            background-size: 200% 100%;
+            animation: mediaShimmer 1.35s ease-in-out infinite, homepageSkeletonPulse 1.8s ease-in-out infinite;
+        }
+        .homepage-skeleton-hero {
+            height: var(--hero-height-desktop, 520px);
+            border-radius: 24px;
+            border: 1px solid rgba(207, 207, 255, 0.75);
+            box-shadow: 0 18px 45px rgba(127, 127, 255, 0.10);
+        }
+        .homepage-skeleton-heading {
+            display: grid;
+            gap: .65rem;
+            justify-items: start;
+        }
+        .homepage-skeleton-heading span {
+            width: min(340px, 70%);
+            height: 28px;
+            border-radius: 999px;
+        }
+        .homepage-skeleton-heading small {
+            width: min(520px, 88%);
+            height: 14px;
+            border-radius: 999px;
+        }
+        .homepage-skeleton-filters {
+            min-height: 86px;
+            border-radius: 24px;
+            border: 1px solid rgba(207, 207, 255, 0.7);
+        }
+        .homepage-skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .homepage-skeleton-grid span {
+            min-height: 280px;
+            border-radius: 1rem;
+            border: 1px solid rgba(207, 207, 255, 0.7);
+        }
+        @media (min-width: 1280px) {
+            .homepage-skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+        }
+        @media (max-width: 1023px) {
+            .homepage-skeleton-hero { height: var(--hero-height-tablet, 420px); }
+        }
+        @media (max-width: 640px) {
+            .homepage-skeleton-hero { height: var(--hero-height-mobile, 280px); border-radius: 20px; }
+            .homepage-skeleton-filters { min-height: 172px; }
+            .homepage-skeleton-grid span { min-height: 240px; }
+        }
+
         .admin-project-card {
             transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
         }
@@ -722,9 +795,19 @@
                 top: var(--desktop-ad-sticky-top, 100px);
                 width: var(--ad-width);
                 max-width: 100%;
+                min-height: calc(var(--ad-height) + 2rem);
                 flex-direction: column;
                 gap: 1rem;
                 z-index: 10;
+            }
+            .desktop-ad-rail.is-loading::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: var(--ad-height);
+                border-radius: 1rem;
+                border: 1px solid rgba(207, 207, 255, 0.75);
+                box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
             }
         }
         @media (min-width: 1366px) and (max-width: 1599px) {
@@ -759,11 +842,14 @@
         .desktop-ad-card--responsive {
             width: 100%;
             max-width: var(--ad-width);
+            min-height: calc(var(--ad-height) + 2rem);
         }
         .desktop-ad-media {
             width: 100% !important;
             height: var(--ad-height) !important;
             max-width: 100%;
+            aspect-ratio: var(--ad-width) / var(--ad-height);
+            object-fit: cover;
         }
         .desktop-ad-label {
             padding: .55rem .65rem;
@@ -4270,7 +4356,19 @@
     <main class="flex-grow pt-28 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
         <!-- 1. SEA BREEZE PARTNERSHIP TAB -->
-        <section id="tab-seabreeze" class="tab-content hidden space-y-12">
+        <section id="tab-seabreeze" class="tab-content hidden space-y-12 homepage-loading">
+            <div id="seabreeze-homepage-skeleton" class="homepage-shell-skeleton" aria-live="polite" aria-busy="true">
+                <div class="homepage-skeleton-hero"></div>
+                <div class="homepage-skeleton-heading">
+                    <span></span>
+                    <small></small>
+                </div>
+                <div class="homepage-skeleton-filters"></div>
+                <div class="homepage-skeleton-grid">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <div id="seabreeze-home-content">
             <!-- Hero banner -->
             <div id="sea-breeze-hero-slider" class="sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
                 <div id="sea-breeze-hero-media" class="absolute inset-0" role="img" aria-label="BestHome layihə vitrini"></div>
@@ -4333,6 +4431,7 @@
                     <!-- Loaded dynamically via JS -->
                 </div>
                 <div id="projects-pagination" class="flex items-center justify-center gap-3 pt-2"></div>
+            </div>
             </div>
 
         </section>
@@ -6969,9 +7068,12 @@ Title: CASPIAN DREAM LINER
             if (ad.mediaType === 'video') {
                 const loopAttr = options.loop === false ? '' : ' loop';
                 const dataRole = options.rotation ? ` data-ad-rotation-video="true" data-ad-id="${escapeHtml(ad.id || '')}"` : '';
-                return `<video class="${classes}" style="${style}" src="${url}" muted autoplay${loopAttr} playsinline preload="metadata" title="${title}"${dataRole}></video>`;
+                const preload = options.eager ? 'auto' : 'metadata';
+                return `<video class="${classes}" style="${style}" width="${dimensions.width}" height="${dimensions.height}" src="${url}" muted autoplay${loopAttr} playsinline preload="${preload}" title="${title}"${dataRole}></video>`;
             }
-            return `<img class="${classes}" style="${style}" src="${url}" alt="${title}" loading="lazy" decoding="async">`;
+            const loading = options.eager ? 'eager' : 'lazy';
+            const fetchPriority = options.eager ? ' fetchpriority="high"' : '';
+            return `<img class="${classes}" style="${style}" width="${dimensions.width}" height="${dimensions.height}" src="${url}" alt="${title}" loading="${loading}" decoding="async"${fetchPriority}>`;
         }
 
         function adIsWithinDates(ad) {
@@ -7066,6 +7168,8 @@ Title: CASPIAN DREAM LINER
             if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
                 left.innerHTML = '';
                 right.innerHTML = '';
+                left.classList.remove('is-loading');
+                right.classList.remove('is-loading');
                 resetAdRotationRenderState();
                 return;
             }
@@ -7074,6 +7178,8 @@ Title: CASPIAN DREAM LINER
             if (!ads.length) {
                 left.innerHTML = '';
                 right.innerHTML = '';
+                left.classList.remove('is-loading');
+                right.classList.remove('is-loading');
                 adRotationState.index = 0;
                 adRotationState.repeat = 0;
                 adRotationState.activeAdsSignature = '';
@@ -7103,8 +7209,10 @@ Title: CASPIAN DREAM LINER
             console.log('Current Ad:', ad.id);
             trackAdView(ad);
             const encodedUrl = encodeURIComponent(ad.clickUrl || '');
+            left.classList.remove('is-loading');
+            right.classList.remove('is-loading');
             const cardHtml = `<article class="desktop-ad-card desktop-ad-card--responsive" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
-                ${renderAdMedia(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true })}
+                ${renderAdMedia(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true })}
                 <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
             </article>`;
             left.innerHTML = (ad.position === 'left' || ad.position === 'both') ? cardHtml : '';
@@ -7395,7 +7503,7 @@ Title: CASPIAN DREAM LINER
             return url || DEFAULT_SEA_BREEZE_HERO_IMAGE;
         }
 
-        function createHeroMediaElement(slide) {
+        function createHeroMediaElement(slide, options = {}) {
             const url = getHeroMediaUrl(slide);
             if (slide.media_type === 'video') {
                 const video = document.createElement('video');
@@ -7405,13 +7513,20 @@ Title: CASPIAN DREAM LINER
                 video.muted = true;
                 video.loop = true;
                 video.playsInline = true;
+                video.preload = options.eager ? 'auto' : 'metadata';
                 video.setAttribute('playsinline', '');
                 video.setAttribute('aria-hidden', 'true');
                 return video;
             }
-            const image = document.createElement('div');
-            image.className = 'hero-slide-media absolute inset-0 w-full h-full bg-cover bg-center';
-            image.style.backgroundImage = `url('${url}')`;
+            const image = document.createElement('img');
+            image.className = 'hero-slide-media absolute inset-0 w-full h-full object-cover';
+            image.src = url;
+            image.alt = '';
+            image.loading = options.eager ? 'eager' : 'lazy';
+            image.decoding = 'async';
+            image.width = 1280;
+            image.height = 520;
+            if (options.eager) image.fetchPriority = 'high';
             image.setAttribute('aria-hidden', 'true');
             return image;
         }
@@ -7447,7 +7562,7 @@ Title: CASPIAN DREAM LINER
             if (mediaWrap) {
                 mediaWrap.innerHTML = '';
                 slides.forEach((slide, index) => {
-                    const el = createHeroMediaElement(slide);
+                    const el = createHeroMediaElement(slide, { eager: index === heroSliderIndex });
                     if (index === heroSliderIndex) el.classList.add('is-active');
                     mediaWrap.appendChild(el);
                     if (slide.media_type === 'video' && index === heroSliderIndex) el.play?.().catch(() => {});
@@ -8181,6 +8296,8 @@ Title: CASPIAN DREAM LINER
             vacancies: false,
             ads: false,
             admin: false,
+            initialHomepageLoaded: false,
+            initialHomepageLoading: true,
             rawHeroSlides: null,
             rawListingHeroItems: null
         };
@@ -8218,6 +8335,18 @@ Title: CASPIAN DREAM LINER
             if (tabId === activeTabId) return true;
             const element = document.getElementById(`tab-${tabId}`);
             return Boolean(element && !element.classList.contains('hidden'));
+        }
+
+        function setHomepageInitialLoading(isLoading) {
+            homepageHydration.initialHomepageLoading = Boolean(isLoading);
+            document.getElementById('tab-seabreeze')?.classList.toggle('homepage-loading', Boolean(isLoading));
+            document.getElementById('seabreeze-homepage-skeleton')?.setAttribute('aria-busy', String(Boolean(isLoading)));
+            const shouldShowRailSkeleton = Boolean(isLoading) && isTabAktiv('seabreeze');
+            ['desktop-left-ads', 'desktop-right-ads'].forEach(id => {
+                const rail = document.getElementById(id);
+                if (rail) rail.classList.toggle('is-loading', shouldShowRailSkeleton);
+            });
+            updateDesktopAdStickyOffset();
         }
 
         function normalizeListingHeroItem(item = {}) {
@@ -8270,16 +8399,18 @@ Title: CASPIAN DREAM LINER
                 appData.heroSection = getRenderableHeroSlides()[0] || null;
             } catch (error) {
                 console.warn('Hero slaydları oxunmadı, cache istifadə olunur:', error.message);
-                isHeroSlidesLoaded = appData.heroSlides.length > 0;
+                isHeroSlidesLoaded = true;
+                appData.heroSection = getRenderableHeroSlides()[0] || null;
             } finally {
                 homepageHydration.heroSlides = true;
             }
         }
 
-        async function loadProjectsPriority() {
+        async function loadProjectsPriority(options = {}) {
             if (homepageHydration.projects) return;
+            const shouldRender = options.render !== false;
             dataLoadState.projects.loading = true;
-            renderOfficialProjects();
+            if (shouldRender) renderOfficialProjects();
             try {
                 const projects = await apiRequest('/api/projects?all=true');
                 const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
@@ -8290,8 +8421,10 @@ Title: CASPIAN DREAM LINER
                 homepageHydration.projects = true;
                 dataLoadState.projects.loading = false;
                 dataLoadState.projects.loaded = true;
-                renderOfficialProjectOptions();
-                renderOfficialProjects();
+                if (shouldRender) {
+                    renderOfficialProjectOptions();
+                    renderOfficialProjects();
+                }
             }
         }
 
@@ -8367,20 +8500,24 @@ Title: CASPIAN DREAM LINER
             }
         }
 
-        async function loadAdsBackground() {
+        async function loadAdsBackground(options = {}) {
             if (homepageHydration.ads) return;
+            const shouldRender = options.render !== false;
             homepageHydration.ads = true;
             try {
                 const [ads, adStats] = await Promise.all([
-                    apiRequest('/api/site-ads').catch(() => []),
+                    apiRequest('/api/site-ads').catch(error => {
+                        console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
+                        return appData.ads || [];
+                    }),
                     activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
                 ]);
                 cacheData('ads', (ads || []).map(dbAdToUi));
                 appData.adStats = adStats;
-                renderDesktopAds();
             } catch (error) {
                 console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
-                renderDesktopAds();
+            } finally {
+                if (shouldRender) renderDesktopAds();
             }
         }
 
@@ -8409,7 +8546,6 @@ Title: CASPIAN DREAM LINER
         function setupHomepageLazyLoaders() {
             if (homepageHydration.observersReady) return;
             homepageHydration.observersReady = true;
-            scheduleIdleTask(loadAdsBackground, 700);
             scheduleIdleTask(loadVacanciesBackground, 1200);
             scheduleIdleTask(loadAdminBackground, 1600);
             runWhenSectionVisible('#agent-listings-area', loadListingsLazy, { rootMargin: '500px 0px' });
@@ -8420,8 +8556,15 @@ Title: CASPIAN DREAM LINER
         async function hydrateFromDatabase() {
             bootstrapCachedData();
             renderOfficialProjectOptions();
+            setHomepageInitialLoading(true);
             try {
-                await Promise.all([loadSiteSettingsPriority(), loadHeroSlidesPriority(), loadListingHeroPriority()]);
+                await Promise.allSettled([
+                    loadSiteSettingsPriority(),
+                    loadHeroSlidesPriority(),
+                    loadProjectsPriority({ render: false }),
+                    loadAdsBackground({ render: false }),
+                    loadListingHeroPriority()
+                ]);
             } finally {
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
@@ -8430,11 +8573,15 @@ Title: CASPIAN DREAM LINER
                 }
                 if (homepageHydration.rawListingHeroItems) cacheData('listingHeroItems', normalizeListingHeroItems(homepageHydration.rawListingHeroItems));
                 homepageHydration.critical = true;
+                homepageHydration.initialHomepageLoaded = true;
+                dataLoadState.projects.loading = false;
+                dataLoadState.projects.loaded = true;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderSeaBreezeHero();
                 renderListingHero();
-                scheduleIdleTask(loadProjectsPriority, 250);
+                renderDesktopAds({ force: true });
+                setHomepageInitialLoading(false);
                 setupHomepageLazyLoaders();
             }
         }
@@ -11287,9 +11434,13 @@ Title: CASPIAN DREAM LINER
                 }
                 loadConversations(true, { autoSelect: !conversationId && !messagingState.pendingConversation }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
             } else if (tabId === 'seabreeze') {
-                renderOfficialProjectOptions();
-                switchProjectCategory(selectedProjectCategory);
-                setupHomepageLazyLoaders();
+                if (homepageHydration.initialHomepageLoaded) {
+                    renderOfficialProjectOptions();
+                    switchProjectCategory(selectedProjectCategory);
+                    setupHomepageLazyLoaders();
+                } else {
+                    setHomepageInitialLoading(true);
+                }
             } else if (tabId === 'listings') {
                 if (homepageHydration.listings) renderSeaBreeze();
                 else loadListingsLazy();
