@@ -18,6 +18,7 @@ const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 const { initRealtime } = require('./utils/realtime');
 
 const app = express();
+app.set('trust proxy', 1);
 app.set('json replacer', (_key, value) => {
   if (typeof value !== 'bigint') return value;
   return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
@@ -52,7 +53,17 @@ if (!fs.existsSync(uploadDir)) {
 
 const origins = (process.env.CORS_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean);
 app.use(cors({ origin: origins.length ? origins : true, credentials: true }));
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: process.env.ENABLE_HSTS === 'true' ? { maxAge: 31536000, includeSubDomains: true } : false,
+}));
+app.use((req, res, next) => {
+  if (process.env.FORCE_HTTPS === 'true' && !req.secure) {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+  return next();
+});
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 500 }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '50mb' }));
@@ -61,8 +72,24 @@ app.use(express.urlencoded({
   extended: true,
 }));
 
-app.use('/uploads', express.static(uploadDir));
-if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir));
+const uploadCacheStaticOptions = {
+  maxAge: '30d',
+  setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=2592000'),
+};
+const immutableAssetStaticOptions = {
+  maxAge: '1y',
+  setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'),
+};
+
+app.use('/uploads', express.static(uploadDir, uploadCacheStaticOptions));
+if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir, uploadCacheStaticOptions));
+app.use('/public/assets', express.static(path.join(process.cwd(), 'public/assets'), immutableAssetStaticOptions));
+
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send('User-agent: *\nAllow: /\n\nSitemap: https://besthome.az/sitemap.xml\n');
+});
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
 app.get('/api/config/maps', (_req, res) => {
@@ -116,10 +143,11 @@ app.use('/api/sync', require('./routes/sync'));
 
 app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found.' }));
 
-app.use(express.static(process.cwd(), { index: false }));
+app.use(express.static(process.cwd(), { index: false, maxAge: '1h' }));
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
+  res.setHeader('Cache-Control', 'no-cache, max-age=0');
   return res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
