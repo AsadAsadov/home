@@ -6229,7 +6229,31 @@ Title: CASPIAN DREAM LINER
             return explicitRegionValues.some(isSeaBreezeRegionValue);
         }
         function getSeaBreezeProjects() { return getOfficialProjects().filter(isSeaBreezeProject); }
-        function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getSeaBreezeProjects().map(p => p.title).filter(Boolean).concat('Digər') : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : (region === 'sumqayit' ? SUMQAYIT_DISTRICTS : []))); }
+        function projectTitleCase(value = '') {
+            return String(value || '')
+                .trim()
+                .replace(/\s+/g, ' ')
+                .toLowerCase()
+                .replace(/(^|\s)([\p{L}])/gu, (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+        }
+        function normalizeProjectOptionKey(value = '') { return projectTitleCase(value).toLocaleLowerCase('az-AZ').replace(/[^\p{L}\p{N}]+/gu, ''); }
+        function getUniqueSeaBreezeProjectNames({ sort = true } = {}) {
+            const seenIds = new Set();
+            const seenNames = new Set();
+            const names = [];
+            getSeaBreezeProjects().forEach(project => {
+                const rawTitle = project?.title || project?.name || project?.projectName || '';
+                const title = projectTitleCase(rawTitle);
+                const nameKey = normalizeProjectOptionKey(title);
+                const idKey = project?.id === undefined || project?.id === null ? '' : String(project.id).trim();
+                if (!title || !nameKey || (idKey && seenIds.has(idKey)) || seenNames.has(nameKey)) return;
+                if (idKey) seenIds.add(idKey);
+                seenNames.add(nameKey);
+                names.push(title);
+            });
+            return sort ? names.sort((a, b) => a.localeCompare(b, 'az-AZ')) : names;
+        }
+        function getDistrictOptionsForRegion(region) { return region === 'seabreeze' ? getUniqueSeaBreezeProjectNames() : (region === 'baki' ? BAKI_DISTRICTS : (region === 'absheron' ? ABSHERON_DISTRICTS : (region === 'sumqayit' ? SUMQAYIT_DISTRICTS : []))); }
         function cityToLegacyRegion(city) { const n = String(city || '').trim().toLowerCase(); if (['baki', 'bakı'].includes(n)) return 'baki'; if (['absheron', 'abşeron', 'abseron'].includes(n)) return 'absheron'; if (['sumqayit', 'sumqayıt'].includes(n)) return 'sumqayit'; return ''; }
         function legacyRegionToCity(region) { return region === 'baki' ? 'Bakı' : (region === 'absheron' ? 'Abşeron' : (region === 'sumqayit' ? 'Sumqayıt' : '')); }
 
@@ -9292,8 +9316,7 @@ Title: CASPIAN DREAM LINER
             { title: 'Blue Waters', lat: 40.5912, lon: 49.9867, keywords: 'blue waters blue water blu waters' },
             { title: 'Harbour Residence', lat: 40.5912, lon: 49.9867, keywords: 'harbour residence harbor residence harbour' },
             { title: 'Monaco Residence', lat: 40.5912, lon: 49.9867, keywords: 'monaco residence monako residence' },
-            { title: 'Brabus Island', lat: 40.5912, lon: 49.9867, keywords: 'brabus island brabus adasi' },
-            { title: 'Brabus Tower', lat: 40.5912, lon: 49.9867, keywords: 'brabus tower brabus qüllə brabus qulle' }
+            { title: 'Brabus Island', lat: 40.5912, lon: 49.9867, keywords: 'brabus island brabus adasi' }
         ];
         const LOCAL_LOCATION_INDEX = [
             ...KNOWN_SEA_BREEZE_PLACES.map(place => ({ ...place, city: 'Sea Breeze', knownPlace: true, addressText: `${place.title}, Sea Breeze, Baku, Azerbaijan` })),
@@ -10297,6 +10320,7 @@ Title: CASPIAN DREAM LINER
             syncDistrictSelect(document.getElementById('filter-sb-project'), document.getElementById('filter-sb-region')?.value === 'all' ? 'seabreeze' : (document.getElementById('filter-sb-region')?.value || 'seabreeze'), true);
             syncDistrictSelect(document.getElementById('sb-project'), (document.getElementById('sb-region-type')?.value || 'seabreeze') === 'general' ? 'city' : (document.getElementById('sb-region-type')?.value || 'seabreeze'), false);
             syncDistrictSelect(document.getElementById('admin-listing-district-filter'), document.getElementById('admin-listing-region-filter')?.value === 'all' ? 'seabreeze' : (document.getElementById('admin-listing-region-filter')?.value || 'seabreeze'), true);
+            refreshPublicProjectDropdown();
             handleListingRegionTypeChange();
         }
 
@@ -10444,23 +10468,26 @@ Title: CASPIAN DREAM LINER
         }
 
         function getPublicSeaBreezeProjectNames() {
-            const dynamicNames = (Array.isArray(appData.projects) ? appData.projects : [])
-                .map(project => project?.title || project?.name || project?.projectName)
-                .filter(Boolean);
-            const knownNames = (Array.isArray(KNOWN_SEA_BREEZE_PLACES) ? KNOWN_SEA_BREEZE_PLACES : [])
-                .map(place => place?.title)
-                .filter(title => title && title.toLocaleLowerCase('az-AZ') !== 'sea breeze');
-            return [...new Set([...dynamicNames, ...knownNames])]
-                .sort((a, b) => String(a).localeCompare(String(b), 'az-AZ'));
+            return getUniqueSeaBreezeProjectNames();
         }
 
         function publicProjectOptionsHtml(selected = '') {
             const names = getPublicSeaBreezeProjectNames();
+            const selectedTitle = projectTitleCase(selected);
+            if (!names.length) return '<option value="" disabled selected>Layihələr yüklənir...</option>';
             return names.map((name, index) => {
                 const value = escapeHtml(name);
-                const isSelected = selected ? name === selected : index === 0;
+                const isSelected = selectedTitle ? name === selectedTitle : index === 0;
                 return `<option value="${value}"${isSelected ? ' selected' : ''}>${value}</option>`;
             }).join('');
+        }
+
+        function refreshPublicProjectDropdown() {
+            const select = document.getElementById('pl-project');
+            if (!select) return;
+            const current = select.value || '';
+            select.innerHTML = publicProjectOptionsHtml(current);
+            syncPublicProjectFields();
         }
 
         function renderPublicListingForm(success = false, createdListing = null) {
