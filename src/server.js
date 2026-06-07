@@ -24,6 +24,7 @@ app.set('json replacer', (_key, value) => {
   return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
 });
 const port = process.env.PORT || 3000;
+const enableSecurityHeaders = process.env.ENABLE_SECURITY_HEADERS === 'true';
 
 function warnMissingRequiredEnv() {
   for (const name of ['JWT_SECRET', 'DATABASE_URL']) {
@@ -56,8 +57,18 @@ app.use(cors({ origin: origins.length ? origins : true, credentials: true }));
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  hsts: process.env.ENABLE_HSTS === 'true' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  crossOriginOpenerPolicy: false,
+  originAgentCluster: false,
+  hsts: false,
 }));
+app.use((req, res, next) => {
+  if (enableSecurityHeaders && req.secure) {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Origin-Agent-Cluster', '?1');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  return next();
+});
 app.use((req, res, next) => {
   if (process.env.FORCE_HTTPS === 'true' && !req.secure) {
     return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);

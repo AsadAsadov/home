@@ -42,7 +42,9 @@
             --color-text-secondary: #6B7280;
         }
 
-        html, body { max-width: 100%; overflow-x: clip; }
+        html, body { max-width: 100%; overflow-x: clip; background: #ffffff; }
+        body { background: #ffffff; color: var(--color-text-primary); }
+        .desktop-ad-layout, main.flex-grow, .tab-content, #tab-seabreeze, #seabreeze-home-content, #sea-breeze-projects-list { background: transparent; }
         *, *::before, *::after { box-sizing: border-box; }
         img, video, iframe, canvas, svg { max-width: 100%; }
         .glass-card {
@@ -1005,6 +1007,8 @@
         .header-action-btn--primary { color:#fff !important; background: var(--color-primary) !important; border-color: var(--color-primary); }
         .header-action-btn--primary:hover { background: var(--color-primary-hover) !important; }
         .nav-link { display:inline-flex; align-items:center; min-height:2.5rem; }
+        .nav-link:focus { outline: none; }
+        .nav-link:focus-visible { outline: 2px solid var(--color-primary-border); outline-offset: 4px; border-radius: .375rem; }
         .nav-link,
         #mobile-menu button,
         .text-gray-300,
