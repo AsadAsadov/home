@@ -522,7 +522,6 @@
 .mb-6{margin-bottom:1.5rem}
 .text-brand-700{color:#5656E8}
 .hover\:underline:hover{text-decoration-line:underline}
-.h-\[2\.75rem\]{height:2.75rem}
 .border-slate-300{border-color:#cbd5e1}
 .leading-5{line-height:1.25rem}
 @media (min-width:640px){.sm\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
