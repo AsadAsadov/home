@@ -16,6 +16,7 @@ const { generateNextListingCodeInLockedTransaction } = require('./utils/listingC
 const { authenticate, authorize } = require('./middleware/auth');
 const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 const { initRealtime } = require('./utils/realtime');
+const { ensurePageViewsTable, visitTrackingMiddleware } = require('./utils/visitAnalytics');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -134,6 +135,7 @@ app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin/email', require('./routes/adminEmail'));
 app.use('/api/admin/notifications', require('./routes/adminNotifications'));
+app.use('/api/admin/stats', require('./routes/adminStats'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));
@@ -153,6 +155,8 @@ app.use('/api/site-settings', require('./routes/siteSettings'));
 app.use('/api/sync', require('./routes/sync'));
 
 app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found.' }));
+
+app.use(visitTrackingMiddleware);
 
 app.use(express.static(process.cwd(), { index: false, maxAge: '1h' }));
 
@@ -308,7 +312,7 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns()])
+Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns(), ensurePageViewsTable()])
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
