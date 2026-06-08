@@ -5066,7 +5066,7 @@
             <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
             <div id="admin-subtabs-container" class="admin-subtabs" aria-label="Admin bölmələri">
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="admin-subtab-button is-active">Elanlar</button>
-                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button user-only-element hidden">Profil</button>
+                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button">Profil</button>
                 <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="admin-subtab-button admin-only-element">Layihələr</button>
                 <button onclick="switchAdminSubtab('projects-archive')" id="subtab-btn-projects-archive" class="admin-subtab-button admin-only-element">Arxiv</button>
                 <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="admin-subtab-button admin-only-element">⭐ Layihə Hero</button>
@@ -8231,7 +8231,7 @@ Title: CASPIAN DREAM LINER
 
         async function handleSaveHeroSlide(e) {
             e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin' || isHeroSaveSubmitting) return;
+            if (!activeUser || !isAdminRole(activeUser.role) || isHeroSaveSubmitting) return;
             const id = document.getElementById('hero-slide-id').value;
             const file = document.getElementById('hero-media-file-input')?.files?.[0];
             const slideType = document.getElementById('hero-slide-type-input').value;
@@ -8910,7 +8910,7 @@ Title: CASPIAN DREAM LINER
                         console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
                         return appData.ads || [];
                     }),
-                    activeUser?.role === 'admin' ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
+                    isAdminRole(activeUser?.role) ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
                 ]);
                 cacheData('ads', (ads || []).map(dbAdToUi));
                 appData.adStats = adStats;
@@ -8928,9 +8928,9 @@ Title: CASPIAN DREAM LINER
                 const [applications, users, dashboardStats] = await Promise.all([
                     apiRequest('/api/applications').catch(() => []),
                     apiRequest('/api/users').catch(() => []),
-                    activeUser?.role === 'admin' ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
+                    isAdminRole(activeUser?.role) ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
                 ]);
-                if (activeUser?.role === 'admin') {
+                if (isAdminRole(activeUser?.role)) {
                     const heroItems = await apiRequest('/api/listing-hero-items?admin=1').catch(() => appData.listingHeroItems || []);
                     cacheData('listingHeroItems', normalizeListingHeroItems(heroItems));
                 }
@@ -10566,17 +10566,15 @@ Title: CASPIAN DREAM LINER
 
         function profileMenuItemsHtml(itemClass = 'profile-dropdown-item', closeAction = '') {
             const close = closeAction ? `; ${closeAction}` : '';
-            if (!isAdminRole(activeUser?.role)) {
-                return `
-                    <button onclick="navigateToMyListings()${close}" class="${itemClass}" role="menuitem">📋 Elanlar</button>
-                    <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil</button>
-                `;
-            }
-            return `
-                <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil məlumatları</button>
-                <button onclick="navigateToMyListings()${close}" class="${itemClass}" role="menuitem">📋 Mənim elanlarım</button>
-                <button onclick="navigateToMessages()${close}" class="${itemClass}" role="menuitem">💬 Mesajlar</button>
+            const userMenu = `
+                <button onclick="navigateToMyListings()${close}" class="${itemClass}" role="menuitem">📋 Elanlar</button>
                 <button onclick="navigateToFavorites()${close}" class="${itemClass}" role="menuitem">❤️ Favorilər</button>
+                <button onclick="navigateToMessages()${close}" class="${itemClass}" role="menuitem">💬 Mesajlar</button>
+                <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil</button>
+            `;
+            if (!isAdminRole(activeUser?.role)) return userMenu;
+            return `
+                ${userMenu}
                 <button onclick="logoutAdmin()${close}" class="${itemClass} text-red-600" role="menuitem">🚪 Çıxış</button>
             `;
         }
@@ -13892,7 +13890,7 @@ Təşəkkür edirəm. 🙏`;
                     history.replaceState({ path: pendingRoute }, '', pendingRoute);
                     await routeToCurrentPath();
                 } else {
-                    history.replaceState({ path: activeUser.role === 'admin' ? '/admin' : '/profil' }, '', activeUser.role === 'admin' ? '/admin' : '/profil');
+                    history.replaceState({ path: isAdminRole(activeUser.role) ? '/admin' : '/profil' }, '', isAdminRole(activeUser.role) ? '/admin' : '/profil');
                     await routeToCurrentPath();
                 }
                 return;
@@ -13925,8 +13923,9 @@ Təşəkkür edirəm. 🙏`;
         };
 
         function switchAdminSubtab(subtab, options = {}) {
+            const isAdmin = isAdminRole(activeUser?.role);
             const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
-            if (activeUser && activeUser.role !== 'admin' && isRestrictedDashboardTab) {
+            if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
 
@@ -13946,20 +13945,19 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
             document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
-                const restrictedClass = btn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
-                const hiddenClass = activeUser && activeUser.role !== 'admin' && !['subtab-btn-sb','subtab-btn-user-profile'].includes(btn.id) ? ' hidden' : (activeUser?.role === 'admin' && btn.id === 'subtab-btn-user-profile' ? ' hidden' : '');
-                btn.className = `admin-subtab-button${restrictedClass}${hiddenClass}`;
+                const isAdminOnlyButton = !['subtab-btn-sb', 'subtab-btn-user-profile'].includes(btn.id);
+                btn.className = `admin-subtab-button${isAdminOnlyButton ? ' admin-only-element' : ''}${!isAdmin && isAdminOnlyButton ? ' hidden' : ''}`;
             });
 
             const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'projects-archive' ? 'projects-archive' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
             if (activeBtn) {
-                const restrictedClass = activeBtn.id === 'subtab-btn-sb' ? '' : ' admin-only-element';
-                activeBtn.className = `admin-subtab-button is-active${restrictedClass}`;
+                const isAdminOnlyButton = !['subtab-btn-sb', 'subtab-btn-user-profile'].includes(activeBtn.id);
+                activeBtn.className = `admin-subtab-button is-active${isAdminOnlyButton ? ' admin-only-element' : ''}`;
             }
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
             const subtabRoute = ADMIN_SUBTAB_ROUTES[subtab] || '/admin';
-            if (!options.skipPush && (activeUser?.role === 'admin' || subtab === 'user-profile') && window.location.pathname !== subtabRoute) {
+            if (!options.skipPush && (isAdmin || subtab === 'user-profile') && window.location.pathname !== subtabRoute) {
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
@@ -14436,7 +14434,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function startProjectDrag(event, projectId) {
-            if (!activeUser || activeUser.role !== 'admin' || adminProjectSearchQuery.trim()) return;
+            if (!activeUser || !isAdminRole(activeUser.role) || adminProjectSearchQuery.trim()) return;
             const card = event.target.closest('.admin-project-card');
             const grid = document.getElementById('admin-projects-grid');
             if (!card || !grid) return;
@@ -14503,7 +14501,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function startGalleryDrag(event, galleryId) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             const card = event.target.closest('.admin-media-card');
             const list = document.getElementById('admin-gallery-list');
             if (!card || !list) return;
@@ -14536,7 +14534,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function saveProjectOrder() {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             const projects = getOfficialProjects().map((project, index) => ({ ...project, displayOrder: index + 1 }));
             const order = projects
                 .filter(project => Number.isInteger(Number(project.id)))
@@ -14623,7 +14621,7 @@ Təşəkkür edirəm. 🙏`;
 
 
         async function loadArchivedProjects() {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             const grid = document.getElementById('admin-archived-projects-grid');
             if (grid) grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-500 glass-card rounded-2xl">Arxiv yüklənir...</div>';
             try {
@@ -14660,7 +14658,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function setProjectArchived(id, isArchived) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             const message = isArchived ? 'Bu layihə arxivə göndərilsin?' : 'Bu layihə arxivdən çıxarılsın?';
             if (!confirm(message)) return;
             try {
@@ -14684,7 +14682,7 @@ Təşəkkür edirəm. 🙏`;
 
 
         async function toggleProjectHero(id, featured) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             try {
                 const saved = await apiRequest(`/api/projects/${id}/hero`, { method: 'PATCH', body: JSON.stringify({ featured_in_hero: featured }) });
                 const savedUi = dbProjectToUi(saved);
@@ -14941,7 +14939,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function saveBulkProjectImport() {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             const validRows = bulkProjectImportRows.filter(row => String(row.title || '').trim());
             if (!validRows.length) {
                 alert('Yadda saxlamaq üçün ən azı bir layihə adı olmalıdır.');
@@ -14989,7 +14987,7 @@ Təşəkkür edirəm. 🙏`;
 
         async function handleSaveOfficialProject(e) {
             e.preventDefault();
-            if (!activeUser || activeUser.role !== 'admin' || isProjectSaveSubmitting) return;
+            if (!activeUser || !isAdminRole(activeUser.role) || isProjectSaveSubmitting) return;
             isProjectSaveSubmitting = true;
             setProjectSaveButtonLoading(true);
 
@@ -15097,7 +15095,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function deleteOfficialProject(id) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             if (!confirm('Bu layihəni silmək istədiyinizə əminsiniz?')) return;
             try {
                 await apiRequest(`/api/projects/${id}`, { method: 'DELETE' });
@@ -15111,7 +15109,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function restoreDefaultOfficialProjects() {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             if (!confirm('Bütün layihə məlumatları ilkin 1-10 layihə datası ilə bərpa edilsin?')) return;
             try {
                 for (const project of getOfficialProjects()) {
@@ -15210,7 +15208,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function openUserListingsModal(userId) {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             try {
                 const [user, rows] = await Promise.all([
                     apiRequest(`/api/users/${userId}`),
@@ -15252,7 +15250,7 @@ Təşəkkür edirəm. 🙏`;
 
 
         async function loadAdminAds() {
-            if (!activeUser || activeUser.role !== 'admin') return;
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
             try {
                 const [ads, stats] = await Promise.all([
                     apiRequest('/api/site-ads?admin=1'),
@@ -15311,7 +15309,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function startAdDrag(event, adId) {
-            if (!activeUser || activeUser.role !== 'admin' || window.matchMedia('(max-width: 639px)').matches) return;
+            if (!activeUser || !isAdminRole(activeUser.role) || window.matchMedia('(max-width: 639px)').matches) return;
             const card = event.target.closest('.admin-ad-card');
             const list = document.getElementById('admin-ads-list');
             if (!card || !list) return;
@@ -15652,7 +15650,7 @@ Təşəkkür edirəm. 🙏`;
 
             // Hide/Show restriction tags
             const adminTags = document.querySelectorAll('.admin-only-element');
-            if (activeUser.role === 'user') {
+            if (!isAdminRole(activeUser.role)) {
                 adminTags.forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.remove('hidden'));
                 switchAdminSubtab('seabreeze-manager');
@@ -15693,7 +15691,7 @@ Təşəkkür edirəm. 🙏`;
                 const listingHeroItem = listingHeroItemForListing(p.id);
                 const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
                 const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
-                const heroAction = activeUser.role === 'admin' ? (listingHeroItem
+                const heroAction = isAdminRole(activeUser.role) ? (listingHeroItem
                     ? `<button onclick="removeListingFromHero('${p.id}')" class="admin-listing-action admin-listing-action--hero"><i class="fa-solid fa-star"></i>Hero-dan çıxar</button>`
                     : `<button onclick="addListingToHero('${p.id}')" class="admin-listing-action admin-listing-action--hero-add"><i class="fa-regular fa-star"></i>Hero əlavə et</button>`) : '';
 
@@ -15721,13 +15719,13 @@ Təşəkkür edirəm. 🙏`;
                             </div>
                         </div>
                         <div class="admin-listing-management-card__actions">
-                            ${activeUser.role === 'admin' && !isApproved ? `
+                            ${isAdminRole(activeUser.role) && !isApproved ? `
                                 <button onclick="approveListing(${p.id})" class="admin-listing-action admin-listing-action--approve"><i class="fa-solid fa-check"></i>Təsdiqlə</button>
                             ` : ''}
-                            ${activeUser.role === 'admin' && isApproved ? `
+                            ${isAdminRole(activeUser.role) && isApproved ? `
                                 <button onclick="deactivateListing(${p.id})" class="admin-listing-action admin-listing-action--deactivate"><i class="fa-solid fa-pause"></i>Deaktiv et</button>
                             ` : ''}
-                            ${activeUser.role === 'admin' && normalizedStatus !== 'rejected' ? `
+                            ${isAdminRole(activeUser.role) && normalizedStatus !== 'rejected' ? `
                                 <button onclick="rejectListing(${p.id})" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
                             ` : ''}
                             ${heroAction}
@@ -15739,7 +15737,7 @@ Təşəkkür edirəm. 🙏`;
                 `;
             });
 
-            if (activeUser.role === 'admin') {
+            if (isAdminRole(activeUser.role)) {
                 // 2. CV Table
                 const cvs = appData.applications;
                 const cvBody = document.getElementById('admin-cv-tbody');
@@ -16323,7 +16321,7 @@ Təşəkkür edirəm. 🙏`;
 
         // USER REGISTRATION / EDITING
         function roleLabel(role) {
-            return role === 'admin' ? 'Admin' : 'İstifadəçi';
+            return isAdminRole(role) ? 'Admin' : 'İstifadəçi';
         }
 
         async function handleRegisterAgent(e) {
@@ -17129,7 +17127,7 @@ Təşəkkür edirəm. 🙏`;
         function routeToDashboardSubtab(subtab, path) {
             if (!openAuthenticatedRoute('admin-dashboard', path)) return;
             document.getElementById('admin-access-denied-route')?.remove();
-            if (path.startsWith('/admin') && activeUser.role !== 'admin') {
+            if (path.startsWith('/admin') && !isAdminRole(activeUser.role)) {
                 document.querySelectorAll('[id^="admin-subtab-"]').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
                     btn.className = 'admin-subtab-button hidden';
