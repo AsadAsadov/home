@@ -37,6 +37,7 @@ function normalizeListingStatus(value, fallback = 'pending') {
   const normalized = String(value || '').trim().toLowerCase();
   if (['approved', 'təsdiqlənib', 'tesdiqlenib'].includes(normalized)) return 'approved';
   if (['rejected', 'rədd edilib', 'redd edilib'].includes(normalized)) return 'rejected';
+  if (['archived', 'arxiv', 'arxivdə', 'arxivde'].includes(normalized)) return 'archived';
   if (['pending', 'gözləmədə', 'gozlemede'].includes(normalized)) return 'pending';
   return fallback;
 }
@@ -620,6 +621,34 @@ async function listListings(req, res, extraWhere) {
   res.json({ data: orderedListingRows(data), total, page, totalPages: Math.max(Math.ceil(total / limit), 1) });
 }
 
+
+
+router.get('/admin', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const normalizedCodeQuery = String(req.query.listingCode || req.query.code || (/^BH?\d+$/i.test(q) || /^\d+$/.test(q) ? q : '')).replace(/^BH/i, '');
+  const code = /^\d+$/.test(normalizedCodeQuery) ? BigInt(normalizedCodeQuery) : null;
+  const searchWhere = q || code !== null ? { OR: [
+    ...(q ? [
+      { title: { contains: q, mode: 'insensitive' } },
+      { projectName: { contains: q, mode: 'insensitive' } },
+      { description: { contains: q, mode: 'insensitive' } },
+      { city: { contains: q, mode: 'insensitive' } },
+      { district: { contains: q, mode: 'insensitive' } },
+      { settlement: { contains: q, mode: 'insensitive' } },
+      { metroStation: { contains: q, mode: 'insensitive' } },
+      { streetAddress: { contains: q, mode: 'insensitive' } },
+    ] : []),
+    ...(code !== null ? [{ listingCode: code }] : []),
+  ] } : undefined;
+  const regionWhere = listingRegionFilterWhere(req.query);
+  const status = normalizeListingStatus(req.query.status, null);
+  const whereClauses = [searchWhere, regionWhere, status ? { status } : null].filter(Boolean);
+  const where = whereClauses.length ? { AND: whereClauses } : undefined;
+  const data = await prisma.listing.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include });
+  await attachListingUsers(data);
+  decorateListingUi(data);
+  res.json({ data: orderedListingRows(data), total: data.length, page: 1, totalPages: 1 });
+}));
 
 router.get('/options', (_req, res) => {
   res.json({

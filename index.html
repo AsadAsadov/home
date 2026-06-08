@@ -1860,6 +1860,7 @@
         .admin-listing-filter-pill--pending { color: #b45309; background: #fffbeb; }
         .admin-listing-filter-pill--approved { color: #047857; background: #ecfdf5; }
         .admin-listing-filter-pill--rejected { color: #b91c1c; background: #fef2f2; }
+        .admin-listing-filter-pill--archived { color: #475569; background: #f8fafc; }
 
         /* Admin listing management cards */
         .admin-listing-management-card {
@@ -5254,6 +5255,7 @@
                             <button type="button" data-listing-status-filter="pending" onclick="setAdminListingStatusFilter('pending')" class="admin-listing-filter-pill admin-listing-filter-pill--pending"><i class="fa-regular fa-clock"></i><span>Gözləyən elanlar</span></button>
                             <button type="button" data-listing-status-filter="approved" onclick="setAdminListingStatusFilter('approved')" class="admin-listing-filter-pill admin-listing-filter-pill--approved"><i class="fa-regular fa-circle-check"></i><span>Təsdiqlənmiş elanlar</span></button>
                             <button type="button" data-listing-status-filter="rejected" onclick="setAdminListingStatusFilter('rejected')" class="admin-listing-filter-pill admin-listing-filter-pill--rejected"><i class="fa-regular fa-circle-xmark"></i><span>Rədd edilmiş elanlar</span></button>
+                            <button type="button" data-listing-status-filter="archived" onclick="setAdminListingStatusFilter('archived')" class="admin-listing-filter-pill admin-listing-filter-pill--archived"><i class="fa-regular fa-folder-open"></i><span>Arxiv</span></button>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2">
@@ -7080,18 +7082,20 @@ Title: CASPIAN DREAM LINER
             const value = String(status || '').trim().toLowerCase();
             if (['approved', 'təsdiqlənib', 'tesdiqlenib'].includes(value)) return 'approved';
             if (['rejected', 'rədd edilib', 'redd edilib'].includes(value)) return 'rejected';
+            if (['archived', 'arxiv', 'arxivdə', 'arxivde'].includes(value)) return 'archived';
             return 'pending';
         }
 
         function listingStatusLabel(status) {
-            return { pending: '⏳ Təsdiq gözləyir', approved: '✅ Aktiv', rejected: '❌ Rədd edildi' }[normalizeListingStatus(status)] || '⏳ Təsdiq gözləyir';
+            return { pending: '⏳ Təsdiq gözləyir', approved: '✅ Aktiv', rejected: '❌ Rədd edildi', archived: '📁 Arxivdə' }[normalizeListingStatus(status)] || '⏳ Təsdiq gözləyir';
         }
 
         function listingStatusBadgeClass(status) {
             return {
                 pending: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
                 approved: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                rejected: 'bg-red-500/10 text-red-400 border border-red-500/20'
+                rejected: 'bg-red-500/10 text-red-400 border border-red-500/20',
+                archived: 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
             }[normalizeListingStatus(status)];
         }
 
@@ -8679,7 +8683,8 @@ Title: CASPIAN DREAM LINER
         const dataLoadState = {
             projects: { loading: true, loaded: false },
             listings: { loading: true, loaded: false },
-            gallery: { loading: true, loaded: false }
+            gallery: { loading: true, loaded: false },
+            adminListings: { loading: false, loaded: false, error: '' }
         };
 
         const homepageHydration = {
@@ -8857,7 +8862,7 @@ Title: CASPIAN DREAM LINER
             dataLoadState.listings.loading = true;
             if (isTabAktiv('listings')) renderSeaBreeze();
             try {
-                const listings = await apiRequest('/api/listings?page=1&limit=100');
+                const listings = await apiRequest('/api/listings?page=1&limit=100&status=approved');
                 const listingRows = Array.isArray(listings) ? listings : (listings.data || []);
                 cacheData('listings', listingRows.map(dbListingToUi));
                 renderListingHero(listingHeroIndex);
@@ -8870,6 +8875,53 @@ Title: CASPIAN DREAM LINER
                 if (isTabAktiv('listings')) renderSeaBreeze();
             }
             scheduleIdleTask(loadFavoritesLazy, 800);
+        }
+
+
+        function adminListingStatsFromListings(listings = appData.listings || {}) {
+            const rows = Array.isArray(listings) ? listings : [];
+            return {
+                totalListings: rows.length,
+                pendingListings: rows.filter(item => normalizeListingStatus(item.status) === 'pending').length,
+                approvedListings: rows.filter(item => normalizeListingStatus(item.status) === 'approved').length,
+                rejectedListings: rows.filter(item => normalizeListingStatus(item.status) === 'rejected').length,
+                archivedListings: rows.filter(item => normalizeListingStatus(item.status) === 'archived').length,
+                totalListingViews: rows.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
+                totalViews: rows.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
+                totalFavorites: rows.reduce((sum, item) => sum + Number(item.favoritesCount || 0), 0),
+            };
+        }
+
+        function mergeAdminListingStats(listings = appData.listings || []) {
+            appData.dashboardStats = { ...(appData.dashboardStats || {}), ...adminListingStatsFromListings(listings) };
+        }
+
+        async function fetchAdminListings() {
+            const response = await apiRequest('/api/listings/admin');
+            return Array.isArray(response) ? response : (response.data || []);
+        }
+
+        async function loadAdminListings({ render = true, force = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return [];
+            if (dataLoadState.adminListings.loading && !force) return appData.listings || [];
+            dataLoadState.adminListings.loading = true;
+            dataLoadState.adminListings.error = '';
+            if (render) renderAdminDashboard();
+            try {
+                const rows = await fetchAdminListings();
+                const listings = rows.map(dbListingToUi);
+                cacheData('listings', listings);
+                mergeAdminListingStats(listings);
+                dataLoadState.adminListings.loaded = true;
+                return listings;
+            } catch (error) {
+                dataLoadState.adminListings.error = 'Elanlar yüklənmədi, yenidən cəhd edin.';
+                console.warn('Admin elanları oxunmadı:', error.message);
+                throw error;
+            } finally {
+                dataLoadState.adminListings.loading = false;
+                if (render && isTabAktiv('admin-dashboard')) renderAdminDashboard();
+            }
         }
 
         async function loadFavoritesLazy() {
@@ -8960,6 +9012,7 @@ Title: CASPIAN DREAM LINER
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false });
                 if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
             } catch (error) {
                 console.warn('Kabinet məlumatları oxunmadı:', error.message);
@@ -10989,6 +11042,7 @@ Title: CASPIAN DREAM LINER
                 const savedListing = extractListingFromResponse(saved);
                 const savedUi = dbListingToUi(savedListing);
                 cacheData('listings', [savedUi, ...(appData.listings || []).filter(x => String(x.id) !== String(savedUi.id))]);
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderPublicListingForm(true, savedUi);
                 hideListingSubmissionOverlay();
             } catch(error) { hideListingSubmissionOverlay(); alert('Elan göndərilmədi: '+error.message); }
@@ -12011,6 +12065,7 @@ ${profileMenuItemsHtml()}
             } else if (tabId === 'admin-dashboard') {
                 renderAdminDashboard();
                 loadAdminBackground();
+                if (isAdminRole(activeUser?.role)) loadAdminListings({ force: true }).catch(() => {});
             }
 
             const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
@@ -13701,7 +13756,9 @@ Təşəkkür edirəm. 🙏`;
                 const role = normalizeAuthRole(user.role);
                 activeUser = { role, name: user.fullname || user.email, fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'google' };
                 updateHeaderUI();
+                homepageHydration.admin = false;
                 await hydrateFromDatabase();
+                if (isAdminRole(activeUser.role)) await loadAdminListings({ render: false }).catch(() => {});
                 const pendingRoute = consumePendingAuthRoute();
                 if (pendingRoute) history.replaceState({ path: pendingRoute }, '', pendingRoute);
                 await routeToCurrentPath();
@@ -13914,7 +13971,9 @@ Təşəkkür edirəm. 🙏`;
                 updateHeaderUI();
                 setLoginButtonSuccess();
                 await wait(500);
+                homepageHydration.admin = false;
                 await hydrateFromDatabase();
+                if (isAdminRole(activeUser.role)) await loadAdminListings({ render: false }).catch(() => {});
                 setLoginButtonLoading(false);
                 isLoginSubmitting = false;
                 const pendingRoute = consumePendingAuthRoute();
@@ -13990,7 +14049,11 @@ Təşəkkür edirəm. 🙏`;
                 updateProjectImagePreview();
             }
             if (subtab === 'projects-archive') { loadArchivedProjects(); }
-            if (subtab === 'seabreeze-manager') { toggleMetroFieldForCity(); setTimeout(initAdminListingMap, 80); }
+            if (subtab === 'seabreeze-manager') {
+                toggleMetroFieldForCity();
+                setTimeout(initAdminListingMap, 80);
+                if (isAdmin) loadAdminListings({ force: true }).catch(() => {});
+            }
             if (subtab === 'gallery-manager') {
                 renderAdminDashboard();
                 if (!dataLoadState.gallery.loaded || !Array.isArray(appData.gallery) || appData.gallery.length === 0) {
@@ -15193,6 +15256,10 @@ Təşəkkür edirəm. 🙏`;
                 pendingListings: listings.filter(item => normalizeListingStatus(item.status) === 'pending').length,
                 approvedListings: listings.filter(item => normalizeListingStatus(item.status) === 'approved').length,
                 rejectedListings: listings.filter(item => normalizeListingStatus(item.status) === 'rejected').length,
+                archivedListings: listings.filter(item => normalizeListingStatus(item.status) === 'archived').length,
+                totalViews: listings.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
+                totalListingViews: listings.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
+                totalFavorites: listings.reduce((sum, item) => sum + Number(item.favoritesCount || 0), 0),
                 projectsCount: (appData.projects || []).length,
                 vacanciesCount: (appData.vacancies || []).length,
                 applicationsCount: (appData.applications || []).length,
@@ -15718,13 +15785,22 @@ Təşəkkür edirəm. 🙏`;
             const pContainer = document.getElementById('admin-seabreeze-list');
             pContainer.innerHTML = '';
 
-            properties.forEach(p => {
+            const adminListingsBlocked = isAdminRole(activeUser.role) && dataLoadState.adminListings.error;
+            if (adminListingsBlocked) {
+                pContainer.innerHTML = `<div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200">${dataLoadState.adminListings.error}</div>`;
+            } else if (isAdminRole(activeUser.role) && dataLoadState.adminListings.loading && !properties.length) {
+                pContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-gray-300"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Elanlar yüklənir...</div>';
+            } else if (!properties.length) {
+                pContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-gray-400">Elan tapılmadı.</div>';
+            }
+
+            if (!adminListingsBlocked && properties.length) properties.forEach(p => {
                 // Agent restriction filter
                 if (activeUser.role === 'user' && p.authorId !== activeUser.id) return;
 
                 const normalizedStatus = normalizeListingStatus(p.status);
                 const isApproved = normalizedStatus === 'approved';
-                const label = { pending: 'Gözləyir', approved: 'Aktiv', rejected: 'Rədd edildi' }[normalizedStatus];
+                const label = { pending: 'Gözləyir', approved: 'Aktiv', rejected: 'Rədd edildi', archived: 'Arxivdə' }[normalizedStatus] || 'Gözləyir';
                 const badge = listingStatusBadgeClass(normalizedStatus);
                 const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
                 const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
@@ -16193,6 +16269,7 @@ Təşəkkür edirəm. 🙏`;
                 if (idx > -1) list[idx] = savedUi;
                 else list.unshift(savedUi);
                 cacheData('listings', list);
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 resetSeaBreezeForm();
                 renderAdminDashboard();
                 renderSeaBreeze();
@@ -16308,6 +16385,7 @@ Təşəkkür edirəm. 🙏`;
             try {
                 await apiRequest(`/api/listings/${id}`, { method: 'DELETE' });
                 cacheData('listings', appData.listings.filter(x => String(x.id) !== String(id)));
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
             } catch (error) {
@@ -16323,6 +16401,7 @@ Təşəkkür edirəm. 🙏`;
                 if (idx > -1) list[idx] = dbListingToUi(saved);
                 cacheData('listings', list);
                 appData.dashboardStats = null;
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
             } catch (error) {
@@ -16338,6 +16417,7 @@ Təşəkkür edirəm. 🙏`;
                 if (idx > -1) list[idx] = dbListingToUi(saved);
                 cacheData('listings', list);
                 appData.dashboardStats = null;
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
             } catch (error) {
@@ -16354,6 +16434,7 @@ Təşəkkür edirəm. 🙏`;
                 if (idx > -1) list[idx] = dbListingToUi(saved);
                 cacheData('listings', list);
                 appData.dashboardStats = null;
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
             } catch (error) {
