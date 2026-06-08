@@ -22,10 +22,29 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
   const userId = toBigIntId(req.auth.id);
   const favorites = await prisma.favorite.findMany({
     where: { userId },
-    include: includeListing,
     orderBy: { createdAt: 'desc' },
   });
-  const validFavorites = favorites.filter((favorite) => favorite.listing);
+
+  const listingIds = [...new Set(favorites.map((favorite) => favorite.listingId).filter(Boolean))];
+  const listings = listingIds.length
+    ? await prisma.listing.findMany({
+      where: { id: { in: listingIds } },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    })
+    : [];
+  const listingsById = new Map(listings.map((listing) => [String(listing.id), listing]));
+  const validFavorites = favorites
+    .map((favorite) => ({ ...favorite, listing: listingsById.get(String(favorite.listingId)) || null }))
+    .filter((favorite) => favorite.listing);
+  const orphanListingIds = listingIds.filter((listingId) => !listingsById.has(String(listingId)));
+
+  if (orphanListingIds.length) {
+    await prisma.favorite.deleteMany({
+      where: { userId, listingId: { in: orphanListingIds } },
+    }).catch((error) => {
+      console.warn('Failed to clean orphan favorites:', error.message);
+    });
+  }
 
   console.log('Favorites count:', favorites.length);
   console.log('Valid favorites:', validFavorites.length);
