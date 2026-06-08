@@ -294,6 +294,7 @@ model User {
   updatedAt     DateTime          @default(now()) @updatedAt @map("updated_at")
   sessions      UserSession[]
   activityLogs  UserActivityLog[]
+  pageViews     PageView[]
   emailVerificationTokens EmailVerificationToken[]
   emailChangeTokens      EmailChangeToken[]
   notifications          Notification[]
@@ -303,6 +304,28 @@ model User {
 
   @@index([lockedUntil], map: "idx_users_locked_until")
   @@map("users")
+}
+
+model PageView {
+  id         BigInt   @id @default(autoincrement())
+  path       String   @db.Text
+  fullUrl    String?  @map("full_url") @db.Text
+  referrer   String?  @db.Text
+  userAgent  String?  @map("user_agent") @db.Text
+  ipHash     String?  @map("ip_hash") @db.Text
+  deviceType String?  @map("device_type")
+  browser    String?
+  os         String?
+  userId     Int?     @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt], map: "idx_page_views_created_at")
+  @@index([path], map: "idx_page_views_path")
+  @@index([userId], map: "idx_page_views_user_id")
+  @@index([ipHash], map: "idx_page_views_ip_hash")
+  @@index([deviceType], map: "idx_page_views_device_type")
+  @@map("page_views")
 }
 
 model EmailVerificationToken {

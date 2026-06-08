@@ -5343,6 +5343,57 @@
                     </form>
                 </div>
             </div>
+
+
+            <!-- SUBTAB: STATISTICS (Admin only) -->
+            <div id="admin-subtab-stats" class="hidden space-y-6">
+                <div class="glass-card p-6 rounded-2xl space-y-5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-brand-500"></i> Statistika</h3>
+                            <p class="text-xs text-gray-400 mt-1">Sayt ziyarətləri, unikal ziyarətçilər, ən çox baxılan səhifələr və cihaz/brauzer bölgüsü.</p>
+                        </div>
+                        <button type="button" onclick="loadAdminVisitStats(true)" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-2 rounded-xl text-xs"><i class="fa-solid fa-rotate mr-1"></i> Yenilə</button>
+                    </div>
+                    <div id="admin-stats-summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 xl:col-span-1">
+                            <h4 class="text-sm font-black text-white mb-3">Ən çox ziyarət edilən səhifələr</h4>
+                            <div id="admin-stats-top-pages" class="space-y-2 text-sm"></div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <h4 class="text-sm font-black text-white mb-3">Cihaz bölgüsü</h4>
+                            <div id="admin-stats-device-breakdown" class="space-y-2 text-sm"></div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <h4 class="text-sm font-black text-white mb-3">Brauzer bölgüsü</h4>
+                            <div id="admin-stats-browser-breakdown" class="space-y-2 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-2xl">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h4 class="text-sm font-black text-white uppercase tracking-wide">Son ziyarətçilər</h4>
+                        <span id="admin-stats-visits-total" class="text-xs text-gray-400"></span>
+                    </div>
+                    <div class="overflow-x-auto rounded-2xl border border-white/10">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-white/5 text-gray-400 uppercase tracking-wide">
+                                <tr>
+                                    <th class="p-3">Tarix</th>
+                                    <th class="p-3">Səhifə</th>
+                                    <th class="p-3">İstifadəçi</th>
+                                    <th class="p-3">Cihaz</th>
+                                    <th class="p-3">Brauzer / OS</th>
+                                    <th class="p-3">Referrer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-stats-recent-visits" class="divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- SUBTAB 2: OFFICIAL PROJECTS MANAGER (Admin only) -->
             <div id="admin-subtab-projects-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div id="official-project-form-card" class="lg:col-span-5 glass-card p-4 sm:p-6 rounded-2xl space-y-4 project-form-card">
@@ -6910,7 +6961,8 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Karyera & Vakansiyalar', adminOnly: true },
             { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', adminOnly: true },
             { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklam', adminOnly: true },
-            { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
+            { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true },
+            { id: 'subtab-btn-stats', subtab: 'stats', label: 'Statistika', adminOnly: true }
         ];
 
         function renderDashboardSubtabButtons(activeSubtab = 'seabreeze-manager') {
@@ -6932,6 +6984,7 @@ Title: CASPIAN DREAM LINER
             if (token) {
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('besthome_auth_token', token);
+                document.cookie = `besthome_auth_token=${encodeURIComponent(token)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
             }
             if (user) {
                 const role = normalizeAuthRole(user.role);
@@ -6944,6 +6997,7 @@ Title: CASPIAN DREAM LINER
         function clearAuthSession() {
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('besthome_auth_token');
+            document.cookie = 'besthome_auth_token=; path=/; max-age=0; SameSite=Lax';
             sessionStorage.removeItem('besthome_logged_in_role');
             sessionStorage.removeItem('besthome_agent_data');
             sessionStorage.removeItem('besthome_user_data');
@@ -7646,6 +7700,8 @@ Title: CASPIAN DREAM LINER
             listingHeroItems: [],
             ads: [],
             adStats: null,
+            visitStats: null,
+            recentVisits: [],
             siteSettings: null,
             careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
         };
@@ -14095,6 +14151,7 @@ Təşəkkür edirəm. 🙏`;
             'gallery-manager': '/admin/gallery',
             'vacancy-manager': '/admin/vacancies',
             'site-settings': '/admin/site-settings',
+            'stats': '/admin/stats',
             'hero-sections': '/admin/project-hero',
             'listing-hero': '/admin/listing-hero',
             'google-email': '/admin/google-email',
@@ -14104,7 +14161,7 @@ Təşəkkür edirəm. 🙏`;
 
         function switchAdminSubtab(subtab, options = {}) {
             const isAdmin = isAdminRole(activeUser?.role);
-            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings', 'stats'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -14122,6 +14179,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
             document.getElementById('admin-subtab-site-settings').classList.add('hidden');
+            document.getElementById('admin-subtab-stats')?.classList.add('hidden');
             document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
             renderDashboardSubtabButtons(subtab);
@@ -14151,6 +14209,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
+            if (subtab === 'stats') { renderAdminVisitStats(); loadAdminVisitStats().catch(error => showToast(error.message || 'Statistika yüklənmədi.')); }
             if (subtab === 'user-profile') { fillProfileForm(); }
             if (subtab === 'google-email') { loadGoogleEmailRecipientCount(); }
             if (subtab === 'hero-sections') {
@@ -15853,6 +15912,61 @@ Təşəkkür edirəm. 🙏`;
             });
         }
 
+
+        function renderBreakdownRows(rows = []) {
+            if (!rows.length) return '<div class="text-gray-500 font-bold">Məlumat yoxdur.</div>';
+            const max = Math.max(...rows.map(row => Number(row.count || 0)), 1);
+            return rows.map(row => {
+                const count = Number(row.count || 0);
+                const width = Math.max(5, Math.round((count / max) * 100));
+                return `<div class="space-y-1"><div class="flex items-center justify-between gap-3 text-xs"><span class="font-bold text-gray-200">${escapeHtml(row.label || row.path || 'Unknown')}</span><span class="text-gray-400">${count.toLocaleString('az-AZ')}</span></div><div class="h-2 rounded-full bg-white/10 overflow-hidden"><div class="h-full rounded-full bg-brand-500" style="width:${width}%"></div></div></div>`;
+            }).join('');
+        }
+
+        function renderAdminVisitStats() {
+            const stats = appData.visitStats || {};
+            const summary = document.getElementById('admin-stats-summary');
+            if (summary) {
+                const cards = [
+                    ['Bugünkü ziyarətlər', stats.todayVisits, 'fa-calendar-day', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                    ['Son 7 gün', stats.last7DaysVisits, 'fa-calendar-week', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
+                    ['Ümumi ziyarətlər', stats.totalVisits, 'fa-chart-simple', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                    ['Unikal ziyarətçilər', stats.uniqueVisitors, 'fa-users-viewfinder', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                ];
+                summary.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-start justify-between gap-3"><span class="text-[11px] uppercase tracking-wide font-black text-slate-900 leading-snug">${label}</span><span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span></div><div class="mt-4 text-2xl md:text-3xl font-black text-slate-900 leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
+            }
+
+            const topPages = document.getElementById('admin-stats-top-pages');
+            if (topPages) topPages.innerHTML = renderBreakdownRows((stats.topPages || []).map(row => ({ ...row, label: row.path || '/' })));
+            const devices = document.getElementById('admin-stats-device-breakdown');
+            if (devices) devices.innerHTML = renderBreakdownRows(stats.deviceBreakdown || []);
+            const browsers = document.getElementById('admin-stats-browser-breakdown');
+            if (browsers) browsers.innerHTML = renderBreakdownRows(stats.browserBreakdown || []);
+
+            const tbody = document.getElementById('admin-stats-recent-visits');
+            if (tbody) {
+                const visits = appData.recentVisits || [];
+                tbody.innerHTML = visits.length ? visits.map(visit => `<tr class="text-gray-300"><td class="p-3 whitespace-nowrap">${formatAzDateTime(visit.createdAt)}</td><td class="p-3 font-bold text-white">${escapeHtml(visit.path || '/')}</td><td class="p-3">${visit.userId ? `${escapeHtml(visit.userName || visit.userEmail || ('#' + visit.userId))}<br><span class="text-[10px] text-gray-500">ID: ${escapeHtml(String(visit.userId))}</span>` : '<span class="text-gray-500">Qonaq</span>'}</td><td class="p-3">${escapeHtml(visit.deviceType || 'Unknown')}</td><td class="p-3">${escapeHtml(visit.browser || 'Unknown')}<br><span class="text-[10px] text-gray-500">${escapeHtml(visit.os || 'Unknown')}</span></td><td class="p-3 max-w-[220px] truncate" title="${escapeHtml(visit.referrer || '')}">${escapeHtml(visit.referrer || '—')}</td></tr>`).join('') : '<tr><td colspan="6" class="p-4 text-center text-gray-500 font-bold">Ziyarət məlumatı yoxdur.</td></tr>';
+            }
+            const total = document.getElementById('admin-stats-visits-total');
+            if (total) total.textContent = stats.totalVisits ? `${Number(stats.totalVisits).toLocaleString('az-AZ')} ümumi ziyarət` : '';
+        }
+
+        async function loadAdminVisitStats(force = false) {
+            if (!isAdminRole(activeUser?.role)) return;
+            if (!force && appData.visitStats && appData.recentVisits?.length) {
+                renderAdminVisitStats();
+                return;
+            }
+            const [overview, visitsPayload] = await Promise.all([
+                apiRequest('/api/admin/stats/overview'),
+                apiRequest('/api/admin/stats/visits?limit=25'),
+            ]);
+            appData.visitStats = overview;
+            appData.recentVisits = visitsPayload.visits || [];
+            renderAdminVisitStats();
+        }
+
         function renderAdminDashboard() {
             if (!activeUser) {
                 switchTab('admin-login');
@@ -17354,6 +17468,7 @@ Təşəkkür edirəm. 🙏`;
             '/admin/vakansiya': 'vacancy-manager',
             '/admin/vacancy': 'vacancy-manager',
             '/admin/site-settings': 'site-settings',
+            '/admin/stats': 'stats',
             '/admin/projects': 'projects-manager',
             '/admin/projects/archive': 'projects-archive',
             '/admin/project-hero': 'hero-sections',
