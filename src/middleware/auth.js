@@ -10,6 +10,17 @@ function jwtSecret() {
   return process.env.JWT_SECRET;
 }
 
+
+function isAdminRole(role) {
+  const normalized = String(role || '').trim().toLowerCase();
+  return normalized === 'admin' || normalized === 'super_admin';
+}
+
+function normalizeAuthRole(role) {
+  if (isAdminRole(role)) return 'admin';
+  return String(role || '').trim().toLowerCase() === 'user' ? 'user' : role;
+}
+
 function signToken(payload) {
   return jwt.sign(payload, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 }
@@ -41,6 +52,7 @@ async function authenticate(req, res, next) {
 
   try {
     req.auth = jwt.verify(token, jwtSecret());
+    req.auth.role = normalizeAuthRole(req.auth.role);
     req.authToken = token;
     const valid = await isSessionValid(token, req.auth);
     if (!valid) return res.status(401).json({ message: 'Invalid or expired session.' });
@@ -58,6 +70,7 @@ async function optionalAuthenticate(req, _res, next) {
   if (!token) return next();
   try {
     req.auth = jwt.verify(token, jwtSecret());
+    req.auth.role = normalizeAuthRole(req.auth.role);
     req.authToken = token;
     const valid = await isSessionValid(token, req.auth);
     if (!valid) req.auth = null;

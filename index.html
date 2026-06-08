@@ -6892,13 +6892,23 @@ Title: CASPIAN DREAM LINER
             return sessionStorage.getItem('token') || sessionStorage.getItem('besthome_auth_token') || '';
         }
 
+        function isAdminRole(role) {
+            const normalized = String(role || '').trim().toLowerCase();
+            return normalized === 'admin' || normalized === 'super_admin';
+        }
+
+        function normalizeAuthRole(role, fallback = 'user') {
+            if (isAdminRole(role)) return 'admin';
+            return String(role || '').trim().toLowerCase() === 'user' ? 'user' : fallback;
+        }
+
         function setAuthSession(token, user) {
             if (token) {
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('besthome_auth_token', token);
             }
             if (user) {
-                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+                const role = normalizeAuthRole(user.role);
                 sessionStorage.setItem('besthome_logged_in_role', role);
                 sessionStorage.setItem('besthome_user_data', JSON.stringify({ ...user, role }));
                 if (role === 'user') sessionStorage.setItem('besthome_agent_data', JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, phone: user.phone || '', role }));
@@ -7089,7 +7099,7 @@ Title: CASPIAN DREAM LINER
 
         function syncActiveUserFromApiUser(user) {
             if (!user) return activeUser;
-            const role = ['admin', 'user'].includes(user.role) ? user.role : (activeUser?.role || 'user');
+            const role = normalizeAuthRole(user.role, activeUser?.role || 'user');
             activeUser = {
                 ...activeUser,
                 role,
@@ -10481,7 +10491,8 @@ Title: CASPIAN DREAM LINER
             if (cachedUser) {
                 try {
                     const user = JSON.parse(cachedUser);
-                    activeUser = { role: user.role, name: user.fullname || user.name || (user.role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
+                    const role = normalizeAuthRole(user.role);
+                    activeUser = { role, name: user.fullname || user.name || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
                     updateHeaderUI();
                 } catch (_error) {
                     activeUser = null;
@@ -10497,7 +10508,7 @@ Title: CASPIAN DREAM LINER
             try {
                 const result = await apiRequest('/api/auth/me');
                 const user = result.user || result;
-                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+                const role = normalizeAuthRole(user.role);
                 activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (_error) {
@@ -10553,8 +10564,31 @@ Title: CASPIAN DREAM LINER
             spaNavigate('/profil/melumatlar');
         }
 
+        function profileMenuItemsHtml(itemClass = 'profile-dropdown-item', closeAction = '') {
+            const close = closeAction ? `; ${closeAction}` : '';
+            if (!isAdminRole(activeUser?.role)) {
+                return `
+                    <button onclick="navigateToMyListings()${close}" class="${itemClass}" role="menuitem">📋 Elanlar</button>
+                    <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil</button>
+                `;
+            }
+            return `
+                <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil məlumatları</button>
+                <button onclick="navigateToMyListings()${close}" class="${itemClass}" role="menuitem">📋 Mənim elanlarım</button>
+                <button onclick="navigateToMessages()${close}" class="${itemClass}" role="menuitem">💬 Mesajlar</button>
+                <button onclick="navigateToFavorites()${close}" class="${itemClass}" role="menuitem">❤️ Favorilər</button>
+                <button onclick="logoutAdmin()${close}" class="${itemClass} text-red-600" role="menuitem">🚪 Çıxış</button>
+            `;
+        }
+
+        function renderMobileProfileMenu() {
+            const sheet = document.getElementById('mobile-profile-sheet');
+            if (sheet) sheet.innerHTML = profileMenuItemsHtml('mobile-profile-sheet__item', 'closeMobileProfileMenu()');
+        }
+
         function toggleMobileProfileMenu() {
             if (!activeUser) { closeMobileProfileMenu(); setPendingAuthRoute('/profil'); switchTab('admin-login'); return; }
+            renderMobileProfileMenu();
             const sheet = document.getElementById('mobile-profile-sheet');
             const backdrop = document.getElementById('mobile-profile-backdrop');
             const isOpen = sheet?.classList.contains('is-open');
@@ -11860,11 +11894,7 @@ Title: CASPIAN DREAM LINER
                         <button class="header-action-btn" aria-haspopup="true"><i class="fa-solid fa-user"></i><span>Profil</span><i class="fa-solid fa-chevron-down text-[10px]"></i></button>
                         <div class="profile-dropdown-shell absolute right-0 top-full z-50 hidden group-hover:block group-focus-within:block">
                             <div class="profile-dropdown-menu" role="menu" aria-label="Profil menyusu">
-                                <button onclick="navigateToProfileInfo()" class="profile-dropdown-item" role="menuitem">👤 Profil məlumatları</button>
-                                <button onclick="navigateToMyListings()" class="profile-dropdown-item" role="menuitem">📋 Mənim elanlarım</button>
-                                <button onclick="navigateToMessages()" class="profile-dropdown-item" role="menuitem">💬 Mesajlar</button>
-                                <button onclick="navigateToFavorites()" class="profile-dropdown-item" role="menuitem">❤️ Favorilər</button>
-                                <button onclick="logoutAdmin()" class="profile-dropdown-item text-red-600" role="menuitem">🚪 Çıxış</button>
+${profileMenuItemsHtml()}
                             </div>
                         </div>
                     </div>
@@ -13638,7 +13668,7 @@ Təşəkkür edirəm. 🙏`;
                 const result = await apiRequest('/api/auth/me');
                 setAuthSession(token, result.user);
                 const user = result.user;
-                const role = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+                const role = normalizeAuthRole(user.role);
                 activeUser = { role, name: user.fullname || user.email, fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'google' };
                 updateHeaderUI();
                 await hydrateFromDatabase();
@@ -13850,7 +13880,7 @@ Təşəkkür edirəm. 🙏`;
                 error.classList.add('hidden');
                 sessionStorage.setItem('token', result.token);
                 setAuthSession(result.token, result.user);
-                activeUser = { role: ['admin', 'user'].includes(result.user.role) ? result.user.role : 'user', name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
+                activeUser = { role: normalizeAuthRole(result.user.role), name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
                 setLoginButtonSuccess();
                 await wait(500);
@@ -16335,7 +16365,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('edit-user-fullname').value = user.fullname || `${user.name || ''} ${user.surname || ''}`.trim();
             document.getElementById('edit-user-email').value = user.email || '';
             document.getElementById('edit-user-phone').value = user.phone || '';
-            document.getElementById('edit-user-role').value = ['admin', 'user'].includes(user.role) ? user.role : 'user';
+            document.getElementById('edit-user-role').value = normalizeAuthRole(user.role);
             document.getElementById('edit-user-email-verified').checked = Boolean(user.emailVerified);
             document.getElementById('user-edit-modal').classList.remove('hidden');
         }
