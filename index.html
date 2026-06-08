@@ -5072,11 +5072,14 @@
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
             <div id="admin-subtab-seabreeze-manager" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
-                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                        <i class="fa-solid fa-circle-plus text-brand-500"></i>
-                        <span id="sb-form-action-title">Yeni Elan Əlavə Et</span>
-                    </h3>
-                    <form id="admin-listing-form" onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3">
+                    <button id="sb-form-toggle" type="button" onclick="toggleSeaBreezeForm()" aria-expanded="false" aria-controls="admin-listing-form" class="w-full text-left text-lg font-bold text-white flex items-center justify-between gap-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 transition">
+                        <span class="flex items-center space-x-2">
+                            <i class="fa-solid fa-circle-plus text-brand-500"></i>
+                            <span id="sb-form-action-title">Yeni Elan Əlavə Et</span>
+                        </span>
+                        <i id="sb-form-toggle-icon" class="fa-solid fa-chevron-down text-sm text-gray-300 transition-transform duration-200" aria-hidden="true"></i>
+                    </button>
+                    <form id="admin-listing-form" onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3 hidden">
                         <input type="hidden" id="edit-sb-id" value="">
                         
                         <div class="space-y-1">
@@ -14008,6 +14011,24 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        function setSeaBreezeFormOpen(isOpen, { focusTitle = false } = {}) {
+            const form = document.getElementById('admin-listing-form');
+            const toggle = document.getElementById('sb-form-toggle');
+            const icon = document.getElementById('sb-form-toggle-icon');
+            if (!form) return;
+            form.classList.toggle('hidden', !isOpen);
+            toggle?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            icon?.classList.toggle('fa-chevron-down', !isOpen);
+            icon?.classList.toggle('fa-chevron-up', isOpen);
+            if (isOpen) setTimeout(() => initAdminListingMap(), 80);
+            if (focusTitle) toggle?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function toggleSeaBreezeForm() {
+            const form = document.getElementById('admin-listing-form');
+            setSeaBreezeFormOpen(form?.classList.contains('hidden'));
+        }
+
         function toggleCreditFields() {
             const enabled = document.getElementById('sb-is-credit')?.checked;
             document.getElementById('sb-credit-fields')?.classList.toggle('hidden', !enabled);
@@ -16235,7 +16256,7 @@ Təşəkkür edirəm. 🙏`;
 
                 document.getElementById('sb-form-action-title').textContent = "Elanı Redaktə Et";
                 toggleFormFieldsBasedOnCategory();
-                document.getElementById('sb-form-action-title').scrollIntoView({ behavior: 'smooth' });
+                setSeaBreezeFormOpen(true, { focusTitle: true });
             }
         }
 
