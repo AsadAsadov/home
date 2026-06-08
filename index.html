@@ -5063,22 +5063,10 @@
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-8 admin-dashboard-shell">
             <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
-            <!-- Dashboard Subtabs (Only Admins can see non-SB tabs) -->
+            <!-- Dashboard Subtabs are rendered by role so admin-only cabinet buttons are absent from the DOM for normal users. -->
             <div id="admin-subtabs-container" class="admin-subtabs" aria-label="Admin bölmələri">
                 <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="admin-subtab-button is-active">Elanlar</button>
                 <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button">Profil</button>
-                <button onclick="switchAdminSubtab('projects-manager')" id="subtab-btn-projects" class="admin-subtab-button admin-only-element">Layihələr</button>
-                <button onclick="switchAdminSubtab('projects-archive')" id="subtab-btn-projects-archive" class="admin-subtab-button admin-only-element">Arxiv</button>
-                <button onclick="switchAdminSubtab('hero-sections')" id="subtab-btn-hero" class="admin-subtab-button admin-only-element">⭐ Layihə Hero</button>
-                <button onclick="switchAdminSubtab('listing-hero')" id="subtab-btn-listing-hero" class="admin-subtab-button admin-only-element">⭐ Elan Hero</button>
-                <button onclick="switchAdminSubtab('cvs')" id="subtab-btn-cvs" class="admin-subtab-button admin-only-element">Namizəd CV-ləri</button>
-                <button onclick="switchAdminSubtab('agents-manager')" id="subtab-btn-agents" class="admin-subtab-button admin-only-element">İstifadəçilər</button>
-                <button onclick="switchAdminSubtab('google-email')" id="subtab-btn-google-email" class="admin-subtab-button admin-only-element">Google email</button>
-                <button onclick="switchAdminSubtab('broadcast-notifications')" id="subtab-btn-broadcast-notifications" class="admin-subtab-button admin-only-element">Bildiriş göndər</button>
-                <button onclick="switchAdminSubtab('vacancy-manager')" id="subtab-btn-vacs" class="admin-subtab-button admin-only-element">Karyera & Vakansiyalar</button>
-                <button onclick="switchAdminSubtab('gallery-manager')" id="subtab-btn-gallery" class="admin-subtab-button admin-only-element">Media Qalereya</button>
-                <button onclick="switchAdminSubtab('ads-manager')" id="subtab-btn-ads" class="admin-subtab-button admin-only-element">Reklam</button>
-                <button onclick="switchAdminSubtab('site-settings')" id="subtab-btn-site-settings" class="admin-subtab-button admin-only-element">Sayt Ayarları</button>
             </div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
@@ -6900,6 +6888,38 @@ Title: CASPIAN DREAM LINER
         function normalizeAuthRole(role, fallback = 'user') {
             if (isAdminRole(role)) return 'admin';
             return String(role || '').trim().toLowerCase() === 'user' ? 'user' : fallback;
+        }
+
+        const DASHBOARD_SUBTAB_BUTTONS = [
+            { id: 'subtab-btn-sb', subtab: 'seabreeze-manager', label: 'Elanlar', adminOnly: false },
+            { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Profil', adminOnly: false },
+            { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', adminOnly: true },
+            { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Arxiv', adminOnly: true },
+            { id: 'subtab-btn-hero', subtab: 'hero-sections', label: '⭐ Layihə Hero', adminOnly: true },
+            { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: '⭐ Elan Hero', adminOnly: true },
+            { id: 'subtab-btn-cvs', subtab: 'cvs', label: 'Namizəd CV-ləri', adminOnly: true },
+            { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', adminOnly: true },
+            { id: 'subtab-btn-google-email', subtab: 'google-email', label: 'Google email', adminOnly: true },
+            { id: 'subtab-btn-broadcast-notifications', subtab: 'broadcast-notifications', label: 'Bildiriş göndər', adminOnly: true },
+            { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Karyera & Vakansiyalar', adminOnly: true },
+            { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', adminOnly: true },
+            { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklam', adminOnly: true },
+            { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
+        ];
+
+        function renderDashboardSubtabButtons(activeSubtab = 'seabreeze-manager') {
+            const container = document.getElementById('admin-subtabs-container');
+            if (!container) return;
+            const isAdmin = isAdminRole(activeUser?.role);
+            container.innerHTML = DASHBOARD_SUBTAB_BUTTONS
+                .filter(item => isAdmin || !item.adminOnly)
+                .map(item => {
+                    const classes = ['admin-subtab-button'];
+                    if (item.adminOnly) classes.push('admin-only-element');
+                    if (item.subtab === activeSubtab) classes.push('is-active');
+                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}">${item.label}</button>`;
+                })
+                .join('');
         }
 
         function setAuthSession(token, user) {
@@ -10572,7 +10592,6 @@ Title: CASPIAN DREAM LINER
                 <button onclick="navigateToMessages()${close}" class="${itemClass}" role="menuitem">💬 Mesajlar</button>
                 <button onclick="navigateToProfileInfo()${close}" class="${itemClass}" role="menuitem">👤 Profil</button>
             `;
-            if (!isAdminRole(activeUser?.role)) return userMenu;
             return `
                 ${userMenu}
                 <button onclick="logoutAdmin()${close}" class="${itemClass} text-red-600" role="menuitem">🚪 Çıxış</button>
@@ -13954,16 +13973,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-site-settings').classList.add('hidden');
             document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
-            document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
-                const isAdminOnlyButton = !['subtab-btn-sb', 'subtab-btn-user-profile'].includes(btn.id);
-                btn.className = `admin-subtab-button${isAdminOnlyButton ? ' admin-only-element' : ''}${!isAdmin && isAdminOnlyButton ? ' hidden' : ''}`;
-            });
-
-            const activeBtn = document.getElementById('subtab-btn-' + (subtab === 'seabreeze-manager' ? 'sb' : subtab === 'user-profile' ? 'user-profile' : subtab === 'projects-manager' ? 'projects' : subtab === 'projects-archive' ? 'projects-archive' : subtab === 'hero-sections' ? 'hero' : subtab === 'listing-hero' ? 'listing-hero' : subtab === 'google-email' ? 'google-email' : subtab === 'broadcast-notifications' ? 'broadcast-notifications' : subtab === 'agents-manager' ? 'agents' : subtab === 'vacancy-manager' ? 'vacs' : subtab === 'gallery-manager' ? 'gallery' : subtab === 'ads-manager' ? 'ads' : subtab === 'site-settings' ? 'site-settings' : 'cvs'));
-            if (activeBtn) {
-                const isAdminOnlyButton = !['subtab-btn-sb', 'subtab-btn-user-profile'].includes(activeBtn.id);
-                activeBtn.className = `admin-subtab-button is-active${isAdminOnlyButton ? ' admin-only-element' : ''}`;
-            }
+            renderDashboardSubtabButtons(subtab);
 
             document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
             const subtabRoute = ADMIN_SUBTAB_ROUTES[subtab] || '/admin';
@@ -15175,7 +15185,7 @@ Təşəkkür edirəm. 🙏`;
         function renderDashboardCards() {
             const container = document.getElementById('admin-dashboard-cards');
             if (!container || !activeUser) return;
-            if (activeUser.role === 'user') {
+            if (!isAdminRole(activeUser.role)) {
                 const mine = appData.listings.filter(item => String(item.authorId) === String(activeUser.id));
                 const stats = appData.dashboardStats || {};
                 const cards = [
@@ -15657,6 +15667,7 @@ Təşəkkür edirəm. 🙏`;
             }
 
             renderDashboardCards();
+            renderDashboardSubtabButtons();
 
             // Hide/Show restriction tags
             const adminTags = document.querySelectorAll('.admin-only-element');
@@ -17139,9 +17150,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-access-denied-route')?.remove();
             if (path.startsWith('/admin') && !isAdminRole(activeUser.role)) {
                 document.querySelectorAll('[id^="admin-subtab-"]').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('#admin-subtabs-container button').forEach(btn => {
-                    btn.className = 'admin-subtab-button hidden';
-                });
+                renderDashboardSubtabButtons();
                 const dashboard = document.getElementById('tab-admin-dashboard');
                 if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
                 return;
@@ -17165,7 +17174,8 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (path === '/profil/elanlarim' || path === '/profile/elanlarim' || path === '/profile/listings' || path === '/menim-elanlarim') {
-                if (!openAuthenticatedRoute('my-listings', path)) return;
+                if (!openAuthenticatedRoute('admin-dashboard', path)) return;
+                switchAdminSubtab('seabreeze-manager', { skipPush: true });
                 updateSeo({ title: 'Mənim elanlarım', path });
                 return;
             }
