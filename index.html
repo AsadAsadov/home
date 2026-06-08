@@ -65,7 +65,8 @@
             transition: opacity 180ms ease, background-color 180ms ease, transform 180ms ease;
         }
         .login-submit-btn.is-loading,
-        .async-submit-btn.is-loading {
+        .async-submit-btn.is-loading,
+        button.is-loading {
             opacity: 0.8;
             cursor: not-allowed;
             pointer-events: none;
@@ -8426,54 +8427,82 @@ Title: CASPIAN DREAM LINER
             }
         }
 
-        async function addListingToHero(listingId) {
+        async function addListingToHero(listingId, button = null) {
+            const restore = beginAdminAction(button, `listing-hero-add:${listingId}`, 'Əlavə edilir...');
+            if (!restore) return;
             try {
                 const created = await apiRequest('/api/listing-hero-items', { method: 'POST', body: JSON.stringify({ listing_id: listingId, badge_text: '🔥 Premium Elan', slide_duration: 10, is_active: true }) });
+                cacheData('listingHeroItems', normalizeListingHeroItems([...(appData.listingHeroItems || []), created]));
                 await loadAdminListingHeroItems();
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 fillListingHeroForm(normalizeListingHeroItem(created));
+                renderAdminDashboard();
+                showToast('✅ Elan hero-ya əlavə edildi.');
             } catch (error) {
                 alert('Elan hero-ya əlavə olunmadı: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
-        async function removeListingFromHero(listingIdOrItemId, byItem = false) {
+        async function removeListingFromHero(listingIdOrItemId, byItem = false, button = null) {
             if (!confirm('Bu elanı hero-dan çıxarmaq istəyirsiniz?')) return;
+            const restore = beginAdminAction(button, `listing-hero-remove:${byItem}:${listingIdOrItemId}`, 'Silinir...');
+            if (!restore) return;
             try {
                 const url = byItem ? `/api/listing-hero-items/${listingIdOrItemId}` : `/api/listing-hero-items/listing/${listingIdOrItemId}`;
                 await apiRequest(url, { method: 'DELETE' });
+                const currentItems = appData.listingHeroItems || [];
+                cacheData('listingHeroItems', normalizeListingHeroItems(currentItems.filter(item => byItem ? String(item.id) !== String(listingIdOrItemId) : String(item.listing_id) !== String(listingIdOrItemId))));
                 await loadAdminListingHeroItems();
+                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 resetListingHeroForm();
+                renderAdminDashboard();
+                showToast('✅ Elan hero-dan çıxarıldı.');
             } catch (error) {
                 alert('Elan hero-dan çıxarılmadı: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
-        async function toggleListingHeroItem(id, isActive) {
+        async function toggleListingHeroItem(id, isActive, button = null) {
+            const restore = beginAdminAction(button, `listing-hero-toggle:${id}`, 'Yenilənir...');
+            if (!restore) return;
             try {
                 await apiRequest(`/api/listing-hero-items/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: isActive }) });
+                cacheData('listingHeroItems', normalizeListingHeroItems((appData.listingHeroItems || []).map(item => String(item.id) === String(id) ? { ...item, is_active: isActive } : item)));
                 await loadAdminListingHeroItems();
+                showToast('✅ Hero statusu yeniləndi.');
             } catch (error) {
                 alert('Elan hero statusu dəyişmədi: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
-        async function moveListingHeroItem(id, direction) {
+        async function moveListingHeroItem(id, direction, button = null) {
             const items = normalizeListingHeroItems(appData.listingHeroItems || []);
             const index = items.findIndex(item => String(item.id) === String(id));
             const nextIndex = index + direction;
             if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return;
             [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
-            await saveListingHeroOrder(items);
+            await saveListingHeroOrder(items, button);
         }
 
-        async function saveListingHeroOrder(items) {
+        async function saveListingHeroOrder(items, button = null) {
+            const restore = beginAdminAction(button, 'listing-hero-order', 'Yenilənir...');
+            if (!restore) return;
             try {
                 const saved = await apiRequest('/api/listing-hero-items/reorder', { method: 'PATCH', body: JSON.stringify({ items: items.map((item, index) => ({ id: item.id, sort_order: index + 1 })) }) });
                 cacheData('listingHeroItems', normalizeListingHeroItems(saved));
                 renderAdminListingHeroItems();
                 renderListingHero(0);
+                showToast('✅ Hero sırası yeniləndi.');
             } catch (error) {
                 alert('Elan hero sırası dəyişmədi: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
@@ -8494,11 +8523,11 @@ Title: CASPIAN DREAM LINER
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="moveListingHeroItem('${item.id}', -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬆️</button>
-                        <button onclick="moveListingHeroItem('${item.id}', 1)" ${index === items.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬇️</button>
-                        <button onclick="editListingHeroItem('${item.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">✏️ Redaktə et</button>
-                        <button onclick="toggleListingHeroItem('${item.id}', ${!item.is_active})" class="${item.is_active ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${item.is_active ? 'Aktiv' : 'Deaktiv'}</button>
-                        <button onclick="removeListingFromHero('${item.id}', true)" class="text-red-400 px-2 py-1 bg-red-500/10 rounded">❌ Hero-dan çıxar</button>
+                        <button onclick="moveListingHeroItem('${item.id}', -1, this)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬆️</button>
+                        <button onclick="moveListingHeroItem('${item.id}', 1, this)" ${index === items.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">⬇️</button>
+                        <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editListingHeroItem('${item.id}'))" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">✏️ Redaktə et</button>
+                        <button onclick="toggleListingHeroItem('${item.id}', ${!item.is_active}, this)" class="${item.is_active ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${item.is_active ? 'Aktiv' : 'Deaktiv'}</button>
+                        <button onclick="removeListingFromHero('${item.id}', true, this)" class="text-red-400 px-2 py-1 bg-red-500/10 rounded">❌ Hero-dan çıxar</button>
                     </div>
                 </div>`;
             }).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Elan hero boşdur. Elan idarəsində “⭐ Hero əlavə et” düyməsindən istifadə edin.</div>';
@@ -8854,6 +8883,28 @@ Title: CASPIAN DREAM LINER
                     renderOfficialProjects();
                 }
             }
+        }
+
+
+        async function loadAdminProjects({ render = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return getOfficialProjects();
+            const projects = await apiRequest('/api/projects?all=true');
+            const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
+            const projectList = projectRows.map(dbProjectToUi);
+            cacheData('projects', projectList);
+            homepageHydration.projects = true;
+            dataLoadState.projects.loaded = true;
+            if (render) {
+                renderOfficialProjectOptions();
+                renderOfficialProjects();
+                renderAdminProjects();
+                renderSeaBreezeHero(0);
+            }
+            return projectList;
+        }
+
+        async function loadProjects(options = {}) {
+            return loadAdminProjects(options);
         }
 
         async function loadListingsLazy() {
@@ -12804,7 +12855,7 @@ Təşəkkür edirəm. 🙏`;
                 `;
 
                 const cardHtml = `
-                    <div onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
+                    <div onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
                         <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
@@ -13867,6 +13918,44 @@ Təşəkkür edirəm. 🙏`;
                 : defaultText;
         }
 
+
+        const adminActionLocks = new Set();
+
+        function beginAdminAction(button, key, loadingText = 'Gözləyin...') {
+            const lockKey = String(key || 'admin-action');
+            if (adminActionLocks.has(lockKey)) return null;
+            adminActionLocks.add(lockKey);
+            const target = button?.closest?.('button') || button;
+            const originalHtml = target?.innerHTML || '';
+            if (target) {
+                target.disabled = true;
+                target.classList.add('is-loading');
+                target.setAttribute('aria-busy', 'true');
+                target.innerHTML = `<span class="button-spinner" aria-hidden="true"></span><span>${escapeHtml(loadingText)}</span>`;
+            }
+            return () => {
+                adminActionLocks.delete(lockKey);
+                if (!target?.isConnected) return;
+                target.disabled = false;
+                target.classList.remove('is-loading');
+                target.setAttribute('aria-busy', 'false');
+                target.innerHTML = originalHtml;
+            };
+        }
+
+        function finishAdminAction(restore) {
+            if (typeof restore === 'function') restore();
+        }
+
+        function runInstantAdminAction(button, loadingText, callback) {
+            const restore = beginAdminAction(button, `instant:${loadingText}:${Date.now()}:${Math.random()}`, loadingText);
+            if (!restore) return;
+            requestAnimationFrame(() => {
+                try { callback?.(); }
+                finally { setTimeout(() => finishAdminAction(restore), 250); }
+            });
+        }
+
         function extractListingFromResponse(response) {
             if (!response) return {};
             return response.listing || response.data?.listing || response.data || response;
@@ -14637,7 +14726,7 @@ Təşəkkür edirəm. 🙏`;
             window.addEventListener('pointercancel', onPointerUp, { once: true });
         }
 
-        async function saveProjectOrder() {
+        async function saveProjectOrder(button = null) {
             if (!activeUser || !isAdminRole(activeUser.role)) return;
             const projects = getOfficialProjects().map((project, index) => ({ ...project, displayOrder: index + 1 }));
             const order = projects
@@ -14648,12 +14737,9 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
 
-            const saveBtn = document.getElementById('save-project-order-btn');
-            const originalText = saveBtn?.innerHTML;
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Yazılır...';
-            }
+            const saveBtn = button || document.getElementById('save-project-order-btn');
+            const restore = beginAdminAction(saveBtn, 'project-order-save', 'Yenilənir...');
+            if (!restore) return;
             try {
                 const response = await apiRequest('/api/projects/reorder', { method: 'PUT', body: JSON.stringify({ order }) });
                 const rows = Array.isArray(response?.data) ? response.data : [];
@@ -14662,13 +14748,12 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderAdminProjects();
+                await loadAdminProjects({ render: true }).catch(() => {});
+                showToast('✅ Layihə sırası yeniləndi.');
             } catch (error) {
                 alert('Layihə sırası yadda saxlanılmadı: ' + error.message);
             } finally {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = originalText || '<i class="fa-solid fa-floppy-disk mr-1"></i>Yadda Saxla';
-                }
+                finishAdminAction(restore);
             }
         }
 
@@ -14711,10 +14796,10 @@ Təşəkkür edirəm. 🙏`;
                                     ☰ <span class="text-[10px] ml-1">${index + 1}</span>
                                 </button>
                                 <div class="flex items-center justify-end gap-2">
-                                    <button type="button" onclick="toggleProjectHero('${project.id}', ${!project.featuredInHero})" class="${project.featuredInHero ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500' : 'bg-white/5 text-gray-300 hover:bg-amber-500'} hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">⭐ Hero</button>
-                                    <button onclick="editOfficialProject('${project.id}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                                    <button onclick="setProjectArchived('${project.id}', true)" class="bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-box-archive mr-1"></i>Arxiv</button>
-                                    <button onclick="deleteOfficialProject('${project.id}')" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                                    <button type="button" onclick="toggleProjectHero('${project.id}', ${!project.featuredInHero}, this)" class="${project.featuredInHero ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500' : 'bg-white/5 text-gray-300 hover:bg-amber-500'} hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition">⭐ Hero</button>
+                                    <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editOfficialProject('${project.id}'))" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                    <button onclick="setProjectArchived('${project.id}', true, this)" class="bg-purple-500/10 hover:bg-purple-500 text-purple-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-box-archive mr-1"></i>Arxiv</button>
+                                    <button onclick="deleteOfficialProject('${project.id}', this)" class="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white text-[10px] font-bold px-3 py-2 rounded-lg transition"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -14755,16 +14840,18 @@ Təşəkkür edirəm. 🙏`;
                     </div>
                     <div class="p-4 space-y-3">
                         <p class="text-[11px] text-gray-400 line-clamp-2">${escapeHtml(project.desc || '')}</p>
-                        <button type="button" onclick="setProjectArchived('${project.id}', false)" class="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-300 hover:text-white text-xs font-bold px-3 py-2.5 rounded-xl transition"><i class="fa-solid fa-box-open mr-1"></i>Arxivdən çıxar</button>
+                        <button type="button" onclick="setProjectArchived('${project.id}', false, this)" class="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-300 hover:text-white text-xs font-bold px-3 py-2.5 rounded-xl transition"><i class="fa-solid fa-box-open mr-1"></i>Arxivdən çıxar</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function setProjectArchived(id, isArchived) {
+        async function setProjectArchived(id, isArchived, button = null) {
             if (!activeUser || !isAdminRole(activeUser.role)) return;
             const message = isArchived ? 'Bu layihə arxivə göndərilsin?' : 'Bu layihə arxivdən çıxarılsın?';
             if (!confirm(message)) return;
+            const restore = beginAdminAction(button, `project-archive:${id}:${isArchived}`, 'Yenilənir...');
+            if (!restore) return;
             try {
                 const saved = dbProjectToUi(await apiRequest(`/api/projects/${id}/archive`, { method: 'PATCH', body: JSON.stringify({ isArchived }) }));
                 if (isArchived) {
@@ -14779,14 +14866,20 @@ Təşəkkür edirəm. 🙏`;
                 renderAdminProjects();
                 renderArchivedProjects();
                 renderSeaBreezeHero(0);
+                await loadAdminProjects({ render: true }).catch(() => {});
+                showToast(isArchived ? '✅ Layihə arxivləndi.' : '✅ Layihə arxivdən çıxarıldı.');
             } catch (error) {
                 alert(`Layihənin arxiv statusu dəyişmədi: ${error.message}`);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
 
-        async function toggleProjectHero(id, featured) {
+        async function toggleProjectHero(id, featured, button = null) {
             if (!activeUser || !isAdminRole(activeUser.role)) return;
+            const restore = beginAdminAction(button, `project-hero:${id}`, featured ? 'Əlavə edilir...' : 'Silinir...');
+            if (!restore) return;
             try {
                 const saved = await apiRequest(`/api/projects/${id}/hero`, { method: 'PATCH', body: JSON.stringify({ featured_in_hero: featured }) });
                 const savedUi = dbProjectToUi(saved);
@@ -14796,8 +14889,12 @@ Təşəkkür edirəm. 🙏`;
                 saveOfficialProjects(projects);
                 renderAdminProjects();
                 renderSeaBreezeHero(0);
+                await loadAdminProjects({ render: true }).catch(() => {});
+                showToast(featured ? '✅ Layihə hero-ya əlavə edildi.' : '✅ Layihə hero-dan çıxarıldı.');
             } catch (error) {
                 alert('Hero statusu dəyişmədi: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
@@ -15149,9 +15246,11 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderAdminProjects();
+                await loadAdminProjects({ render: true }).catch(() => {});
                 resetOfficialProjectForm();
                 collapseOfficialProjectForm();
                 showProjectSaveSuccess('Layihə uğurla saxlanıldı. Siyahı yeniləndi.');
+                showToast('✅ Layihə saxlanıldı.');
             } catch (error) {
                 alert('Layihə API-yə yazılmadı: ' + error.message);
             } finally {
@@ -15198,17 +15297,23 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('official-project-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        async function deleteOfficialProject(id) {
+        async function deleteOfficialProject(id, button = null) {
             if (!activeUser || !isAdminRole(activeUser.role)) return;
             if (!confirm('Bu layihəni silmək istədiyinizə əminsiniz?')) return;
+            const restore = beginAdminAction(button, `project-delete:${id}`, 'Silinir...');
+            if (!restore) return;
             try {
                 await apiRequest(`/api/projects/${id}`, { method: 'DELETE' });
                 saveOfficialProjects(getOfficialProjects().filter(item => String(item.id) !== String(id)));
                 renderOfficialProjectOptions();
                 renderOfficialProjects();
                 renderAdminProjects();
+                await loadAdminProjects({ render: true }).catch(() => {});
+                showToast('✅ Layihə silindi.');
             } catch (error) {
                 alert('Layihə API-dən silinmədi: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
@@ -15810,8 +15915,8 @@ Təşəkkür edirəm. 🙏`;
                 const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
                 const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
                 const heroAction = isAdminRole(activeUser.role) ? (listingHeroItem
-                    ? `<button onclick="removeListingFromHero('${p.id}')" class="admin-listing-action admin-listing-action--hero"><i class="fa-solid fa-star"></i>Hero-dan çıxar</button>`
-                    : `<button onclick="addListingToHero('${p.id}')" class="admin-listing-action admin-listing-action--hero-add"><i class="fa-regular fa-star"></i>Hero əlavə et</button>`) : '';
+                    ? `<button onclick="removeListingFromHero('${p.id}', false, this)" class="admin-listing-action admin-listing-action--hero"><i class="fa-solid fa-star"></i>Hero-dan çıxar</button>`
+                    : `<button onclick="addListingToHero('${p.id}', this)" class="admin-listing-action admin-listing-action--hero-add"><i class="fa-regular fa-star"></i>Hero əlavə et</button>`) : '';
 
                 pContainer.innerHTML += `
                     <article class="admin-listing-management-card glass-card">
@@ -15838,18 +15943,18 @@ Təşəkkür edirəm. 🙏`;
                         </div>
                         <div class="admin-listing-management-card__actions">
                             ${isAdminRole(activeUser.role) && !isApproved ? `
-                                <button onclick="approveListing(${p.id})" class="admin-listing-action admin-listing-action--approve"><i class="fa-solid fa-check"></i>Təsdiqlə</button>
+                                <button onclick="approveListing(${p.id}, this)" class="admin-listing-action admin-listing-action--approve"><i class="fa-solid fa-check"></i>Təsdiqlə</button>
                             ` : ''}
                             ${isAdminRole(activeUser.role) && isApproved ? `
-                                <button onclick="deactivateListing(${p.id})" class="admin-listing-action admin-listing-action--deactivate"><i class="fa-solid fa-pause"></i>Deaktiv et</button>
+                                <button onclick="deactivateListing(${p.id}, this)" class="admin-listing-action admin-listing-action--deactivate"><i class="fa-solid fa-pause"></i>Deaktiv et</button>
                             ` : ''}
                             ${isAdminRole(activeUser.role) && normalizedStatus !== 'rejected' ? `
-                                <button onclick="rejectListing(${p.id})" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
+                                <button onclick="rejectListing(${p.id}, this)" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
                             ` : ''}
                             ${heroAction}
-                            <button onclick="openPropertyModal('${p.id}', true)" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
-                            <button onclick="editSeaBreezeItem(${p.id})" class="admin-listing-action admin-listing-action--edit"><i class="fa-solid fa-pen"></i>Düzəliş</button>
-                            <button onclick="deleteSeaBreezeItem(${p.id})" class="admin-listing-action admin-listing-action--delete" aria-label="Elanı sil" title="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
+                            <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editSeaBreezeItem(${p.id}))" class="admin-listing-action admin-listing-action--edit"><i class="fa-solid fa-pen"></i>Düzəliş</button>
+                            <button onclick="deleteSeaBreezeItem(${p.id}, this)" class="admin-listing-action admin-listing-action--delete" aria-label="Elanı sil" title="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </article>
                 `;
@@ -16381,19 +16486,26 @@ Təşəkkür edirəm. 🙏`;
             toggleFormFieldsBasedOnCategory();
         }
 
-        async function deleteSeaBreezeItem(id) {
+        async function deleteSeaBreezeItem(id, button = null) {
+            const restore = beginAdminAction(button, `listing-delete:${id}`, 'Silinir...');
+            if (!restore) return;
             try {
                 await apiRequest(`/api/listings/${id}`, { method: 'DELETE' });
                 cacheData('listings', appData.listings.filter(x => String(x.id) !== String(id)));
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
+                showToast('✅ Elan silindi.');
             } catch (error) {
                 alert('Elan API-dən silinmədi: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
-        async function approveListing(id) {
+        async function approveListing(id, button = null) {
+            const restore = beginAdminAction(button, `listing-approveListing:${id}`, 'Yenilənir...');
+            if (!restore) return;
             try {
                 const saved = await apiRequest(`/api/listings/${id}/approve`, { method: 'PATCH' });
                 const list = [...appData.listings];
@@ -16404,12 +16516,17 @@ Təşəkkür edirəm. 🙏`;
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
+                showToast('✅ Elan təsdiqləndi.');
             } catch (error) {
                 alert('Approve alınmadı: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
-        async function rejectListing(id) {
+        async function rejectListing(id, button = null) {
+            const restore = beginAdminAction(button, `listing-rejectListing:${id}`, 'Yenilənir...');
+            if (!restore) return;
             try {
                 const saved = await apiRequest(`/api/listings/${id}/reject`, { method: 'PATCH' });
                 const list = [...appData.listings];
@@ -16420,13 +16537,18 @@ Təşəkkür edirəm. 🙏`;
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
+                showToast('✅ Elan rədd edildi.');
             } catch (error) {
                 alert('Reject alınmadı: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
 
-        async function deactivateListing(id) {
+        async function deactivateListing(id, button = null) {
+            const restore = beginAdminAction(button, `listing-deactivateListing:${id}`, 'Yenilənir...');
+            if (!restore) return;
             try {
                 const saved = await apiRequest(`/api/listings/${id}/deactivate`, { method: 'PATCH' });
                 const list = [...appData.listings];
@@ -16437,8 +16559,11 @@ Təşəkkür edirəm. 🙏`;
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
                 renderAdminDashboard();
                 renderSeaBreeze();
+                showToast('✅ Elan deaktiv edildi.');
             } catch (error) {
                 alert('Deactivate alınmadı: ' + error.message);
+            } finally {
+                finishAdminAction(restore);
             }
         }
 
@@ -17167,7 +17292,7 @@ Təşəkkür edirəm. 🙏`;
             const areaFact = formatOptionalNumber(p.area, ' m²');
             const floorFact = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
             const isFavorite = appData.favoriteListingIds?.has(String(p.id));
-            return `<article onclick="openPropertyModal('${p.id}', true)" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
+            return `<article onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
                 <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative">
                     <img src="${escapeHtml(mainImage)}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}">
                     <span class="absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full ${listingStatusBadgeClass(p.status || 'approved')}">${listingStatusLabel(p.status || 'approved')}</span>
