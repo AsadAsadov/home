@@ -282,7 +282,7 @@ model User {
   googleId      String?           @unique @map("google_id")
   bio           String?           @db.Text
   isActive      Boolean           @default(true) @map("is_active")
-  emailVerified Boolean           @default(false) @map("email_verified")
+  emailVerified Boolean           @default(true) @map("email_verified")
   phoneVerified Boolean           @default(false) @map("phone_verified")
   lastLogin     DateTime?         @map("last_login")
   lastLoginIp   String?           @map("last_login_ip") @db.Text

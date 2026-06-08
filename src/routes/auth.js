@@ -41,7 +41,12 @@ function providerInfo(user) {
 function publicUser(user) {
   if (!user) return null;
   const { passwordHash, failedLoginAttempts, lockedUntil, ...safe } = user;
-  return { ...safe, ...providerInfo(user) };
+  return {
+    ...safe,
+    isVerified: Boolean(user.emailVerified),
+    status: user.isActive === false ? 'blocked' : 'active',
+    ...providerInfo(user),
+  };
 }
 
 function tokenPayload(user) {
@@ -370,36 +375,37 @@ router.post('/register', authRoute(async (req, res) => {
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) return res.status(409).json({ success: false, error: 'Email is already registered.', message: 'Email is already registered.' });
 
-  console.log('[email-verification] start', { email });
   const passwordHash = await bcrypt.hash(password, 12);
-  const user = await prisma.user.create({ data: { fullname, email, phone, passwordHash, role: 'user', emailVerified: false, provider: 'local' } });
-  console.log('[email-verification] user created', { userId: user.id, email: user.email });
+  const user = await prisma.user.create({
+    data: {
+      fullname,
+      email,
+      phone,
+      passwordHash,
+      role: 'user',
+      isActive: true,
+      emailVerified: true,
+      provider: 'local',
+    },
+  });
   await logUserActivity(prisma, user.id, 'register');
-  let verificationEmailSent = true;
-  try {
-    await sendVerificationEmail(user);
-  } catch (error) {
-    verificationEmailSent = false;
-    authErrorLog(error, { path: 'send_verification_email', user_id: user.id });
-  }
 
-  if (!verificationEmailSent) {
-    return res.status(503).json({
-      success: false,
-      user: publicUser(user),
-      userCreated: true,
-      emailVerificationRequired: true,
-      verificationEmailSent: false,
-      message: 'Email təsdiqləmə məktubu göndərilə bilmədi.',
-    });
-  }
+  const activatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      lastLogin: new Date(),
+      lastLoginIp: requestIp(req),
+      lastLoginUserAgent: req.headers['user-agent'] || null,
+    },
+  });
+  await logUserActivity(prisma, user.id, 'login', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
 
-  return res.status(201).json({
-    success: true,
-    user: publicUser(user),
-    emailVerificationRequired: true,
-    verificationEmailSent,
-    message: 'Qeydiyyat tamamlandı. Email ünvanınızı təsdiqləməlisiniz.',
+  return issueAuthResponse(req, res, activatedUser, 201, {
+    emailVerificationRequired: false,
+    verificationEmailSent: false,
+    message: 'Qeydiyyat tamamlandı. Hesabınız aktivdir və dərhal daxil oldunuz.',
   });
 }));
 
@@ -437,15 +443,6 @@ router.post('/login', authRoute(async (req, res) => {
     return res.status(401).json(invalid);
   }
   if (user.isActive === false) return res.status(403).json({ success: false, error: 'User account is blocked.', message: 'User account is blocked.' });
-  if (user.emailVerified === false) {
-    return res.status(403).json({
-      success: false,
-      code: 'EMAIL_NOT_VERIFIED',
-      error: 'Email ünvanınızı təsdiqləməlisiniz.',
-      message: 'Email ünvanınızı təsdiqləməlisiniz.',
-      resendAvailable: true,
-    });
-  }
 
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
@@ -499,14 +496,9 @@ router.post('/resend-verification', authRoute(async (req, res) => {
   if (!rate.allowed) return res.status(429).json({ success: false, message: 'Zəhmət olmasa 1 dəqiqə sonra yenidən cəhd edin.' });
   const user = await prisma.user.findUnique({ where: { email } });
   if (user && !user.emailVerified && user.provider !== 'google') {
-    try {
-      await sendVerificationEmail(user);
-    } catch (error) {
-      authErrorLog(error, { path: 'resend_verification_email', user_id: user.id });
-      return res.status(503).json({ success: false, verificationEmailSent: false, message: 'Email təsdiqləmə məktubu göndərilə bilmədi.' });
-    }
+    await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, isActive: true } });
   }
-  res.json({ success: true, message: 'Əgər hesab təsdiqlənməyibsə, yeni təsdiqləmə linki göndərildi.' });
+  res.json({ success: true, emailVerificationRequired: false, verificationEmailSent: false, message: 'Email təsdiqi artıq tələb olunmur. Hesabınızla dərhal daxil ola bilərsiniz.' });
 }));
 
 router.post('/forgot-password', authRoute(async (req, res) => {

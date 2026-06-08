@@ -13557,12 +13557,22 @@ Təşəkkür edirəm. 🙏`;
                 const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
                 error.classList.add('hidden');
                 const success = document.getElementById('register-success');
-                success.textContent = result.message || 'Qeydiyyat tamamlandı. Email ünvanınızı təsdiqləməlisiniz.';
+                success.textContent = result.message || 'Qeydiyyat tamamlandı. Hesabınız aktivdir.';
                 success.classList.remove('hidden');
                 e.target.reset();
+                if (result.token && result.user) {
+                    setAuthSession(result.token, result.user);
+                    const role = normalizeAuthRole(result.user.role);
+                    activeUser = { role, name: result.user.fullname || result.user.email, fullname: result.user.fullname || '', id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '', provider: result.user.provider || 'local' };
+                    updateHeaderUI();
+                    await hydrateFromDatabase();
+                    history.replaceState({ path: '/profil' }, '', '/profil');
+                    await routeToCurrentPath();
+                    return;
+                }
                 switchTab('admin-login');
                 const status = document.getElementById('login-status');
-                if (status) { status.textContent = result.message || 'Qeydiyyat tamamlandı. Email ünvanınızı təsdiqləməlisiniz.'; status.classList.remove('hidden'); }
+                if (status) { status.textContent = result.message || 'Qeydiyyat tamamlandı. Hesabınız aktivdir və daxil ola bilərsiniz.'; status.classList.remove('hidden'); }
             } catch (apiError) {
                 error.textContent = apiError.message || 'Qeydiyyat alınmadı.';
                 error.classList.remove('hidden');
