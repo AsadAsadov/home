@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BestHome.az</title>
-    <meta name="description" content="Daşınmaz Əmlak Digər əraziləri">
+    <meta name="description" content="Daşınmaz Əmlak Elanları">
     <meta property="og:title" content="BestHome.az">
-    <meta property="og:description" content="Daşınmaz Əmlak Digər əraziləri">
+    <meta property="og:description" content="Daşınmaz Əmlak Elanları">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://besthome.onrender.com/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <link rel="canonical" href="https://besthome.onrender.com/">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az">
-    <meta name="twitter:description" content="Daşınmaz Əmlak Digər əraziləri">
+    <meta name="twitter:description" content="Daşınmaz Əmlak Elanları">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
     <link rel="preload" href="/public/assets/app.css" as="style">
@@ -6795,7 +6795,7 @@ Title: CASPIAN DREAM LINER
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
         const API_BASE = window.location.origin;
         const SITE_NAME = 'BestHome';
-        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Digər əraziləri';
+        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Elanları';
         let isLoginSubmitting = false;
 
         function absoluteUrl(path = window.location.pathname) {
@@ -17228,45 +17228,4 @@ Təşəkkür edirəm. 🙏`;
         }
 
         // MAIN SETUP AND BOOTSTRAP
-        window.addEventListener('resize', () => {
-            renderDesktopAds();
-            updateMobileModalMetrics();
-            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
-            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
-        });
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            const initialPath = window.location.pathname;
-            console.log('INITIAL PATH:', initialPath);
-            updateMobileModalMetrics();
-            renderProjectImageInputs(['']);
-            bootstrapCachedData();
-            if (['/', '/projects', '/layiheler', ''].includes(initialPath)) {
-                switchTab('seabreeze', { skipPush: true });
-                setHomepageInitialLoading(true);
-            }
-            const authReady = initializeAuth();
-            if (await verifyEmailFromUrl()) return;
-            if (initialPath === '/reset-password') { await authReady; switchTab('reset-password', { skipPush: true }); return; }
-            if (await completeGoogleLoginFromUrl()) {
-                setMobileBottomNavActive();
-                populateMetroSelect();
-                toggleMetroFieldForCity();
-                setTimeout(initAdminListingMap, 120);
-                return;
-            }
-            await routeToCurrentPath();
-            hydrateFromDatabase().catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
-            setMobileBottomNavActive();
-            populateMetroSelect();
-            toggleMetroFieldForCity();
-            setTimeout(initAdminListingMap, 120);
-            await authReady;
-        });
-
-        window.addEventListener('popstate', () => {
-            routeToCurrentPath().finally(() => setMobileBottomNavActive());
-        });
-    </script>
-</body>
-</html>
+        wind
