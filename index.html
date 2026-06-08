@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BestHome.az</title>
-    <meta name="description" content="Daşınmaz Əmlak Digər əraziləri">
-    <meta property="og:title" content="BestHome.az">
-    <meta property="og:description" content="Daşınmaz Digər əraziləri">
+    <title>Daşınmaz əmlak elanları</title>
+    <meta name="description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
+    <meta property="og:title" content="Daşınmaz əmlak elanları">
+    <meta property="og:site_name" content="BestHome.az">
+    <meta property="og:description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://besthome.onrender.com/">
+    <meta property="og:url" content="https://besthome.az/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
-    <link rel="canonical" href="https://besthome.onrender.com/">
+    <link rel="canonical" href="https://besthome.az/">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="BestHome.az">
-    <meta name="twitter:description" content="Daşınmaz Əmlak Digər əraziləri">
+    <meta name="twitter:title" content="Daşınmaz əmlak elanları">
+    <meta name="twitter:description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
     <link rel="preload" href="/public/assets/app.css" as="style">
@@ -6794,8 +6795,9 @@ Title: CASPIAN DREAM LINER
 
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
         const API_BASE = window.location.origin;
-        const SITE_NAME = 'BestHome';
-        const DEFAULT_SEO_DESCRIPTION = 'Daşınmaz Əmlak Digər əraziləri';
+        const SITE_NAME = 'BestHome.az';
+        const HOME_SEO_TITLE = 'Daşınmaz əmlak elanları';
+        const DEFAULT_SEO_DESCRIPTION = 'BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.';
         let isLoginSubmitting = false;
 
         function absoluteUrl(path = window.location.pathname) {
@@ -6814,7 +6816,9 @@ Title: CASPIAN DREAM LINER
         }
 
         function updateSeo({ title = SITE_NAME, description = DEFAULT_SEO_DESCRIPTION, path = window.location.pathname, image = '', type = 'website' } = {}) {
-            const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+            const isHomepage = (path || '/').split('?')[0] === '/';
+            const normalizedTitle = isHomepage && (!title || title === SITE_NAME) ? HOME_SEO_TITLE : title;
+            const fullTitle = normalizedTitle === HOME_SEO_TITLE ? HOME_SEO_TITLE : (normalizedTitle.includes(SITE_NAME) ? normalizedTitle : `${normalizedTitle} | ${SITE_NAME}`);
             const canonical = absoluteUrl(path);
             document.title = fullTitle;
             let link = document.head.querySelector('link[rel="canonical"]');
@@ -6827,6 +6831,7 @@ Title: CASPIAN DREAM LINER
             setMeta('description', description);
             setMeta('og:title', fullTitle, true);
             setMeta('og:description', description, true);
+            setMeta('og:site_name', SITE_NAME, true);
             setMeta('og:type', type, true);
             setMeta('og:url', canonical, true);
             if (image) setMeta('og:image', image, true);
@@ -8724,6 +8729,16 @@ Title: CASPIAN DREAM LINER
             updateDesktopAdStickyOffset();
         }
 
+        function safeHomepageRender(label, callback) {
+            try {
+                return callback?.();
+            } catch (error) {
+                console.error(`Homepage render failed in ${label}:`, error);
+                setHomepageInitialLoading(false);
+                return null;
+            }
+        }
+
         function normalizeListingHeroItem(item = {}) {
             const listing = item.listing ? dbListingToUi(item.listing) : (appData.listings || []).find(x => String(x.id) === String(item.listing_id ?? item.listingId ?? ''));
             const mediaUrl = String(item.media_url ?? item.mediaUrl ?? item.hero_media_url ?? item.heroMediaUrl ?? listing?.img ?? listing?.images?.[0] ?? '').trim();
@@ -8929,44 +8944,51 @@ Title: CASPIAN DREAM LINER
         }
 
         async function hydrateFromDatabase() {
-            bootstrapCachedData();
-            isHeroSlidesLoaded = true;
-            appData.heroSection = getRenderableHeroSlides()[0] || null;
-            const hasCachedHomepageData = Boolean((appData.heroSlides || []).length || (appData.projects || []).length || (appData.ads || []).length);
-            dataLoadState.projects.loading = !hasCachedHomepageData;
-            dataLoadState.projects.loaded = hasCachedHomepageData;
-            renderOfficialProjectOptions();
-            renderOfficialProjects();
-            renderSeaBreezeHero();
-            renderDesktopAds({ force: true });
-            if (hasCachedHomepageData) setHomepageInitialLoading(false);
-
-            const criticalTasks = [
-                withHomepageTimeout(loadSiteSettingsPriority(), 'Sayt ayarları'),
-                withHomepageTimeout(loadHeroSlidesPriority(), 'Hero slaydları'),
-                withHomepageTimeout(loadProjectsPriority({ render: false }), 'Layihələr'),
-                withHomepageTimeout(loadAdsBackground({ render: false }), 'Reklamlar'),
-                withHomepageTimeout(loadListingHeroPriority(), 'Elan hero')
-            ];
-            await Promise.allSettled(criticalTasks);
-
-            if (homepageHydration.rawHeroSlides) {
-                cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
+            try {
+                bootstrapCachedData();
                 isHeroSlidesLoaded = true;
                 appData.heroSection = getRenderableHeroSlides()[0] || null;
+                const hasCachedHomepageData = Boolean((appData.heroSlides || []).length || (appData.projects || []).length || (appData.ads || []).length);
+                dataLoadState.projects.loading = !hasCachedHomepageData;
+                dataLoadState.projects.loaded = hasCachedHomepageData;
+                safeHomepageRender('project filters', renderOfficialProjectOptions);
+                safeHomepageRender('projects', renderOfficialProjects);
+                safeHomepageRender('hero', renderSeaBreezeHero);
+                safeHomepageRender('ads', () => renderDesktopAds({ force: true }));
+                if (hasCachedHomepageData) setHomepageInitialLoading(false);
+
+                const criticalTasks = [
+                    withHomepageTimeout(loadSiteSettingsPriority(), 'Sayt ayarları'),
+                    withHomepageTimeout(loadHeroSlidesPriority(), 'Hero slaydları'),
+                    withHomepageTimeout(loadProjectsPriority({ render: false }), 'Layihələr'),
+                    withHomepageTimeout(loadAdsBackground({ render: false }), 'Reklamlar'),
+                    withHomepageTimeout(loadListingHeroPriority(), 'Elan hero')
+                ];
+                await Promise.allSettled(criticalTasks);
+
+                if (homepageHydration.rawHeroSlides) {
+                    cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
+                    isHeroSlidesLoaded = true;
+                    appData.heroSection = getRenderableHeroSlides()[0] || null;
+                }
+                if (homepageHydration.rawListingHeroItems) cacheData('listingHeroItems', normalizeListingHeroItems(homepageHydration.rawListingHeroItems));
+                homepageHydration.critical = true;
+                homepageHydration.initialHomepageLoaded = true;
+                dataLoadState.projects.loading = false;
+                dataLoadState.projects.loaded = true;
+                safeHomepageRender('project filters', renderOfficialProjectOptions);
+                safeHomepageRender('projects', renderOfficialProjects);
+                safeHomepageRender('hero', renderSeaBreezeHero);
+                safeHomepageRender('listing hero', renderListingHero);
+                safeHomepageRender('ads', () => renderDesktopAds({ force: true }));
+            } catch (error) {
+                console.error('Homepage hydration failed; showing fallback content:', error);
+            } finally {
+                dataLoadState.projects.loading = false;
+                dataLoadState.projects.loaded = true;
+                setHomepageInitialLoading(false);
+                setupHomepageLazyLoaders();
             }
-            if (homepageHydration.rawListingHeroItems) cacheData('listingHeroItems', normalizeListingHeroItems(homepageHydration.rawListingHeroItems));
-            homepageHydration.critical = true;
-            homepageHydration.initialHomepageLoaded = true;
-            dataLoadState.projects.loading = false;
-            dataLoadState.projects.loaded = true;
-            renderOfficialProjectOptions();
-            renderOfficialProjects();
-            renderSeaBreezeHero();
-            renderListingHero();
-            renderDesktopAds({ force: true });
-            setHomepageInitialLoading(false);
-            setupHomepageLazyLoaders();
         }
 
         function getOfficialProjects() {
@@ -12170,6 +12192,7 @@ Təşəkkür edirəm. 🙏`;
         // RENDER OFFICIAL LAYOUTS
         function renderOfficialProjects() {
             const container = document.getElementById('sea-breeze-projects-list');
+            if (!container) return;
             container.innerHTML = '';
 
             if (dataLoadState.projects.loading) {
@@ -12578,7 +12601,7 @@ Təşəkkür edirəm. 🙏`;
                     button.setAttribute('aria-selected', String(active));
                     button.setAttribute('role', 'tab');
                     button.setAttribute('aria-controls', `op-tab-${name}`);
-                    if (active && !hidden) button.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                    if (active && !hidden && typeof button.scrollIntoView === 'function') button.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
                 }
                 if (content) content.classList.toggle('hidden', !active);
             });
@@ -12588,6 +12611,7 @@ Təşəkkür edirəm. 🙏`;
         function renderSeaBreeze() {
             const properties = [...(appData.listings || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || Number(b.id || 0) - Number(a.id || 0));
             const grid = document.getElementById('seabreeze-properties-grid');
+            if (!grid) return;
             grid.innerHTML = '';
             if (dataLoadState.listings.loading) {
                 grid.innerHTML = renderCardSkeletons(6);
@@ -12597,7 +12621,7 @@ Təşəkkür edirəm. 🙏`;
 
             const regionFilter = document.getElementById('filter-sb-region')?.value || 'all';
             const projectFilter = document.getElementById('filter-sb-project')?.value || 'all';
-            const typeFilter = document.getElementById('filter-sb-type').value;
+            const typeFilter = document.getElementById('filter-sb-type')?.value || 'all';
             const creditOnly = document.getElementById('filter-sb-credit')?.checked;
             const searchQuery = (document.getElementById('filter-sb-search')?.value || '').trim().toLowerCase();
 
@@ -17228,4 +17252,45 @@ Təşəkkür edirəm. 🙏`;
         }
 
         // MAIN SETUP AND BOOTSTRAP
-        wind
+        window.addEventListener('resize', () => {
+            renderDesktopAds();
+            updateMobileModalMetrics();
+            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const initialPath = window.location.pathname;
+            console.log('INITIAL PATH:', initialPath);
+            updateMobileModalMetrics();
+            renderProjectImageInputs(['']);
+            bootstrapCachedData();
+            if (['/', '/projects', '/layiheler', ''].includes(initialPath)) {
+                switchTab('seabreeze', { skipPush: true });
+                setHomepageInitialLoading(true);
+            }
+            const authReady = initializeAuth();
+            if (await verifyEmailFromUrl()) return;
+            if (initialPath === '/reset-password') { await authReady; switchTab('reset-password', { skipPush: true }); return; }
+            if (await completeGoogleLoginFromUrl()) {
+                setMobileBottomNavActive();
+                populateMetroSelect();
+                toggleMetroFieldForCity();
+                setTimeout(initAdminListingMap, 120);
+                return;
+            }
+            await routeToCurrentPath();
+            hydrateFromDatabase().catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
+            setMobileBottomNavActive();
+            populateMetroSelect();
+            toggleMetroFieldForCity();
+            setTimeout(initAdminListingMap, 120);
+            await authReady;
+        });
+
+        window.addEventListener('popstate', () => {
+            routeToCurrentPath().finally(() => setMobileBottomNavActive());
+        });
+    </script>
+</body>
+</html>
