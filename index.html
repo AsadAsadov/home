@@ -1833,26 +1833,6 @@
             background: linear-gradient(135deg, #7f7fff, #6366f1);
             box-shadow: 0 8px 18px rgba(99,102,241,.24);
         }
-        .admin-subtab-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 1.45rem;
-            height: 1.45rem;
-            margin-left: .45rem;
-            padding: 0 .42rem;
-            border-radius: 999px;
-            background: rgba(15, 23, 42, .9);
-            color: #fff;
-            font-size: .68rem;
-            font-weight: 900;
-            line-height: 1;
-        }
-        #admin-subtabs-container .admin-subtab-button.is-active .admin-subtab-badge {
-            background: rgba(255,255,255,.95);
-            color: #4f46e5;
-        }
-
         /* Admin listing status filters */
         .admin-listing-filter-pills {
             display: flex;
@@ -7002,15 +6982,9 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
         ];
 
-        function dashboardSubtabBadgeValue(subtab) {
-            const stats = getDashboardStats();
-            if (subtab === 'project-inquiries') return stats.projectInquiriesTotal ?? stats.totalProjectInquiries ?? 0;
-            if (subtab === 'agents-manager') return stats.totalUsers ?? (appData.agents || []).length;
-            if (subtab === 'seabreeze-manager') return stats.pendingListings ?? 0;
-            return null;
-        }
+        let currentAdminSubtab = 'seabreeze-manager';
 
-        function renderDashboardSubtabButtons(activeSubtab = 'seabreeze-manager') {
+        function renderDashboardSubtabButtons(activeSubtab = currentAdminSubtab || 'seabreeze-manager') {
             const container = document.getElementById('admin-subtabs-container');
             if (!container) return;
             const isAdmin = isAdminRole(activeUser?.role);
@@ -7020,9 +6994,7 @@ Title: CASPIAN DREAM LINER
                     const classes = ['admin-subtab-button'];
                     if (item.adminOnly) classes.push('admin-only-element');
                     if (item.subtab === activeSubtab) classes.push('is-active');
-                    const badgeValue = isAdmin ? dashboardSubtabBadgeValue(item.subtab) : null;
-                    const badge = badgeValue === null || badgeValue === undefined ? '' : `<span class="admin-subtab-badge">${Number(badgeValue || 0).toLocaleString('az-AZ')}</span>`;
-                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}"><span>${item.label}</span>${badge}</button>`;
+                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}"><span>${item.label}</span></button>`;
                 })
                 .join('');
         }
@@ -7721,6 +7693,279 @@ Title: CASPIAN DREAM LINER
                 const durationSeconds = adDimension(ad.displayDuration, AD_DEFAULT_DISPLAY_DURATION_SECONDS, AD_MIN_DISPLAY_DURATION_SECONDS, AD_MAX_DISPLAY_DURATION_SECONDS);
                 adRotationState.timer = setTimeout(() => finishAdRotationRepeat(ad.id), durationSeconds * 1000);
             }
+        }
+
+
+        function adminAdOrder() {
+            return (Array.isArray(appData.ads) ? appData.ads : [])
+                .slice()
+                .sort((a, b) => (Number(a.rotationOrder || 0) - Number(b.rotationOrder || 0)) || (Number(a.displayOrder || 0) - Number(b.displayOrder || 0)) || Number(a.id || 0) - Number(b.id || 0));
+        }
+
+        function adminAdMediaPreview(ad) {
+            return `<div class="w-24 h-28 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">${renderAdMedia(ad, 'w-full h-full', { loop: true })}</div>`;
+        }
+
+        function renderAdminAdStats() {
+            const container = document.getElementById('admin-ad-stats');
+            if (!container) return;
+            const localAds = Array.isArray(appData.ads) ? appData.ads : [];
+            const stats = appData.adStats || {};
+            const cards = [
+                ['Cəmi', stats.totalAds ?? localAds.length],
+                ['Aktiv', stats.activeAds ?? localAds.filter(ad => ad.isActive).length],
+                ['Baxışlar', stats.totalViews ?? localAds.reduce((sum, ad) => sum + Number(ad.viewCount || 0), 0)],
+                ['Kliklər', stats.totalClicks ?? localAds.reduce((sum, ad) => sum + Number(ad.clickCount || 0), 0)]
+            ];
+            container.innerHTML = cards.map(([label, value]) => `<div class="rounded-2xl border border-white/10 bg-white/5 p-3"><div class="text-lg font-black text-white">${Number(value || 0).toLocaleString('az-AZ')}</div><div class="text-[10px] uppercase font-bold text-gray-400">${label}</div></div>`).join('');
+        }
+
+        function renderAdminAds() {
+            renderAdminAdStats();
+            const list = document.getElementById('admin-ads-list');
+            if (!list) return;
+            const ads = adminAdOrder();
+            if (dataLoadState.ads.loading && ads.length === 0) {
+                list.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Reklamlar yüklənir…</div>';
+                return;
+            }
+            if (dataLoadState.ads.error && ads.length === 0) {
+                list.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-red-300">Məlumat yüklənmədi. Yenidən cəhd edin.</div>';
+                return;
+            }
+            if (ads.length === 0) {
+                list.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-gray-400">Məlumat yoxdur</div>';
+                return;
+            }
+            list.innerHTML = ads.map((ad, index) => `
+                <article class="admin-ad-card glass-card p-3 rounded-2xl flex gap-3 items-center text-xs" data-ad-id="${escapeHtml(ad.id)}">
+                    <button type="button" class="admin-ad-drag-handle shrink-0 bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white w-10 h-10 rounded-xl transition" onpointerdown="startAdDrag(event, '${escapeHtml(ad.id)}')" aria-label="Reklam sırasını dəyiş"><i class="fa-solid fa-grip-vertical"></i></button>
+                    ${adminAdMediaPreview(ad)}
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-black text-white truncate">${escapeHtml(ad.title || 'Reklam')}</span>
+                            <span class="rounded-full ${ad.isActive ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-300'} px-2 py-0.5 text-[10px] font-bold">${ad.isActive ? 'Aktiv' : 'Passiv'}</span>
+                            <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
+                        </div>
+                        <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-bold text-gray-300">
+                            <span class="rounded-lg bg-white/5 px-2 py-1">Tip: ${escapeHtml(ad.mediaType || 'image')}</span>
+                            <span class="rounded-lg bg-white/5 px-2 py-1">Yer: ${escapeHtml(ad.position || 'left')}</span>
+                            <span class="rounded-lg bg-white/5 px-2 py-1">👁 ${Number(ad.viewCount || 0).toLocaleString('az-AZ')}</span>
+                            <span class="rounded-lg bg-white/5 px-2 py-1">🖱 ${Number(ad.clickCount || 0).toLocaleString('az-AZ')}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <button type="button" onclick="editAd(${ad.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
+                        <button type="button" onclick="toggleAdStatus(${ad.id}, ${!ad.isActive})" class="${ad.isActive ? 'text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500' : 'text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500'} hover:text-white px-3 py-2 rounded-xl transition">${ad.isActive ? 'Deaktiv et' : 'Aktiv et'}</button>
+                        <button type="button" onclick="deleteAd(${ad.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function loadAdminAds({ force = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return [];
+            if (dataLoadState.ads.loading && !force) return appData.ads || [];
+            dataLoadState.ads.loading = true;
+            dataLoadState.ads.error = '';
+            renderAdminAds();
+            try {
+                const [adsResponse, statsResponse] = await Promise.all([
+                    apiRequest('/api/site-ads?admin=true', { authRedirect: false }),
+                    apiRequest('/api/site-ads/stats', { authRedirect: false }).catch(() => null)
+                ]);
+                const rows = Array.isArray(adsResponse) ? adsResponse : (adsResponse?.items || adsResponse?.data || []);
+                cacheData('ads', rows.map(dbAdToUi));
+                if (statsResponse) appData.adStats = statsResponse;
+                dataLoadState.ads.loaded = true;
+                return appData.ads;
+            } catch (error) {
+                dataLoadState.ads.error = 'Məlumat yüklənmədi. Yenidən cəhd edin.';
+                console.warn('Admin reklamları oxunmadı:', error.message);
+                return appData.ads || [];
+            } finally {
+                dataLoadState.ads.loading = false;
+                renderAdminAds();
+                renderDesktopAds({ force: true });
+            }
+        }
+
+        function adFormValue(id) { return document.getElementById(id)?.value?.trim?.() || ''; }
+
+        function buildAdFormData() {
+            const formData = new FormData();
+            formData.append('title', adFormValue('ad-title'));
+            formData.append('media_type', adFormValue('ad-media-type') || 'image');
+            formData.append('position', adFormValue('ad-position') || 'left');
+            formData.append('media_url', adFormValue('ad-media-url'));
+            formData.append('click_url', adFormValue('ad-click-url'));
+            formData.append('display_order', adFormValue('ad-display-order') || '0');
+            formData.append('rotation_order', adFormValue('ad-rotation-order') || '0');
+            formData.append('repeat_count', adFormValue('ad-repeat-count') || String(AD_DEFAULT_REPEAT_COUNT));
+            formData.append('display_duration', adFormValue('ad-display-duration') || String(AD_DEFAULT_DISPLAY_DURATION_SECONDS));
+            formData.append('width_px', adFormValue('ad-width-px') || String(AD_DIMENSION_DEFAULTS.width));
+            formData.append('height_px', adFormValue('ad-height-px') || String(AD_DIMENSION_DEFAULTS.height));
+            formData.append('object_fit', adFormValue('ad-object-fit') || AD_DIMENSION_DEFAULTS.objectFit);
+            formData.append('is_active', document.getElementById('ad-is-active')?.checked ? 'true' : 'false');
+            if (adFormValue('ad-start-date')) formData.append('start_date', adFormValue('ad-start-date'));
+            if (adFormValue('ad-end-date')) formData.append('end_date', adFormValue('ad-end-date'));
+            const file = document.getElementById('ad-media-file')?.files?.[0];
+            if (file) formData.append('media', file);
+            return formData;
+        }
+
+        async function refreshAdsAndStats() {
+            await loadAdminAds({ force: true }).catch(() => {});
+            await refreshAdminStats({ render: true }).catch(() => {});
+        }
+
+        async function handleSaveAd(event) {
+            event.preventDefault();
+            setAdSaveButtonLoading(true);
+            const editId = adFormValue('edit-ad-id');
+            try {
+                const saved = await apiRequest(editId ? `/api/site-ads/${editId}` : '/api/site-ads', editId ? 'PUT' : 'POST', buildAdFormData());
+                if (saved) upsertCachedItem('ads', dbAdToUi(saved));
+                resetAdForm();
+                await refreshAdsAndStats();
+            } catch (error) {
+                alert('Reklam yadda saxlanılmadı: ' + error.message);
+            } finally {
+                setAdSaveButtonLoading(false);
+            }
+        }
+
+        function editAd(id) {
+            const ad = (appData.ads || []).find(item => String(item.id) === String(id));
+            if (!ad) return;
+            document.getElementById('edit-ad-id').value = ad.id;
+            document.getElementById('ad-title').value = ad.title || '';
+            document.getElementById('ad-media-type').value = ad.mediaType || 'image';
+            document.getElementById('ad-position').value = ad.position || 'left';
+            document.getElementById('ad-media-url').value = ad.mediaUrl || '';
+            document.getElementById('ad-click-url').value = ad.clickUrl || '';
+            document.getElementById('ad-display-order').value = ad.displayOrder ?? 0;
+            document.getElementById('ad-rotation-order').value = ad.rotationOrder ?? 0;
+            document.getElementById('ad-repeat-count').value = ad.repeatCount ?? AD_DEFAULT_REPEAT_COUNT;
+            document.getElementById('ad-display-duration').value = ad.displayDuration ?? AD_DEFAULT_DISPLAY_DURATION_SECONDS;
+            document.getElementById('ad-width-px').value = ad.widthPx ?? AD_DIMENSION_DEFAULTS.width;
+            document.getElementById('ad-height-px').value = ad.heightPx ?? AD_DIMENSION_DEFAULTS.height;
+            document.getElementById('ad-object-fit').value = ad.objectFit || AD_DIMENSION_DEFAULTS.objectFit;
+            document.getElementById('ad-is-active').checked = Boolean(ad.isActive);
+            document.getElementById('ad-start-date').value = ad.startDate || '';
+            document.getElementById('ad-end-date').value = ad.endDate || '';
+            const file = document.getElementById('ad-media-file');
+            if (file) file.value = '';
+            document.getElementById('ad-form-title').textContent = 'Reklamı Redaktə Et';
+            updateAdPreview();
+        }
+
+        function resetAdForm() {
+            ['edit-ad-id','ad-title','ad-media-url','ad-click-url','ad-start-date','ad-end-date'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const values = { 'ad-media-type': 'image', 'ad-position': 'left', 'ad-display-order': '0', 'ad-rotation-order': '0', 'ad-repeat-count': String(AD_DEFAULT_REPEAT_COUNT), 'ad-display-duration': String(AD_DEFAULT_DISPLAY_DURATION_SECONDS), 'ad-width-px': String(AD_DIMENSION_DEFAULTS.width), 'ad-height-px': String(AD_DIMENSION_DEFAULTS.height), 'ad-object-fit': AD_DIMENSION_DEFAULTS.objectFit };
+            Object.entries(values).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.value = value; });
+            const active = document.getElementById('ad-is-active');
+            if (active) active.checked = true;
+            const file = document.getElementById('ad-media-file');
+            if (file) file.value = '';
+            const title = document.getElementById('ad-form-title');
+            if (title) title.textContent = 'Yeni Reklam';
+            updateAdPreview();
+        }
+
+        function updateAdPreview() {
+            const preview = document.getElementById('ad-admin-preview');
+            if (!preview) return;
+            const file = document.getElementById('ad-media-file')?.files?.[0];
+            const mediaUrl = file ? URL.createObjectURL(file) : adFormValue('ad-media-url');
+            if (!mediaUrl) {
+                preview.innerHTML = 'Media URL daxil edin';
+                return;
+            }
+            const ad = dbAdToUi({ title: adFormValue('ad-title') || 'Reklam', mediaType: adFormValue('ad-media-type') || (file?.type?.startsWith('video/') ? 'video' : 'image'), mediaUrl, widthPx: 180, heightPx: 120, objectFit: adFormValue('ad-object-fit') || 'cover', isActive: true });
+            preview.innerHTML = renderAdMedia(ad, 'w-full h-full', { loop: true });
+        }
+
+        function handleAdMediaFileSelection() {
+            const file = document.getElementById('ad-media-file')?.files?.[0];
+            if (file?.type?.startsWith('video/')) document.getElementById('ad-media-type').value = 'video';
+            else if (file?.type === 'image/gif') document.getElementById('ad-media-type').value = 'gif';
+            else if (file?.type?.startsWith('image/')) document.getElementById('ad-media-type').value = 'image';
+            updateAdPreview();
+        }
+
+        async function toggleAdStatus(id, isActive) {
+            try {
+                const updated = await apiRequest(`/api/site-ads/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: Boolean(isActive) }) });
+                cacheData('ads', (appData.ads || []).map(ad => String(ad.id) === String(id) ? dbAdToUi(updated) : ad));
+                await refreshAdsAndStats();
+            } catch (error) {
+                alert('Reklam statusu yenilənmədi: ' + error.message);
+            }
+        }
+
+        async function deleteAd(id) {
+            if (!confirm('Reklam silinsin?')) return;
+            try {
+                await apiRequest(`/api/site-ads/${id}`, { method: 'DELETE' });
+                cacheData('ads', (appData.ads || []).filter(ad => String(ad.id) !== String(id)));
+                await refreshAdsAndStats();
+            } catch (error) {
+                alert('Reklam silinmədi: ' + error.message);
+            }
+        }
+
+        function getAdminAdOrderFromDom() {
+            return Array.from(document.querySelectorAll('#admin-ads-list .admin-ad-card')).map(card => String(card.dataset.adId || '')).filter(Boolean);
+        }
+
+        async function persistAdOrderFromDom() {
+            const ids = getAdminAdOrderFromDom();
+            if (!ids.length) return;
+            const byId = new Map((appData.ads || []).map(ad => [String(ad.id), ad]));
+            const ordered = ids.map((id, index) => ({ ...byId.get(id), displayOrder: index + 1, rotationOrder: index + 1 })).filter(Boolean);
+            cacheData('ads', ordered);
+            renderAdminAds();
+            try {
+                const response = await apiRequest('/api/site-ads/reorder', { method: 'PUT', body: JSON.stringify({ order: ordered.map((ad, index) => ({ id: Number(ad.id), displayOrder: index + 1, rotationOrder: index + 1 })) }) });
+                const rows = Array.isArray(response?.items) ? response.items : [];
+                if (rows.length) cacheData('ads', rows.map(dbAdToUi));
+                await refreshAdsAndStats();
+            } catch (error) {
+                alert('Reklam sırası yadda saxlanılmadı: ' + error.message);
+                await loadAdminAds({ force: true }).catch(() => {});
+            }
+        }
+
+        function clearAdDropTargets() {
+            document.querySelectorAll('#admin-ads-list .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
+        }
+
+        function startAdDrag(event, adId) {
+            if (!activeUser || !isAdminRole(activeUser.role)) return;
+            const card = event.target.closest('.admin-ad-card');
+            const list = document.getElementById('admin-ads-list');
+            if (!card || !list) return;
+            event.preventDefault();
+            card.classList.add('is-dragging');
+            card.setPointerCapture?.(event.pointerId);
+            const onPointerMove = (moveEvent) => {
+                const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.('.admin-ad-card');
+                if (!target || target === card || !list.contains(target)) return;
+                clearAdDropTargets();
+                target.classList.add('is-drop-target');
+                const rect = target.getBoundingClientRect();
+                list.insertBefore(card, moveEvent.clientY > rect.top + rect.height / 2 ? target.nextSibling : target);
+            };
+            const onPointerUp = () => {
+                card.classList.remove('is-dragging');
+                clearAdDropTargets();
+                window.removeEventListener('pointermove', onPointerMove);
+                persistAdOrderFromDom();
+            };
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            window.addEventListener('pointerup', onPointerUp, { once: true });
+            window.addEventListener('pointercancel', onPointerUp, { once: true });
         }
 
         function dbAppToUi(a) {
@@ -8842,7 +9087,8 @@ Title: CASPIAN DREAM LINER
         const dataLoadState = {
             projects: { loading: true, loaded: false },
             listings: { loading: true, loaded: false },
-            gallery: { loading: true, loaded: false },
+            gallery: { loading: true, loaded: false, error: '' },
+            ads: { loading: false, loaded: false, error: '' },
             adminListings: { loading: false, loaded: false, error: '' }
         };
 
@@ -13627,7 +13873,9 @@ Təşəkkür edirəm. 🙏`;
 
         async function loadGalleryPage(page = 1) {
             dataLoadState.gallery.loading = true;
+            dataLoadState.gallery.error = '';
             renderPortfolio();
+            if (isTabAktiv('admin-dashboard')) renderAdminGallery();
             try {
                 const response = await apiRequest(`/api/gallery?page=${page}&limit=${GALLERY_PAGE_LIMIT}`);
                 const payload = Array.isArray(response) ? { items: response } : (response || {});
@@ -13637,6 +13885,7 @@ Təşəkkür edirəm. 🙏`;
                 cacheData('gallery', appData.gallery);
                 console.info('[admin-gallery] loaded', appData.gallery.length);
             } catch (error) {
+                dataLoadState.gallery.error = 'Məlumat yüklənmədi. Yenidən cəhd edin.';
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
             } finally {
                 dataLoadState.gallery.loading = false;
@@ -14382,6 +14631,7 @@ Təşəkkür edirəm. 🙏`;
             'projects-archive': '/admin/projects/archive',
             'project-inquiries': '/admin/project-inquiries',
             'gallery-manager': '/admin/gallery',
+            'ads-manager': '/admin/ads',
             'vacancy-manager': '/admin/vacancies',
             'site-settings': '/admin/site-settings',
             'hero-sections': '/admin/project-hero',
@@ -14392,10 +14642,14 @@ Təşəkkür edirəm. 🙏`;
         };
 
         function switchAdminSubtab(subtab, options = {}) {
+            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', gallery: 'gallery-manager', qalereya: 'gallery-manager' };
+            subtab = subtabAliases[String(subtab || '').trim()] || subtab;
             const isAdmin = isAdminRole(activeUser?.role);
+            currentAdminSubtab = subtab || currentAdminSubtab;
             const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
+                currentAdminSubtab = subtab;
             }
 
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
@@ -14422,7 +14676,7 @@ Təşəkkür edirəm. 🙏`;
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
-            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries'].includes(subtab)) refreshAdminStats({ render: true });
+            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries','gallery-manager','ads-manager'].includes(subtab)) refreshAdminStats({ render: true });
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
@@ -14437,11 +14691,12 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'gallery-manager') {
                 renderAdminDashboard();
-                if (!dataLoadState.gallery.loaded || !Array.isArray(appData.gallery) || appData.gallery.length === 0) {
-                    void loadGalleryPage(galleryPagination.page || 1);
-                }
+                void loadGalleryPage(galleryPagination.page || 1);
             }
-            if (subtab === 'ads-manager') { loadAdminAds(); }
+            if (subtab === 'ads-manager') {
+                renderAdminDashboard();
+                void loadAdminAds({ force: true });
+            }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
             if (subtab === 'user-profile') { fillProfileForm(); if (isAdmin) refreshAdminStats({ render: true }); }
             if (subtab === 'google-email') { loadGoogleEmailRecipientCount(); }
@@ -14978,6 +15233,7 @@ Təşəkkür edirəm. 🙏`;
                 const response = await apiRequest('/api/gallery/reorder', { method: 'PUT', body: JSON.stringify({ order: ordered.map((item, index) => ({ id: Number(item.id), sortOrder: index + 1 })) }) });
                 const rows = Array.isArray(response?.items) ? response.items : [];
                 if (rows.length) cacheData('gallery', rows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
+                await refreshAdminStats({ render: true }).catch(() => {});
                 renderAdminDashboard();
                 renderPortfolio();
             } catch (error) {
@@ -15870,7 +16126,7 @@ Təşəkkür edirəm. 🙏`;
             }
 
             renderDashboardCards();
-            renderDashboardSubtabButtons();
+            renderDashboardSubtabButtons(currentAdminSubtab);
 
             // Hide/Show restriction tags
             const adminTags = document.querySelectorAll('.admin-only-element');
@@ -16075,7 +16331,11 @@ Təşəkkür edirəm. 🙏`;
                 const galContainer = document.getElementById('admin-gallery-list');
                 galContainer.innerHTML = '';
                 if (dataLoadState.gallery.loading && gallery.length === 0) {
-                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400">Qalereya yüklənir…</div>';
+                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Qalereya yüklənir…</div>';
+                } else if (dataLoadState.gallery.error && gallery.length === 0) {
+                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-red-300">Məlumat yüklənmədi. Yenidən cəhd edin.</div>';
+                } else if (gallery.length === 0) {
+                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-gray-400">Məlumat yoxdur</div>';
                 }
                 gallery.forEach((g, index) => {
                     galContainer.innerHTML += `
@@ -16872,6 +17132,7 @@ Təşəkkür edirəm. 🙏`;
                 if (editId) await apiRequest(`/api/gallery/${editId}`, 'PUT', formData);
                 else await apiRequest('/api/gallery', 'POST', formData);
                 await loadGalleryPage(galleryPagination.page || 1);
+                await refreshAdminStats({ render: true }).catch(() => {});
                 renderPortfolio();
                 resetGalleryForm();
                 renderAdminDashboard();
@@ -16928,6 +17189,8 @@ Təşəkkür edirəm. 🙏`;
             try {
                 await apiRequest(`/api/gallery/${id}`, { method: 'DELETE' });
                 cacheData('gallery', appData.gallery.filter(x => String(x.id) !== String(id)));
+                await loadGalleryPage(galleryPagination.page || 1);
+                await refreshAdminStats({ render: true }).catch(() => {});
                 renderAdminDashboard();
                 renderPortfolio();
             } catch (error) {
@@ -17345,6 +17608,9 @@ Təşəkkür edirəm. 🙏`;
         const ADMIN_QUERY_TAB_SUBTABS = {
             qalereya: 'gallery-manager',
             gallery: 'gallery-manager',
+            ads: 'ads-manager',
+            reklam: 'ads-manager',
+            advertisements: 'ads-manager',
             vakansiya: 'vacancy-manager',
             vacancy: 'vacancy-manager',
             'site-settings': 'site-settings',
@@ -17362,6 +17628,9 @@ Təşəkkür edirəm. 🙏`;
             '/admin/listings': 'seabreeze-manager',
             '/admin/qalereya': 'gallery-manager',
             '/admin/gallery': 'gallery-manager',
+            '/admin/ads': 'ads-manager',
+            '/admin/reklam': 'ads-manager',
+            '/admin/advertisements': 'ads-manager',
             '/admin/vakansiya': 'vacancy-manager',
             '/admin/vacancy': 'vacancy-manager',
             '/admin/site-settings': 'site-settings',
