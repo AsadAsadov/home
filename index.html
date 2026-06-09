@@ -5425,7 +5425,7 @@
                             <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
                             <div class="space-y-2 mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                    <div><h4 class="text-sm font-black text-white">Layihə PDF</h4><p id="project-pdf-status" class="text-[11px] text-gray-400">PDF əlavə olunmayıb.</p></div>
+                                    <div><h4 class="text-sm font-black text-white">Layihə PDF</h4><p id="project-pdf-status" class="text-[11px] text-gray-400">Manual PDF əlavə olunmayıb. Avtomatik PDF yükləmə aktivdir.</p></div>
                                     <div class="flex flex-wrap gap-2">
                                         <input type="file" id="project-pdf-file" accept="application/pdf" class="hidden" onchange="uploadProjectBrochureFromInput()">
                                         <button type="button" onclick="document.getElementById('project-pdf-file')?.click()" class="bg-white/5 hover:bg-brand-500 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Upload / Replace PDF</button>
@@ -6040,7 +6040,7 @@ Title: CASPIAN DREAM LINER
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-3">
-                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="hidden inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-brand-500 transition">📄 PDF Yüklə</button>
+                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-brand-500 transition">📄 PDF Yüklə</button>
                         <button type="button" onclick="openProjectInquiryModal()" class="inline-flex items-center gap-2 rounded-2xl bg-brand-500 px-4 py-2 text-sm font-black text-white hover:bg-brand-600 transition">💬 Maraqlanıram</button>
                     </div>
 
@@ -12518,7 +12518,7 @@ Təşəkkür edirəm. 🙏`;
         function setProjectPdfStatus(project = null) {
             const status = document.getElementById('project-pdf-status');
             if (!status) return;
-            status.textContent = project?.pdfUrl ? `PDF: ${project.pdfFilename || `${project.title || 'Layihə'}.pdf`}` : 'PDF əlavə olunmayıb.';
+            status.textContent = project?.pdfUrl ? `Manual PDF: ${project.pdfFilename || `${project.title || 'Layihə'}.pdf`}` : 'Manual PDF əlavə olunmayıb. Avtomatik PDF yükləmə aktivdir.';
         }
 
         async function uploadProjectBrochureFromInput() {
@@ -12559,20 +12559,19 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function generateProjectPdfPlaceholder() {
-            alert('PDF Yarat funksiyası üçün layihəni PDF kimi ixrac edən dizayn mərhələsi hazırdır. Hazır PDF faylını “Upload / Replace PDF” ilə əlavə edin.');
+            alert('PDF broşür artıq avtomatik yaradılır. İstifadəçi layihə səhifəsində “PDF Yüklə” düyməsinə klikləyəndə sistem layihə məlumatları və şəkillərindən yeni PDF hazırlayır.');
         }
 
         function downloadActiveProjectPdf() {
-            if (!activeOfficialProject?.pdfUrl) return;
-            void apiRequest(`/api/projects/${activeOfficialProject.id}/click`, { method: 'POST' }).then(result => {
-                if (result?.clickCount != null) updateProjectInCache(activeOfficialProject.id, { clickCount: result.clickCount });
-            }).catch(() => {});
+            if (!activeOfficialProject?.id) return;
+            const filename = `${(activeOfficialProject.title || 'Project').replace(/[\/:*?"<>|]+/g, ' ').trim() || 'Project'}.pdf`;
             const link = document.createElement('a');
-            link.href = `/api/projects/${activeOfficialProject.id}/brochure/download`;
-            link.download = activeOfficialProject.pdfFilename || `${activeOfficialProject.title || 'Project'}.pdf`;
+            link.href = `/api/projects/${activeOfficialProject.id}/brochure.pdf`;
+            link.download = activeOfficialProject.pdfFilename || filename;
             document.body.appendChild(link);
             link.click();
             link.remove();
+            updateProjectInCache(activeOfficialProject.id, { clickCount: Number(activeOfficialProject.clickCount || 0) + 1 });
         }
 
         function openProjectInquiryModal() {
@@ -12678,7 +12677,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-modal-year').textContent = project.year || '';
             document.getElementById('op-modal-desc-text').textContent = localizedDesc;
             document.getElementById('op-tab-btn-description')?.classList.toggle('hidden', !localizedDesc.trim());
-            document.getElementById('op-modal-pdf-btn')?.classList.toggle('hidden', !project.pdfUrl);
+            document.getElementById('op-modal-pdf-btn')?.classList.remove('hidden');
 
             const projects = getOfficialProjectNavigationProjects();
             const currentIndex = projects.findIndex(item => String(item.id) === String(project.id));
