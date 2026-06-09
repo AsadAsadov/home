@@ -58,6 +58,40 @@ async function attachUserStats(users) {
   return rows;
 }
 
+
+async function attachSessionPresence(users) {
+  const rows = Array.isArray(users) ? users : [users].filter(Boolean);
+  const ids = rows.map((user) => Number(user.id)).filter((id) => Number.isInteger(id));
+  if (!ids.length) return rows;
+
+  const now = new Date();
+  const onlineSince = new Date(now.getTime() - 2 * 60 * 1000);
+  const [latestSessions, onlineSessions] = await Promise.all([
+    prisma.userSession.groupBy({
+      by: ['userId'],
+      where: { userId: { in: ids } },
+      _max: { lastActiveAt: true },
+    }).catch(() => []),
+    prisma.userSession.groupBy({
+      by: ['userId'],
+      where: { userId: { in: ids }, expiresAt: { gt: now }, lastActiveAt: { gte: onlineSince } },
+      _count: { _all: true },
+    }).catch(() => []),
+  ]);
+
+  const lastActiveByUser = new Map(latestSessions.map((row) => [String(row.userId), row._max?.lastActiveAt || null]));
+  const onlineCountByUser = new Map(onlineSessions.map((row) => [String(row.userId), row._count?._all || 0]));
+  rows.forEach((user) => {
+    const key = String(user.id);
+    const onlineSessionsCount = onlineCountByUser.get(key) || 0;
+    user.lastActiveAt = lastActiveByUser.get(key) || null;
+    user.isOnline = onlineSessionsCount > 0;
+    user.onlineSessionsCount = onlineSessionsCount;
+    user.statusText = user.isOnline ? 'Online' : 'Offline';
+  });
+  return rows;
+}
+
 function clean(value) {
   if (value === undefined || value === null) return undefined;
   const trimmed = String(value).trim();
@@ -154,6 +188,7 @@ router.get('/', authenticate, authorize('admin'), asyncHandler(async (req, res) 
   });
   const safeUsers = users.map(publicUser);
   await attachUserStats(safeUsers);
+  await attachSessionPresence(safeUsers);
   safeUsers.forEach((user) => {
     user.profileCompletion = profileCompletion(user);
     user.crmCard = {
@@ -162,6 +197,10 @@ router.get('/', authenticate, authorize('admin'), asyncHandler(async (req, res) 
       email: user.email,
       registrationDate: user.createdAt,
       lastLogin: user.lastLogin,
+      lastActiveAt: user.lastActiveAt,
+      isOnline: user.isOnline,
+      onlineSessionsCount: user.onlineSessionsCount,
+      statusText: user.statusText,
       role: user.role,
       activeStatus: user.isActive ? 'active' : 'inactive',
     };

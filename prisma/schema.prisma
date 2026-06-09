@@ -384,6 +384,7 @@ model UserSession {
 
   @@index([userId], map: "idx_user_sessions_user_id")
   @@index([expiresAt], map: "idx_user_sessions_expires_at")
+  @@index([lastActiveAt], map: "idx_user_sessions_last_active_at")
   @@map("user_sessions")
 }
 

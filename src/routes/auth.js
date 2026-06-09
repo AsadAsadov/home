@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
-const { authenticate, signToken, tokenExpiresAt } = require('../middleware/auth');
+const { authenticate, signToken, tokenExpiresAt, verifyToken } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
 const { NODEMAILER_NOT_INSTALLED_MESSAGE, sendEmail } = require('../utils/email');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
@@ -390,19 +390,7 @@ router.post('/register', authRoute(async (req, res) => {
   });
   await logUserActivity(prisma, user.id, 'register');
 
-  const activatedUser = await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      failedLoginAttempts: 0,
-      lockedUntil: null,
-      lastLogin: new Date(),
-      lastLoginIp: requestIp(req),
-      lastLoginUserAgent: req.headers['user-agent'] || null,
-    },
-  });
-  await logUserActivity(prisma, user.id, 'login', { ipAddress: requestIp(req), userAgent: req.headers['user-agent'] || null });
-
-  return issueAuthResponse(req, res, activatedUser, 201, {
+  return issueAuthResponse(req, res, user, 201, {
     emailVerificationRequired: false,
     verificationEmailSent: false,
     message: 'Qeydiyyat tamamlandı. Hesabınız aktivdir və dərhal daxil oldunuz.',
@@ -458,8 +446,37 @@ router.post('/logout', authenticate, authRoute(async (req, res) => {
   res.json({ success: true, ok: true });
 }));
 
+
+router.post('/heartbeat', authenticate, authRoute(async (req, res) => {
+  const session = await prisma.userSession.update({
+    where: { token: req.authToken },
+    data: { lastActiveAt: new Date() },
+  });
+  res.json({ success: true, lastActiveAt: session.lastActiveAt });
+}));
+
+router.post('/offline', authRoute(async (req, res) => {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : clean(req.body?.token ?? req.query.token);
+  if (!token) return res.json({ success: true });
+
+  try {
+    const auth = verifyToken(token);
+    const session = await prisma.userSession.findUnique({ where: { token } });
+    if (session && String(session.userId) === String(auth.id)) {
+      await prisma.userSession.update({
+        where: { id: session.id },
+        data: { lastActiveAt: new Date(Date.now() - 3 * 60 * 1000) },
+      });
+    }
+  } catch (error) {
+    if (!['P2021', 'P2022'].includes(error.code)) authErrorLog(error, { path: req.originalUrl, method: req.method, offline: true });
+  }
+  res.json({ success: true });
+}));
+
 router.post('/verify-email', authRoute(async (req, res) => {
-  const rawToken = clean(req.body.token ?? req.query.token);
+  const rawToken = clean(req.body?.token ?? req.query.token);
   if (!rawToken) return res.status(400).json({ success: false, code: 'TOKEN_REQUIRED', message: 'Təsdiqləmə tokeni tələb olunur.' });
   const stored = await prisma.emailVerificationToken.findUnique({ where: { token: tokenHash(rawToken) }, include: { user: true } });
   if (!stored) return res.status(400).json({ success: false, code: 'VERIFICATION_FAILED', message: 'Email təsdiqləmə linki yanlışdır.' });
@@ -537,7 +554,7 @@ router.post('/forgot-password', authRoute(async (req, res) => {
 }));
 
 router.post('/reset-password', authRoute(async (req, res) => {
-  const rawToken = clean(req.body.token ?? req.query.token);
+  const rawToken = clean(req.body?.token ?? req.query.token);
   const password = clean(req.body.password ?? req.body.newPassword ?? req.body.new_password);
   const passwordConfirmation = clean(req.body.passwordConfirmation ?? req.body.password_confirmation ?? req.body.confirmPassword);
   if (!rawToken) return res.status(400).json({ success: false, code: 'TOKEN_REQUIRED', message: 'Şifrə bərpa tokeni tələb olunur.' });
@@ -610,11 +627,15 @@ router.get('/google/callback', authRoute(async (req, res) => {
   const profile = await profileResponse.json();
   if (!profile.email) return res.redirect(appUrl('/admin-login', { auth: 'google_failed' }));
 
+  const state = verifyGoogleState(req.query.state);
+  const isLoginFlow = state.action !== 'reauth_delete';
   const email = String(profile.email).toLowerCase();
   let user = await prisma.user.findUnique({ where: { email } });
   if (user) {
-    user = await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true, lastLogin: new Date(), avatarUrl: user.avatarUrl || profile.picture || null, provider: 'google', googleId: profile.sub || user.googleId || null } });
-    await logUserActivity(prisma, user.id, 'google_login');
+    const updateData = { emailVerified: true, avatarUrl: user.avatarUrl || profile.picture || null, provider: 'google', googleId: profile.sub || user.googleId || null };
+    if (isLoginFlow) updateData.lastLogin = new Date();
+    user = await prisma.user.update({ where: { id: user.id }, data: updateData });
+    await logUserActivity(prisma, user.id, isLoginFlow ? 'google_login' : 'google_reauth');
   } else {
     user = await prisma.user.create({
       data: {
@@ -625,13 +646,12 @@ router.get('/google/callback', authRoute(async (req, res) => {
         provider: 'google',
         googleId: profile.sub || null,
         role: 'user',
-        lastLogin: new Date(),
+        ...(isLoginFlow ? { lastLogin: new Date() } : {}),
       },
     });
     await logUserActivity(prisma, user.id, 'google_register');
   }
 
-  const state = verifyGoogleState(req.query.state);
   if (state.action === 'reauth_delete') {
     let redirect = safeRedirect(state.redirect || appUrl('/'));
     const redirectUrl = new URL(redirect);
@@ -781,7 +801,7 @@ async function verifyEmailChange(rawToken) {
 }
 
 router.post('/me/email/verify', authRoute(async (req, res) => {
-  const rawToken = clean(req.body.token ?? req.query.token);
+  const rawToken = clean(req.body?.token ?? req.query.token);
   if (!rawToken) return res.status(400).json({ success: false, code: 'TOKEN_REQUIRED', message: 'Email dəyişmə tokeni tələb olunur.' });
   const result = await verifyEmailChange(rawToken);
   res.status(result.status).json(result.body);
