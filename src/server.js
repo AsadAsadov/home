@@ -423,6 +423,8 @@ async function ensurePublicUsersAuthColumns() {
     `);
     await prisma.$executeRawUnsafe('ALTER TABLE public."users" ALTER COLUMN "password_hash" DROP NOT NULL');
     await prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "users_google_id_key" ON public."users"("google_id")');
+    await prisma.$executeRawUnsafe('ALTER TABLE public."user_sessions" ADD COLUMN IF NOT EXISTS "last_active_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP');
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_user_sessions_last_active_at" ON public."user_sessions"("last_active_at")');
   } catch (error) {
     if (['P2021', 'P2022'].includes(error.code)) {
       console.warn('Public users auth-column bootstrap skipped until the public.users table exists:', error.message);

@@ -25,6 +25,12 @@ function signToken(payload) {
   return jwt.sign(payload, jwtSecret(), { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 }
 
+function verifyToken(token) {
+  const auth = jwt.verify(token, jwtSecret());
+  auth.role = normalizeAuthRole(auth.role);
+  return auth;
+}
+
 function tokenExpiresAt(token) {
   const decoded = jwt.decode(token);
   if (decoded?.exp) return new Date(decoded.exp * 1000);
@@ -51,8 +57,7 @@ async function authenticate(req, res, next) {
   if (!token) return res.status(401).json({ message: 'Authentication token is required.' });
 
   try {
-    req.auth = jwt.verify(token, jwtSecret());
-    req.auth.role = normalizeAuthRole(req.auth.role);
+    req.auth = verifyToken(token);
     req.authToken = token;
     const valid = await isSessionValid(token, req.auth);
     if (!valid) return res.status(401).json({ message: 'Invalid or expired session.' });
@@ -69,8 +74,7 @@ async function optionalAuthenticate(req, _res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return next();
   try {
-    req.auth = jwt.verify(token, jwtSecret());
-    req.auth.role = normalizeAuthRole(req.auth.role);
+    req.auth = verifyToken(token);
     req.authToken = token;
     const valid = await isSessionValid(token, req.auth);
     if (!valid) req.auth = null;
@@ -88,4 +92,4 @@ function authorize(...roles) {
   };
 }
 
-module.exports = { authenticate, optionalAuthenticate, authorize, signToken, tokenExpiresAt };
+module.exports = { authenticate, optionalAuthenticate, authorize, signToken, tokenExpiresAt, verifyToken, isSessionValid };

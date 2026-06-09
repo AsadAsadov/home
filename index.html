@@ -5688,10 +5688,17 @@ Title: CASPIAN DREAM LINER
                         <h3 class="text-sm font-extrabold text-white uppercase tracking-wide">İstifadəçilər</h3>
                         <div class="flex items-center gap-2"><span id="admin-user-action-status" class="hidden text-[10px] text-brand-300"><i class="fa-solid fa-spinner fa-spin mr-1"></i>İşlənir…</span><span id="admin-users-count" class="text-[10px] text-gray-400 bg-white/5 border border-white/10 rounded-full px-3 py-1">0 istifadəçi</span></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <input type="search" id="admin-user-search-name" oninput="renderAdminDashboard()" placeholder="Ad ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
                         <input type="search" id="admin-user-search-phone" oninput="renderAdminDashboard()" placeholder="Telefon ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
                         <input type="search" id="admin-user-search-email" oninput="renderAdminDashboard()" placeholder="E-poçt ilə axtar" class="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <select id="admin-user-status-filter" onchange="renderAdminDashboard()" class="bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                            <option value="all">Hamısı</option>
+                            <option value="online">Online</option>
+                            <option value="offline">Offline</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">İstifadəçi</option>
+                        </select>
                     </div>
                     <div class="grid grid-cols-1 gap-3" id="admin-agents-grid"></div>
                 </div>
@@ -7080,6 +7087,7 @@ Title: CASPIAN DREAM LINER
                     sessionStorage.setItem('besthome_agent_data', agentData);
                 }
             }
+            startAuthHeartbeat();
         }
 
         function clearAuthSession() {
@@ -7088,6 +7096,47 @@ Title: CASPIAN DREAM LINER
                 localStorage.removeItem(key);
             });
         }
+
+
+        let authHeartbeatTimer = null;
+        let adminUsersRefreshTimer = null;
+
+        function sendAuthOfflineBeacon() {
+            const token = getAuthToken();
+            if (!token) return;
+            const url = `${API_BASE}/api/auth/offline`;
+            const payload = JSON.stringify({ token });
+            if (navigator.sendBeacon) {
+                try {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    if (navigator.sendBeacon(url, blob)) return;
+                } catch (_error) {}
+            }
+            fetch(url, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: payload }).catch(() => {});
+        }
+
+        function sendAuthHeartbeat() {
+            if (!getAuthToken()) return;
+            apiRequest('/api/auth/heartbeat', { method: 'POST', authRedirect: false }).catch(() => {});
+        }
+
+        function startAuthHeartbeat() {
+            if (authHeartbeatTimer || !getAuthToken()) return;
+            sendAuthHeartbeat();
+            authHeartbeatTimer = setInterval(sendAuthHeartbeat, 45000);
+        }
+
+        function stopAuthHeartbeat({ markOffline = false } = {}) {
+            if (authHeartbeatTimer) clearInterval(authHeartbeatTimer);
+            authHeartbeatTimer = null;
+            if (markOffline) sendAuthOfflineBeacon();
+        }
+
+        window.addEventListener('pagehide', () => sendAuthOfflineBeacon());
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') sendAuthOfflineBeacon();
+            if (document.visibilityState === 'visible' && getAuthToken()) startAuthHeartbeat();
+        });
 
         function setPendingAuthRoute(path = window.location.pathname + window.location.search + window.location.hash) {
             if (path && path !== '/' && path !== '/login') { sessionStorage.setItem('besthome_pending_auth_route', path); sessionStorage.setItem('pendingAuthRoute', path); }
@@ -7101,6 +7150,8 @@ Title: CASPIAN DREAM LINER
 
         function redirectToLoginOnAuthFailure() {
             setPendingAuthRoute();
+            stopAuthHeartbeat({ markOffline: true });
+            stopAdminUsersAutoRefresh();
             clearAuthSession();
             activeUser = null;
             updateHeaderUI();
@@ -8092,7 +8143,7 @@ Title: CASPIAN DREAM LINER
         function userToUi(u) {
             const fullname = u.fullname || [u.firstName || u.first_name, u.lastName || u.last_name].filter(Boolean).join(' ');
             const [name, ...surnameParts] = String(fullname || '').trim().split(' ');
-            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login, bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0, provider: u.provider || 'local', emailVerified: u.emailVerified ?? u.email_verified ?? false };
+            return { id: u.id, fullname: fullname || u.email || '', name: name || fullname || '', surname: surnameParts.join(' '), phone: u.phone || '', email: u.email || '', role: u.role || 'user', pass: '********', createdAt: u.createdAt || u.created_at, updatedAt: u.updatedAt || u.updated_at, lastLogin: u.lastLogin || u.last_login || null, lastActiveAt: u.lastActiveAt || u.last_active_at || null, isOnline: Boolean(u.isOnline ?? u.is_online), onlineSessionsCount: Number(u.onlineSessionsCount ?? u.online_sessions_count ?? 0), statusText: u.statusText || u.status_text || ((u.isOnline ?? u.is_online) ? 'Online' : 'Offline'), bio: u.bio || '', isActive: u.isActive ?? u.is_active ?? true, avatarUrl: u.avatarUrl || u.avatar_url || '', listingsCount: u.listingsCount || 0, activeListingsCount: u.activeListingsCount || 0, approvedListingsCount: u.approvedListingsCount || 0, pendingListingsCount: u.pendingListingsCount || 0, rejectedListingsCount: u.rejectedListingsCount || 0, totalListingViews: u.totalListingViews || 0, totalFavorites: u.totalFavorites || 0, favoritesCount: u.favoritesCount || 0, profileCompletion: u.profileCompletion || 0, provider: u.provider || 'local', emailVerified: u.emailVerified ?? u.email_verified ?? false };
         }
 
 
@@ -9571,6 +9622,29 @@ Title: CASPIAN DREAM LINER
             } catch (error) {
                 console.warn('Kabinet məlumatları oxunmadı:', error.message);
             }
+        }
+
+        async function refreshAdminUsers({ render = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return [];
+            const users = await apiRequest('/api/users', { authRedirect: false }).catch(() => []);
+            cacheData('agents', users.map(userToUi));
+            if (render && isTabAktiv('admin-dashboard') && currentAdminSubtab === 'agents-manager') renderAdminDashboard();
+            return appData.agents;
+        }
+
+        function stopAdminUsersAutoRefresh() {
+            if (adminUsersRefreshTimer) clearInterval(adminUsersRefreshTimer);
+            adminUsersRefreshTimer = null;
+        }
+
+        function startAdminUsersAutoRefresh() {
+            if (!isAdminRole(activeUser?.role) || currentAdminSubtab !== 'agents-manager') return;
+            if (!adminUsersRefreshTimer) {
+                adminUsersRefreshTimer = setInterval(() => {
+                    if (isTabAktiv('admin-dashboard') && currentAdminSubtab === 'agents-manager') refreshAdminUsers({ render: true }).catch(() => {});
+                }, 30000);
+            }
+            refreshAdminUsers({ render: true }).catch(() => {});
         }
 
         function setupHomepageLazyLoaders() {
@@ -12554,6 +12628,8 @@ ${profileMenuItemsHtml()}
 
         async function logoutAdmin() {
             try { if (getAuthToken()) await apiRequest('/api/auth/logout', { method: 'POST' }); } catch (_error) {}
+            stopAuthHeartbeat({ markOffline: true });
+            stopAdminUsersAutoRefresh();
             clearAuthSession();
             activeUser = null;
             updateHeaderUI();
@@ -14985,6 +15061,7 @@ Təşəkkür edirəm. 🙏`;
                 loadAdminListingHeroItems();
                 resetListingHeroForm();
             }
+            if (subtab === 'agents-manager') startAdminUsersAutoRefresh(); else stopAdminUsersAutoRefresh();
         }
 
         function setSeaBreezeFormOpen(isOpen, { focusTitle = false } = {}) {
@@ -16533,11 +16610,18 @@ Təşəkkür edirəm. 🙏`;
                 const nameQuery = (document.getElementById('admin-user-search-name')?.value || '').trim().toLowerCase();
                 const phoneQuery = (document.getElementById('admin-user-search-phone')?.value || '').trim().toLowerCase();
                 const emailQuery = (document.getElementById('admin-user-search-email')?.value || '').trim().toLowerCase();
+                const statusFilter = (document.getElementById('admin-user-status-filter')?.value || 'all').toLowerCase();
                 const agents = appData.agents.filter(a => {
                     const fullname = (a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || '').toLowerCase();
                     const phone = String(a.phone || '').toLowerCase();
                     const email = String(a.email || '').toLowerCase();
-                    return (!nameQuery || fullname.includes(nameQuery)) && (!phoneQuery || phone.includes(phoneQuery)) && (!emailQuery || email.includes(emailQuery));
+                    const role = String(a.role || 'user').toLowerCase();
+                    const matchesStatus = statusFilter === 'all'
+                        || (statusFilter === 'online' && a.isOnline)
+                        || (statusFilter === 'offline' && !a.isOnline)
+                        || (statusFilter === 'admin' && isAdminRole(role))
+                        || (statusFilter === 'user' && role === 'user');
+                    return matchesStatus && (!nameQuery || fullname.includes(nameQuery)) && (!phoneQuery || phone.includes(phoneQuery)) && (!emailQuery || email.includes(emailQuery));
                 });
                 const agentsContainer = document.getElementById('admin-agents-grid');
                 const usersCount = document.getElementById('admin-users-count');
@@ -16547,6 +16631,10 @@ Təşəkkür edirəm. 🙏`;
                     const fullname = a.fullname || `${a.name || ''} ${a.surname || ''}`.trim() || 'Adsız istifadəçi';
                     const initials = fullname.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
                     const avatar = a.avatarUrl || avatarFallback(fullname);
+                    const onlineBadgeClass = a.isOnline ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-gray-500/10 text-gray-300 border border-gray-500/20';
+                    const onlineBadgeText = a.isOnline ? `🟢 ${a.statusText || 'Online'}${a.onlineSessionsCount ? ` (${a.onlineSessionsCount})` : ''}` : '⚫ Offline';
+                    const lastLoginText = a.lastLogin ? formatAzDateTime(a.lastLogin) : 'Heç vaxt daxil olmayıb';
+                    const lastActiveText = a.lastActiveAt ? formatAzDateTime(a.lastActiveAt) : '—';
                     agentsContainer.innerHTML += `
                         <div onclick="openUserListingsModal('${a.id}')" class="glass-card p-4 rounded-2xl border border-white/5 text-xs hover:border-brand-500/30 transition cursor-pointer">
                             <div class="flex flex-col md:flex-row md:items-center gap-4">
@@ -16557,6 +16645,7 @@ Təşəkkür edirəm. 🙏`;
                                         <span class="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10">${roleLabel(a.role)}</span>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full ${a.isActive === false ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}">${a.isActive === false ? 'Bloklu' : 'Aktiv'}</span>
                                         <span class="text-[9px] px-2 py-0.5 rounded-full ${a.emailVerified ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'}">${a.emailVerified ? 'Email təsdiqli' : 'Email təsdiqsiz'}</span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full ${onlineBadgeClass}">${onlineBadgeText}</span>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-gray-300">
                                         <span><b class="text-gray-500 uppercase text-[9px] block">E-poçt</b>${escapeHtml(a.email || '—')}</span>
@@ -16566,7 +16655,7 @@ Təşəkkür edirəm. 🙏`;
                                     <div class="grid grid-cols-2 md:grid-cols-6 gap-2 text-center">
                                         ${[['Elan', a.listingsCount], ['Təsdiqlənmiş', a.approvedListingsCount], ['Gözləyən', a.pendingListingsCount], ['Baxışlar', a.totalListingViews], ['Favori', a.totalFavorites || a.favoritesCount], ['Profil', `${a.profileCompletion || profileCompletionFor(a)}%`]].map(([label, value]) => `<span class="rounded-xl bg-white/5 border border-white/10 p-2"><strong class="block text-white">${value || 0}</strong><em class="not-italic text-[9px] text-gray-500 uppercase">${label}</em></span>`).join('')}
                                     </div>
-                                    <p class="text-[10px] text-gray-500">Son giriş: ${formatAzDateTime(a.lastLogin)} • Bio: ${escapeHtml(a.bio || '—')}</p>
+                                    <p class="text-[10px] text-gray-500">Son giriş: ${lastLoginText} • Son aktivlik: ${lastActiveText} • Bio: ${escapeHtml(a.bio || '—')}</p>
                                 </div>
                                 <div class="flex md:flex-col items-center gap-2 shrink-0">
                                     <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
