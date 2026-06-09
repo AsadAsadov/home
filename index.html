@@ -5822,7 +5822,7 @@ Title: CASPIAN DREAM LINER
                 <div class="lg:col-span-7 space-y-4">
                     <div class="glass-card p-3 rounded-2xl flex items-center gap-3">
                         <label for="admin-gallery-filter" class="text-xs font-bold text-gray-300">Media filtri</label>
-                        <select id="admin-gallery-filter" onchange="renderAdminDashboard()" class="ml-auto bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                        <select id="admin-gallery-filter" onchange="renderAdminGallery()" class="ml-auto bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                             <option value="all">Hamısı</option>
                             <option value="image">Foto/Qalereya</option>
                             <option value="video">Video</option>
@@ -7455,13 +7455,16 @@ Title: CASPIAN DREAM LINER
         }
 
         function normalizeGalleryItem(item = {}) {
-            const mediaType = item.mediaType || item.media_type || item.type;
+            const requestedMediaType = item.mediaType || item.media_type || item.type;
+            const mediaType = String(requestedMediaType || '').toLowerCase() === 'video' ? 'video' : 'image';
             const isFeatured = Boolean(item.isFeatured ?? item.is_featured);
             const videoUrl = item.videoUrl || item.video_url || item.url || '';
             const thumbnailUrl = item.thumbnailUrl || item.thumbnail_url || item.thumbnail || '';
             const imageUrl = item.imageUrl || item.image_url || '';
+            const images = normalizeJsonArray(item.images || item.mediaUrls || item.media_urls);
             return {
                 ...item,
+                type: mediaType === 'video' ? 'video' : 'event',
                 mediaType,
                 media_type: mediaType,
                 isFeatured,
@@ -7472,7 +7475,8 @@ Title: CASPIAN DREAM LINER
                 thumbnail_url: thumbnailUrl,
                 image: imageUrl,
                 imageUrl,
-                image_url: imageUrl
+                image_url: imageUrl,
+                images
             };
         }
 
@@ -13913,8 +13917,116 @@ Təşəkkür edirəm. 🙏`;
             return renderFeaturedVideoSection(featuredVideos());
         }
 
+        function adminGalleryActionArg(id) {
+            return `'${String(id ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n')}'`;
+        }
+
+        function getAdminGalleryContainer() {
+            let container = document.getElementById('admin-gallery-list');
+            if (container) return container;
+            const subtab = document.getElementById('admin-subtab-gallery-manager');
+            if (!subtab) return null;
+            container = document.createElement('div');
+            container.id = 'admin-gallery-list';
+            container.className = 'space-y-4 lg:col-span-7';
+            subtab.appendChild(container);
+            return container;
+        }
+
+        function adminGalleryItems() {
+            const galleryFilter = document.getElementById('admin-gallery-filter')?.value || 'all';
+            return (Array.isArray(appData.gallery) ? appData.gallery : [])
+                .map(normalizeGalleryItem)
+                .filter(item => galleryFilter === 'all' || item.media_type === galleryFilter || item.mediaType === galleryFilter)
+                .sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        }
+
+        function renderAdminGalleryPreview(item = {}) {
+            const normalized = normalizeGalleryItem(item);
+            const title = escapeHtml(normalized.title || 'Qalereya');
+            const imageSrc = normalized.thumbnail || normalized.thumbnailUrl || normalized.thumbnail_url || normalized.imageUrl || normalized.image_url || normalized.image || normalized.images?.[0] || '';
+            const videoSrc = normalized.videoUrl || normalized.video_url || normalized.url || '';
+            if (normalized.mediaType === 'video') {
+                if (imageSrc) {
+                    return `<div class="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-black/40 border border-white/10"><img src="${escapeHtml(imageSrc)}" alt="${title}" loading="lazy" class="w-full h-full object-cover"><span class="absolute inset-0 flex items-center justify-center text-white text-lg bg-black/20"><i class="fa-solid fa-play"></i></span></div>`;
+                }
+                if (videoSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(videoSrc)) {
+                    return `<video src="${escapeHtml(videoSrc)}" muted playsinline preload="metadata" class="shrink-0 w-20 h-20 rounded-xl object-cover bg-black/40 border border-white/10"></video>`;
+                }
+                return '<div class="shrink-0 w-20 h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300"><i class="fa-solid fa-video"></i></div>';
+            }
+            if (imageSrc) {
+                return `<img src="${escapeHtml(imageSrc)}" alt="${title}" loading="lazy" class="shrink-0 w-20 h-20 rounded-xl object-cover bg-white/5 border border-white/10">`;
+            }
+            return '<div class="shrink-0 w-20 h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300"><i class="fa-regular fa-image"></i></div>';
+        }
+
+        function renderAdminGalleryFallback(items, container) {
+            container.innerHTML = items.map((rawItem) => {
+                const item = normalizeGalleryItem(rawItem);
+                const idArg = adminGalleryActionArg(item.id);
+                const preview = renderAdminGalleryPreview(item);
+                return `<div class="admin-media-card glass-card p-4 rounded-2xl flex gap-3 items-center text-xs" data-gallery-id="${escapeHtml(item.id)}">
+                    ${preview}
+                    <div class="min-w-0 flex-1">
+                        <h3 class="font-black text-white truncate">${escapeHtml(item.title || 'Adsız media')}</h3>
+                        <p class="text-[11px] text-gray-400 line-clamp-2">${escapeHtml(item.desc || item.description || 'Açıqlama yoxdur')}</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <button type="button" onclick="editGalleryItem(${idArg})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
+                        <button type="button" onclick="deleteGalleryItem(${idArg})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         function renderAdminGallery() {
-            renderAdminDashboard();
+            const items = adminGalleryItems();
+            const container = getAdminGalleryContainer();
+            console.log('admin gallery items', items);
+            console.log('admin gallery container', container);
+            if (!container) return;
+            container.innerHTML = '';
+            if (dataLoadState.gallery.loading && items.length === 0) {
+                container.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Qalereya yüklənir…</div>';
+                return;
+            }
+            if (dataLoadState.gallery.error && items.length === 0) {
+                container.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-red-300">Məlumat yüklənmədi. Yenidən cəhd edin.</div>';
+                return;
+            }
+            if (items.length === 0) {
+                container.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-gray-400">Məlumat yoxdur</div>';
+                return;
+            }
+            try {
+                container.innerHTML = items.map((g, index) => {
+                    const idArg = adminGalleryActionArg(g.id);
+                    const isFeatured = Boolean(g.isFeatured || g.is_featured);
+                    return `<div class="admin-media-card media-card glass-card p-3 rounded-2xl flex gap-3 items-center text-xs" data-gallery-id="${escapeHtml(g.id)}">
+                        <button type="button" class="admin-media-drag-handle shrink-0 bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white w-10 h-10 rounded-xl transition" onpointerdown="startGalleryDrag(event, ${idArg})" aria-label="Media sırasını dəyiş">
+                            <i class="fa-solid fa-grip-vertical"></i>
+                        </button>
+                        ${renderAdminGalleryPreview(g)}
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-black text-white truncate">${escapeHtml(g.title || 'Adsız media')}</span>
+                                <span class="rounded-full bg-white/10 text-gray-300 px-2 py-0.5 text-[10px] font-bold">${g.type === 'event' ? 'Qalereya' : 'Video'}</span>
+                                <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">${escapeHtml(g.desc || g.description || 'Açıqlama yoxdur')}</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                            ${g.type === 'video' ? `<button type="button" onclick="toggleGalleryHero(${idArg}, ${!isFeatured})" ${galleryHeroToggleSubmittingId === String(g.id) ? 'disabled' : ''} class="text-amber-300 px-3 py-2 ${isFeatured ? 'bg-amber-500/20 hover:bg-amber-500' : 'bg-white/5 hover:bg-amber-500'} hover:text-white rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">${galleryHeroToggleSubmittingId === String(g.id) ? 'Gözləyin…' : (isFeatured ? '⭐ Herodan çıxart' : '⭐ Heroya əlavə et')}</button>` : ''}
+                            <button type="button" onclick="editGalleryItem(${idArg})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
+                            <button type="button" onclick="deleteGalleryItem(${idArg})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (error) {
+                console.warn('Admin qalereya render alınmadı, sadə render istifadə olunur:', error.message);
+                renderAdminGalleryFallback(items, container);
+            }
         }
 
         function galleryItemMediaCount(item) {
@@ -16403,43 +16515,7 @@ Təşəkkür edirəm. 🙏`;
                 });
 
                 // 5. Media Gallery
-                const galleryFilter = document.getElementById('admin-gallery-filter')?.value || 'all';
-                const gallery = (Array.isArray(appData.gallery) ? appData.gallery : [])
-                    .map(normalizeGalleryItem)
-                    .filter(item => galleryFilter === 'all' || item.media_type === galleryFilter || item.mediaType === galleryFilter)
-                    .sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-                const galContainer = document.getElementById('admin-gallery-list');
-                galContainer.innerHTML = '';
-                if (dataLoadState.gallery.loading && gallery.length === 0) {
-                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Qalereya yüklənir…</div>';
-                } else if (dataLoadState.gallery.error && gallery.length === 0) {
-                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-red-300">Məlumat yüklənmədi. Yenidən cəhd edin.</div>';
-                } else if (gallery.length === 0) {
-                    galContainer.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-gray-400">Məlumat yoxdur</div>';
-                }
-                gallery.forEach((g, index) => {
-                    galContainer.innerHTML += `
-                        <div class="admin-media-card media-card glass-card p-3 rounded-2xl flex gap-3 items-center text-xs" data-gallery-id="${g.id}">
-                            <button type="button" class="admin-media-drag-handle shrink-0 bg-white/5 hover:bg-brand-500/20 text-gray-300 hover:text-white w-10 h-10 rounded-xl transition" onpointerdown="startGalleryDrag(event, '${g.id}')" aria-label="Media sırasını dəyiş">
-                                <i class="fa-solid fa-grip-vertical"></i>
-                            </button>
-                            ${renderAdminGalleryPreview(g)}
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span class="font-black text-white truncate">${escapeHtml(g.title)}</span>
-                                    <span class="rounded-full bg-white/10 text-gray-300 px-2 py-0.5 text-[10px] font-bold">${g.type === 'event' ? 'Qalereya' : 'Video'}</span>
-                                    <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
-                                </div>
-                                <p class="text-[11px] text-gray-400 mt-1 line-clamp-1">${escapeHtml(g.desc || 'Açıqlama yoxdur')}</p>
-                            </div>
-                            <div class="flex flex-col sm:flex-row gap-2 shrink-0">
-                                ${g.type === 'video' ? `<button type="button" onclick="toggleGalleryHero(${g.id}, ${!(g.isFeatured || g.is_featured)})" ${galleryHeroToggleSubmittingId === String(g.id) ? 'disabled' : ''} class="text-amber-300 px-3 py-2 ${g.isFeatured || g.is_featured ? 'bg-amber-500/20 hover:bg-amber-500' : 'bg-white/5 hover:bg-amber-500'} hover:text-white rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">${galleryHeroToggleSubmittingId === String(g.id) ? 'Gözləyin…' : ((g.isFeatured || g.is_featured) ? '⭐ Herodan çıxart' : '⭐ Heroya əlavə et')}</button>` : ''}
-                                <button onclick="editGalleryItem(${g.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
-                                <button onclick="deleteGalleryItem(${g.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
-                });
+                renderAdminGallery();
 
                 renderAdminAds();
             }
@@ -17182,8 +17258,18 @@ Təşəkkür edirəm. 🙏`;
 
         function setGalleryFormOpen(isOpen) {
             isGalleryFormOpen = Boolean(isOpen);
-            document.getElementById('admin-gallery-form-card')?.classList.toggle('hidden', !isGalleryFormOpen);
-            document.getElementById('gallery-form-toggle-btn')?.classList.toggle('hidden', isGalleryFormOpen);
+            const wrapper = document.getElementById('admin-gallery-form-card');
+            const toggleButton = document.getElementById('gallery-form-toggle-btn');
+            console.log('gallery form wrapper', wrapper);
+            if (wrapper) {
+                wrapper.classList.toggle('hidden', !isGalleryFormOpen);
+                wrapper.hidden = !isGalleryFormOpen;
+                wrapper.style.display = isGalleryFormOpen ? '' : 'none';
+            }
+            if (toggleButton) {
+                toggleButton.classList.toggle('hidden', isGalleryFormOpen);
+                toggleButton.hidden = isGalleryFormOpen;
+            }
         }
 
         function openGalleryForm() {
@@ -17196,9 +17282,14 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function toggleGalleryForm() {
+            console.log('toggleGalleryForm clicked');
             if (isGalleryFormOpen) closeGalleryForm();
             else { resetGalleryForm(); openGalleryForm(); }
         }
+
+        window.toggleGalleryForm = toggleGalleryForm;
+        window.openGalleryForm = openGalleryForm;
+        window.closeGalleryForm = closeGalleryForm;
 
         function toggleGalleryTypeFields() {
             const type = document.getElementById('g-type').value;
