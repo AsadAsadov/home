@@ -65,6 +65,7 @@ router.get('/overview', authenticate, authorize('admin'), asyncHandler(async (_r
     totalProjectViews: projectAggregate._sum.viewCount || 0,
     totalProjectClicks: projectAggregate._sum.clickCount || 0,
     totalProjectInquiries: projectAggregate._sum.inquiryCount || projectInquiriesTotal || 0,
+    projectInquiriesTotal,
   });
 }));
 

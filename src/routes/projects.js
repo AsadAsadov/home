@@ -163,8 +163,10 @@ router.patch('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (
 router.get('/inquiries', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const q = cleanText(req.query.q, 120).toLowerCase();
   const projectId = Number.parseInt(req.query.projectId || req.query.project_id || '', 10);
+  const status = normalizeInquiryStatus(req.query.status);
   const where = {};
   if (Number.isInteger(projectId) && projectId > 0) where.projectId = projectId;
+  if (status) where.status = status;
   if (q) {
     where.OR = [
       { name: { contains: q, mode: 'insensitive' } },
@@ -190,14 +192,26 @@ router.delete('/inquiries/:inquiryId', authenticate, authorize('admin'), asyncHa
 
 router.post('/:id/view', asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const updated = await prisma.project.update({ where: { id }, data: { viewCount: { increment: 1 } } });
-  res.json({ id: updated.id, viewCount: updated.viewCount });
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: 'Valid project id is required.' });
+  try {
+    const updated = await prisma.project.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+    return res.json({ id: updated.id, viewCount: updated.viewCount });
+  } catch (error) {
+    console.warn('[projects] view increment failed', { projectId: id, message: error.message, code: error.code });
+    return res.status(error.code === 'P2025' ? 404 : 500).json({ message: 'Layihə baxışı yenilənmədi.' });
+  }
 }));
 
 router.post('/:id/click', asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
-  const updated = await prisma.project.update({ where: { id }, data: { clickCount: { increment: 1 } } });
-  res.json({ id: updated.id, clickCount: updated.clickCount });
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ message: 'Valid project id is required.' });
+  try {
+    const updated = await prisma.project.update({ where: { id }, data: { clickCount: { increment: 1 } } });
+    return res.json({ id: updated.id, clickCount: updated.clickCount });
+  } catch (error) {
+    console.warn('[projects] click increment failed', { projectId: id, message: error.message, code: error.code });
+    return res.status(error.code === 'P2025' ? 404 : 500).json({ message: 'Layihə klik statistikası yenilənmədi.' });
+  }
 }));
 
 router.post('/:id/inquiries', asyncHandler(async (req, res) => {
@@ -205,12 +219,28 @@ router.post('/:id/inquiries', asyncHandler(async (req, res) => {
   const name = cleanText(req.body?.name, 180);
   const phone = cleanText(req.body?.phone, 80);
   const note = cleanText(req.body?.note, 2000);
-  if (!name || !phone) return res.status(400).json({ message: 'Name and phone are required.' });
-  const created = await prisma.$transaction(async (tx) => {
-    await tx.project.update({ where: { id: projectId }, data: { inquiryCount: { increment: 1 } } });
-    return tx.projectInquiry.create({ data: { projectId, name, phone, note: note || null }, include: { project: { select: { id: true, title: true, slug: true } } } });
-  });
-  res.status(201).json(created);
+  if (!Number.isInteger(projectId) || projectId <= 0) return res.status(400).json({ message: 'Valid project id is required.' });
+  if (!name || !phone) return res.status(400).json({ message: 'Ad və telefon tələb olunur.' });
+  try {
+    const created = await prisma.$transaction(async (tx) => {
+      const project = await tx.project.findFirst({ where: { id: projectId, isArchived: false }, select: { id: true } });
+      if (!project) {
+        const error = new Error('Record not found.');
+        error.status = 404;
+        throw error;
+      }
+      const inquiry = await tx.projectInquiry.create({
+        data: { projectId, name, phone, note: note || null, status: 'new' },
+        include: { project: { select: { id: true, title: true, slug: true } } },
+      });
+      await tx.project.update({ where: { id: projectId }, data: { inquiryCount: { increment: 1 } } });
+      return inquiry;
+    });
+    return res.status(201).json({ success: true, inquiry: created, message: 'Müraciət göndərildi.' });
+  } catch (error) {
+    console.warn('[projects] inquiry submit failed', { projectId, message: error.message, code: error.code, status: error.status });
+    return res.status(error.status || (error.code === 'P2025' ? 404 : 500)).json({ message: 'Müraciət göndərilmədi. Zəhmət olmasa yenidən cəhd edin.' });
+  }
 }));
 
 router.post('/:id/brochure', authenticate, authorize('admin'), pdfUpload.single('file'), asyncHandler(async (req, res) => {
@@ -236,10 +266,18 @@ async function downloadGeneratedBrochure(req, res) {
   const project = await prisma.project.findFirst({ where: { id: projectId, isArchived: false } });
   if (!project) return res.status(404).json({ message: 'Record not found.' });
 
-  const pdf = await generateProjectBrochurePdf(project);
+  let pdf;
+  try {
+    pdf = await generateProjectBrochurePdf(project);
+  } catch (error) {
+    console.warn('[projects] brochure generation failed', { projectId, message: error.message });
+    return res.status(500).json({ message: 'PDF hazırlanmadı. Yenidən cəhd edin.' });
+  }
   const filename = projectPdfFilename(project);
 
-  await prisma.project.update({ where: { id: project.id }, data: { clickCount: { increment: 1 } } });
+  await prisma.project.update({ where: { id: project.id }, data: { clickCount: { increment: 1 } } }).catch((error) => {
+    console.warn('[projects] brochure click increment failed', { projectId, message: error.message, code: error.code });
+  });
 
   res.status(200);
   res.setHeader('Content-Type', 'application/pdf');
