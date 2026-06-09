@@ -27,6 +27,7 @@ router.get('/overview', authenticate, authorize('admin'), asyncHandler(async (_r
     adsActive,
     vacanciesTotal,
     applicationsTotal,
+    usersTotal,
     projectAggregate,
     projectInquiriesTotal,
   ] = await Promise.all([
@@ -42,6 +43,7 @@ router.get('/overview', authenticate, authorize('admin'), asyncHandler(async (_r
     prisma.siteAd.count({ where: activeAdWhere() }),
     prisma.vacancy.count(),
     prisma.application.count(),
+    prisma.user.count(),
     prisma.project.aggregate({ _sum: { viewCount: true, clickCount: true, inquiryCount: true } }),
     prisma.projectInquiry.count(),
   ]);
@@ -62,6 +64,8 @@ router.get('/overview', authenticate, authorize('admin'), asyncHandler(async (_r
     adClicks: adsAggregate._sum.clickCount || 0,
     vacanciesTotal,
     applicationsTotal,
+    usersTotal,
+    totalUsers: usersTotal,
     totalProjectViews: projectAggregate._sum.viewCount || 0,
     totalProjectClicks: projectAggregate._sum.clickCount || 0,
     totalProjectInquiries: projectAggregate._sum.inquiryCount || projectInquiriesTotal || 0,

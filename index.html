@@ -1833,6 +1833,25 @@
             background: linear-gradient(135deg, #7f7fff, #6366f1);
             box-shadow: 0 8px 18px rgba(99,102,241,.24);
         }
+        .admin-subtab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.45rem;
+            height: 1.45rem;
+            margin-left: .45rem;
+            padding: 0 .42rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, .9);
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        #admin-subtabs-container .admin-subtab-button.is-active .admin-subtab-badge {
+            background: rgba(255,255,255,.95);
+            color: #4f46e5;
+        }
 
         /* Admin listing status filters */
         .admin-listing-filter-pills {
@@ -6067,7 +6086,6 @@ Title: CASPIAN DREAM LINER
                         <h3 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h3>
                         <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
-                    <div id="op-modal-similar-projects" class="space-y-3"></div>
                 </div>
             </div>
         </div>
@@ -6085,6 +6103,7 @@ Title: CASPIAN DREAM LINER
                 <label class="block text-xs font-bold text-gray-300">Ad Soyad<input id="project-inquiry-name" required class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></label>
                 <label class="block text-xs font-bold text-gray-300">Telefon<input id="project-inquiry-phone" required class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></label>
                 <label class="block text-xs font-bold text-gray-300">Qeyd (optional)<textarea id="project-inquiry-note" rows="4" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></textarea></label>
+                <div id="project-inquiry-success" class="hidden rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm font-black text-emerald-200">Göndərildi</div>
                 <div id="project-inquiry-error" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-bold text-red-200"></div>
                 <div class="flex gap-3 pt-2">
                     <button id="project-inquiry-submit" type="submit" class="flex-1 rounded-xl bg-brand-500 px-4 py-3 text-sm font-black text-white hover:bg-brand-600">Göndər</button>
@@ -6948,7 +6967,11 @@ Title: CASPIAN DREAM LINER
         let syncTimer = null;
 
         function getAuthToken() {
-            return sessionStorage.getItem('token') || sessionStorage.getItem('besthome_auth_token') || '';
+            return localStorage.getItem('besthome_auth_token')
+                || localStorage.getItem('token')
+                || sessionStorage.getItem('besthome_auth_token')
+                || sessionStorage.getItem('token')
+                || '';
         }
 
         function isAdminRole(role) {
@@ -6979,6 +7002,14 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
         ];
 
+        function dashboardSubtabBadgeValue(subtab) {
+            const stats = getDashboardStats();
+            if (subtab === 'project-inquiries') return stats.projectInquiriesTotal ?? stats.totalProjectInquiries ?? 0;
+            if (subtab === 'agents-manager') return stats.totalUsers ?? (appData.agents || []).length;
+            if (subtab === 'seabreeze-manager') return stats.pendingListings ?? 0;
+            return null;
+        }
+
         function renderDashboardSubtabButtons(activeSubtab = 'seabreeze-manager') {
             const container = document.getElementById('admin-subtabs-container');
             if (!container) return;
@@ -6989,30 +7020,40 @@ Title: CASPIAN DREAM LINER
                     const classes = ['admin-subtab-button'];
                     if (item.adminOnly) classes.push('admin-only-element');
                     if (item.subtab === activeSubtab) classes.push('is-active');
-                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}">${item.label}</button>`;
+                    const badgeValue = isAdmin ? dashboardSubtabBadgeValue(item.subtab) : null;
+                    const badge = badgeValue === null || badgeValue === undefined ? '' : `<span class="admin-subtab-badge">${Number(badgeValue || 0).toLocaleString('az-AZ')}</span>`;
+                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}"><span>${item.label}</span>${badge}</button>`;
                 })
                 .join('');
         }
 
         function setAuthSession(token, user) {
             if (token) {
+                localStorage.setItem('token', token);
+                localStorage.setItem('besthome_auth_token', token);
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('besthome_auth_token', token);
             }
             if (user) {
                 const role = normalizeAuthRole(user.role);
+                const userData = JSON.stringify({ ...user, role });
+                localStorage.setItem('besthome_logged_in_role', role);
+                localStorage.setItem('besthome_user_data', userData);
                 sessionStorage.setItem('besthome_logged_in_role', role);
-                sessionStorage.setItem('besthome_user_data', JSON.stringify({ ...user, role }));
-                if (role === 'user') sessionStorage.setItem('besthome_agent_data', JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, phone: user.phone || '', role }));
+                sessionStorage.setItem('besthome_user_data', userData);
+                const agentData = JSON.stringify({ id: user.id, name: user.fullname || user.name || '', email: user.email, phone: user.phone || '', role });
+                if (role === 'user') {
+                    localStorage.setItem('besthome_agent_data', agentData);
+                    sessionStorage.setItem('besthome_agent_data', agentData);
+                }
             }
         }
 
         function clearAuthSession() {
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('besthome_auth_token');
-            sessionStorage.removeItem('besthome_logged_in_role');
-            sessionStorage.removeItem('besthome_agent_data');
-            sessionStorage.removeItem('besthome_user_data');
+            ['token', 'besthome_auth_token', 'besthome_logged_in_role', 'besthome_agent_data', 'besthome_user_data'].forEach(key => {
+                sessionStorage.removeItem(key);
+                localStorage.removeItem(key);
+            });
         }
 
         function setPendingAuthRoute(path = window.location.pathname + window.location.search + window.location.hash) {
@@ -7040,6 +7081,8 @@ Title: CASPIAN DREAM LINER
                 method = options.method || 'GET';
                 body = options.body ?? null;
             }
+            const authRedirect = options.authRedirect !== false;
+            delete options.authRedirect;
 
             const headers = { ...(options.headers || {}) };
             const isFormData = body instanceof FormData;
@@ -7056,10 +7099,17 @@ Title: CASPIAN DREAM LINER
 
             if (response.status === 401) {
                 const errorBody = await response.json().catch(() => ({}));
-                if (getAuthToken()) redirectToLoginOnAuthFailure();
-                throw new Error(errorBody.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
+                if (authRedirect && getAuthToken()) redirectToLoginOnAuthFailure();
+                const error = new Error(errorBody.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
+                error.status = 401;
+                throw error;
             }
-            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'API sorğusu uğursuz oldu');
+            if (!response.ok) {
+                const errorBody = await response.json().catch(() => ({}));
+                const error = new Error(errorBody.message || 'API sorğusu uğursuz oldu');
+                error.status = response.status;
+                throw error;
+            }
             return response.status === 204 ? null : response.json();
         }
 
@@ -9028,7 +9078,7 @@ Title: CASPIAN DREAM LINER
         }
 
         async function fetchAdminListings() {
-            const response = await apiRequest('/api/listings/admin');
+            const response = await apiRequest('/api/listings/admin', { authRedirect: false });
             return Array.isArray(response) ? response : (response.data || []);
         }
 
@@ -9132,12 +9182,12 @@ Title: CASPIAN DREAM LINER
             homepageHydration.admin = true;
             try {
                 const [applications, users, dashboardStats] = await Promise.all([
-                    apiRequest('/api/applications').catch(() => []),
-                    apiRequest('/api/users').catch(() => []),
-                    isAdminRole(activeUser?.role) ? apiRequest('/api/admin/stats/overview').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
+                    apiRequest('/api/applications', { authRedirect: false }).catch(() => []),
+                    apiRequest('/api/users', { authRedirect: false }).catch(() => []),
+                    isAdminRole(activeUser?.role) ? apiRequest('/api/admin/stats/overview', { authRedirect: false }).catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me', { authRedirect: false }).catch(() => null) : Promise.resolve(null))
                 ]);
                 if (isAdminRole(activeUser?.role)) {
-                    const heroItems = await apiRequest('/api/listing-hero-items?admin=1').catch(() => appData.listingHeroItems || []);
+                    const heroItems = await apiRequest('/api/listing-hero-items?admin=1', { authRedirect: false }).catch(() => appData.listingHeroItems || []);
                     cacheData('listingHeroItems', normalizeListingHeroItems(heroItems));
                 }
                 cacheData('applications', applications.map(dbAppToUi));
@@ -10695,7 +10745,7 @@ Title: CASPIAN DREAM LINER
         // SESSION CONTROL
         async function initializeAuth() {
             const token = getAuthToken();
-            const cachedUser = sessionStorage.getItem('besthome_user_data');
+            const cachedUser = localStorage.getItem('besthome_user_data') || sessionStorage.getItem('besthome_user_data');
             if (cachedUser) {
                 try {
                     const user = JSON.parse(cachedUser);
@@ -10714,14 +10764,18 @@ Title: CASPIAN DREAM LINER
             }
 
             try {
-                const result = await apiRequest('/api/auth/me');
+                const result = await apiRequest('/api/auth/me', { authRedirect: false });
                 const user = result.user || result;
                 const role = normalizeAuthRole(user.role);
                 activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
-            } catch (_error) {
-                clearAuthSession();
-                activeUser = null;
+            } catch (error) {
+                if (error?.status === 401 || error?.status === 403) {
+                    clearAuthSession();
+                    activeUser = null;
+                } else {
+                    console.warn('Sessiya yoxlanışı müvəqqəti alınmadı:', error.message);
+                }
             }
             updateHeaderUI();
         }
@@ -12617,6 +12671,7 @@ Təşəkkür edirəm. 🙏`;
         function openProjectInquiryModal() {
             if (!activeOfficialProject) return;
             document.getElementById('project-inquiry-error')?.classList.add('hidden');
+            document.getElementById('project-inquiry-success')?.classList.add('hidden');
             ['project-inquiry-name', 'project-inquiry-phone', 'project-inquiry-note'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             document.getElementById('project-inquiry-modal')?.classList.remove('hidden');
             setModalOpenState(true);
@@ -12638,15 +12693,20 @@ Təşəkkür edirəm. 🙏`;
                 note: document.getElementById('project-inquiry-note')?.value.trim()
             };
             if (!payload.name || !payload.phone) return;
+            const successBox = document.getElementById('project-inquiry-success');
+            if (errorBox) errorBox.classList.add('hidden');
+            if (successBox) successBox.classList.add('hidden');
             if (button) { button.disabled = true; button.textContent = 'Göndərilir...'; }
             try {
-                await apiRequest(`/api/projects/${activeOfficialProject.id}/inquiries`, { method: 'POST', body: JSON.stringify(payload) });
+                await apiRequest(`/api/projects/${activeOfficialProject.id}/inquiries`, { method: 'POST', body: JSON.stringify(payload), authRedirect: false });
                 const nextCount = Number(activeOfficialProject.inquiryCount || 0) + 1;
                 updateProjectInCache(activeOfficialProject.id, { inquiryCount: nextCount });
                 activeOfficialProject.inquiryCount = nextCount;
-                closeProjectInquiryModal();
-                showToast('✅ Müraciət göndərildi.');
+                event.target.reset();
+                if (successBox) { successBox.textContent = 'Göndərildi'; successBox.classList.remove('hidden'); }
+                showToast('✅ Göndərildi');
                 if (isAdminRole(activeUser?.role)) refreshAdminStats({ render: true });
+                window.setTimeout(() => closeProjectInquiryModal(), 1300);
             } catch (error) {
                 if (errorBox) { errorBox.textContent = 'Müraciət göndərilmədi. Zəhmət olmasa yenidən cəhd edin.'; errorBox.classList.remove('hidden'); }
             } finally {
@@ -12655,17 +12715,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function renderSimilarProjects(project) {
-            const box = document.getElementById('op-modal-similar-projects');
-            if (!box) return;
-            const similar = getOfficialProjects()
-                .filter(item => String(item.id) !== String(project.id) && (!project.category || item.category === project.category))
-                .slice(0, 3);
-            if (!similar.length) { box.innerHTML = ''; return; }
-            box.innerHTML = `<h3 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Oxşar layihələr</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-3">${similar.map(item => `
-                <button type="button" onclick="renderOfficialProjectModalContent(getOfficialProjects().find(p => String(p.id) === '${item.id}'))" class="rounded-2xl border border-slate-200 bg-white/80 p-3 text-left hover:border-brand-500 transition">
-                    <img src="${escapeHtml(item.img)}" class="h-20 w-full rounded-xl object-cover" loading="lazy" alt="${escapeHtml(item.title)}">
-                    <strong class="mt-2 block text-xs text-slate-950 line-clamp-1">${escapeHtml(item.title)}</strong>
-                </button>`).join('')}</div>`;
+            return;
         }
 
         function renderOfficialProjectDetails(project) {
@@ -14029,8 +14079,7 @@ Təşəkkür edirəm. 🙏`;
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
             if (!token) return false;
-            sessionStorage.setItem('token', token);
-            sessionStorage.setItem('besthome_auth_token', token);
+            setAuthSession(token, null);
             params.delete('token');
             const cleanUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
             window.history.replaceState({}, '', cleanUrl);
@@ -14078,7 +14127,7 @@ Təşəkkür edirəm. 🙏`;
 
         function populateProfileForm(user = null) {
             if (!activeUser && !user) return;
-            const stored = user || JSON.parse(sessionStorage.getItem('besthome_user_data') || '{}');
+            const stored = user || JSON.parse(localStorage.getItem('besthome_user_data') || sessionStorage.getItem('besthome_user_data') || '{}');
             const merged = { ...activeUser, ...stored };
             const avatar = merged.avatarUrl || merged.avatar_url || '';
             if (document.getElementById('profile-fullname')) document.getElementById('profile-fullname').value = merged.fullname || merged.name || '';
@@ -14288,25 +14337,30 @@ Təşəkkür edirəm. 🙏`;
                     body: JSON.stringify({ email, password: pass })
                 });
                 error.classList.add('hidden');
-                sessionStorage.setItem('token', result.token);
                 setAuthSession(result.token, result.user);
-                activeUser = { role: normalizeAuthRole(result.user.role), name: result.user.fullname, fullname: result.user.fullname, id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
+                activeUser = { role: normalizeAuthRole(result.user.role), name: result.user.fullname || result.user.email, fullname: result.user.fullname || '', id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
                 updateHeaderUI();
                 setLoginButtonSuccess();
-                await wait(500);
                 homepageHydration.admin = false;
-                await hydrateFromDatabase();
-                if (isAdminRole(activeUser.role)) { await refreshAdminStats({ render: true }).catch(() => {}); await loadAdminListings({ render: false }).catch(() => {}); }
-                setLoginButtonLoading(false);
-                isLoginSubmitting = false;
                 const pendingRoute = consumePendingAuthRoute();
-                if (pendingRoute) {
-                    history.replaceState({ path: pendingRoute }, '', pendingRoute);
-                    await routeToCurrentPath();
-                } else {
-                    history.replaceState({ path: isAdminRole(activeUser.role) ? '/admin' : '/profil' }, '', isAdminRole(activeUser.role) ? '/admin' : '/profil');
-                    await routeToCurrentPath();
+                const targetPath = pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/projects');
+                history.replaceState({ path: targetPath }, '', targetPath);
+                const routePromise = routeToCurrentPath();
+                hydrateFromDatabase().catch(error => console.warn('Login sonrası məlumat yüklənməsi tamamlanmadı:', error.message));
+                if (isAdminRole(activeUser.role)) {
+                    appData.dashboardStatsLoading = true;
+                    renderDashboardCards();
+                    refreshAdminStats({ render: true }).catch(() => {});
+                    loadAdminListings({ render: false }).catch(() => {});
+                    loadAdminBackground().catch(() => {});
                 }
+                try {
+                    await routePromise;
+                } catch (routeError) {
+                    console.warn('Login yönləndirməsi alınmadı:', routeError.message);
+                    setLoginButtonLoading(false);
+                }
+                isLoginSubmitting = false;
                 return;
             } catch (apiError) {
                 console.warn('API login alınmadı:', apiError.message);
@@ -15604,7 +15658,7 @@ Təşəkkür edirəm. 🙏`;
 
         function mapOverviewStats(stats = {}) {
             return {
-                totalUsers: stats.totalUsers ?? (appData.agents || []).length,
+                totalUsers: stats.totalUsers ?? stats.usersTotal ?? stats.userCount ?? (appData.agents || []).length,
                 totalListings: stats.listingsTotal ?? stats.totalListings ?? 0,
                 pendingListings: stats.listingsPending ?? stats.pendingListings ?? 0,
                 approvedListings: stats.listingsApproved ?? stats.approvedListings ?? 0,
@@ -15636,7 +15690,7 @@ Təşəkkür edirəm. 🙏`;
             appData.dashboardStatsLoading = true;
             if (render) renderDashboardCards();
             try {
-                const overview = await apiRequest('/api/admin/stats/overview');
+                const overview = await apiRequest('/api/admin/stats/overview', { authRedirect: false });
                 appData.dashboardStats = overview;
                 appData.dashboardStatsError = '';
                 return overview;
@@ -15690,6 +15744,7 @@ Təşəkkür edirəm. 🙏`;
             }
             const stats = getDashboardStats();
             const cards = [
+                ['İstifadəçilər', stats.totalUsers, 'fa-users', 'from-slate-500/20 to-slate-500/5 text-slate-300'],
                 ['Elanlar', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
                 ['Təsdiqlənmiş elanlar', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
                 ['Gözləyən elanlar', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
@@ -15754,7 +15809,7 @@ Təşəkkür edirəm. 🙏`;
             const list = document.getElementById('admin-project-inquiries-list');
             if (list) list.innerHTML = '<div class="glass-card rounded-2xl p-5 text-sm font-bold text-gray-300"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Müraciətlər yüklənir...</div>';
             try {
-                appData.projectInquiries = await apiRequest(`/api/projects/inquiries${params.toString() ? `?${params}` : ''}`);
+                appData.projectInquiries = await apiRequest(`/api/projects/inquiries${params.toString() ? `?${params}` : ''}`, { authRedirect: false });
                 renderProjectInquiries();
             } catch (error) {
                 if (list) list.innerHTML = '<div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-bold text-red-200">Müraciətlər yüklənmədi.</div>';
@@ -15770,7 +15825,7 @@ Təşəkkür edirəm. 🙏`;
             if (!list) return;
             const rows = Array.isArray(appData.projectInquiries) ? appData.projectInquiries : [];
             if (!rows.length) {
-                list.innerHTML = '<div class="glass-card rounded-2xl p-8 text-center text-sm font-bold text-gray-400">Müraciət tapılmadı.</div>';
+                list.innerHTML = '<div class="glass-card rounded-2xl p-8 text-center text-sm font-bold text-gray-400">Müraciət yoxdur</div>';
                 return;
             }
             list.innerHTML = rows.map(row => `
@@ -17296,6 +17351,7 @@ Təşəkkür edirəm. 🙏`;
             listings: 'seabreeze-manager',
             projects: 'projects-manager',
             archive: 'projects-archive',
+            'project-inquiries': 'project-inquiries',
             'project-hero': 'hero-sections',
             'listing-hero': 'listing-hero',
             vacancies: 'vacancy-manager'
@@ -17311,6 +17367,7 @@ Təşəkkür edirəm. 🙏`;
             '/admin/site-settings': 'site-settings',
             '/admin/projects': 'projects-manager',
             '/admin/projects/archive': 'projects-archive',
+            '/admin/project-inquiries': 'project-inquiries',
             '/admin/project-hero': 'hero-sections',
             '/admin/listing-hero': 'listing-hero',
             '/admin/vacancies': 'vacancy-manager'
