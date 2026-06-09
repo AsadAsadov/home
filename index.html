@@ -4182,6 +4182,71 @@
             #op-tab-description h3 { margin-bottom: .35rem; }
         }
 
+
+        @media (max-width: 768px) {
+            #project-detail-modal-official:not(.hidden) {
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 10px !important;
+                overflow-x: hidden !important;
+            }
+            #project-detail-modal-official > .glass-card,
+            #project-detail-modal-official .modal-glass-panel {
+                width: calc(100vw - 20px) !important;
+                max-width: calc(100vw - 20px) !important;
+                height: auto !important;
+                max-height: calc(100dvh - 20px) !important;
+                margin: 0 auto !important;
+                border-radius: 1.35rem !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+            #project-detail-modal-official #op-modal-scroll,
+            #project-detail-modal-official .project-modal-content,
+            #project-detail-modal-official .op-modal-body {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+            #project-detail-modal-official .op-modal-tabs-row {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                padding-right: 0 !important;
+                overflow: hidden !important;
+            }
+            #project-detail-modal-official .op-modal-tabs {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 8px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                padding: 0 10px 8px 0 !important;
+                scroll-padding-inline: 10px !important;
+                scrollbar-width: none !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            #project-detail-modal-official .op-modal-tabs::-webkit-scrollbar { display: none; }
+            #project-detail-modal-official .op-modal-tab-pill {
+                flex: 0 0 auto !important;
+                max-width: none !important;
+                white-space: nowrap !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                border-radius: 999px !important;
+                padding: 10px 14px !important;
+                font-size: .84rem !important;
+                line-height: 1 !important;
+            }
+        }
+
         /* Project modal navigation and polished header controls. */
         .site-logo { height: 38px; max-width: 150px; }
         .nav-link {
@@ -5862,11 +5927,11 @@ Title: CASPIAN DREAM LINER
             <!-- SUBTAB 5: GALLERY -->
             <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-5 space-y-4">
-                    <button type="button" id="gallery-form-toggle-btn" onclick="toggleGalleryForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
-                    <div id="admin-gallery-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4" style="display: none;">
+                    <button type="button" id="gallery-form-toggle-btn" onclick="window.toggleGalleryForm(event)" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
+                    <div id="admin-gallery-form-wrapper" class="hidden glass-card p-6 rounded-2xl space-y-4" style="display: none;">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
-                            <button type="button" onclick="closeGalleryForm()" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
+                            <button type="button" onclick="window.closeGalleryForm(event)" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
                         </div>
                     <form onsubmit="handleSaveGalleryItem(event)" class="space-y-3">
                         <input type="hidden" id="edit-g-id">
@@ -5896,7 +5961,7 @@ Title: CASPIAN DREAM LINER
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
-                            <button type="button" onclick="closeGalleryForm()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-2.5 rounded-xl text-sm">Bağla</button>
+                            <button type="button" onclick="window.closeGalleryForm(event)" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-2.5 rounded-xl text-sm">Bağla</button>
                         </div>
                     </form>
                     </div>
@@ -8740,15 +8805,39 @@ Title: CASPIAN DREAM LINER
             return openPropertyModal(String(listingId), false);
         }
 
-        document.addEventListener('click', function(e) {
-            const card = e.target.closest('[data-listing-id]');
+        function isListingCardInteractiveClick(target) {
+            if (!(target instanceof Element)) return true;
+            return Boolean(target.closest([
+                'button',
+                'a',
+                'input',
+                'select',
+                'textarea',
+                'label',
+                '[role="button"]',
+                '[data-favorite-btn]',
+                '[data-share-btn]',
+                '[data-phone-btn]',
+                '[data-whatsapp-btn]',
+                '.favorite-btn',
+                '.share-btn',
+                '.heart-btn',
+                '.admin-listing-action',
+                '.listing-card-action',
+                '.listing-card-actions'
+            ].join(',')));
+        }
+
+        function handleDelegatedListingCardClick(event) {
+            if (event.defaultPrevented || isListingCardInteractiveClick(event.target)) return;
+            const card = event.target instanceof Element ? event.target.closest('[data-listing-id], .listing-card') : null;
             if (!card) return;
-            if (e.target.closest('button, a, .favorite-btn, .share-btn, .heart-btn')) return;
-            const listingId = card.dataset.listingId;
+            const listingId = card.dataset?.listingId || card.getAttribute('data-listing-id');
             if (!listingId) return;
-            console.log('LISTING CARD CLICK:', listingId);
             openListingModal(listingId);
-        });
+        }
+
+        document.addEventListener('click', handleDelegatedListingCardClick, true);
 
         function fillHeroAdminForm(slide = null) {
             const fallbackType = slide ? 'custom' : 'project';
@@ -17535,35 +17624,41 @@ Təşəkkür edirəm. 🙏`;
         // SAVE & MANAGE GALLERY (EVENTS / VIDEOS)
         let isGalleryFormOpen = false;
 
+        function getGalleryFormWrapper() {
+            return document.getElementById('admin-gallery-form-wrapper') || document.getElementById('admin-gallery-form-card');
+        }
+
         function setGalleryFormOpen(isOpen) {
             isGalleryFormOpen = Boolean(isOpen);
-            const wrapper = document.getElementById('admin-gallery-form-card');
+            const wrapper = getGalleryFormWrapper();
             const toggleButton = document.getElementById('gallery-form-toggle-btn');
             if (wrapper) {
                 wrapper.classList.toggle('hidden', !isGalleryFormOpen);
                 wrapper.hidden = !isGalleryFormOpen;
                 wrapper.style.display = isGalleryFormOpen ? 'block' : 'none';
+                wrapper.setAttribute('aria-hidden', isGalleryFormOpen ? 'false' : 'true');
                 if (isGalleryFormOpen) wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (toggleButton) {
                 toggleButton.textContent = isGalleryFormOpen ? '− Qalereya formasını bağla' : '+ Yeni Qalereya';
                 toggleButton.setAttribute('aria-expanded', isGalleryFormOpen ? 'true' : 'false');
+                toggleButton.setAttribute('aria-controls', wrapper?.id || 'admin-gallery-form-wrapper');
             }
         }
 
-        function openGalleryForm() {
+        function openGalleryForm(event) {
+            event?.preventDefault?.();
             setGalleryFormOpen(true);
-            console.log('Gallery form opened');
         }
 
-        function closeGalleryForm() {
+        function closeGalleryForm(event) {
+            event?.preventDefault?.();
             resetGalleryForm();
             setGalleryFormOpen(false);
-            console.log('Gallery form closed');
         }
 
-        function toggleGalleryForm() {
-            console.log('Gallery form toggle clicked');
+        function toggleGalleryForm(event) {
+            event?.preventDefault?.();
             if (isGalleryFormOpen) closeGalleryForm();
             else { resetGalleryForm(); openGalleryForm(); }
         }
