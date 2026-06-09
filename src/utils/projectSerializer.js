@@ -68,6 +68,8 @@ function serializeProject(body) {
     slug: cleanString(body.slug),
     featuredInHero: toBool(body.featured_in_hero ?? body.featuredInHero),
     isArchived: toBool(body.is_archived ?? body.isArchived),
+    pdfUrl: cleanString(body.pdf_url ?? body.pdfUrl),
+    pdfFilename: cleanString(body.pdf_filename ?? body.pdfFilename),
   };
 }
 

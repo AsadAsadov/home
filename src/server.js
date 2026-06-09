@@ -134,6 +134,7 @@ app.post('/api/debug/send-test-email', authenticate, authorize('admin'), async (
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin/email', require('./routes/adminEmail'));
 app.use('/api/admin/notifications', require('./routes/adminNotifications'));
+app.use('/api/admin/stats', require('./routes/adminStats'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));
@@ -259,6 +260,39 @@ async function ensureProjectArchiveColumn() {
 }
 
 
+
+async function ensureProjectAnalyticsAndInquiryTables() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE public."projects"
+        ADD COLUMN IF NOT EXISTS "pdf_url" TEXT,
+        ADD COLUMN IF NOT EXISTS "pdf_filename" TEXT,
+        ADD COLUMN IF NOT EXISTS "view_count" INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS "click_count" INTEGER NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS "inquiry_count" INTEGER NOT NULL DEFAULT 0
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS public."project_inquiries" (
+        "id" SERIAL PRIMARY KEY,
+        "project_id" INTEGER NOT NULL REFERENCES public."projects"("id") ON DELETE CASCADE,
+        "name" TEXT NOT NULL,
+        "phone" TEXT NOT NULL,
+        "note" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'new',
+        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_project_inquiries_project_id" ON public."project_inquiries"("project_id")');
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_project_inquiries_status_created" ON public."project_inquiries"("status", "created_at")');
+  } catch (error) {
+    if (['P2021', 'P2022'].includes(error.code)) {
+      console.warn('Project analytics/inquiries bootstrap skipped until the public.projects table exists:', error.message);
+      return;
+    }
+    throw error;
+  }
+}
+
 async function ensureSeoIdentifiers() {
   try {
     const projects = await prisma.project.findMany({ where: { slug: null }, orderBy: { id: 'asc' } });
@@ -308,7 +342,7 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns()])
+Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns(), ensureProjectAnalyticsAndInquiryTables()])
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);

@@ -6,7 +6,29 @@ const { serializers, compact } = require('./crud');
 const { makeUniqueSlug, normalizeManualSlug } = require('../utils/seo');
 const { projectImportPreview, upsertProjectImports } = require('../utils/projectBulkImport');
 const { orderedProjectRows, projectOrderBy } = require('../utils/projectOrdering');
+const { createUpload, localUploadUrl } = require('../middleware/upload');
+const pdfUpload = createUpload('project-brochures', {
+  fileSize: 50 * 1024 * 1024,
+  files: 1,
+  fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'application/pdf'),
+});
 const router = express.Router();
+
+
+function cleanText(value, maxLength = 2000) {
+  const text = String(value || '').replace(/\0/g, '').trim();
+  return text ? text.slice(0, maxLength) : '';
+}
+
+function projectPdfFilename(project) {
+  const title = cleanText(project?.title || 'Project', 140).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Project';
+  return `${title}.pdf`;
+}
+
+function normalizeInquiryStatus(value) {
+  const status = String(value || '').trim().toLowerCase();
+  return ['new', 'contacted', 'closed'].includes(status) ? status : null;
+}
 
 function pagination(query) {
   const page = Math.max(Number.parseInt(query.page || '1', 10) || 1, 1);
@@ -119,6 +141,85 @@ router.patch('/:id/hero', authenticate, authorize('admin'), asyncHandler(async (
     data: { featuredInHero: parseBool(req.body?.featured_in_hero ?? req.body?.featuredInHero) },
   });
   res.json(updated);
+}));
+
+
+router.get('/inquiries', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const q = cleanText(req.query.q, 120).toLowerCase();
+  const projectId = Number.parseInt(req.query.projectId || req.query.project_id || '', 10);
+  const where = {};
+  if (Number.isInteger(projectId) && projectId > 0) where.projectId = projectId;
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+      { note: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+  const data = await prisma.projectInquiry.findMany({ where, include: { project: { select: { id: true, title: true, slug: true } } }, orderBy: { createdAt: 'desc' } });
+  res.json(data);
+}));
+
+router.patch('/inquiries/:inquiryId', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const status = normalizeInquiryStatus(req.body?.status);
+  if (!status) return res.status(400).json({ message: 'Valid status is required.' });
+  const updated = await prisma.projectInquiry.update({ where: { id: Number(req.params.inquiryId) }, data: { status }, include: { project: { select: { id: true, title: true, slug: true } } } });
+  res.json(updated);
+}));
+
+router.delete('/inquiries/:inquiryId', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  await prisma.projectInquiry.delete({ where: { id: Number(req.params.inquiryId) } });
+  res.status(204).send();
+}));
+
+router.post('/:id/view', asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const updated = await prisma.project.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+  res.json({ id: updated.id, viewCount: updated.viewCount });
+}));
+
+router.post('/:id/click', asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const updated = await prisma.project.update({ where: { id }, data: { clickCount: { increment: 1 } } });
+  res.json({ id: updated.id, clickCount: updated.clickCount });
+}));
+
+router.post('/:id/inquiries', asyncHandler(async (req, res) => {
+  const projectId = Number(req.params.id);
+  const name = cleanText(req.body?.name, 180);
+  const phone = cleanText(req.body?.phone, 80);
+  const note = cleanText(req.body?.note, 2000);
+  if (!name || !phone) return res.status(400).json({ message: 'Name and phone are required.' });
+  const created = await prisma.$transaction(async (tx) => {
+    await tx.project.update({ where: { id: projectId }, data: { inquiryCount: { increment: 1 } } });
+    return tx.projectInquiry.create({ data: { projectId, name, phone, note: note || null }, include: { project: { select: { id: true, title: true, slug: true } } } });
+  });
+  res.status(201).json(created);
+}));
+
+router.post('/:id/brochure', authenticate, authorize('admin'), pdfUpload.single('file'), asyncHandler(async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'PDF file is required.' });
+  const project = await prisma.project.findUnique({ where: { id: Number(req.params.id) } });
+  if (!project) return res.status(404).json({ message: 'Record not found.' });
+  const updated = await prisma.project.update({
+    where: { id: project.id },
+    data: { pdfUrl: localUploadUrl(req.file), pdfFilename: projectPdfFilename(project) },
+  });
+  res.json(updated);
+}));
+
+router.delete('/:id/brochure', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
+  const updated = await prisma.project.update({ where: { id: Number(req.params.id) }, data: { pdfUrl: null, pdfFilename: null } });
+  res.json(updated);
+}));
+
+router.get('/:id/brochure/download', asyncHandler(async (req, res) => {
+  const project = await prisma.project.findFirst({ where: { id: Number(req.params.id), isArchived: false } });
+  if (!project?.pdfUrl) return res.status(404).json({ message: 'PDF brochure not found.' });
+  const filename = projectPdfFilename(project);
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+  if (/^https?:\/\//i.test(project.pdfUrl)) return res.redirect(project.pdfUrl);
+  return res.download(require('path').join(process.cwd(), project.pdfUrl.replace(/^\//, '')), filename);
 }));
 
 router.get('/slug/:slug', asyncHandler(async (req, res) => {
