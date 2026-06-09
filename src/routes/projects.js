@@ -7,6 +7,7 @@ const { makeUniqueSlug, normalizeManualSlug } = require('../utils/seo');
 const { projectImportPreview, upsertProjectImports } = require('../utils/projectBulkImport');
 const { orderedProjectRows, projectOrderBy } = require('../utils/projectOrdering');
 const { createUpload, localUploadUrl } = require('../middleware/upload');
+const { generateProjectBrochurePdf } = require('../utils/projectBrochurePdf');
 const pdfUpload = createUpload('project-brochures', {
   fileSize: 50 * 1024 * 1024,
   files: 1,
@@ -23,6 +24,21 @@ function cleanText(value, maxLength = 2000) {
 function projectPdfFilename(project) {
   const title = cleanText(project?.title || 'Project', 140).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Project';
   return `${title}.pdf`;
+}
+
+
+function asciiHeaderFilename(filename) {
+  return cleanText(filename || 'Project.pdf', 180)
+    .replace(/Ə/g, 'E').replace(/ə/g, 'e')
+    .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+    .replace(/İ/g, 'I').replace(/ı/g, 'i')
+    .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+    .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+    .replace(/Ş/g, 'S').replace(/ş/g, 's')
+    .replace(/Ç/g, 'C').replace(/ç/g, 'c')
+    .replace(/[^ -~]+/g, '')
+    .replace(/["\\]+/g, '')
+    .trim() || 'Project.pdf';
 }
 
 function normalizeInquiryStatus(value) {
@@ -213,14 +229,29 @@ router.delete('/:id/brochure', authenticate, authorize('admin'), asyncHandler(as
   res.json(updated);
 }));
 
-router.get('/:id/brochure/download', asyncHandler(async (req, res) => {
-  const project = await prisma.project.findFirst({ where: { id: Number(req.params.id), isArchived: false } });
-  if (!project?.pdfUrl) return res.status(404).json({ message: 'PDF brochure not found.' });
+async function downloadGeneratedBrochure(req, res) {
+  const projectId = Number(req.params.id);
+  if (!Number.isInteger(projectId) || projectId <= 0) return res.status(400).json({ message: 'Valid project id is required.' });
+
+  const project = await prisma.project.findFirst({ where: { id: projectId, isArchived: false } });
+  if (!project) return res.status(404).json({ message: 'Record not found.' });
+
+  const pdf = await generateProjectBrochurePdf(project);
   const filename = projectPdfFilename(project);
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
-  if (/^https?:\/\//i.test(project.pdfUrl)) return res.redirect(project.pdfUrl);
-  return res.download(require('path').join(process.cwd(), project.pdfUrl.replace(/^\//, '')), filename);
-}));
+
+  await prisma.project.update({ where: { id: project.id }, data: { clickCount: { increment: 1 } } });
+
+  res.status(200);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Length', pdf.length);
+  res.setHeader('Content-Disposition', `attachment; filename="${asciiHeaderFilename(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.send(pdf);
+}
+
+router.get('/:id/brochure/download', asyncHandler(downloadGeneratedBrochure));
+router.get('/:id/brochure.pdf', asyncHandler(downloadGeneratedBrochure));
+router.get('/:id/pdf', asyncHandler(downloadGeneratedBrochure));
 
 router.get('/slug/:slug', asyncHandler(async (req, res) => {
   const slug = String(req.params.slug || '').trim();
