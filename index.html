@@ -4013,6 +4013,81 @@
         .project-pdf-download-btn { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 14px 26px rgba(239, 68, 68, .28); }
         .project-pdf-download-btn:hover { background: linear-gradient(135deg, #f87171, #ef4444); transform: translateY(-1px); }
         .project-pdf-download-btn:disabled { opacity: .72; cursor: wait; transform: none; }
+
+        @media (max-width: 768px) {
+            .project-detail-modal,
+            .project-detail-shell,
+            .project-detail-content,
+            #project-detail-modal-official,
+            #project-detail-modal-official > .glass-card,
+            #project-detail-modal-official .op-modal-body {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            #project-detail-modal-official:not(.hidden) {
+                align-items: stretch !important;
+                justify-content: stretch !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            #project-detail-modal-official > .glass-card {
+                left: 0 !important;
+                right: 0 !important;
+                transform: none !important;
+                border-radius: 0 !important;
+            }
+
+            .project-detail-tabs,
+            #project-detail-modal-official .op-modal-tabs {
+                display: flex !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                max-width: 100% !important;
+                gap: 10px !important;
+                padding-bottom: 8px !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .project-detail-tabs button,
+            #project-detail-modal-official .op-modal-tabs button,
+            #project-detail-modal-official .op-modal-tab-pill {
+                flex: 0 0 auto !important;
+            }
+
+            .project-detail-body,
+            #project-detail-modal-official .project-detail-sections,
+            #project-detail-modal-official #op-tab-description,
+            #project-detail-modal-official #op-modal-thumbnails,
+            #project-detail-modal-official .project-modal-actions,
+            #project-detail-modal-official .op-modal-share,
+            #project-detail-modal-official .op-modal-tabs-row {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+
+            #project-detail-modal-official .project-modal-actions,
+            #project-detail-modal-official .op-modal-share {
+                min-width: 0 !important;
+            }
+
+            #project-detail-modal-official .project-modal-actions > button,
+            #project-detail-modal-official .op-modal-share-btn {
+                max-width: 100% !important;
+                min-width: 0 !important;
+                overflow-wrap: anywhere;
+            }
+
+            #project-detail-modal-official .project-modal-nav {
+                max-width: 44px;
+                max-height: 44px;
+            }
+        }
         .project-inquiry-open-btn { box-shadow: 0 14px 26px rgba(127, 127, 255, .22); }
         #op-tab-description { width: 100%; }
         @media (max-width: 767px) {
@@ -5787,7 +5862,7 @@ Title: CASPIAN DREAM LINER
             <!-- SUBTAB 5: GALLERY -->
             <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-5 space-y-4">
-                    <button type="button" id="gallery-form-toggle-btn" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
+                    <button type="button" id="gallery-form-toggle-btn" onclick="toggleGalleryForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
                     <div id="admin-gallery-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4" style="display: none;">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
@@ -8668,7 +8743,7 @@ Title: CASPIAN DREAM LINER
         document.addEventListener('click', function(e) {
             const card = e.target.closest('[data-listing-id]');
             if (!card) return;
-            if (e.target.closest('button, a, .favorite-btn, .share-btn')) return;
+            if (e.target.closest('button, a, .favorite-btn, .share-btn, .heart-btn')) return;
             const listingId = card.dataset.listingId;
             if (!listingId) return;
             console.log('LISTING CARD CLICK:', listingId);
@@ -8869,8 +8944,8 @@ Title: CASPIAN DREAM LINER
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="moveHeroSlide('${slide.id}', -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">↑</button>
-                        <button onclick="moveHeroSlide('${slide.id}', 1)" ${index === slides.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40">↓</button>
+                        <button data-hero-reorder-id="${slide.id}" data-hero-reorder-direction="-1" onclick="moveHeroSlide('${slide.id}', -1, this)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40" aria-label="Hero slaydı yuxarı çək">↑</button>
+                        <button data-hero-reorder-id="${slide.id}" data-hero-reorder-direction="1" onclick="moveHeroSlide('${slide.id}', 1, this)" ${index === slides.length - 1 ? 'disabled' : ''} class="text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-40" aria-label="Hero slaydı aşağı çək">↓</button>
                         <button onclick="editHeroSlide('${slide.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
                         <button onclick="toggleHeroSlide('${slide.id}', ${!slide.is_active})" class="${slide.is_active ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${slide.is_active ? 'Aktiv' : 'Deaktiv'}</button>
                         <button onclick="deleteHeroSlide('${slide.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
@@ -8902,20 +8977,50 @@ Title: CASPIAN DREAM LINER
             }
         }
 
-        async function moveHeroSlide(id, direction) {
-            const slides = normalizeHeroSlides(appData.heroSlides, false);
+        async function moveHeroSlide(id, direction, button = null) {
+            const previousSlides = normalizeHeroSlides(appData.heroSlides, false);
+            const slides = previousSlides.map(slide => ({ ...slide }));
             const index = slides.findIndex(slide => String(slide.id) === String(id));
             const nextIndex = index + direction;
             if (index < 0 || nextIndex < 0 || nextIndex >= slides.length) return;
+
             [slides[index], slides[nextIndex]] = [slides[nextIndex], slides[index]];
-            const items = slides.map((slide, idx) => ({ id: slide.id, display_order: idx + 1 }));
+            const optimisticSlides = slides.map((slide, idx) => ({ ...slide, display_order: idx + 1 }));
+            const items = optimisticSlides.map(slide => ({ id: slide.id, display_order: slide.display_order }));
+            const originalButtonHtml = button ? button.innerHTML : '';
+
+            cacheData('heroSlides', optimisticSlides);
+            renderAdminHeroSlides();
+            renderSeaBreezeHero(0);
+
+            const activeButton = document.querySelector(`#admin-hero-slides-list button[data-hero-reorder-id="${CSS.escape(String(id))}"][data-hero-reorder-direction="${direction}"]`);
+            if (activeButton) {
+                activeButton.disabled = true;
+                activeButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                activeButton.setAttribute('aria-busy', 'true');
+            } else if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                button.setAttribute('aria-busy', 'true');
+            }
+
             try {
                 const saved = await apiRequest('/api/hero-slides/reorder', { method: 'PATCH', body: JSON.stringify({ items }) });
                 cacheData('heroSlides', normalizeHeroSlides(saved, false));
                 renderAdminHeroSlides();
                 renderSeaBreezeHero(0);
+                showToast('✅ Hero sırası yeniləndi.');
             } catch (error) {
+                cacheData('heroSlides', previousSlides);
+                renderAdminHeroSlides();
+                renderSeaBreezeHero(0);
                 alert('Hero slayd sırası dəyişmədi: ' + error.message);
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = originalButtonHtml;
+                    button.removeAttribute('aria-busy');
+                }
             }
         }
 
@@ -17469,14 +17574,17 @@ Təşəkkür edirəm. 🙏`;
 
         function bindGalleryFormToggleButton() {
             const toggleButton = document.getElementById('gallery-form-toggle-btn');
-            if (toggleButton && !toggleButton.dataset.galleryToggleBound) {
-                toggleButton.dataset.galleryToggleBound = 'true';
-                toggleButton.addEventListener('click', (event) => {
-                    if (typeof window.toggleGalleryForm !== 'function') return;
-                    event.preventDefault();
-                    window.toggleGalleryForm();
-                });
+            if (!toggleButton || toggleButton.dataset.galleryToggleBound) return;
+            if ((toggleButton.getAttribute('onclick') || '').includes('toggleGalleryForm')) {
+                toggleButton.dataset.galleryToggleBound = 'inline';
+                return;
             }
+            toggleButton.dataset.galleryToggleBound = 'true';
+            toggleButton.addEventListener('click', (event) => {
+                if (typeof window.toggleGalleryForm !== 'function') return;
+                event.preventDefault();
+                window.toggleGalleryForm();
+            });
         }
         bindGalleryFormToggleButton();
         document.addEventListener('DOMContentLoaded', bindGalleryFormToggleButton);
