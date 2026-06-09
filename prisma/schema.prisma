@@ -38,12 +38,33 @@ model Project {
   slug             String?     @unique
   featuredInHero   Boolean     @default(false) @map("featured_in_hero")
   isArchived       Boolean     @default(false) @map("is_archived")
+  pdfUrl           String?     @map("pdf_url") @db.Text
+  pdfFilename      String?     @map("pdf_filename") @db.Text
+  viewCount        Int         @default(0) @map("view_count")
+  clickCount       Int         @default(0) @map("click_count")
+  inquiryCount     Int         @default(0) @map("inquiry_count")
   createdAt        DateTime    @default(now()) @map("created_at")
   heroSlides       HeroSlide[]
+  inquiries        ProjectInquiry[]
 
   @@index([displayOrder, id])
   @@index([isArchived], map: "idx_projects_is_archived")
   @@map("projects")
+}
+
+model ProjectInquiry {
+  id        Int      @id @default(autoincrement())
+  projectId Int      @map("project_id")
+  name      String
+  phone     String
+  note      String?  @db.Text
+  status    String   @default("new")
+  createdAt DateTime @default(now()) @map("created_at")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], map: "idx_project_inquiries_project_id")
+  @@index([status, createdAt], map: "idx_project_inquiries_status_created")
+  @@map("project_inquiries")
 }
 
 model Listing {
