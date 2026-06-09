@@ -5780,8 +5780,8 @@ Title: CASPIAN DREAM LINER
             <!-- SUBTAB 5: GALLERY -->
             <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-5 space-y-4">
-                    <button type="button" id="gallery-form-toggle-btn" onclick="toggleGalleryForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
-                    <div id="admin-gallery-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4">
+                    <button type="button" id="gallery-form-toggle-btn" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
+                    <div id="admin-gallery-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4" style="display: none;">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
                             <button type="button" onclick="closeGalleryForm()" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
@@ -8613,6 +8613,16 @@ Title: CASPIAN DREAM LINER
         function openListingModal(listingId) {
             return openPropertyModal(String(listingId), false);
         }
+
+        document.addEventListener('click', function(e) {
+            const card = e.target.closest('[data-listing-id]');
+            if (!card) return;
+            if (e.target.closest('button, a, .favorite-btn, .share-btn')) return;
+            const listingId = card.dataset.listingId;
+            if (!listingId) return;
+            console.log('LISTING CARD CLICK:', listingId);
+            openListingModal(listingId);
+        });
 
         function fillHeroAdminForm(slide = null) {
             const fallbackType = slide ? 'custom' : 'project';
@@ -13502,12 +13512,12 @@ Təşəkkür edirəm. 🙏`;
                 `;
 
                 const cardHtml = `
-                    <div onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
+                    <div data-listing-id="${p.id}" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full min-w-0 max-w-full bg-white">
                         <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative min-w-0 max-w-full">
                             <img src="${mainImage}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'">
                             ${p.vip ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-4 bg-purple-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">VIP</div>' : ''}
                             ${p.featured ? '<div class="sea-breeze-listing-card__promo-badge absolute top-4 left-16 bg-blue-600/90 text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Featured</div>' : ''}
-                            <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                            <button type="button" data-favorite-btn="${p.id}" onclick="toggleFavorite(event, '${p.id}')" class="favorite-btn sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition disabled:opacity-60 disabled:cursor-not-allowed" aria-label="Favorit" aria-pressed="${isFavorite ? 'true' : 'false'}"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                         </div>
                         <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1 min-w-0 max-w-full">
                             <div class="space-y-1.5">
@@ -13525,7 +13535,7 @@ Təşəkkür edirəm. 🙏`;
                             </div>
                             <div class="flex items-center justify-between gap-2 text-[10px] text-gray-500">
                                 <span><i class="fa-regular fa-calendar mr-1"></i>${formatAzDateTime(p.createdAt)}</span>
-                                <span><i class="fa-regular fa-eye mr-1"></i>${p.viewCount || 0} <i class="fa-regular fa-heart ml-2 mr-1"></i>${p.favoritesCount || 0}</span>
+                                <span><i class="fa-regular fa-eye mr-1"></i>${p.viewCount || 0} <i class="fa-regular fa-heart ml-2 mr-1"></i><span data-favorite-count="${p.id}">${p.favoritesCount || 0}</span></span>
                             </div>
                         </div>
                     </div>
@@ -13536,12 +13546,49 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
+        function getListingFavoriteCount(listingId) {
+            const key = String(listingId);
+            const listing = appData.listings.find(item => String(item.id) === key);
+            if (listing) return Number(listing.favoritesCount || 0);
+            if (activePropertyListing && String(activePropertyListing.id) === key) return Number(activePropertyListing.favoritesCount || 0);
+            return 0;
+        }
+
+        function setListingFavoriteCount(listingId, count) {
+            const key = String(listingId);
+            const safeCount = Math.max(0, Number(count || 0));
+            appData.listings.forEach((item) => {
+                if (String(item.id) === key) item.favoritesCount = safeCount;
+            });
+            if (activePropertyListing && String(activePropertyListing.id) === key) activePropertyListing.favoritesCount = safeCount;
+        }
+
+        function updateFavoriteUI(listingId, isFavorite, count = getListingFavoriteCount(listingId)) {
+            const key = String(listingId);
+            const safeCount = Math.max(0, Number(count || 0));
+            if (isFavorite) appData.favoriteListingIds.add(key);
+            else appData.favoriteListingIds.delete(key);
+            setListingFavoriteCount(key, safeCount);
+            cacheFavoriteListingIds(appData.favoriteListingIds);
+            renderFavoriteControlState(key);
+        }
+
         function renderFavoriteControlState(listingId) {
             const key = String(listingId);
             const isFavorite = appData.favoriteListingIds?.has(key);
-            document.querySelectorAll(`button[onclick*="toggleFavorite(event, '${key}')"] i`).forEach((icon) => {
-                icon.classList.toggle('fa-solid', isFavorite);
-                icon.classList.toggle('fa-regular', !isFavorite);
+            const count = getListingFavoriteCount(key);
+            document.querySelectorAll('[data-favorite-btn], button[onclick*="toggleFavorite(event,"]').forEach((button) => {
+                const buttonListingId = button.dataset.favoriteBtn || (button.getAttribute('onclick') || '').match(/toggleFavorite\(event, ['"]([^'"]+)['"]\)/)?.[1];
+                if (String(buttonListingId || '') !== key) return;
+                button.setAttribute('aria-pressed', isFavorite ? 'true' : 'false');
+                const icon = button.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-solid', isFavorite);
+                    icon.classList.toggle('fa-regular', !isFavorite);
+                }
+            });
+            document.querySelectorAll('[data-favorite-count]').forEach((node) => {
+                if (String(node.dataset.favoriteCount || '') === key) node.textContent = count;
             });
             const detailBtn = document.getElementById('p-modal-favorite-btn');
             if (detailBtn && activePropertyListing && String(activePropertyListing.id) === key) {
@@ -13559,26 +13606,30 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             const key = String(listingId);
-            const isFavorite = appData.favoriteListingIds?.has(key);
+            const clickedButton = event?.currentTarget?.closest?.('button') || event?.target?.closest?.('button');
+            if (clickedButton?.disabled) return;
+            const previousState = appData.favoriteListingIds?.has(key);
+            const previousCount = getListingFavoriteCount(key);
+            const nextState = !previousState;
+            const nextCount = Math.max(0, previousCount + (nextState ? 1 : -1));
+            console.time('favorite-toggle');
+            const requestStartedAt = performance.now();
+            if (clickedButton) clickedButton.disabled = true;
+            updateFavoriteUI(key, nextState, nextCount);
+            logFavoritesDebug('optimistic favorite UI updated', { listingId: key, previousState, nextState, previousCount, nextCount });
             try {
-                if (isFavorite) {
-                    await apiRequest(`/api/favorites/${listingId}`, { method: 'DELETE' });
-                    appData.favoriteListingIds.delete(key);
-                } else {
-                    await apiRequest('/api/favorites', { method: 'POST', body: JSON.stringify({ listingId }) });
-                    appData.favoriteListingIds.add(key);
-                }
-                cacheFavoriteListingIds(appData.favoriteListingIds);
-                logFavoritesDebug('toggleFavorite stored ids', { listingId: key, wasFavorite: isFavorite, favoriteIds: Array.from(appData.favoriteListingIds) });
-                const idx = appData.listings.findIndex(item => String(item.id) === key);
-                if (idx > -1) appData.listings[idx].favoritesCount = Math.max(0, (appData.listings[idx].favoritesCount || 0) + (isFavorite ? -1 : 1));
-                if (activePropertyListing && String(activePropertyListing.id) === key) activePropertyListing.favoritesCount = Math.max(0, (activePropertyListing.favoritesCount || 0) + (isFavorite ? -1 : 1));
-                renderFavoriteControlState(key);
-                renderListingHero(listingHeroIndex);
-                if (isTabAktiv('listings')) renderSeaBreeze();
-                if (isTabAktiv('favorites')) renderFavoritesPage();
-            } catch (error) {
-                alert('Favorit əməliyyatı alınmadı: ' + error.message);
+                const response = nextState
+                    ? await apiRequest('/api/favorites', { method: 'POST', body: JSON.stringify({ listingId }) })
+                    : await apiRequest(`/api/favorites/${listingId}`, { method: 'DELETE' });
+                console.log('favorite-toggle API response time:', `${Math.round(performance.now() - requestStartedAt)}ms`, response || { status: 204 });
+                logFavoritesDebug('toggleFavorite stored ids', { listingId: key, isFavorite: nextState, favoriteIds: Array.from(appData.favoriteListingIds) });
+            } catch (err) {
+                updateFavoriteUI(key, previousState, previousCount);
+                showToast('Favori əməliyyatı alınmadı');
+                console.warn('Favorite toggle failed; optimistic UI reverted:', err);
+            } finally {
+                if (clickedButton) clickedButton.disabled = false;
+                console.timeEnd('favorite-toggle');
             }
         }
 
@@ -17294,29 +17345,31 @@ Təşəkkür edirəm. 🙏`;
             isGalleryFormOpen = Boolean(isOpen);
             const wrapper = document.getElementById('admin-gallery-form-card');
             const toggleButton = document.getElementById('gallery-form-toggle-btn');
-            console.log('gallery form wrapper', wrapper);
             if (wrapper) {
                 wrapper.classList.toggle('hidden', !isGalleryFormOpen);
                 wrapper.hidden = !isGalleryFormOpen;
-                wrapper.style.display = isGalleryFormOpen ? '' : 'none';
+                wrapper.style.display = isGalleryFormOpen ? 'block' : 'none';
+                if (isGalleryFormOpen) wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (toggleButton) {
-                toggleButton.classList.toggle('hidden', isGalleryFormOpen);
-                toggleButton.hidden = isGalleryFormOpen;
+                toggleButton.textContent = isGalleryFormOpen ? '− Qalereya formasını bağla' : '+ Yeni Qalereya';
+                toggleButton.setAttribute('aria-expanded', isGalleryFormOpen ? 'true' : 'false');
             }
         }
 
         function openGalleryForm() {
             setGalleryFormOpen(true);
+            console.log('Gallery form opened');
         }
 
         function closeGalleryForm() {
             resetGalleryForm();
             setGalleryFormOpen(false);
+            console.log('Gallery form closed');
         }
 
         function toggleGalleryForm() {
-            console.log('toggleGalleryForm clicked');
+            console.log('Gallery form toggle clicked');
             if (isGalleryFormOpen) closeGalleryForm();
             else { resetGalleryForm(); openGalleryForm(); }
         }
@@ -17324,6 +17377,20 @@ Təşəkkür edirəm. 🙏`;
         window.toggleGalleryForm = toggleGalleryForm;
         window.openGalleryForm = openGalleryForm;
         window.closeGalleryForm = closeGalleryForm;
+
+        function bindGalleryFormToggleButton() {
+            const toggleButton = document.getElementById('gallery-form-toggle-btn');
+            if (toggleButton && !toggleButton.dataset.galleryToggleBound) {
+                toggleButton.dataset.galleryToggleBound = 'true';
+                toggleButton.addEventListener('click', (event) => {
+                    if (typeof window.toggleGalleryForm !== 'function') return;
+                    event.preventDefault();
+                    window.toggleGalleryForm();
+                });
+            }
+        }
+        bindGalleryFormToggleButton();
+        document.addEventListener('DOMContentLoaded', bindGalleryFormToggleButton);
 
         function toggleGalleryTypeFields() {
             const type = document.getElementById('g-type').value;
@@ -17825,11 +17892,11 @@ Təşəkkür edirəm. 🙏`;
             const areaFact = formatOptionalNumber(p.area, ' m²');
             const floorFact = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
             const isFavorite = appData.favoriteListingIds?.has(String(p.id));
-            return `<article onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
+            return `<article data-listing-id="${p.id}" class="sea-breeze-listing-card cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/40 transition-all duration-300 group flex flex-col h-full bg-white">
                 <div class="sea-breeze-listing-card__media h-48 md:h-52 overflow-hidden relative">
                     <img src="${escapeHtml(mainImage)}" width="640" height="480" loading="lazy" decoding="async" class="sea-breeze-listing-card__image w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${escapeHtml(p.title || 'Elan')}">
                     <span class="absolute top-4 left-4 text-[10px] font-black px-3 py-1 rounded-full ${listingStatusBadgeClass(p.status || 'approved')}">${listingStatusLabel(p.status || 'approved')}</span>
-                    <button type="button" onclick="toggleFavorite(event, '${p.id}')" class="sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition" aria-label="Favorit"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                    <button type="button" data-favorite-btn="${p.id}" onclick="toggleFavorite(event, '${p.id}')" class="favorite-btn sea-breeze-listing-card__favorite absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 text-red-500 shadow-lg hover:scale-105 transition disabled:opacity-60 disabled:cursor-not-allowed" aria-label="Favorit" aria-pressed="${isFavorite ? 'true' : 'false'}"><i class="${isFavorite ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
                 </div>
                 <div class="sea-breeze-listing-card__body p-4 md:p-5 space-y-3 flex-1">
                     ${locationLinesHtml}
