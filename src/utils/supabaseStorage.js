@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const path = require('path');
 const slugify = require('slugify');
+const { applyListingWatermark } = require('./listingWatermark');
 
 const CAREER_CV_BUCKET = process.env.SUPABASE_CV_BUCKET || 'career-cv';
 const LISTINGS_BUCKET = process.env.SUPABASE_LISTINGS_BUCKET || 'elanlar';
@@ -166,7 +167,11 @@ async function uploadToHeroBucket(file) { assertValidHeroFile(file); return loca
 async function uploadToAdBucket(file) { assertValidAdFile(file); return localUploadUrl(file); }
 async function uploadToGalleryBucket(file) { assertValidGalleryFile(file); return localUploadUrl(file); }
 async function uploadAvatarImage(file) { assertValidListingImage(file); return localUploadUrl(file); }
-async function uploadListingImage(file) { assertValidListingImage(file); return localUploadUrl(file); }
+async function uploadListingImage(file) {
+  assertValidListingImage(file);
+  await applyListingWatermark(file.path, { mimetype: file.mimetype });
+  return localUploadUrl(file);
+}
 
 async function checkSupabaseStorageObjectExists(bucket, objectPath) {
   const { url, serviceKey } = getSupabaseConfig();
