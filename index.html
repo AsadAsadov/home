@@ -5723,19 +5723,28 @@ Title: CASPIAN DREAM LINER
 
             <!-- SUBTAB: BROADCAST NOTIFICATIONS -->
             <div id="admin-subtab-broadcast-notifications" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-regular fa-bell text-brand-300"></i><span>İstifadəçilərə bildiriş göndər</span></h3>
-                        <p class="text-xs text-gray-400 mt-1">Bütün aktiv qeydiyyatlı istifadəçilərə sistem tipli in-app bildiriş göndərilir.</p>
+                <div class="lg:col-span-5 space-y-4">
+                    <button type="button" id="broadcast-form-toggle-btn" onclick="toggleBroadcastForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Bildiriş göndər</button>
+                    <div id="broadcast-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-regular fa-bell text-brand-300"></i><span>İstifadəçilərə bildiriş göndər</span></h3>
+                                <p class="text-xs text-gray-400 mt-1">Bütün aktiv qeydiyyatlı istifadəçilərə sistem tipli in-app bildiriş göndərilir.</p>
+                            </div>
+                            <button type="button" onclick="closeBroadcastForm()" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
+                        </div>
+                        <form onsubmit="handleSendBroadcastNotification(event)" class="space-y-3">
+                            <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</span><input type="text" id="broadcast-title" required maxlength="120" placeholder="Sea Breeze-də yeni video" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Mesaj</span><textarea id="broadcast-message" required maxlength="1000" rows="5" placeholder="Prezidentin səfəri haqqında yeni video əlavə olundu." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
+                            <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Link</span><input type="text" id="broadcast-link" placeholder="/gallery və ya https://example.com" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Şəkil URL</span><input type="url" id="broadcast-image-url" placeholder="https://example.com/thumb.jpg" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Video URL</span><input type="url" id="broadcast-video-url" placeholder="https://youtube.com/watch?v=xxxx" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button type="submit" id="broadcast-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Göndər</button>
+                                <button type="button" onclick="closeBroadcastForm()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-3 rounded-xl text-sm">Bağla</button>
+                            </div>
+                        </form>
                     </div>
-                    <form onsubmit="handleSendBroadcastNotification(event)" class="space-y-3">
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Başlıq</span><input type="text" id="broadcast-title" required maxlength="120" placeholder="Sea Breeze-də yeni video" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Mesaj</span><textarea id="broadcast-message" required maxlength="1000" rows="5" placeholder="Prezidentin səfəri haqqında yeni video əlavə olundu." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></textarea></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Link</span><input type="text" id="broadcast-link" placeholder="/gallery və ya https://example.com" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Şəkil URL</span><input type="url" id="broadcast-image-url" placeholder="https://example.com/thumb.jpg" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <label class="space-y-1 block"><span class="text-[10px] text-gray-400 font-bold uppercase">Video URL</span><input type="url" id="broadcast-video-url" placeholder="https://youtube.com/watch?v=xxxx" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none"></label>
-                        <button type="submit" id="broadcast-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-sm">Göndər</button>
-                    </form>
                 </div>
                 <div class="lg:col-span-7 glass-card p-6 rounded-2xl space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
@@ -5770,8 +5779,13 @@ Title: CASPIAN DREAM LINER
 
             <!-- SUBTAB 5: GALLERY -->
             <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
-                    <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
+                <div class="lg:col-span-5 space-y-4">
+                    <button type="button" id="gallery-form-toggle-btn" onclick="toggleGalleryForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
+                    <div id="admin-gallery-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
+                            <button type="button" onclick="closeGalleryForm()" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
+                        </div>
                     <form onsubmit="handleSaveGalleryItem(event)" class="space-y-3">
                         <input type="hidden" id="edit-g-id">
                         <input type="text" id="g-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
@@ -5798,8 +5812,12 @@ Title: CASPIAN DREAM LINER
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
+                            <button type="button" onclick="closeGalleryForm()" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-2.5 rounded-xl text-sm">Bağla</button>
+                        </div>
                     </form>
+                    </div>
                 </div>
                 <div class="lg:col-span-7 space-y-4">
                     <div class="glass-card p-3 rounded-2xl flex items-center gap-3">
@@ -7724,11 +7742,21 @@ Title: CASPIAN DREAM LINER
 
         function extractResponseItems(response, keys = []) {
             if (Array.isArray(response)) return response;
+            if (!response || typeof response !== 'object') return [];
             for (const key of keys) {
                 const value = response?.[key];
                 if (Array.isArray(value)) return value;
             }
+            if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+                for (const key of keys) {
+                    const value = response.data?.[key];
+                    if (Array.isArray(value)) return value;
+                }
+                if (Array.isArray(response.data.items)) return response.data.items;
+                if (Array.isArray(response.data.gallery)) return response.data.gallery;
+            }
             if (Array.isArray(response?.data?.items)) return response.data.items;
+            if (Array.isArray(response?.data?.gallery)) return response.data.gallery;
             if (Array.isArray(response?.data)) return response.data;
             return [];
         }
@@ -9424,10 +9452,10 @@ Title: CASPIAN DREAM LINER
             if (isTabAktiv('portfolio')) renderPortfolio();
             try {
                 const gallery = await apiRequest('/api/gallery?page=1&limit=5000');
-                const galleryRows = Array.isArray(gallery) ? gallery : (gallery.items || gallery.data || []);
+                const galleryRows = extractResponseItems(gallery, ['items', 'gallery']);
                 galleryPagination = Array.isArray(gallery)
                     ? { page: 1, limit: galleryRows.length || 5000, total: galleryRows.length, totalPages: 1 }
-                    : { page: gallery.page || 1, limit: gallery.limit || 5000, total: gallery.total || galleryRows.length, totalPages: gallery.totalPages || 1 };
+                    : { page: gallery?.page || gallery?.data?.page || 1, limit: gallery?.limit || gallery?.data?.limit || 5000, total: gallery?.total || gallery?.data?.total || galleryRows.length, totalPages: gallery?.totalPages || gallery?.data?.totalPages || 1 };
                 cacheData('gallery', galleryRows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
                 if (isTabAktiv('portfolio')) renderPortfolio();
             } catch (error) {
@@ -16420,6 +16448,35 @@ Təşəkkür edirəm. 🙏`;
 
 
         let isBroadcastSubmitting = false;
+        let isBroadcastFormOpen = false;
+
+        function setBroadcastFormOpen(isOpen) {
+            isBroadcastFormOpen = Boolean(isOpen);
+            document.getElementById('broadcast-form-card')?.classList.toggle('hidden', !isBroadcastFormOpen);
+            document.getElementById('broadcast-form-toggle-btn')?.classList.toggle('hidden', isBroadcastFormOpen);
+        }
+
+        function resetBroadcastForm() {
+            ['broadcast-title', 'broadcast-message', 'broadcast-link', 'broadcast-image-url', 'broadcast-video-url'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+        }
+
+        function openBroadcastForm() {
+            setBroadcastFormOpen(true);
+        }
+
+        function closeBroadcastForm() {
+            resetBroadcastForm();
+            setBroadcastFormOpen(false);
+        }
+
+        function toggleBroadcastForm() {
+            if (isBroadcastFormOpen) closeBroadcastForm();
+            else openBroadcastForm();
+        }
+
 
         function setBroadcastButtonLoading(isLoading) {
             const btn = document.getElementById('broadcast-submit-btn');
@@ -16475,6 +16532,8 @@ Təşəkkür edirəm. 🙏`;
                     resultBox.classList.remove('hidden');
                     resultBox.textContent = `Total users: ${result.totalUsers || 0}, Created: ${result.createdCount || 0}, Failed: ${result.failedCount || 0}`;
                 }
+                resetBroadcastForm();
+                setBroadcastFormOpen(false);
             } catch (error) {
                 alert('Broadcast bildiriş göndərilmədi: ' + error.message);
             } finally {
@@ -17119,6 +17178,28 @@ Təşəkkür edirəm. 🙏`;
 
 
         // SAVE & MANAGE GALLERY (EVENTS / VIDEOS)
+        let isGalleryFormOpen = false;
+
+        function setGalleryFormOpen(isOpen) {
+            isGalleryFormOpen = Boolean(isOpen);
+            document.getElementById('admin-gallery-form-card')?.classList.toggle('hidden', !isGalleryFormOpen);
+            document.getElementById('gallery-form-toggle-btn')?.classList.toggle('hidden', isGalleryFormOpen);
+        }
+
+        function openGalleryForm() {
+            setGalleryFormOpen(true);
+        }
+
+        function closeGalleryForm() {
+            resetGalleryForm();
+            setGalleryFormOpen(false);
+        }
+
+        function toggleGalleryForm() {
+            if (isGalleryFormOpen) closeGalleryForm();
+            else { resetGalleryForm(); openGalleryForm(); }
+        }
+
         function toggleGalleryTypeFields() {
             const type = document.getElementById('g-type').value;
             if (type === 'event') {
@@ -17187,6 +17268,7 @@ Təşəkkür edirəm. 🙏`;
                 await refreshAdminStats({ render: true }).catch(() => {});
                 renderPortfolio();
                 resetGalleryForm();
+                setGalleryFormOpen(false);
                 renderAdminDashboard();
             } catch (error) {
                 alert('Qalereya API-yə yazılmadı: ' + error.message);
@@ -17217,6 +17299,7 @@ Təşəkkür edirəm. 🙏`;
                     renderGalleryVideoFormPreview();
                 }
                 document.getElementById('gallery-form-title').textContent = "Media Elementini Redaktə Et";
+                openGalleryForm();
             }
         }
 
