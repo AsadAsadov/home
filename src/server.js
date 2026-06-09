@@ -12,6 +12,15 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const prisma = require('./lib/prisma');
 const { makeUniqueSlug } = require('./utils/seo');
+const {
+  buildListingSeo,
+  buildProjectSeo,
+  buildStaticSeo,
+  buildGallerySeo,
+  buildVacancySeo,
+  injectSeoIntoHtml,
+  siteUrl,
+} = require('./utils/seoMeta');
 const { generateNextListingCodeInLockedTransaction } = require('./utils/listingCode');
 const { authenticate, authorize } = require('./middleware/auth');
 const { sendEmail, verifySmtpTransporter } = require('./utils/email');
@@ -27,6 +36,103 @@ const port = process.env.PORT || 3000;
 const enableSecurityHeaders = process.env.ENABLE_SECURITY_HEADERS === 'true';
 
 const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://besthome.az').replace(/\/+$/, '');
+
+
+const indexHtmlPath = path.join(process.cwd(), 'index.html');
+
+function routePathname(req) {
+  return String(req.path || '/').split('?')[0] || '/';
+}
+
+function numericBigInt(value) {
+  const raw = String(value || '').trim();
+  if (!/^\d+$/.test(raw)) return null;
+  try { return BigInt(raw); } catch (_error) { return null; }
+}
+
+async function resolveSeoForPath(pathname) {
+  const baseUrl = siteUrl();
+  const decodedPathname = decodeURIComponent(pathname || '/');
+  const listingMatch = decodedPathname.match(/^\/listing\/([^/]+)\/?$/);
+  if (listingMatch) {
+    const code = numericBigInt(listingMatch[1]);
+    if (code) {
+      const listing = await prisma.listing.findFirst({
+        where: { status: 'approved', OR: [{ listingCode: code }, { id: code }] },
+        include: { images: { orderBy: { sortOrder: 'asc' } } },
+      }).catch((error) => {
+        console.warn('Listing SEO lookup failed:', error.message);
+        return null;
+      });
+      if (listing) return buildListingSeo(listing, baseUrl);
+    }
+    return buildStaticSeo('/elanlar', baseUrl);
+  }
+
+  const projectMatch = decodedPathname.match(/^\/project\/([^/]+)\/?$/);
+  if (projectMatch) {
+    const slugOrId = String(projectMatch[1] || '').trim();
+    const id = Number.parseInt(slugOrId, 10);
+    const project = await prisma.project.findFirst({
+      where: {
+        isArchived: false,
+        OR: [
+          { slug: slugOrId },
+          ...(Number.isInteger(id) && id > 0 ? [{ id }] : []),
+        ],
+      },
+    }).catch((error) => {
+      console.warn('Project SEO lookup failed:', error.message);
+      return null;
+    });
+    if (project) return buildProjectSeo(project, baseUrl);
+    return buildStaticSeo('/projects', baseUrl);
+  }
+
+  const galleryMatch = decodedPathname.match(/^\/(gallery|video)\/(\d+)\/?$/);
+  if (galleryMatch) {
+    const id = Number.parseInt(galleryMatch[2], 10);
+    const item = await prisma.gallery.findUnique({ where: { id } }).catch(() => null);
+    if (item) return buildGallerySeo(item, decodedPathname, baseUrl);
+    return buildStaticSeo('/gallery', baseUrl);
+  }
+
+  const vacancyMatch = decodedPathname.match(/^\/vacancy\/([^/]+)\/?$/);
+  if (vacancyMatch) {
+    const slugOrId = String(vacancyMatch[1] || '').trim();
+    const id = Number.parseInt(slugOrId, 10);
+    const vacancy = await prisma.vacancy.findFirst({
+      where: {
+        isActive: true,
+        OR: [
+          { slug: slugOrId },
+          ...(Number.isInteger(id) && id > 0 ? [{ id }] : []),
+        ],
+      },
+    }).catch((error) => {
+      console.warn('Vacancy SEO lookup failed:', error.message);
+      return null;
+    });
+    if (vacancy) return buildVacancySeo(vacancy, decodedPathname, baseUrl);
+  }
+
+  return buildStaticSeo(decodedPathname, baseUrl);
+}
+
+async function sendSpaIndexWithSeo(req, res, next) {
+  try {
+    const pathname = routePathname(req);
+    const [html, seo] = await Promise.all([
+      fs.promises.readFile(indexHtmlPath, 'utf8'),
+      resolveSeoForPath(pathname),
+    ]);
+    res.setHeader('Cache-Control', 'no-cache, max-age=0');
+    res.type('html');
+    return res.send(injectSeoIntoHtml(html, seo));
+  } catch (error) {
+    return next(error);
+  }
+}
 
 function escapeSitemapXml(value = '') {
   return String(value)
@@ -271,8 +377,7 @@ app.use(express.static(process.cwd(), { index: false, maxAge: '1h' }));
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next();
-  res.setHeader('Cache-Control', 'no-cache, max-age=0');
-  return res.sendFile(path.join(process.cwd(), 'index.html'));
+  return sendSpaIndexWithSeo(req, res, next);
 });
 
 app.use((err, _req, res, _next) => {

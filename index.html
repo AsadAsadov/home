@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daşınmaz əmlak elanları</title>
-    <meta name="description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
-    <meta property="og:title" content="Daşınmaz əmlak elanları">
+    <title>BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları</title>
+    <meta name="description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
+    <meta property="og:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
     <meta property="og:site_name" content="BestHome.az">
-    <meta property="og:description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
+    <meta property="og:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://besthome.az/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <link rel="canonical" href="https://besthome.az/">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Daşınmaz əmlak elanları">
-    <meta name="twitter:description" content="BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.">
+    <meta name="twitter:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
+    <meta name="twitter:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
     <link rel="preload" href="/public/assets/app.css" as="style">
@@ -6878,8 +6878,15 @@ Title: CASPIAN DREAM LINER
         // DATABASE API SYNC (Express + Prisma + Supabase PostgreSQL)
         const API_BASE = window.location.origin;
         const SITE_NAME = 'BestHome.az';
-        const HOME_SEO_TITLE = 'Daşınmaz əmlak elanları';
-        const DEFAULT_SEO_DESCRIPTION = 'BestHome.az-da satış və kirayə daşınmaz əmlak elanlarını, yeni layihələri və premium yaşayış təkliflərini rahat şəkildə kəşf edin.';
+        const HOME_SEO_TITLE = 'BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları';
+        const DEFAULT_SEO_DESCRIPTION = 'Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.';
+        const STATIC_SEO = {
+            '/': { title: HOME_SEO_TITLE, description: DEFAULT_SEO_DESCRIPTION },
+            '/elanlar': { title: 'Elanlar - Satılıq və Kirayə Əmlak | BestHome.az', description: 'Satılıq və kirayə mənzil, villa, həyət evi və kommersiya obyektlərini BestHome.az-da axtarın.' },
+            '/projects': { title: 'Sea Breeze Layihələri | BestHome.az', description: 'Sea Breeze layihələri, premium yaşayış kompleksləri, mənzil sahələri və təhvil tarixləri haqqında məlumat.' },
+            '/gallery': { title: 'Qalereya - BestHome.az', description: 'BestHome.az qalereyasında layihə görüntüləri, videolar və media materiallarına baxın.' },
+            '/ipoteka-kalkulyatoru': { title: 'İpoteka Kalkulyatoru | BestHome.az', description: 'İpoteka ödənişlərini hesablayın. İlkin ödəniş, kredit müddəti və aylıq ödənişləri rahat şəkildə öyrənin.' },
+        };
         let isLoginSubmitting = false;
 
         function absoluteUrl(path = window.location.pathname) {
@@ -6932,6 +6939,34 @@ Title: CASPIAN DREAM LINER
 
         function projectPath(project) { return `/project/${project.slug || localSlug(project.title) || project.id}`; }
         function listingPath(listing) { return `/listing/${listing.listingCode || listing.listing_code || listing.code || listing.id}`; }
+
+        function listingSeoAction(type) {
+            return canonicalListingType(type) === 'Kiraye' || canonicalListingType(type) === 'GunlukKiraye' ? 'kirayə verilir' : 'satılır';
+        }
+
+        function listingSeoTitle(listing = {}) {
+            const rooms = listing.rooms ? `${listing.rooms} otaqlı ` : '';
+            const category = listing.category || 'Əmlak';
+            const location = listing.district || listing.project || listing.city || 'Azərbaycan';
+            return `${rooms}${category} ${listingSeoAction(listing.listingType)} - ${location} | ${SITE_NAME}`;
+        }
+
+        function listingSeoDescription(listing = {}) {
+            const location = listing.district || listing.project || listing.city || 'Azərbaycan';
+            const area = listing.area ? `${listing.area} m²` : '';
+            const details = [listing.rooms ? `${listing.rooms} otaqlı` : '', area, listing.category || 'əmlak'].filter(Boolean).join(', ');
+            const price = listing.price ? `Qiymət: ${formatPrice(listing.price, listing.currency).replace(/\s+/g, ' ')}. ` : '';
+            return `${location} rayonunda ${details} ${listingSeoAction(listing.listingType)}. ${price}Ətraflı məlumat və əlaqə üçün ${SITE_NAME}.`;
+        }
+
+        function projectSeoTitle(project = {}) {
+            return `${project.title || 'Sea Breeze layihəsi'} - Sea Breeze layihəsi | ${SITE_NAME}`;
+        }
+
+        function projectSeoDescription(project = {}) {
+            const title = project.title || 'Sea Breeze';
+            return `${title} layihəsi haqqında məlumat, təhvil ili, mərtəbə sayı, mənzil sahələri və üstünlüklər. Sea Breeze layihələrini ${SITE_NAME}-da kəşf edin.`;
+        }
 
         function formatListingCode(code) {
             const parsed = Number.parseInt(code, 10);
@@ -12584,7 +12619,8 @@ ${profileMenuItemsHtml()}
             const routePaths = { mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
             const routeTitles = { mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
             const routePath = routePaths[tabId] || '/';
-            updateSeo({ title: routeTitles[tabId] || SITE_NAME, path: routePath });
+            const staticSeo = STATIC_SEO[routePath];
+            updateSeo({ title: staticSeo?.title || routeTitles[tabId] || SITE_NAME, description: staticSeo?.description || DEFAULT_SEO_DESCRIPTION, path: routePath });
             if (!options.skipPush && window.location.pathname !== routePath && !['admin-dashboard', 'admin-login'].includes(tabId)) {
                 history.pushState({ tabId }, '', routePath);
             }
@@ -13084,7 +13120,7 @@ Təşəkkür edirəm. 🙏`;
             activeOfficialProject = project;
             const localizedTitle = project.title || 'Layihə';
             const localizedDesc = project.desc || '';
-            updateSeo({ title: localizedTitle, description: localizedDesc || DEFAULT_SEO_DESCRIPTION, path: projectPath(project), image: project.img, type: 'article' });
+            updateSeo({ title: projectSeoTitle(project), description: projectSeoDescription(project), path: projectPath(project), image: project.img, type: 'article' });
 
             officialProjectImages = getProjectImages(project);
             officialProjectImageIndex = 0;
@@ -13760,9 +13796,7 @@ Təşəkkür edirəm. 🙏`;
             activePropertyListing = p;
 
             if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
-            const listingTitle = p.title || '—';
-            const listingDesc = p.desc || '';
-            updateSeo({ title: `Kod ${formatListingCode(p.listingCode) || p.id}`, description: listingTitle || DEFAULT_SEO_DESCRIPTION, path: listingPath(p), image: p.img, type: 'article' });
+            updateSeo({ title: listingSeoTitle(p), description: listingSeoDescription(p), path: listingPath(p), image: p.img, type: 'article' });
 
             const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
             activePropertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
@@ -17937,12 +17971,12 @@ Təşəkkür edirəm. 🙏`;
                 switchTab('listings', { skipPush: true });
                 applyListingsRouteFilters();
                 if (homepageHydration.listings) renderSeaBreeze();
-                updateSeo({ title: 'Elanlar', path: `${path}${window.location.search}` });
+                updateSeo({ title: STATIC_SEO['/elanlar'].title, description: STATIC_SEO['/elanlar'].description, path: `${path}${window.location.search}` });
                 return;
             }
             if (path === '/projects') {
                 switchTab('seabreeze', { skipPush: true });
-                updateSeo({ title: 'Layihələr', path });
+                updateSeo({ title: STATIC_SEO['/projects'].title, description: STATIC_SEO['/projects'].description, path });
                 return;
             }
             if (path.startsWith('/project/')) {
@@ -18011,7 +18045,7 @@ Təşəkkür edirəm. 🙏`;
                 switchTab('portfolio', { skipPush: true });
                 currentFilter = path === '/videos' ? 'video' : 'all';
                 renderPortfolio();
-                updateSeo({ title: path === '/videos' ? 'Videolar' : 'Qalereya', path });
+                updateSeo({ title: path === '/videos' ? 'Videolar' : STATIC_SEO['/gallery'].title, description: path === '/videos' ? DEFAULT_SEO_DESCRIPTION : STATIC_SEO['/gallery'].description, path });
                 return;
             }
             if (path.startsWith('/gallery/') || path.startsWith('/video/')) {
@@ -18031,7 +18065,7 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             switchTab(path === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze', { skipPush: true });
-            updateSeo({ title: path === '/ipoteka-kalkulyatoru' ? 'İpoteka Kalkulyatoru' : SITE_NAME, path });
+            updateSeo({ title: STATIC_SEO[path]?.title || SITE_NAME, description: STATIC_SEO[path]?.description || DEFAULT_SEO_DESCRIPTION, path });
         }
 
         // MAIN SETUP AND BOOTSTRAP
