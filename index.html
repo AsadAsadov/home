@@ -5276,6 +5276,20 @@
                 </div>
             </div>
 
+
+            <div id="admin-subtab-project-inquiries" class="hidden space-y-4">
+                <div class="glass-card rounded-2xl border border-white/10 p-5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div><h2 class="text-xl font-black text-white">Layihə Müraciətləri</h2><p class="text-xs text-gray-400">Maraqlanıram formasından gələn müraciətlər.</p></div>
+                        <button type="button" onclick="loadProjectInquiries()" class="rounded-xl bg-white/5 px-4 py-2 text-xs font-bold text-gray-200 hover:bg-white/10">Yenilə</button>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input id="project-inquiry-search" type="search" oninput="loadProjectInquiries()" placeholder="Axtarış" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
+                        <select id="project-inquiry-project-filter" onchange="loadProjectInquiries()" class="rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-sm text-white outline-none"></select>
+                    </div>
+                </div>
+                <div id="admin-project-inquiries-list" class="space-y-3"></div>
+            </div>
             <div id="admin-subtab-user-profile" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="glass-card p-6 rounded-2xl space-y-4">
                     <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-user text-brand-500 mr-2"></i>Profil</h3>
@@ -5409,6 +5423,17 @@
                             <h3><span>🖼️</span><span>Media</span></h3>
                             <label class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-gray-300"><input type="checkbox" id="project-featured-hero" class="mt-0.5 w-4 h-4"><span><strong class="text-white">⭐ Hero-da göstər</strong><span id="project-hero-badge" class="hidden ml-2 rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-black text-amber-300">⭐ Hero Slayderdə göstərilir</span></span></label>
                             <div class="space-y-2 mt-3"><div class="flex items-center justify-between gap-3"><label class="text-[10px] text-gray-400 font-bold uppercase">Layihə şəkilləri *</label><button type="button" onclick="addProjectImageInput()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition"><i class="fa-solid fa-plus mr-1"></i>Yeni şəkil əlavə et</button></div><input type="url" id="project-img" required oninput="syncPrimaryProjectImage(this.value)" placeholder="https://..."><div id="project-images-list" class="space-y-2"></div><div class="rounded-2xl overflow-hidden border border-white/10 bg-black/20 h-40"><picture class="block w-full h-full imageMove"><source id="project-preview-source-desktop" media="(min-width: 1024px)" srcset=""><source id="project-preview-source-tablet" media="(min-width: 640px)" srcset=""><img id="project-preview-img" src="" alt="Layihə şəkli önbaxış" loading="lazy" data-parallax="true" class="w-full h-full object-cover lazyload"></picture></div></div>
+                            <div class="space-y-2 mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <div><h4 class="text-sm font-black text-white">Layihə PDF</h4><p id="project-pdf-status" class="text-[11px] text-gray-400">PDF əlavə olunmayıb.</p></div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <input type="file" id="project-pdf-file" accept="application/pdf" class="hidden" onchange="uploadProjectBrochureFromInput()">
+                                        <button type="button" onclick="document.getElementById('project-pdf-file')?.click()" class="bg-white/5 hover:bg-brand-500 border border-white/10 text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Upload / Replace PDF</button>
+                                        <button type="button" onclick="deleteProjectBrochure()" class="bg-red-500/10 hover:bg-red-500 text-red-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">Delete PDF</button>
+                                        <button type="button" onclick="generateProjectPdfPlaceholder()" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-300 hover:text-white text-[10px] font-bold px-3 py-2 rounded-xl transition">PDF Yarat</button>
+                                    </div>
+                                </div>
+                            </div>
                         </section>
                         <div class="space-y-2">
                             <button type="submit" id="project-save-submit-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-brand-500/20"><i class="fa-solid fa-floppy-disk mr-2"></i>Layihəni Yadda Saxla</button>
@@ -6014,6 +6039,10 @@ Title: CASPIAN DREAM LINER
                             <span id="op-modal-share-status" class="hidden text-xs font-black text-green-300">✅ Link kopyalandı</span>
                         </div>
                     </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="hidden inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-brand-500 transition">📄 PDF Yüklə</button>
+                        <button type="button" onclick="openProjectInquiryModal()" class="inline-flex items-center gap-2 rounded-2xl bg-brand-500 px-4 py-2 text-sm font-black text-white hover:bg-brand-600 transition">💬 Maraqlanıram</button>
+                    </div>
 
                     <div id="op-tab-details" class="project-detail-sections"></div>
                     <div id="op-tab-apartments" class="hidden project-detail-sections"></div>
@@ -6023,10 +6052,31 @@ Title: CASPIAN DREAM LINER
                         <h3 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Təsvir</h3>
                         <p id="op-modal-desc-text" class="text-gray-700 text-sm font-medium leading-relaxed whitespace-pre-line"></p>
                     </div>
+                    <div id="op-modal-similar-projects" class="space-y-3"></div>
                 </div>
             </div>
         </div>
         <button type="button" id="op-project-next" onclick="navigateOfficialProject(1)" class="project-modal-nav project-modal-nav--next" aria-label="Növbəti layihə"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+
+    <div id="project-inquiry-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Layihə müraciəti" onclick="if (event.target === this) closeProjectInquiryModal()">
+        <div class="glass-card w-full max-w-md rounded-3xl border border-white/10 p-6">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-xl font-black text-white">💬 Maraqlanıram</h3>
+                <button type="button" onclick="closeProjectInquiryModal()" class="text-gray-300 hover:text-white">✕</button>
+            </div>
+            <form onsubmit="submitProjectInquiry(event)" class="space-y-3">
+                <label class="block text-xs font-bold text-gray-300">Ad Soyad<input id="project-inquiry-name" required class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></label>
+                <label class="block text-xs font-bold text-gray-300">Telefon<input id="project-inquiry-phone" required class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></label>
+                <label class="block text-xs font-bold text-gray-300">Qeyd (optional)<textarea id="project-inquiry-note" rows="4" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-white outline-none focus:border-brand-500"></textarea></label>
+                <div id="project-inquiry-error" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-bold text-red-200"></div>
+                <div class="flex gap-3 pt-2">
+                    <button id="project-inquiry-submit" type="submit" class="flex-1 rounded-xl bg-brand-500 px-4 py-3 text-sm font-black text-white hover:bg-brand-600">Göndər</button>
+                    <button type="button" onclick="closeProjectInquiryModal()" class="rounded-xl bg-white/5 px-4 py-3 text-sm font-black text-gray-200 hover:bg-white/10">Ləğv et</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- GENERAL MULTI-MEDIA / LIGHTBOX MODAL -->
@@ -6901,6 +6951,7 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Profil', adminOnly: false },
             { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', adminOnly: true },
             { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Arxiv', adminOnly: true },
+            { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Layihə Müraciətləri', adminOnly: true },
             { id: 'subtab-btn-hero', subtab: 'hero-sections', label: '⭐ Layihə Hero', adminOnly: true },
             { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: '⭐ Elan Hero', adminOnly: true },
             { id: 'subtab-btn-cvs', subtab: 'cvs', label: 'Namizəd CV-ləri', adminOnly: true },
@@ -7047,7 +7098,12 @@ Title: CASPIAN DREAM LINER
                 createdAt: p.createdAt || p.created_at || '',
                 slug: p.slug || localSlug(p.title),
                 featuredInHero: Boolean(p.featuredInHero ?? p.featured_in_hero),
-                isArchived: Boolean(p.isArchived ?? p.is_archived)
+                isArchived: Boolean(p.isArchived ?? p.is_archived),
+                pdfUrl: p.pdfUrl || p.pdf_url || '',
+                pdfFilename: p.pdfFilename || p.pdf_filename || '',
+                viewCount: Number(p.viewCount ?? p.view_count ?? 0),
+                clickCount: Number(p.clickCount ?? p.click_count ?? 0),
+                inquiryCount: Number(p.inquiryCount ?? p.inquiry_count ?? 0)
             };
         }
 
@@ -8576,7 +8632,9 @@ Title: CASPIAN DREAM LINER
                 display_order: p.displayOrder ?? p.display_order,
                 slug: p.slug,
                 featured_in_hero: Boolean(p.featuredInHero ?? p.featured_in_hero),
-                is_archived: Boolean(p.isArchived ?? p.is_archived)
+                is_archived: Boolean(p.isArchived ?? p.is_archived),
+                pdf_url: p.pdfUrl || p.pdf_url || undefined,
+                pdf_filename: p.pdfFilename || p.pdf_filename || undefined
             };
         }
 
@@ -9054,7 +9112,7 @@ Title: CASPIAN DREAM LINER
                 const [applications, users, dashboardStats] = await Promise.all([
                     apiRequest('/api/applications').catch(() => []),
                     apiRequest('/api/users').catch(() => []),
-                    isAdminRole(activeUser?.role) ? apiRequest('/api/dashboard/stats').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
+                    isAdminRole(activeUser?.role) ? apiRequest('/api/admin/stats/overview').catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me').catch(() => null) : Promise.resolve(null))
                 ]);
                 if (isAdminRole(activeUser?.role)) {
                     const heroItems = await apiRequest('/api/listing-hero-items?admin=1').catch(() => appData.listingHeroItems || []);
@@ -9063,6 +9121,7 @@ Title: CASPIAN DREAM LINER
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
+                appData.dashboardStatsError = dashboardStats ? '' : (isAdminRole(activeUser?.role) ? 'Statistika yüklənmədi. Yenidən cəhd edin.' : '');
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false });
                 if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
             } catch (error) {
@@ -12448,6 +12507,128 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        function updateProjectInCache(projectId, patch = {}) {
+            const projects = getOfficialProjects();
+            const index = projects.findIndex(item => String(item.id) === String(projectId));
+            if (index < 0) return;
+            projects[index] = { ...projects[index], ...patch };
+            cacheData('projects', projects);
+        }
+
+        function setProjectPdfStatus(project = null) {
+            const status = document.getElementById('project-pdf-status');
+            if (!status) return;
+            status.textContent = project?.pdfUrl ? `PDF: ${project.pdfFilename || `${project.title || 'Layihə'}.pdf`}` : 'PDF əlavə olunmayıb.';
+        }
+
+        async function uploadProjectBrochureFromInput() {
+            const projectId = document.getElementById('edit-project-id')?.value;
+            const input = document.getElementById('project-pdf-file');
+            const file = input?.files?.[0];
+            if (!projectId) { alert('PDF yükləmək üçün əvvəlcə layihəni saxlayın və redaktəyə açın.'); if (input) input.value = ''; return; }
+            if (!file) return;
+            if (file.type !== 'application/pdf') { alert('Yalnız PDF faylı yükləyin.'); input.value = ''; return; }
+            const form = new FormData();
+            form.append('file', file);
+            try {
+                const saved = dbProjectToUi(await apiRequest(`/api/projects/${projectId}/brochure`, { method: 'POST', body: form }));
+                updateProjectInCache(projectId, saved);
+                setProjectPdfStatus(saved);
+                renderAdminProjects();
+                showToast('✅ PDF yükləndi.');
+            } catch (error) {
+                alert('PDF yüklənmədi: ' + error.message);
+            } finally {
+                if (input) input.value = '';
+            }
+        }
+
+        async function deleteProjectBrochure() {
+            const projectId = document.getElementById('edit-project-id')?.value;
+            if (!projectId) return alert('PDF silmək üçün layihəni redaktəyə açın.');
+            if (!confirm('Layihə PDF-i silinsin?')) return;
+            try {
+                const saved = dbProjectToUi(await apiRequest(`/api/projects/${projectId}/brochure`, { method: 'DELETE' }));
+                updateProjectInCache(projectId, saved);
+                setProjectPdfStatus(saved);
+                renderAdminProjects();
+                showToast('✅ PDF silindi.');
+            } catch (error) {
+                alert('PDF silinmədi: ' + error.message);
+            }
+        }
+
+        function generateProjectPdfPlaceholder() {
+            alert('PDF Yarat funksiyası üçün layihəni PDF kimi ixrac edən dizayn mərhələsi hazırdır. Hazır PDF faylını “Upload / Replace PDF” ilə əlavə edin.');
+        }
+
+        function downloadActiveProjectPdf() {
+            if (!activeOfficialProject?.pdfUrl) return;
+            void apiRequest(`/api/projects/${activeOfficialProject.id}/click`, { method: 'POST' }).then(result => {
+                if (result?.clickCount != null) updateProjectInCache(activeOfficialProject.id, { clickCount: result.clickCount });
+            }).catch(() => {});
+            const link = document.createElement('a');
+            link.href = `/api/projects/${activeOfficialProject.id}/brochure/download`;
+            link.download = activeOfficialProject.pdfFilename || `${activeOfficialProject.title || 'Project'}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        function openProjectInquiryModal() {
+            if (!activeOfficialProject) return;
+            document.getElementById('project-inquiry-error')?.classList.add('hidden');
+            ['project-inquiry-name', 'project-inquiry-phone', 'project-inquiry-note'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            document.getElementById('project-inquiry-modal')?.classList.remove('hidden');
+            setModalOpenState(true);
+        }
+
+        function closeProjectInquiryModal() {
+            document.getElementById('project-inquiry-modal')?.classList.add('hidden');
+            setModalOpenState(false);
+        }
+
+        async function submitProjectInquiry(event) {
+            event.preventDefault();
+            if (!activeOfficialProject) return;
+            const button = document.getElementById('project-inquiry-submit');
+            const errorBox = document.getElementById('project-inquiry-error');
+            const payload = {
+                name: document.getElementById('project-inquiry-name')?.value.trim(),
+                phone: document.getElementById('project-inquiry-phone')?.value.trim(),
+                note: document.getElementById('project-inquiry-note')?.value.trim()
+            };
+            if (!payload.name || !payload.phone) return;
+            if (button) { button.disabled = true; button.textContent = 'Göndərilir...'; }
+            try {
+                await apiRequest(`/api/projects/${activeOfficialProject.id}/inquiries`, { method: 'POST', body: JSON.stringify(payload) });
+                const nextCount = Number(activeOfficialProject.inquiryCount || 0) + 1;
+                updateProjectInCache(activeOfficialProject.id, { inquiryCount: nextCount });
+                activeOfficialProject.inquiryCount = nextCount;
+                closeProjectInquiryModal();
+                showToast('✅ Müraciət göndərildi.');
+                if (isAdminRole(activeUser?.role)) refreshAdminStats({ render: true });
+            } catch (error) {
+                if (errorBox) { errorBox.textContent = error.message || 'Müraciət göndərilmədi.'; errorBox.classList.remove('hidden'); }
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Göndər'; }
+            }
+        }
+
+        function renderSimilarProjects(project) {
+            const box = document.getElementById('op-modal-similar-projects');
+            if (!box) return;
+            const similar = getOfficialProjects()
+                .filter(item => String(item.id) !== String(project.id) && (!project.category || item.category === project.category))
+                .slice(0, 3);
+            if (!similar.length) { box.innerHTML = ''; return; }
+            box.innerHTML = `<h3 class="text-gray-900 text-sm font-extrabold uppercase tracking-wider">Oxşar layihələr</h3><div class="grid grid-cols-1 sm:grid-cols-3 gap-3">${similar.map(item => `
+                <button type="button" onclick="renderOfficialProjectModalContent(getOfficialProjects().find(p => String(p.id) === '${item.id}'))" class="rounded-2xl border border-slate-200 bg-white/80 p-3 text-left hover:border-brand-500 transition">
+                    <img src="${escapeHtml(item.img)}" class="h-20 w-full rounded-xl object-cover" loading="lazy" alt="${escapeHtml(item.title)}">
+                    <strong class="mt-2 block text-xs text-slate-950 line-clamp-1">${escapeHtml(item.title)}</strong>
+                </button>`).join('')}</div>`;
+        }
+
         function renderOfficialProjectDetails(project) {
             const clean = value => Array.isArray(value) ? value.filter(Boolean).join(' / ') : String(value || '').trim();
             const renderSections = sections => sections.map(([title, rows, wide]) => {
@@ -12497,6 +12678,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-modal-year').textContent = project.year || '';
             document.getElementById('op-modal-desc-text').textContent = localizedDesc;
             document.getElementById('op-tab-btn-description')?.classList.toggle('hidden', !localizedDesc.trim());
+            document.getElementById('op-modal-pdf-btn')?.classList.toggle('hidden', !project.pdfUrl);
 
             const projects = getOfficialProjectNavigationProjects();
             const currentIndex = projects.findIndex(item => String(item.id) === String(project.id));
@@ -12507,6 +12689,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-project-next').classList.toggle('hidden', !hasMultipleProjects);
 
             renderOfficialProjectDetails(project);
+            renderSimilarProjects(project);
             switchOfficialModalTab('details');
         }
 
@@ -12517,6 +12700,9 @@ Təşəkkür edirəm. 🙏`;
             if (!project) return;
             if (!projects.some(item => String(item.id) === String(project.id))) officialProjectNavigationProjects = getOfficialProjects();
             renderOfficialProjectModalContent(project);
+            void apiRequest(`/api/projects/${project.id}/view`, { method: 'POST' }).then(result => {
+                if (result?.viewCount != null) updateProjectInCache(project.id, { viewCount: result.viewCount });
+            }).catch(() => {});
             if (pushRoute) history.pushState({ route: 'project', id: project.id }, '', projectPath(project));
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
             resetOfficialProjectModalScroll();
@@ -13809,7 +13995,7 @@ Təşəkkür edirəm. 🙏`;
                 updateHeaderUI();
                 homepageHydration.admin = false;
                 await hydrateFromDatabase();
-                if (isAdminRole(activeUser.role)) await loadAdminListings({ render: false }).catch(() => {});
+                if (isAdminRole(activeUser.role)) { await refreshAdminStats({ render: true }).catch(() => {}); await loadAdminListings({ render: false }).catch(() => {}); }
                 const pendingRoute = consumePendingAuthRoute();
                 if (pendingRoute) history.replaceState({ path: pendingRoute }, '', pendingRoute);
                 await routeToCurrentPath();
@@ -14062,7 +14248,7 @@ Təşəkkür edirəm. 🙏`;
                 await wait(500);
                 homepageHydration.admin = false;
                 await hydrateFromDatabase();
-                if (isAdminRole(activeUser.role)) await loadAdminListings({ render: false }).catch(() => {});
+                if (isAdminRole(activeUser.role)) { await refreshAdminStats({ render: true }).catch(() => {}); await loadAdminListings({ render: false }).catch(() => {}); }
                 setLoginButtonLoading(false);
                 isLoginSubmitting = false;
                 const pendingRoute = consumePendingAuthRoute();
@@ -14092,6 +14278,7 @@ Təşəkkür edirəm. 🙏`;
             'seabreeze-manager': '/admin/listings',
             'projects-manager': '/admin/projects',
             'projects-archive': '/admin/projects/archive',
+            'project-inquiries': '/admin/project-inquiries',
             'gallery-manager': '/admin/gallery',
             'vacancy-manager': '/admin/vacancies',
             'site-settings': '/admin/site-settings',
@@ -14104,7 +14291,7 @@ Təşəkkür edirəm. 🙏`;
 
         function switchAdminSubtab(subtab, options = {}) {
             const isAdmin = isAdminRole(activeUser?.role);
-            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
             }
@@ -14112,6 +14299,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
             document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
             document.getElementById('admin-subtab-projects-archive').classList.add('hidden');
+            document.getElementById('admin-subtab-project-inquiries')?.classList.add('hidden');
             document.getElementById('admin-subtab-hero-sections').classList.add('hidden');
             document.getElementById('admin-subtab-listing-hero')?.classList.add('hidden');
             document.getElementById('admin-subtab-cvs').classList.add('hidden');
@@ -14132,12 +14320,14 @@ Təşəkkür edirəm. 🙏`;
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
+            if (isAdmin && ['seabreeze-manager','projects-manager'].includes(subtab)) refreshAdminStats({ render: true });
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
                 updateProjectImagePreview();
             }
             if (subtab === 'projects-archive') { loadArchivedProjects(); }
+            if (subtab === 'project-inquiries') { loadProjectInquiries(); }
             if (subtab === 'seabreeze-manager') {
                 toggleMetroFieldForCity();
                 setTimeout(initAdminListingMap, 80);
@@ -14151,7 +14341,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'ads-manager') { loadAdminAds(); }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
-            if (subtab === 'user-profile') { fillProfileForm(); }
+            if (subtab === 'user-profile') { fillProfileForm(); if (isAdmin) refreshAdminStats({ render: true }); }
             if (subtab === 'google-email') { loadGoogleEmailRecipientCount(); }
             if (subtab === 'hero-sections') {
                 loadAdminHeroSlides();
@@ -14575,6 +14765,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-hero-badge')?.classList.add('hidden');
             document.getElementById('project-save-success')?.classList.add('hidden');
             renderProjectImageInputs(['']);
+            setProjectPdfStatus(null);
             updateProjectImagePreview();
         }
 
@@ -14749,6 +14940,7 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjects();
                 renderAdminProjects();
                 await loadAdminProjects({ render: true }).catch(() => {});
+                await refreshAdminStats({ render: true }).catch(() => {});
                 showToast('✅ Layihə sırası yeniləndi.');
             } catch (error) {
                 alert('Layihə sırası yadda saxlanılmadı: ' + error.message);
@@ -14786,9 +14978,15 @@ Təşəkkür edirəm. 🙏`;
                                     <span><i class="fa-solid fa-expand mr-1 text-brand-500"></i>${project.area}</span>
                                 </div>
                                 <p class="text-[11px] text-gray-400 line-clamp-2">${project.desc}</p>
+                                <div class="grid grid-cols-3 gap-2 text-[10px] font-bold text-gray-300">
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">👁 ${Number(project.viewCount || 0).toLocaleString('az-AZ')}</span>
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">🖱 ${Number(project.clickCount || 0).toLocaleString('az-AZ')}</span>
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">💬 ${Number(project.inquiryCount || 0).toLocaleString('az-AZ')}</span>
+                                </div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="inline-flex w-fit items-center rounded-full bg-white/5 border border-white/10 px-2 py-1 text-[10px] text-gray-300">Slug: ${project.slug || '—'}</span>
                                     <span class="inline-flex w-fit items-center rounded-full ${project.featuredInHero ? 'bg-amber-500/15 text-amber-300 border-amber-500/20' : 'bg-white/5 text-gray-500 border-white/10'} border px-2 py-1 text-[10px] font-bold">Hero: ${project.featuredInHero ? '⭐ Bəli' : '— Xeyr'}</span>
+                                    <span class="inline-flex w-fit items-center rounded-full ${project.pdfUrl ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20' : 'bg-white/5 text-gray-500 border-white/10'} border px-2 py-1 text-[10px] font-bold">PDF: ${project.pdfUrl ? 'Var' : '—'}</span>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between gap-2 pt-3 border-t border-white/5">
@@ -15247,6 +15445,7 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjects();
                 renderAdminProjects();
                 await loadAdminProjects({ render: true }).catch(() => {});
+                await refreshAdminStats({ render: true }).catch(() => {});
                 resetOfficialProjectForm();
                 collapseOfficialProjectForm();
                 showProjectSaveSuccess('Layihə uğurla saxlanıldı. Siyahı yeniləndi.');
@@ -15293,6 +15492,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-img').value = images[0] || project.img || '';
             renderProjectImageInputs(images.length ? images : ['']);
             updateProjectImagePreview();
+            setProjectPdfStatus(project);
             setOfficialProjectFormExpanded(true);
             document.getElementById('official-project-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -15309,6 +15509,7 @@ Təşəkkür edirəm. 🙏`;
                 renderOfficialProjects();
                 renderAdminProjects();
                 await loadAdminProjects({ render: true }).catch(() => {});
+                await refreshAdminStats({ render: true }).catch(() => {});
                 showToast('✅ Layihə silindi.');
             } catch (error) {
                 alert('Layihə API-dən silinmədi: ' + error.message);
@@ -15353,26 +15554,63 @@ Təşəkkür edirəm. 🙏`;
 
         // RENDER ADMIN CABINET (Realtime Data Mapping)
 
-        function getDashboardStats() {
-            const listings = appData.listings || [];
-            return appData.dashboardStats || {
-                totalUsers: (appData.agents || []).length,
-                totalListings: listings.length,
-                pendingListings: listings.filter(item => normalizeListingStatus(item.status) === 'pending').length,
-                approvedListings: listings.filter(item => normalizeListingStatus(item.status) === 'approved').length,
-                rejectedListings: listings.filter(item => normalizeListingStatus(item.status) === 'rejected').length,
-                archivedListings: listings.filter(item => normalizeListingStatus(item.status) === 'archived').length,
-                totalViews: listings.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
-                totalListingViews: listings.reduce((sum, item) => sum + Number(item.viewCount || 0), 0),
-                totalFavorites: listings.reduce((sum, item) => sum + Number(item.favoritesCount || 0), 0),
-                projectsCount: (appData.projects || []).length,
-                vacanciesCount: (appData.vacancies || []).length,
-                applicationsCount: (appData.applications || []).length,
-                totalAds: (appData.ads || []).length,
-                activeAds: (appData.ads || []).filter(ad => ad.isActive && adIsWithinDates(ad)).length,
-                totalBaxış: (appData.ads || []).reduce((sum, ad) => sum + (ad.viewCount || 0), 0),
-                totalClicks: (appData.ads || []).reduce((sum, ad) => sum + (ad.clickCount || 0), 0),
+        function mapOverviewStats(stats = {}) {
+            return {
+                totalUsers: stats.totalUsers ?? (appData.agents || []).length,
+                totalListings: stats.listingsTotal ?? stats.totalListings ?? 0,
+                pendingListings: stats.listingsPending ?? stats.pendingListings ?? 0,
+                approvedListings: stats.listingsApproved ?? stats.approvedListings ?? 0,
+                rejectedListings: stats.listingsRejected ?? stats.rejectedListings ?? 0,
+                archivedListings: stats.listingsArchived ?? stats.archivedListings ?? 0,
+                totalViews: stats.adViews ?? stats.totalViews ?? 0,
+                totalClicks: stats.adClicks ?? stats.totalClicks ?? 0,
+                totalFavorites: stats.favoritesTotal ?? stats.totalFavorites ?? 0,
+                projectsCount: stats.projectsTotal ?? stats.projectsCount ?? 0,
+                galleryCount: stats.galleryTotal ?? stats.galleryCount ?? 0,
+                vacanciesCount: stats.vacanciesTotal ?? stats.vacanciesCount ?? 0,
+                applicationsCount: stats.applicationsTotal ?? stats.applicationsCount ?? 0,
+                totalAds: stats.adsTotal ?? stats.totalAds ?? 0,
+                activeAds: stats.adsActive ?? stats.activeAds ?? 0,
+                totalProjectViews: stats.totalProjectViews ?? 0,
+                totalProjectClicks: stats.totalProjectClicks ?? 0,
+                totalProjectInquiries: stats.totalProjectInquiries ?? 0
             };
+        }
+
+        function getDashboardStats() {
+            return mapOverviewStats(appData.dashboardStats || {});
+        }
+
+        async function refreshAdminStats({ render = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return null;
+            appData.dashboardStatsError = '';
+            appData.dashboardStatsLoading = true;
+            if (render) renderDashboardCards();
+            try {
+                const overview = await apiRequest('/api/admin/stats/overview');
+                appData.dashboardStats = overview;
+                appData.dashboardStatsError = '';
+                return overview;
+            } catch (error) {
+                appData.dashboardStats = null;
+                appData.dashboardStatsError = 'Statistika yüklənmədi. Yenidən cəhd edin.';
+                console.warn('Admin statistika oxunmadı:', error.message);
+                return null;
+            } finally {
+                appData.dashboardStatsLoading = false;
+                if (render) renderDashboardCards();
+            }
+        }
+
+        function renderDashboardSkeletonCards(count = 16) {
+            const container = document.getElementById('admin-dashboard-cards');
+            if (!container) return;
+            container.innerHTML = Array.from({ length: count }).map(() => `
+                <div class="admin-stat-card border border-white/10 bg-white/5 p-4 shadow-xl animate-pulse">
+                    <div class="h-3 w-2/3 rounded bg-white/20"></div>
+                    <div class="mt-5 h-8 w-1/2 rounded bg-white/20"></div>
+                </div>
+            `).join('');
         }
 
         function renderDashboardCards() {
@@ -15392,22 +15630,34 @@ Təşəkkür edirəm. 🙏`;
                 container.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-start justify-between gap-3"><span class="text-[11px] uppercase tracking-wide font-black text-slate-900 leading-snug">${label}</span><span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span></div><div class="mt-4 text-2xl md:text-3xl font-black text-slate-900 leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
                 return;
             }
-            const stats = { ...getDashboardStats(), ...(appData.adStats || {}) };
+            if (!appData.dashboardStats && !appData.dashboardStatsError) {
+                if (!appData.dashboardStatsLoading) refreshAdminStats({ render: true });
+                return renderDashboardSkeletonCards();
+            }
+            if (appData.dashboardStatsLoading && !appData.dashboardStats) return renderDashboardSkeletonCards();
+            if (appData.dashboardStatsError && !appData.dashboardStats) {
+                container.innerHTML = `<div class="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-black text-red-200">Statistika yüklənmədi. Yenidən cəhd edin.</div>`;
+                return;
+            }
+            const stats = getDashboardStats();
             const cards = [
-                ['İstifadəçilər', stats.totalUsers, 'fa-users', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
                 ['Elanlar', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
-                ['Gözləyən elanlar', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
                 ['Təsdiqlənmiş elanlar', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                ['Gözləyən elanlar', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
                 ['Rədd edilmiş elanlar', stats.rejectedListings, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
+                ['Arxiv elanlar', stats.archivedListings, 'fa-box-archive', 'from-slate-500/20 to-slate-500/5 text-slate-300'],
                 ['Layihələr', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
-                ['Vakansiyalar', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
-                ['Qalereya', stats.galleryCount ?? (appData.gallery || []).length, 'fa-images', 'from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300'],
-                ['Müraciətlər', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
-                ['Seçilmişlər', stats.totalFavorites ?? (appData.listings || []).reduce((sum, x) => sum + (x.favoritesCount || 0), 0), 'fa-heart', 'from-rose-500/20 to-rose-500/5 text-rose-300'],
+                ['Qalereya', stats.galleryCount, 'fa-images', 'from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300'],
+                ['Seçilmişlər', stats.totalFavorites, 'fa-heart', 'from-rose-500/20 to-rose-500/5 text-rose-300'],
                 ['Reklamlar', stats.totalAds, 'fa-rectangle-ad', 'from-cyan-500/20 to-cyan-500/5 text-cyan-300'],
                 ['Aktiv reklamlar', stats.activeAds, 'fa-toggle-on', 'from-lime-500/20 to-lime-500/5 text-lime-300'],
-                ['Baxışlar', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
-                ['Kliklər', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
+                ['Reklam baxışları', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
+                ['Reklam klikləri', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
+                ['Vakansiyalar', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
+                ['CV müraciətləri', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                ['Layihə baxışları', stats.totalProjectViews, 'fa-eye', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
+                ['Layihə klikləri', stats.totalProjectClicks, 'fa-computer-mouse', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
+                ['Layihə maraqlanmaları', stats.totalProjectInquiries, 'fa-comments', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
             ];
             container.innerHTML = cards.map(([label, value, icon, classes]) => `
                 <div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
@@ -15420,437 +15670,80 @@ Təşəkkür edirəm. 🙏`;
             `).join('');
         }
 
-        async function openUserListingsModal(userId) {
-            if (!activeUser || !isAdminRole(activeUser.role)) return;
-            try {
-                const [user, rows] = await Promise.all([
-                    apiRequest(`/api/users/${userId}`),
-                    apiRequest(`/api/users/${userId}/listings`),
-                ]);
-                const uiUser = userToUi(user);
-                const listings = rows.map(dbListingToUi);
-                const recent = (user.recentListings || []).map(dbListingToUi).slice(0, 4);
-                const activity = user.recentActivity || [];
-                const listingHtml = listings.length ? listings.slice(0, 8).map(item => `<button onclick="openPropertyModal('${item.id}', true)" class="w-full text-left p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-3"><div><div class="text-sm font-bold text-white">${escapeHtml(item.title || '—')}</div><div class="text-[10px] text-gray-400">Kod: ${formatListingCode(item.listingCode)} • ${formatAzDate(item.createdAt)} • Baxış: ${item.viewCount} • Seçilmiş: ${item.favoritesCount}</div></div><span class="text-[10px] font-bold px-2 py-1 rounded-full ${listingStatusBadgeClass(item.status)}">${listingStatusLabel(item.status)}</span></button>`).join('') : '<div class="p-6 text-center text-gray-400">Bu istifadəçinin elanı yoxdur.</div>';
-                const body = `<div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="md:col-span-1 rounded-2xl bg-white/5 p-4 text-center"><img src="${uiUser.avatarUrl || avatarFallback(uiUser.fullname)}" onclick="openAvatarModal(this.src)" class="w-28 h-28 rounded-full object-cover mx-auto cursor-zoom-in"><h3 class="mt-3 text-lg font-black text-white">${escapeHtml(uiUser.fullname)}</h3><p class="text-xs text-gray-400">${escapeHtml(uiUser.email)}</p><p class="mt-2 text-xs ${uiUser.isActive === false ? 'text-red-300' : 'text-emerald-300'}">${uiUser.isActive === false ? 'Bloklanıb' : 'Aktiv'}</p></div><div class="md:col-span-2 space-y-3"><div class="grid grid-cols-2 gap-2">${[['Elanlar', uiUser.listingsCount], ['Təsdiqlənmiş', uiUser.approvedListingsCount], ['Gözləyən', uiUser.pendingListingsCount], ['Baxışlar', uiUser.totalListingViews], ['Seçilmişlər', uiUser.totalFavorites], ['Tamamlanma', `${uiUser.profileCompletion || profileCompletionFor(uiUser)}%`]].map(([l,v]) => `<div class="rounded-xl bg-white/5 p-3"><div class="text-xl font-black text-white">${v || 0}</div><div class="text-[10px] text-gray-400 uppercase">${l}</div></div>`).join('')}</div><div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300"><b>Telefon:</b> ${escapeHtml(uiUser.phone || '—')}<br><b>Qeydiyyat:</b> ${formatAzDate(uiUser.createdAt)}<br><b>Son giriş:</b> ${formatAzDate(uiUser.lastLogin)}<br><b>Bio:</b> ${escapeHtml(uiUser.bio || '—')}</div></div></div><h3 class="pt-3 text-sm font-black text-white">Son elanlar</h3><div class="space-y-2">${listingHtml}</div><h3 class="pt-3 text-sm font-black text-white">Son aktivlik</h3><div class="space-y-2">${activity.length ? activity.map(a => `<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-300">${escapeHtml(a.action)} • ${formatAzDate(a.createdAt || a.created_at)}</div>`).join('') : '<div class="rounded-xl bg-white/5 p-3 text-xs text-gray-500">Aktivlik yoxdur.</div>'}</div>`;
-                showInlineModal('İstifadəçi profili', body);
-            } catch (error) {
-                alert('İstifadəçi məlumatları oxunmadı: ' + error.message);
-            }
-        }
-
-        function showInlineModal(title, bodyHtml) {
-            let modal = document.getElementById('inline-info-modal');
-            if (!modal) {
-                document.body.insertAdjacentHTML('beforeend', `
-                    <div id="inline-info-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 p-4">
-                        <div class="max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-3xl bg-[#0f172a] border border-white/10 p-6 shadow-2xl">
-                            <div class="flex items-center justify-between gap-3 mb-4">
-                                <h3 id="inline-info-modal-title" class="text-xl font-black text-white"></h3>
-                                <button onclick="document.getElementById('inline-info-modal').classList.add('hidden')" class="w-9 h-9 rounded-xl bg-white/10 text-white">×</button>
-                            </div>
-                            <div id="inline-info-modal-body" class="space-y-3"></div>
-                        </div>
-                    </div>
-                `);
-                modal = document.getElementById('inline-info-modal');
-            }
-            document.getElementById('inline-info-modal-title').textContent = title;
-            document.getElementById('inline-info-modal-body').innerHTML = bodyHtml;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-
-        async function loadAdminAds() {
-            if (!activeUser || !isAdminRole(activeUser.role)) return;
-            try {
-                const [ads, stats] = await Promise.all([
-                    apiRequest('/api/site-ads?admin=1'),
-                    apiRequest('/api/site-ads/stats')
-                ]);
-                cacheData('ads', (ads || []).map(dbAdToUi));
-                appData.adStats = stats;
-            } catch (error) {
-                console.warn('Reklamlar oxunmadı:', error.message);
-            }
-            renderAdminAds();
-            renderDashboardCards();
-            renderDesktopAds();
-        }
-
-        function renderAdminAdStats() {
-            const container = document.getElementById('admin-ad-stats');
-            if (!container) return;
-            const stats = { totalAds: 0, activeAds: 0, totalBaxış: 0, totalClicks: 0, ...(appData.adStats || {}) };
-            container.innerHTML = [
-                ['Reklamlar', stats.totalAds],
-                ['Aktiv reklamlar', stats.activeAds],
-                ['Baxışlar', stats.totalViews],
-                ['Kliklər', stats.totalClicks]
-            ].map(([label, value]) => `<div class="rounded-2xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase font-black text-gray-400">${label}</div><div class="text-xl font-black text-white mt-1">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
-        }
-
-        function getOrderedAdminAds() {
-            return [...(appData.ads || [])].sort((a, b) => (Number(a.rotationOrder || 0) - Number(b.rotationOrder || 0)) || (Number(a.displayOrder || 0) - Number(b.displayOrder || 0)) || Number(a.id) - Number(b.id));
-        }
-
-        function clearAdDropTargets() {
-            document.querySelectorAll('#admin-ads-list .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
-        }
-
-        function getAdminAdOrderFromDom() {
-            return Array.from(document.querySelectorAll('#admin-ads-list .admin-ad-card')).map(card => String(card.dataset.adId || '')).filter(Boolean);
-        }
-
-        async function persistAdminAdOrder(ids) {
-            if (!ids.length) return;
-            const byId = new Map((appData.ads || []).map(ad => [String(ad.id), ad]));
-            const ordered = ids.map((id, index) => ({ ...byId.get(id), displayOrder: index + 1, rotationOrder: index + 1 })).filter(ad => ad.id != null);
-            cacheData('ads', ordered);
-            renderAdminAds();
-            renderDesktopAds();
-            try {
-                const response = await apiRequest('/api/site-ads/reorder', { method: 'PUT', body: JSON.stringify({ order: ids.map(id => ({ id: Number(id) })) }) });
-                if (Array.isArray(response?.items)) cacheData('ads', response.items.map(dbAdToUi));
-                renderAdminAds();
-                renderDesktopAds();
-            } catch (error) {
-                alert('Reklam sırası yadda saxlanılmadı: ' + error.message);
-                await loadAdminAds();
-            }
-        }
-
-        function startAdDrag(event, adId) {
-            if (!activeUser || !isAdminRole(activeUser.role) || window.matchMedia('(max-width: 639px)').matches) return;
-            const card = event.target.closest('.admin-ad-card');
-            const list = document.getElementById('admin-ads-list');
-            if (!card || !list) return;
-            event.preventDefault();
-            const initialOrder = getAdminAdOrderFromDom().join(',');
-            draggedAdId = String(adId);
-            card.classList.add('is-dragging');
-            card.setPointerCapture?.(event.pointerId);
-
-            const onPointerMove = (moveEvent) => {
-                const target = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.('.admin-ad-card');
-                if (!target || target === card || !list.contains(target)) return;
-                clearAdDropTargets();
-                target.classList.add('is-drop-target');
-                const rect = target.getBoundingClientRect();
-                list.insertBefore(card, moveEvent.clientY > rect.top + rect.height / 2 ? target.nextSibling : target);
-            };
-            const onPointerUp = () => {
-                card.classList.remove('is-dragging');
-                clearAdDropTargets();
-                window.removeEventListener('pointermove', onPointerMove);
-                window.removeEventListener('pointerup', onPointerUp);
-                window.removeEventListener('pointercancel', onPointerUp);
-                draggedAdId = null;
-                const ids = getAdminAdOrderFromDom();
-                if (ids.join(',') !== initialOrder) persistAdminAdOrder(ids);
-            };
-            window.addEventListener('pointermove', onPointerMove, { passive: true });
-            window.addEventListener('pointerup', onPointerUp, { once: true });
-            window.addEventListener('pointercancel', onPointerUp, { once: true });
-        }
-
-        function moveAdminAd(adId, direction) {
-            const ids = getOrderedAdminAds().map(ad => String(ad.id));
-            const index = ids.indexOf(String(adId));
-            const nextIndex = index + direction;
-            if (index < 0 || nextIndex < 0 || nextIndex >= ids.length) return;
-            [ids[index], ids[nextIndex]] = [ids[nextIndex], ids[index]];
-            persistAdminAdOrder(ids);
-        }
-
-        function renderAdminAds() {
-            renderAdminAdStats();
-            const list = document.getElementById('admin-ads-list');
-            if (!list) return;
-            const ads = getOrderedAdminAds();
-            list.innerHTML = ads.length ? ads.map((ad, index) => `
-                <div class="admin-ad-card glass-card p-4 rounded-xl border border-transparent flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between text-xs ${ad.isActive ? '' : 'opacity-55 grayscale'}" data-ad-id="${ad.id}">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <button type="button" class="admin-ad-drag-handle hidden sm:flex h-9 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gray-400 hover:bg-brand-500/20 hover:text-white" onpointerdown="startAdDrag(event, '${ad.id}')" aria-label="Reklam sırasını dəyiş" title="Sürükləyərək sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button>
-                        <div class="w-[72px] h-[72px] rounded-xl overflow-hidden bg-white/5 shrink-0">${renderAdMedia({ ...ad, widthPx: 72, heightPx: 72, objectFit: 'cover' }, 'w-full h-full')}</div>
-                        <div class="min-w-0">
-                            <h3 class="font-bold text-white truncate">${escapeHtml(ad.title)}</h3>
-                            <div class="text-gray-400">${ad.position} • ${ad.mediaType} • ${ad.widthPx}×${ad.heightPx}px • ${ad.objectFit} • display ${ad.displayOrder} • rotation ${ad.rotationOrder} • repeat ${ad.repeatCount}× • ${ad.displayDuration}s</div>
-                            <div class="text-gray-500">${ad.startDate || 'başlanğıc yoxdur'} → ${ad.endDate || 'son yoxdur'} • ${ad.viewCount} views • ${ad.clickCount} clicks</div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" onclick="moveAdminAd('${ad.id}', -1)" class="sm:hidden text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-30" ${index === 0 ? 'disabled' : ''} aria-label="Yuxarı daşı"><i class="fa-solid fa-arrow-up"></i></button>
-                        <button type="button" onclick="moveAdminAd('${ad.id}', 1)" class="sm:hidden text-gray-300 px-2 py-1 bg-white/5 rounded disabled:opacity-30" ${index === ads.length - 1 ? 'disabled' : ''} aria-label="Aşağı daşı"><i class="fa-solid fa-arrow-down"></i></button>
-                        <button type="button" onclick="editAd('${ad.id}')" class="text-blue-400 px-2 py-1 bg-blue-500/10 rounded">Redaktə</button>
-                        <button type="button" onclick="toggleAd('${ad.id}', ${!ad.isActive})" class="${ad.isActive ? 'text-emerald-500 bg-emerald-500/10' : 'text-yellow-500 bg-yellow-500/10'} px-2 py-1 rounded">${ad.isActive ? 'Aktiv' : 'Deaktiv'}</button>
-                        <button type="button" onclick="deleteAd('${ad.id}')" class="text-red-400 px-2 py-1 bg-red-500/10 rounded"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>`).join('') : '<div class="glass-card p-6 rounded-xl text-center text-gray-400 text-sm">Reklam yoxdur.</div>';
-        }
-
-        let adPreviewObjectUrl = '';
-        let adPreviewObjectFile = null;
-
-        function clearAdPreviewObjectUrl() {
-            if (adPreviewObjectUrl) URL.revokeObjectURL(adPreviewObjectUrl);
-            adPreviewObjectUrl = '';
-            adPreviewObjectFile = null;
-        }
-
-        function inferAdMediaType(file, url = '', fallback = 'image') {
-            const mimeType = String(file?.type || '').toLowerCase();
-            const fileName = String(file?.name || url || '').toLowerCase().split(/[?#]/)[0];
-            if (mimeType === 'image/gif' || fileName.endsWith('.gif')) return 'gif';
-            if (mimeType.startsWith('video/') || /\.(mp4|webm|mov)$/.test(fileName)) return 'video';
-            if (mimeType.startsWith('image/') || /\.(jpe?g|png|webp)$/.test(fileName)) return 'image';
-            return fallback;
-        }
-
-        function getAdPreviewMedia() {
-            const file = document.getElementById('ad-media-file')?.files?.[0];
-            const externalUrl = document.getElementById('ad-media-url')?.value.trim() || '';
-            const selectedType = document.getElementById('ad-media-type')?.value || 'image';
-            if (!file) {
-                clearAdPreviewObjectUrl();
-                return { url: externalUrl, mediaType: inferAdMediaType(null, externalUrl, selectedType) };
-            }
-            if (file !== adPreviewObjectFile) {
-                clearAdPreviewObjectUrl();
-                adPreviewObjectFile = file;
-                adPreviewObjectUrl = URL.createObjectURL(file);
-            }
-            return { url: adPreviewObjectUrl, mediaType: inferAdMediaType(file, '', selectedType) };
-        }
-
-        function handleAdMediaFileSelection() {
-            const file = document.getElementById('ad-media-file')?.files?.[0];
-            if (file) document.getElementById('ad-media-type').value = inferAdMediaType(file);
-            updateAdPreview();
-        }
-
-        function getAdFormDimensions() {
-            return {
-                widthPx: adDimension(document.getElementById('ad-width-px')?.value, AD_DIMENSION_DEFAULTS.width, AD_DIMENSION_LIMITS.minWidth, AD_DIMENSION_LIMITS.maxWidth),
-                heightPx: adDimension(document.getElementById('ad-height-px')?.value, AD_DIMENSION_DEFAULTS.height, AD_DIMENSION_LIMITS.minHeight, AD_DIMENSION_LIMITS.maxHeight),
-                objectFit: normalizeObjectFit(document.getElementById('ad-object-fit')?.value)
-            };
-        }
-
-        function validateAdFormDimensions() {
-            const width = Number.parseInt(document.getElementById('ad-width-px')?.value, 10);
-            const height = Number.parseInt(document.getElementById('ad-height-px')?.value, 10);
-            const repeatCount = Number.parseInt(document.getElementById('ad-repeat-count')?.value, 10);
-            const displayDuration = Number.parseInt(document.getElementById('ad-display-duration')?.value, 10);
-            if (!Number.isFinite(width) || width < AD_DIMENSION_LIMITS.minWidth || width > AD_DIMENSION_LIMITS.maxWidth) {
-                alert(`Width ${AD_DIMENSION_LIMITS.minWidth}-${AD_DIMENSION_LIMITS.maxWidth}px aralığında olmalıdır.`);
-                return false;
-            }
-            if (!Number.isFinite(height) || height < AD_DIMENSION_LIMITS.minHeight || height > AD_DIMENSION_LIMITS.maxHeight) {
-                alert(`Height ${AD_DIMENSION_LIMITS.minHeight}-${AD_DIMENSION_LIMITS.maxHeight}px aralığında olmalıdır.`);
-                return false;
-            }
-            if (!Number.isFinite(repeatCount) || repeatCount < AD_MIN_REPEAT_COUNT || repeatCount > AD_MAX_REPEAT_COUNT) {
-                alert(`Repeat Count ${AD_MIN_REPEAT_COUNT}-${AD_MAX_REPEAT_COUNT} aralığında olmalıdır.`);
-                return false;
-            }
-            if (!Number.isFinite(displayDuration) || displayDuration < AD_MIN_DISPLAY_DURATION_SECONDS || displayDuration > AD_MAX_DISPLAY_DURATION_SECONDS) {
-                alert(`Display Duration ${AD_MIN_DISPLAY_DURATION_SECONDS}-${AD_MAX_DISPLAY_DURATION_SECONDS} saniyə aralığında olmalıdır.`);
-                return false;
-            }
-            return true;
-        }
-
-        function updateAdPreview() {
-            const box = document.getElementById('ad-admin-preview');
-            if (!box) return;
-            const dimensions = getAdFormDimensions();
-            const previewMedia = getAdPreviewMedia();
-            const ad = {
-                title: document.getElementById('ad-title')?.value || 'Advertisement',
-                mediaType: previewMedia.mediaType,
-                mediaUrl: previewMedia.url,
-                ...dimensions
-            };
-            box.style.width = `${dimensions.widthPx}px`;
-            box.style.height = `${dimensions.heightPx}px`;
-            box.style.maxWidth = '100%';
-            box.innerHTML = ad.mediaUrl ? renderAdMedia(ad) : 'Media URL daxil edin';
-        }
-
-        function resetAdForm() {
-            document.getElementById('edit-ad-id').value = '';
-            document.getElementById('ad-form-title').textContent = 'Yeni Reklam';
-            document.getElementById('ad-title').value = '';
-            document.getElementById('ad-media-type').value = 'image';
-            document.getElementById('ad-media-url').value = '';
-            document.getElementById('ad-media-file').value = '';
-            clearAdPreviewObjectUrl();
-            document.getElementById('ad-click-url').value = '';
-            document.getElementById('ad-position').value = 'left';
-            document.getElementById('ad-display-order').value = '0';
-            document.getElementById('ad-rotation-order').value = '0';
-            document.getElementById('ad-repeat-count').value = String(AD_DEFAULT_REPEAT_COUNT);
-            document.getElementById('ad-display-duration').value = String(AD_DEFAULT_DISPLAY_DURATION_SECONDS);
-            document.getElementById('ad-width-px').value = String(AD_DIMENSION_DEFAULTS.width);
-            document.getElementById('ad-height-px').value = String(AD_DIMENSION_DEFAULTS.height);
-            document.getElementById('ad-object-fit').value = AD_DIMENSION_DEFAULTS.objectFit;
-            document.getElementById('ad-start-date').value = '';
-            document.getElementById('ad-end-date').value = '';
-            document.getElementById('ad-is-active').checked = true;
-            updateAdPreview();
-        }
-
-        async function handleSaveAd(event) {
-            event.preventDefault();
-            if (isAdSaveSubmitting) return;
-            const id = document.getElementById('edit-ad-id').value;
-            if (!validateAdFormDimensions()) return;
-            const dimensions = getAdFormDimensions();
-            const clickUrl = document.getElementById('ad-click-url').value.trim();
-            const payload = {
-                title: document.getElementById('ad-title').value.trim(),
-                mediaType: document.getElementById('ad-media-type').value,
-                mediaUrl: document.getElementById('ad-media-url').value.trim(),
-                clickUrl,
-                targetUrl: clickUrl,
-                position: document.getElementById('ad-position').value,
-                displayOrder: document.getElementById('ad-display-order').value || '0',
-                rotationOrder: document.getElementById('ad-rotation-order').value || '0',
-                repeatCount: document.getElementById('ad-repeat-count').value || String(AD_DEFAULT_REPEAT_COUNT),
-                displayDuration: document.getElementById('ad-display-duration').value || String(AD_DEFAULT_DISPLAY_DURATION_SECONDS),
-                widthPx: String(dimensions.widthPx),
-                heightPx: String(dimensions.heightPx),
-                objectFit: dimensions.objectFit,
-                startDate: document.getElementById('ad-start-date').value,
-                endDate: document.getElementById('ad-end-date').value,
-                isActive: document.getElementById('ad-is-active').checked
-            };
-            const file = document.getElementById('ad-media-file').files[0];
-            let body = JSON.stringify(payload);
-            if (file) {
-                const formData = new FormData();
-                Object.entries(payload).forEach(([key, value]) => formData.append(key, String(value)));
-                formData.append('media', file);
-                body = formData;
-            }
-            isAdSaveSubmitting = true;
-            setAdSaveButtonLoading(true);
-            try {
-                await apiRequest(id ? `/api/site-ads/${id}` : '/api/site-ads', id ? 'PUT' : 'POST', body);
-                resetAdForm();
-                await loadAdminAds();
-                const button = document.getElementById('ad-save-submit-btn');
-                if (button) {
-                    button.disabled = false;
-                    button.classList.remove('is-loading');
-                    button.setAttribute('aria-busy', 'false');
-                    button.innerHTML = '<i class="fa-solid fa-check mr-1"></i>Yadda saxlanıldı';
-                }
-                await new Promise(resolve => setTimeout(resolve, 1200));
-            } catch (error) {
-                alert('Reklam yadda saxlanılmadı: ' + error.message);
-            } finally {
-                isAdSaveSubmitting = false;
-                setAdSaveButtonLoading(false);
-            }
-        }
-
-        function editAd(id) {
-            const ad = (appData.ads || []).find(item => String(item.id) === String(id));
-            if (!ad) return;
-            document.getElementById('edit-ad-id').value = ad.id;
-            document.getElementById('ad-form-title').textContent = 'Reklamı Redaktə Et';
-            document.getElementById('ad-title').value = ad.title;
-            document.getElementById('ad-media-type').value = ad.mediaType;
-            document.getElementById('ad-media-url').value = ad.mediaUrl;
-            document.getElementById('ad-media-file').value = '';
-            document.getElementById('ad-click-url').value = ad.clickUrl;
-            document.getElementById('ad-position').value = ad.position;
-            document.getElementById('ad-display-order').value = ad.displayOrder;
-            document.getElementById('ad-rotation-order').value = ad.rotationOrder;
-            document.getElementById('ad-repeat-count').value = ad.repeatCount;
-            document.getElementById('ad-display-duration').value = ad.displayDuration;
-            document.getElementById('ad-width-px').value = String(ad.widthPx ?? AD_DIMENSION_DEFAULTS.width);
-            document.getElementById('ad-height-px').value = String(ad.heightPx ?? AD_DIMENSION_DEFAULTS.height);
-            document.getElementById('ad-object-fit').value = normalizeObjectFit(ad.objectFit);
-            document.getElementById('ad-start-date').value = ad.startDate;
-            document.getElementById('ad-end-date').value = ad.endDate;
-            document.getElementById('ad-is-active').checked = ad.isActive;
-            updateAdPreview();
-            document.getElementById('admin-subtab-ads-manager').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        async function toggleAd(id, isActive) {
-            try {
-                await apiRequest(`/api/site-ads/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ is_active: isActive }) });
-                await loadAdminAds();
-            } catch (error) {
-                alert('Reklam statusu dəyişmədi: ' + error.message);
-            }
-        }
-
-        async function deleteAd(id) {
-            if (!confirm('Bu reklamı silmək istədiyinizə əminsiniz?')) return;
-            try {
-                await apiRequest(`/api/site-ads/${id}`, { method: 'DELETE' });
-                await loadAdminAds();
-            } catch (error) {
-                alert('Reklam silinmədi: ' + error.message);
-            }
-        }
-
-        function galleryVideoPreviewMarkup(videoUrl, className = 'w-full h-full object-cover') {
-            const normalizedUrl = normalizeGalleryVideoUrl(videoUrl || '');
-            if (!normalizedUrl) return '';
-            if (/youtube\.com\/embed|player\.vimeo\.com\/video/i.test(normalizedUrl)) {
-                return `<iframe src="${escapeHtml(normalizedUrl)}" class="${className}" title="Video önizləmə" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
-            }
-            return `<video src="${escapeHtml(normalizedUrl)}" class="${className}" muted controls playsinline preload="metadata"></video>`;
-        }
-
-        function renderAdminGalleryPreview(item = {}) {
-            const wrapper = 'w-24 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-sm flex items-center justify-center';
-            if (item.type === 'event') {
-                const image = item.images?.[0] || item.imageUrl || item.image_url || '';
-                return image
-                    ? `<div class="${wrapper}"><img src="${escapeHtml(image)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover"></div>`
-                    : `<div class="${wrapper} text-gray-400" aria-label="Foto yoxdur"><i class="fa-regular fa-image text-2xl"></i></div>`;
-            }
-            const thumbnail = getGalleryVideoThumbnail(item);
-            if (thumbnail) return `<div class="${wrapper}"><img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover"></div>`;
-            const videoPreview = galleryVideoPreviewMarkup(item.video_url || item.videoUrl || item.url || '');
-            return videoPreview
-                ? `<div class="${wrapper}">${videoPreview}</div>`
-                : `<div class="${wrapper} text-gray-400" aria-label="Video önizləməsi yoxdur"><i class="fa-solid fa-video text-2xl"></i></div>`;
-        }
-
-        function renderGalleryVideoFormPreview() {
-            const preview = document.getElementById('gallery-video-form-preview');
-            if (!preview) return;
-            const videoUrl = document.getElementById('g-video-url')?.value.trim() || '';
-            const thumbnail = editingGalleryThumbnail || getYouTubeThumbnail(videoUrl) || getVimeoThumbnail(videoUrl);
-            const markup = thumbnail
-                ? `<img src="${escapeHtml(thumbnail)}" alt="Video miniatürü" class="w-full h-full object-contain bg-slate-900">`
-                : galleryVideoPreviewMarkup(videoUrl, 'w-full h-full object-contain bg-slate-900');
-            preview.innerHTML = markup;
-            preview.classList.toggle('hidden', !markup);
-        }
-
-        let adminListingStatusFilter = 'all';
-
-        function setAdminListingStatusFilter(status) {
-            adminListingStatusFilter = adminListingStatusFilter === status ? 'all' : status;
-            renderAdminDashboard();
-        }
-
         function syncAdminListingStatusFilters() {
             document.querySelectorAll('[data-listing-status-filter]').forEach(button => {
                 const isActive = button.dataset.listingStatusFilter === adminListingStatusFilter;
                 button.classList.toggle('is-active', isActive);
                 button.setAttribute('aria-pressed', String(isActive));
             });
+        }
+
+        async function loadProjectInquiries() {
+            if (!isAdminRole(activeUser?.role)) return;
+            const select = document.getElementById('project-inquiry-project-filter');
+            if (select) {
+                const current = select.value || 'all';
+                select.innerHTML = '<option value="all">Bütün layihələr</option>' + getOfficialProjects().map(project => `<option value="${project.id}">${escapeHtml(project.title)}</option>`).join('');
+                select.value = current;
+            }
+            const q = document.getElementById('project-inquiry-search')?.value.trim() || '';
+            const projectId = select?.value && select.value !== 'all' ? select.value : '';
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            if (projectId) params.set('projectId', projectId);
+            const list = document.getElementById('admin-project-inquiries-list');
+            if (list) list.innerHTML = '<div class="glass-card rounded-2xl p-5 text-sm font-bold text-gray-300"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Müraciətlər yüklənir...</div>';
+            try {
+                appData.projectInquiries = await apiRequest(`/api/projects/inquiries${params.toString() ? `?${params}` : ''}`);
+                renderProjectInquiries();
+            } catch (error) {
+                if (list) list.innerHTML = `<div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-bold text-red-200">Müraciətlər yüklənmədi: ${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        function inquiryStatusLabel(status) {
+            return { new: 'Yeni', contacted: 'Əlaqə saxlanıldı', closed: 'Bağlandı' }[status] || status || 'Yeni';
+        }
+
+        function renderProjectInquiries() {
+            const list = document.getElementById('admin-project-inquiries-list');
+            if (!list) return;
+            const rows = Array.isArray(appData.projectInquiries) ? appData.projectInquiries : [];
+            if (!rows.length) {
+                list.innerHTML = '<div class="glass-card rounded-2xl p-8 text-center text-sm font-bold text-gray-400">Müraciət tapılmadı.</div>';
+                return;
+            }
+            list.innerHTML = rows.map(row => `
+                <article class="glass-card rounded-2xl border border-white/10 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2"><h3 class="text-white font-black">${escapeHtml(row.name || '—')}</h3><span class="rounded-full bg-brand-500/15 px-2 py-1 text-[10px] font-black text-brand-200">${inquiryStatusLabel(row.status)}</span></div>
+                        <p class="text-sm font-bold text-gray-300">${escapeHtml(row.phone || '—')} • ${escapeHtml(row.project?.title || 'Layihə')}</p>
+                        ${row.note ? `<p class="text-xs text-gray-400">${escapeHtml(row.note)}</p>` : ''}
+                        <p class="text-[10px] text-gray-500">${row.createdAt ? new Date(row.createdAt).toLocaleString('az-AZ') : ''}</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="updateProjectInquiryStatus(${row.id}, 'contacted')" class="rounded-lg bg-blue-500/10 px-3 py-2 text-[10px] font-bold text-blue-300 hover:bg-blue-500 hover:text-white">Mark contacted</button>
+                        <button onclick="updateProjectInquiryStatus(${row.id}, 'closed')" class="rounded-lg bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500 hover:text-white">Mark closed</button>
+                        <button onclick="deleteProjectInquiry(${row.id})" class="rounded-lg bg-red-500/10 px-3 py-2 text-[10px] font-bold text-red-300 hover:bg-red-500 hover:text-white">Delete</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function updateProjectInquiryStatus(id, status) {
+            try {
+                await apiRequest(`/api/projects/inquiries/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+                await loadProjectInquiries();
+            } catch (error) { alert('Status yenilənmədi: ' + error.message); }
+        }
+
+        async function deleteProjectInquiry(id) {
+            if (!confirm('Müraciət silinsin?')) return;
+            try {
+                await apiRequest(`/api/projects/inquiries/${id}`, { method: 'DELETE' });
+                await loadProjectInquiries();
+                await refreshAdminStats({ render: true }).catch(() => {});
+            } catch (error) { alert('Müraciət silinmədi: ' + error.message); }
         }
 
         function renderAdminDashboard() {
