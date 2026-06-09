@@ -73,13 +73,17 @@ async function loadUrlBuffer(url) {
       const timer = setTimeout(() => controller.abort(), 6500);
       const response = await fetch(value, { signal: controller.signal });
       clearTimeout(timer);
-      if (!response.ok) return null;
+      if (!response.ok) {
+        console.warn('[project-brochure-pdf] Image request failed', { url: value, status: response.status });
+        return null;
+      }
       const arrayBuffer = await response.arrayBuffer();
       return Buffer.from(arrayBuffer);
     }
     const localPath = path.resolve(process.cwd(), value.replace(/^\//, ''));
     return await fs.readFile(localPath);
-  } catch (_error) {
+  } catch (error) {
+    console.warn('[project-brochure-pdf] Image load failed', { url: value, message: error.message });
     return null;
   }
 }
@@ -94,7 +98,8 @@ async function prepareImage(url, width = 1200, height = 760) {
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer({ resolveWithObject: true });
     return { buffer: data, width: info.width || width, height: info.height || height };
-  } catch (_error) {
+  } catch (error) {
+    console.warn('[project-brochure-pdf] Image conversion failed', { url, message: error.message });
     return null;
   }
 }

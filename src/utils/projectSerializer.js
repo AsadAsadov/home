@@ -70,6 +70,8 @@ function serializeProject(body) {
     isArchived: toBool(body.is_archived ?? body.isArchived),
     pdfUrl: cleanString(body.pdf_url ?? body.pdfUrl),
     pdfFilename: cleanString(body.pdf_filename ?? body.pdfFilename),
+    brochureUrl: cleanString(body.brochure_url ?? body.brochureUrl),
+    brochureFilename: cleanString(body.brochure_filename ?? body.brochureFilename),
   };
 }
 

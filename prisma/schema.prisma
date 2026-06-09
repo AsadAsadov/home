@@ -40,6 +40,8 @@ model Project {
   isArchived       Boolean     @default(false) @map("is_archived")
   pdfUrl           String?     @map("pdf_url") @db.Text
   pdfFilename      String?     @map("pdf_filename") @db.Text
+  brochureUrl      String?     @map("brochure_url") @db.Text
+  brochureFilename String?     @map("brochure_filename") @db.Text
   viewCount        Int         @default(0) @map("view_count")
   clickCount       Int         @default(0) @map("click_count")
   inquiryCount     Int         @default(0) @map("inquiry_count")

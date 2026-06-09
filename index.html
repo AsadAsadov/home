@@ -3990,11 +3990,31 @@
         }
         .op-modal-tabs-row { min-width: 0; }
         .op-modal-tabs { min-width: 0; }
-        .op-modal-tabs button {
-            flex: 0 0 auto;
-            white-space: nowrap;
-            border-radius: 999px 999px 0 0;
+        .op-modal-tabs button { flex: 0 0 auto; white-space: nowrap; }
+        .op-modal-tab-pill {
+            border: 1px solid rgba(148, 163, 184, .35);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .88);
+            color: #1f2937;
+            padding: .68rem 1rem;
+            font-size: .86rem;
+            font-weight: 900;
+            line-height: 1;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+            transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
         }
+        .op-modal-tab-pill:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(15, 23, 42, .12); }
+        .op-modal-tab-pill.is-active {
+            border-color: transparent;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            color: #fff;
+            box-shadow: 0 14px 28px rgba(79, 70, 229, .28);
+        }
+        .project-modal-actions > button { min-height: 46px; flex: 1 1 180px; }
+        .project-pdf-download-btn { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 14px 26px rgba(239, 68, 68, .28); }
+        .project-pdf-download-btn:hover { background: linear-gradient(135deg, #f87171, #ef4444); transform: translateY(-1px); }
+        .project-pdf-download-btn:disabled { opacity: .72; cursor: wait; transform: none; }
+        .project-inquiry-open-btn { box-shadow: 0 14px 26px rgba(127, 127, 255, .22); }
         #op-tab-description { width: 100%; }
         @media (max-width: 767px) {
             #project-detail-modal-official {
@@ -4036,20 +4056,14 @@
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin;
             }
-            .op-modal-tabs button {
-                padding: .55rem .75rem .7rem !important;
-                background: rgba(255,255,255,.72);
-                color: #475569 !important;
-                border-bottom-width: 2px !important;
-                box-shadow: inset 0 0 0 1px rgba(148,163,184,.22);
+            .op-modal-tab-pill {
+                padding: .64rem .82rem !important;
                 font-size: .82rem !important;
-                line-height: 1;
+                border-radius: 999px !important;
             }
-            .op-modal-tabs button.border-brand-500 {
-                background: rgba(127,127,255,.12);
-                color: var(--color-primary) !important;
-                box-shadow: inset 0 0 0 1px rgba(127,127,255,.28);
-            }
+            .op-modal-tab-pill.is-active { color: #fff !important; }
+            .project-modal-actions { width: 100%; }
+            .project-modal-actions > button { flex-basis: 0; }
             .op-modal-share {
                 width: 100%;
                 justify-content: space-between;
@@ -5284,7 +5298,8 @@
                         <button type="button" onclick="loadProjectInquiries()" class="rounded-xl bg-white/5 px-4 py-2 text-xs font-bold text-gray-200 hover:bg-white/10">Yenilə</button>
                     </div>
                     <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input id="project-inquiry-search" type="search" oninput="loadProjectInquiries()" placeholder="Axtarış" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
+                        <input id="project-inquiry-search" type="search" oninput="loadProjectInquiries()" placeholder="Ad və ya telefon" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
+                        <select id="project-inquiry-status-filter" onchange="loadProjectInquiries()" class="rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-sm text-white outline-none"><option value="all">Bütün statuslar</option><option value="new">Yeni</option><option value="contacted">Əlaqə saxlanıldı</option><option value="closed">Bağlandı</option></select>
                         <select id="project-inquiry-project-filter" onchange="loadProjectInquiries()" class="rounded-xl border border-white/10 bg-[#0f172a] px-3 py-2 text-sm text-white outline-none"></select>
                     </div>
                 </div>
@@ -6026,22 +6041,22 @@ Title: CASPIAN DREAM LINER
                 <div id="op-modal-thumbnails" class="hidden px-6 md:px-8 pt-5 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
 
                 <div class="op-modal-body p-6 md:p-8 space-y-6">
-                    <div class="op-modal-tabs-row flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                        <div id="op-modal-tabs" class="op-modal-tabs flex flex-wrap gap-x-5 gap-y-2" role="tablist" aria-label="Layihə məlumat bölmələri">
-                            <button data-tab="details" onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="pb-3 border-b-2 border-brand-500 text-brand-500 font-bold text-sm">Detallar</button>
-                            <button data-tab="apartments" onclick="switchOfficialModalTab('apartments')" id="op-tab-btn-apartments" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Mənzillər</button>
-                            <button data-tab="pricing" onclick="switchOfficialModalTab('pricing')" id="op-tab-btn-pricing" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Qiymətlər</button>
-                            <button data-tab="infrastructure" onclick="switchOfficialModalTab('infrastructure')" id="op-tab-btn-infrastructure" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">İnfrastruktur</button>
-                            <button data-tab="description" onclick="switchOfficialModalTab('description')" id="op-tab-btn-description" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-white font-bold text-sm">Təsvir</button>
+                    <div class="op-modal-tabs-row flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div id="op-modal-tabs" class="op-modal-tabs flex gap-2 overflow-x-auto max-w-full pb-1" role="tablist" aria-label="Layihə məlumat bölmələri">
+                            <button data-tab="details" onclick="switchOfficialModalTab('details')" id="op-tab-btn-details" class="op-modal-tab-pill is-active">Detallar</button>
+                            <button data-tab="apartments" onclick="switchOfficialModalTab('apartments')" id="op-tab-btn-apartments" class="op-modal-tab-pill ">Mənzillər</button>
+                            <button data-tab="pricing" onclick="switchOfficialModalTab('pricing')" id="op-tab-btn-pricing" class="op-modal-tab-pill ">Qiymətlər</button>
+                            <button data-tab="infrastructure" onclick="switchOfficialModalTab('infrastructure')" id="op-tab-btn-infrastructure" class="op-modal-tab-pill ">İnfrastruktur</button>
+                            <button data-tab="description" onclick="switchOfficialModalTab('description')" id="op-tab-btn-description" class="op-modal-tab-pill ">Təsvir</button>
                         </div>
-                        <div class="op-modal-share flex items-center gap-2">
+                        <div class="op-modal-share flex items-center gap-2 w-full md:w-auto">
                             <button id="op-modal-share-btn" type="button" onclick="shareOfficialProject()" class="op-modal-share-btn inline-flex items-center gap-2 rounded-2xl bg-white/90 px-4 py-2 text-sm font-black text-slate-950 shadow-lg hover:bg-brand-500 hover:text-white transition">🔗 Paylaş</button>
                             <span id="op-modal-share-status" class="hidden text-xs font-black text-green-300">✅ Link kopyalandı</span>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-3">
-                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-brand-500 transition">📄 PDF Yüklə</button>
-                        <button type="button" onclick="openProjectInquiryModal()" class="inline-flex items-center gap-2 rounded-2xl bg-brand-500 px-4 py-2 text-sm font-black text-white hover:bg-brand-600 transition">💬 Maraqlanıram</button>
+                    <div class="project-modal-actions flex flex-col sm:flex-row gap-3">
+                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black text-white transition">📄 PDF Yüklə</button>
+                        <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-black text-white hover:bg-brand-600 transition">💬 Maraqlanıram</button>
                     </div>
 
                     <div id="op-tab-details" class="project-detail-sections"></div>
@@ -7101,6 +7116,8 @@ Title: CASPIAN DREAM LINER
                 isArchived: Boolean(p.isArchived ?? p.is_archived),
                 pdfUrl: p.pdfUrl || p.pdf_url || '',
                 pdfFilename: p.pdfFilename || p.pdf_filename || '',
+                brochureUrl: p.brochureUrl || p.brochure_url || '',
+                brochureFilename: p.brochureFilename || p.brochure_filename || '',
                 viewCount: Number(p.viewCount ?? p.view_count ?? 0),
                 clickCount: Number(p.clickCount ?? p.click_count ?? 0),
                 inquiryCount: Number(p.inquiryCount ?? p.inquiry_count ?? 0)
@@ -7687,8 +7704,13 @@ Title: CASPIAN DREAM LINER
             return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'BestHome')}&background=7F7FFF&color=fff`;
         }
 
+        let adminListingStatusFilter = 'all';
+
         const appData = {
             dashboardStats: null,
+            dashboardStatsLoading: false,
+            dashboardStatsError: '',
+            projectInquiries: [],
             favoriteListingIds: new Set(),
             projects: [],
             archivedProjects: [],
@@ -9121,7 +9143,7 @@ Title: CASPIAN DREAM LINER
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
-                appData.dashboardStatsError = dashboardStats ? '' : (isAdminRole(activeUser?.role) ? 'Statistika yüklənmədi. Yenidən cəhd edin.' : '');
+                appData.dashboardStatsError = dashboardStats ? '' : (isAdminRole(activeUser?.role) ? 'Statistika yüklənmədi' : '');
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false });
                 if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
             } catch (error) {
@@ -12562,16 +12584,34 @@ Təşəkkür edirəm. 🙏`;
             alert('PDF broşür artıq avtomatik yaradılır. İstifadəçi layihə səhifəsində “PDF Yüklə” düyməsinə klikləyəndə sistem layihə məlumatları və şəkillərindən yeni PDF hazırlayır.');
         }
 
-        function downloadActiveProjectPdf() {
+        async function downloadActiveProjectPdf() {
             if (!activeOfficialProject?.id) return;
+            const button = document.getElementById('op-modal-pdf-btn');
+            const originalText = button?.textContent || '📄 PDF Yüklə';
             const filename = `${(activeOfficialProject.title || 'Project').replace(/[\/:*?"<>|]+/g, ' ').trim() || 'Project'}.pdf`;
-            const link = document.createElement('a');
-            link.href = `/api/projects/${activeOfficialProject.id}/brochure.pdf`;
-            link.download = activeOfficialProject.pdfFilename || filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            updateProjectInCache(activeOfficialProject.id, { clickCount: Number(activeOfficialProject.clickCount || 0) + 1 });
+            if (button) { button.disabled = true; button.textContent = 'PDF hazırlanır...'; }
+            try {
+                const response = await fetch(`${API_BASE}/api/projects/${activeOfficialProject.id}/brochure.pdf`, { headers: getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {} });
+                if (!response.ok) throw new Error('PDF hazırlanmadı. Yenidən cəhd edin.');
+                const blob = await response.blob();
+                if (!blob.size) throw new Error('PDF hazırlanmadı. Yenidən cəhd edin.');
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = activeOfficialProject.pdfFilename || filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                const nextClicks = Number(activeOfficialProject.clickCount || 0) + 1;
+                updateProjectInCache(activeOfficialProject.id, { clickCount: nextClicks });
+                activeOfficialProject.clickCount = nextClicks;
+                if (isAdminRole(activeUser?.role)) refreshAdminStats({ render: true });
+            } catch (_error) {
+                alert('PDF hazırlanmadı. Yenidən cəhd edin.');
+            } finally {
+                if (button) { button.disabled = false; button.textContent = originalText; }
+            }
         }
 
         function openProjectInquiryModal() {
@@ -12608,7 +12648,7 @@ Təşəkkür edirəm. 🙏`;
                 showToast('✅ Müraciət göndərildi.');
                 if (isAdminRole(activeUser?.role)) refreshAdminStats({ render: true });
             } catch (error) {
-                if (errorBox) { errorBox.textContent = error.message || 'Müraciət göndərilmədi.'; errorBox.classList.remove('hidden'); }
+                if (errorBox) { errorBox.textContent = 'Müraciət göndərilmədi. Zəhmət olmasa yenidən cəhd edin.'; errorBox.classList.remove('hidden'); }
             } finally {
                 if (button) { button.disabled = false; button.textContent = 'Göndər'; }
             }
@@ -12692,6 +12732,16 @@ Təşəkkür edirəm. 🙏`;
             switchOfficialModalTab('details');
         }
 
+        function incrementProjectView(project) {
+            if (!project?.id) return;
+            void apiRequest(`/api/projects/${project.id}/view`, { method: 'POST' }).then(result => {
+                if (result?.viewCount != null) {
+                    updateProjectInCache(project.id, { viewCount: result.viewCount });
+                    if (activeOfficialProject && String(activeOfficialProject.id) === String(project.id)) activeOfficialProject.viewCount = result.viewCount;
+                }
+            }).catch(() => {});
+        }
+
         function openOfficialProjectModal(id, pushRoute = false) {
             const projects = getOfficialProjectNavigationProjects();
             const project = projects.find(item => String(item.id) === String(id) || item.slug === id)
@@ -12699,9 +12749,7 @@ Təşəkkür edirəm. 🙏`;
             if (!project) return;
             if (!projects.some(item => String(item.id) === String(project.id))) officialProjectNavigationProjects = getOfficialProjects();
             renderOfficialProjectModalContent(project);
-            void apiRequest(`/api/projects/${project.id}/view`, { method: 'POST' }).then(result => {
-                if (result?.viewCount != null) updateProjectInCache(project.id, { viewCount: result.viewCount });
-            }).catch(() => {});
+            incrementProjectView(project);
             if (pushRoute) history.pushState({ route: 'project', id: project.id }, '', projectPath(project));
             document.getElementById('project-detail-modal-official').classList.remove('hidden');
             resetOfficialProjectModalScroll();
@@ -12721,6 +12769,7 @@ Təşəkkür edirəm. 🙏`;
 
             officialProjectTransitionTimer = window.setTimeout(() => {
                 renderOfficialProjectModalContent(nextProject);
+                incrementProjectView(nextProject);
                 history.replaceState({ route: 'project', id: nextProject.id }, '', projectPath(nextProject));
                 resetOfficialProjectModalScroll();
                 content.classList.remove('is-leaving-next', 'is-leaving-prev');
@@ -12938,7 +12987,7 @@ Təşəkkür edirəm. 🙏`;
                 const active = name === tab;
                 if (button) {
                     const hidden = button.classList.contains('hidden');
-                    button.className = `${hidden ? 'hidden ' : ''}pb-3 border-b-2 ${active ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-400 hover:text-white'} font-bold text-sm`;
+                    button.className = `${hidden ? 'hidden ' : ''}op-modal-tab-pill${active ? ' is-active' : ''}`;
                     button.setAttribute('aria-selected', String(active));
                     button.setAttribute('role', 'tab');
                     button.setAttribute('aria-controls', `op-tab-${name}`);
@@ -14319,7 +14368,7 @@ Təşəkkür edirəm. 🙏`;
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
-            if (isAdmin && ['seabreeze-manager','projects-manager'].includes(subtab)) refreshAdminStats({ render: true });
+            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries'].includes(subtab)) refreshAdminStats({ render: true });
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
@@ -14977,10 +15026,10 @@ Təşəkkür edirəm. 🙏`;
                                     <span><i class="fa-solid fa-expand mr-1 text-brand-500"></i>${project.area}</span>
                                 </div>
                                 <p class="text-[11px] text-gray-400 line-clamp-2">${project.desc}</p>
-                                <div class="grid grid-cols-3 gap-2 text-[10px] font-bold text-gray-300">
-                                    <span class="rounded-lg bg-white/5 px-2 py-1">👁 ${Number(project.viewCount || 0).toLocaleString('az-AZ')}</span>
-                                    <span class="rounded-lg bg-white/5 px-2 py-1">🖱 ${Number(project.clickCount || 0).toLocaleString('az-AZ')}</span>
-                                    <span class="rounded-lg bg-white/5 px-2 py-1">💬 ${Number(project.inquiryCount || 0).toLocaleString('az-AZ')}</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] font-bold text-gray-300">
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">👁 Baxışlar: ${Number(project.viewCount || 0).toLocaleString('az-AZ')}</span>
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">🖱 Kliklər: ${Number(project.clickCount || 0).toLocaleString('az-AZ')}</span>
+                                    <span class="rounded-lg bg-white/5 px-2 py-1">💬 Maraqlanmalar: ${Number(project.inquiryCount || 0).toLocaleString('az-AZ')}</span>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="inline-flex w-fit items-center rounded-full bg-white/5 border border-white/10 px-2 py-1 text-[10px] text-gray-300">Slug: ${project.slug || '—'}</span>
@@ -15572,7 +15621,8 @@ Təşəkkür edirəm. 🙏`;
                 activeAds: stats.adsActive ?? stats.activeAds ?? 0,
                 totalProjectViews: stats.totalProjectViews ?? 0,
                 totalProjectClicks: stats.totalProjectClicks ?? 0,
-                totalProjectInquiries: stats.totalProjectInquiries ?? 0
+                totalProjectInquiries: stats.totalProjectInquiries ?? 0,
+                projectInquiriesTotal: stats.projectInquiriesTotal ?? stats.totalProjectInquiries ?? 0
             };
         }
 
@@ -15592,7 +15642,7 @@ Təşəkkür edirəm. 🙏`;
                 return overview;
             } catch (error) {
                 appData.dashboardStats = null;
-                appData.dashboardStatsError = 'Statistika yüklənmədi. Yenidən cəhd edin.';
+                appData.dashboardStatsError = 'Statistika yüklənmədi';
                 console.warn('Admin statistika oxunmadı:', error.message);
                 return null;
             } finally {
@@ -15635,7 +15685,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (appData.dashboardStatsLoading && !appData.dashboardStats) return renderDashboardSkeletonCards();
             if (appData.dashboardStatsError && !appData.dashboardStats) {
-                container.innerHTML = `<div class="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-black text-red-200">Statistika yüklənmədi. Yenidən cəhd edin.</div>`;
+                container.innerHTML = `<div class="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-black text-red-200">Statistika yüklənmədi</div>`;
                 return;
             }
             const stats = getDashboardStats();
@@ -15657,6 +15707,7 @@ Təşəkkür edirəm. 🙏`;
                 ['Layihə baxışları', stats.totalProjectViews, 'fa-eye', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
                 ['Layihə klikləri', stats.totalProjectClicks, 'fa-computer-mouse', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
                 ['Layihə maraqlanmaları', stats.totalProjectInquiries, 'fa-comments', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
+                ['Müraciət cəmi', stats.projectInquiriesTotal, 'fa-inbox', 'from-teal-500/20 to-teal-500/5 text-teal-300'],
             ];
             container.innerHTML = cards.map(([label, value, icon, classes]) => `
                 <div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
@@ -15677,6 +15728,14 @@ Təşəkkür edirəm. 🙏`;
             });
         }
 
+
+        function setAdminListingStatusFilter(status = 'all') {
+            const normalized = ['all', 'pending', 'approved', 'rejected', 'archived'].includes(status) ? status : 'all';
+            adminListingStatusFilter = normalized;
+            syncAdminListingStatusFilters();
+            renderAdminDashboard();
+        }
+
         async function loadProjectInquiries() {
             if (!isAdminRole(activeUser?.role)) return;
             const select = document.getElementById('project-inquiry-project-filter');
@@ -15687,16 +15746,18 @@ Təşəkkür edirəm. 🙏`;
             }
             const q = document.getElementById('project-inquiry-search')?.value.trim() || '';
             const projectId = select?.value && select.value !== 'all' ? select.value : '';
+            const status = document.getElementById('project-inquiry-status-filter')?.value || 'all';
             const params = new URLSearchParams();
             if (q) params.set('q', q);
             if (projectId) params.set('projectId', projectId);
+            if (status !== 'all') params.set('status', status);
             const list = document.getElementById('admin-project-inquiries-list');
             if (list) list.innerHTML = '<div class="glass-card rounded-2xl p-5 text-sm font-bold text-gray-300"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Müraciətlər yüklənir...</div>';
             try {
                 appData.projectInquiries = await apiRequest(`/api/projects/inquiries${params.toString() ? `?${params}` : ''}`);
                 renderProjectInquiries();
             } catch (error) {
-                if (list) list.innerHTML = `<div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-bold text-red-200">Müraciətlər yüklənmədi: ${escapeHtml(error.message)}</div>`;
+                if (list) list.innerHTML = '<div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-bold text-red-200">Müraciətlər yüklənmədi.</div>';
             }
         }
 
@@ -15721,9 +15782,10 @@ Təşəkkür edirəm. 🙏`;
                         <p class="text-[10px] text-gray-500">${row.createdAt ? new Date(row.createdAt).toLocaleString('az-AZ') : ''}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="updateProjectInquiryStatus(${row.id}, 'contacted')" class="rounded-lg bg-blue-500/10 px-3 py-2 text-[10px] font-bold text-blue-300 hover:bg-blue-500 hover:text-white">Mark contacted</button>
-                        <button onclick="updateProjectInquiryStatus(${row.id}, 'closed')" class="rounded-lg bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500 hover:text-white">Mark closed</button>
-                        <button onclick="deleteProjectInquiry(${row.id})" class="rounded-lg bg-red-500/10 px-3 py-2 text-[10px] font-bold text-red-300 hover:bg-red-500 hover:text-white">Delete</button>
+                        <button onclick="updateProjectInquiryStatus(${row.id}, 'new')" class="rounded-lg bg-white/10 px-3 py-2 text-[10px] font-bold text-gray-200 hover:bg-white/20">Yeni</button>
+                        <button onclick="updateProjectInquiryStatus(${row.id}, 'contacted')" class="rounded-lg bg-blue-500/10 px-3 py-2 text-[10px] font-bold text-blue-300 hover:bg-blue-500 hover:text-white">Əlaqə saxlanıldı</button>
+                        <button onclick="updateProjectInquiryStatus(${row.id}, 'closed')" class="rounded-lg bg-emerald-500/10 px-3 py-2 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500 hover:text-white">Bağla</button>
+                        <button onclick="deleteProjectInquiry(${row.id})" class="rounded-lg bg-red-500/10 px-3 py-2 text-[10px] font-bold text-red-300 hover:bg-red-500 hover:text-white">Sil</button>
                     </div>
                 </article>
             `).join('');
@@ -15733,7 +15795,8 @@ Təşəkkür edirəm. 🙏`;
             try {
                 await apiRequest(`/api/projects/inquiries/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
                 await loadProjectInquiries();
-            } catch (error) { alert('Status yenilənmədi: ' + error.message); }
+                await refreshAdminStats({ render: true }).catch(() => {});
+            } catch (_error) { alert('Status yenilənmədi.'); }
         }
 
         async function deleteProjectInquiry(id) {
@@ -15742,7 +15805,7 @@ Təşəkkür edirəm. 🙏`;
                 await apiRequest(`/api/projects/inquiries/${id}`, { method: 'DELETE' });
                 await loadProjectInquiries();
                 await refreshAdminStats({ render: true }).catch(() => {});
-            } catch (error) { alert('Müraciət silinmədi: ' + error.message); }
+            } catch (_error) { alert('Müraciət silinmədi.'); }
         }
 
         function renderAdminDashboard() {
