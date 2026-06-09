@@ -5816,12 +5816,17 @@ Title: CASPIAN DREAM LINER
 
             <!-- SUBTAB 6: ADVERTISEMENT MANAGEMENT -->
             <div id="admin-subtab-ads-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
-                    <div>
-                        <h3 class="text-base font-bold text-white" id="ad-form-title">Yeni Reklam</h3>
-                        <p class="text-[11px] text-gray-400 mt-1">Desktop reklamlar 1200px-dən kiçik ekranlarda gizlədilir.</p>
-                    </div>
-                    <form onsubmit="handleSaveAd(event)" oninput="updateAdPreview()" class="space-y-3">
+                <div class="lg:col-span-5 space-y-4">
+                    <button type="button" id="ad-form-toggle-btn" onclick="toggleAdForm()" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Reklam</button>
+                    <div id="admin-ad-form-card" class="hidden glass-card p-6 rounded-2xl space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-base font-bold text-white" id="ad-form-title">Yeni Reklam</h3>
+                                <p class="text-[11px] text-gray-400 mt-1">Desktop reklamlar 1200px-dən kiçik ekranlarda gizlədilir.</p>
+                            </div>
+                            <button type="button" onclick="closeAdForm()" class="shrink-0 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-gray-200 hover:bg-white/20">Bağla</button>
+                        </div>
+                        <form onsubmit="handleSaveAd(event)" oninput="updateAdPreview()" class="space-y-3">
                         <input type="hidden" id="edit-ad-id">
                         <input type="text" id="ad-title" required placeholder="Title" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
                         <div class="grid grid-cols-2 gap-3">
@@ -5876,7 +5881,8 @@ Title: CASPIAN DREAM LINER
                             <button type="submit" id="ad-save-submit-btn" class="async-submit-btn bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
                             <button type="button" onclick="resetAdForm()" class="bg-white/5 border border-white/10 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Təmizlə</button>
                         </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
                 <div class="lg:col-span-7 space-y-4">
                     <div id="admin-ad-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
@@ -6985,6 +6991,8 @@ Title: CASPIAN DREAM LINER
         let currentAdminSubtab = 'seabreeze-manager';
 
         function renderDashboardSubtabButtons(activeSubtab = currentAdminSubtab || 'seabreeze-manager') {
+            activeSubtab = normalizeAdminSubtab(activeSubtab) || 'seabreeze-manager';
+            currentAdminSubtab = normalizeAdminSubtab(currentAdminSubtab) || activeSubtab;
             const container = document.getElementById('admin-subtabs-container');
             if (!container) return;
             const isAdmin = isAdminRole(activeUser?.role);
@@ -7565,17 +7573,6 @@ Title: CASPIAN DREAM LINER
             return ads.map(ad => [ad.id, ad.rotationOrder, ad.repeatCount, ad.displayDuration, ad.mediaType, ad.position].join(':')).join('|');
         }
 
-        function logAktivRotationAds(ads = []) {
-            console.log('Aktiv Ads:', ads.map(ad => ({
-                id: ad.id,
-                rotationOrder: ad.rotationOrder,
-                repeatCount: ad.repeatCount,
-                displayDuration: ad.displayDuration,
-                mediaType: ad.mediaType,
-                position: ad.position
-            })));
-        }
-
         function clearAdRotationTimer() {
             if (adRotationState.timer) {
                 clearTimeout(adRotationState.timer);
@@ -7597,7 +7594,6 @@ Title: CASPIAN DREAM LINER
             const currentAd = ads[adRotationState.index] || ads[0];
             const repeatCount = adDimension(currentAd.repeatCount, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT);
             adRotationState.repeat += 1;
-            console.log('Ad Repeat Count:', { id: currentAd.id, repeat: adRotationState.repeat, repeatCount });
             if (adRotationState.repeat >= repeatCount) {
                 adRotationState.index = (adRotationState.index + 1) % ads.length;
                 adRotationState.repeat = 0;
@@ -7637,7 +7633,6 @@ Title: CASPIAN DREAM LINER
                 return;
             }
             const ads = visibleRotationAds();
-            logAktivRotationAds(ads);
             if (!ads.length) {
                 left.innerHTML = '';
                 right.innerHTML = '';
@@ -7702,6 +7697,42 @@ Title: CASPIAN DREAM LINER
                 .sort((a, b) => (Number(a.rotationOrder || 0) - Number(b.rotationOrder || 0)) || (Number(a.displayOrder || 0) - Number(b.displayOrder || 0)) || Number(a.id || 0) - Number(b.id || 0));
         }
 
+
+        let isAdFormOpen = false;
+
+        function setAdFormOpen(isOpen) {
+            isAdFormOpen = Boolean(isOpen);
+            const formCard = document.getElementById('admin-ad-form-card');
+            const toggleBtn = document.getElementById('ad-form-toggle-btn');
+            if (formCard) formCard.classList.toggle('hidden', !isAdFormOpen);
+            if (toggleBtn) toggleBtn.textContent = isAdFormOpen ? 'Bağla' : '+ Yeni Reklam';
+        }
+
+        function openAdForm() {
+            setAdFormOpen(true);
+        }
+
+        function closeAdForm() {
+            resetAdForm();
+            setAdFormOpen(false);
+        }
+
+        function toggleAdForm() {
+            if (isAdFormOpen) closeAdForm();
+            else { resetAdForm(); openAdForm(); }
+        }
+
+        function extractResponseItems(response, keys = []) {
+            if (Array.isArray(response)) return response;
+            for (const key of keys) {
+                const value = response?.[key];
+                if (Array.isArray(value)) return value;
+            }
+            if (Array.isArray(response?.data?.items)) return response.data.items;
+            if (Array.isArray(response?.data)) return response.data;
+            return [];
+        }
+
         function adminAdMediaPreview(ad) {
             return `<div class="w-24 h-28 shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center">${renderAdMedia(ad, 'w-full h-full', { loop: true })}</div>`;
         }
@@ -7750,11 +7781,14 @@ Title: CASPIAN DREAM LINER
                         <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-bold text-gray-300">
                             <span class="rounded-lg bg-white/5 px-2 py-1">Tip: ${escapeHtml(ad.mediaType || 'image')}</span>
                             <span class="rounded-lg bg-white/5 px-2 py-1">Yer: ${escapeHtml(ad.position || 'left')}</span>
+                            <span class="rounded-lg bg-white/5 px-2 py-1">Sıra: ${Number(ad.displayOrder ?? index + 1)} / ${Number(ad.rotationOrder ?? index + 1)}</span>
                             <span class="rounded-lg bg-white/5 px-2 py-1">👁 ${Number(ad.viewCount || 0).toLocaleString('az-AZ')}</span>
                             <span class="rounded-lg bg-white/5 px-2 py-1">🖱 ${Number(ad.clickCount || 0).toLocaleString('az-AZ')}</span>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <button type="button" onclick="moveAd(${ad.id}, -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-3 py-2 bg-white/5 hover:bg-white/15 rounded-xl transition disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button type="button" onclick="moveAd(${ad.id}, 1)" ${index === ads.length - 1 ? 'disabled' : ''} class="text-gray-300 px-3 py-2 bg-white/5 hover:bg-white/15 rounded-xl transition disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button>
                         <button type="button" onclick="editAd(${ad.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
                         <button type="button" onclick="toggleAdStatus(${ad.id}, ${!ad.isActive})" class="${ad.isActive ? 'text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500' : 'text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500'} hover:text-white px-3 py-2 rounded-xl transition">${ad.isActive ? 'Deaktiv et' : 'Aktiv et'}</button>
                         <button type="button" onclick="deleteAd(${ad.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
@@ -7774,14 +7808,13 @@ Title: CASPIAN DREAM LINER
                     apiRequest('/api/site-ads?admin=true', { authRedirect: false }),
                     apiRequest('/api/site-ads/stats', { authRedirect: false }).catch(() => null)
                 ]);
-                const rows = Array.isArray(adsResponse) ? adsResponse : (adsResponse?.items || adsResponse?.data || []);
+                const rows = extractResponseItems(adsResponse, ['ads', 'items']);
                 cacheData('ads', rows.map(dbAdToUi));
                 if (statsResponse) appData.adStats = statsResponse;
                 dataLoadState.ads.loaded = true;
                 return appData.ads;
             } catch (error) {
                 dataLoadState.ads.error = 'Məlumat yüklənmədi. Yenidən cəhd edin.';
-                console.warn('Admin reklamları oxunmadı:', error.message);
                 return appData.ads || [];
             } finally {
                 dataLoadState.ads.loading = false;
@@ -7827,6 +7860,7 @@ Title: CASPIAN DREAM LINER
                 const saved = await apiRequest(editId ? `/api/site-ads/${editId}` : '/api/site-ads', editId ? 'PUT' : 'POST', buildAdFormData());
                 if (saved) upsertCachedItem('ads', dbAdToUi(saved));
                 resetAdForm();
+                setAdFormOpen(false);
                 await refreshAdsAndStats();
             } catch (error) {
                 alert('Reklam yadda saxlanılmadı: ' + error.message);
@@ -7857,6 +7891,7 @@ Title: CASPIAN DREAM LINER
             const file = document.getElementById('ad-media-file');
             if (file) file.value = '';
             document.getElementById('ad-form-title').textContent = 'Reklamı Redaktə Et';
+            openAdForm();
             updateAdPreview();
         }
 
@@ -7917,6 +7952,20 @@ Title: CASPIAN DREAM LINER
 
         function getAdminAdOrderFromDom() {
             return Array.from(document.querySelectorAll('#admin-ads-list .admin-ad-card')).map(card => String(card.dataset.adId || '')).filter(Boolean);
+        }
+
+
+        async function moveAd(id, direction) {
+            const ads = adminAdOrder();
+            const index = ads.findIndex(ad => String(ad.id) === String(id));
+            const nextIndex = index + Number(direction || 0);
+            if (index < 0 || nextIndex < 0 || nextIndex >= ads.length) return;
+            const reordered = ads.slice();
+            const [item] = reordered.splice(index, 1);
+            reordered.splice(nextIndex, 0, item);
+            cacheData('ads', reordered.map((ad, orderIndex) => ({ ...ad, displayOrder: orderIndex + 1, rotationOrder: orderIndex + 1 })));
+            renderAdminAds();
+            await persistAdOrderFromDom();
         }
 
         async function persistAdOrderFromDom() {
@@ -13825,7 +13874,6 @@ Təşəkkür edirəm. 🙏`;
                 item.mediaType === 'video' &&
                 item.isFeatured === true
             );
-            console.log('FOUND GALLERY HERO:', heroVideo);
             return heroVideo ? [heroVideo] : [];
         }
 
@@ -13879,11 +13927,10 @@ Təşəkkür edirəm. 🙏`;
             try {
                 const response = await apiRequest(`/api/gallery?page=${page}&limit=${GALLERY_PAGE_LIMIT}`);
                 const payload = Array.isArray(response) ? { items: response } : (response || {});
-                const records = payload.items || payload.data || [];
-                galleryPagination = { page: payload.page || page, limit: payload.limit || GALLERY_PAGE_LIMIT, total: payload.total || records.length, totalPages: payload.totalPages || 1 };
+                const records = extractResponseItems(payload, ['items', 'gallery']);
+                galleryPagination = { page: payload.page || payload.data?.page || page, limit: payload.limit || payload.data?.limit || GALLERY_PAGE_LIMIT, total: payload.total || payload.data?.total || records.length, totalPages: payload.totalPages || payload.data?.totalPages || 1 };
                 appData.gallery = records.map(dbGalleryToUi);
                 cacheData('gallery', appData.gallery);
-                console.info('[admin-gallery] loaded', appData.gallery.length);
             } catch (error) {
                 dataLoadState.gallery.error = 'Məlumat yüklənmədi. Yenidən cəhd edin.';
                 console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
@@ -13907,11 +13954,10 @@ Təşəkkür edirəm. 🙏`;
             galleryHeroToggleSubmittingId = String(id);
             renderAdminDashboard();
             try {
-                const response = await apiRequest(`/api/gallery/${encodeURIComponent(id)}/hero`, {
+                await apiRequest(`/api/gallery/${encodeURIComponent(id)}/hero`, {
                     method: 'POST',
                     body: JSON.stringify({ isFeatured: Boolean(isFeatured) })
                 });
-                console.log('GALLERY HERO API RESPONSE:', response);
                 await loadGallery();
                 renderAdminGallery();
                 renderPortfolio();
@@ -14641,9 +14687,14 @@ Təşəkkür edirəm. 🙏`;
             'user-profile': '/profil/melumatlar'
         };
 
+        function normalizeAdminSubtab(subtab) {
+            const key = String(subtab || '').trim().toLowerCase();
+            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', gallery: 'gallery-manager', 'media-gallery': 'gallery-manager', qalereya: 'gallery-manager', 'media-qalereya': 'gallery-manager' };
+            return subtabAliases[key] || subtab;
+        }
+
         function switchAdminSubtab(subtab, options = {}) {
-            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', gallery: 'gallery-manager', qalereya: 'gallery-manager' };
-            subtab = subtabAliases[String(subtab || '').trim()] || subtab;
+            subtab = normalizeAdminSubtab(subtab);
             const isAdmin = isAdminRole(activeUser?.role);
             currentAdminSubtab = subtab || currentAdminSubtab;
             const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
@@ -14694,6 +14745,7 @@ Təşəkkür edirəm. 🙏`;
                 void loadGalleryPage(galleryPagination.page || 1);
             }
             if (subtab === 'ads-manager') {
+                setAdFormOpen(false);
                 renderAdminDashboard();
                 void loadAdminAds({ force: true });
             }
@@ -17608,6 +17660,8 @@ Təşəkkür edirəm. 🙏`;
         const ADMIN_QUERY_TAB_SUBTABS = {
             qalereya: 'gallery-manager',
             gallery: 'gallery-manager',
+            'media-gallery': 'gallery-manager',
+            'media-qalereya': 'gallery-manager',
             ads: 'ads-manager',
             reklam: 'ads-manager',
             advertisements: 'ads-manager',
@@ -17628,6 +17682,8 @@ Təşəkkür edirəm. 🙏`;
             '/admin/listings': 'seabreeze-manager',
             '/admin/qalereya': 'gallery-manager',
             '/admin/gallery': 'gallery-manager',
+            '/admin/media-gallery': 'gallery-manager',
+            '/admin/media-qalereya': 'gallery-manager',
             '/admin/ads': 'ads-manager',
             '/admin/reklam': 'ads-manager',
             '/admin/advertisements': 'ads-manager',
@@ -17643,7 +17699,6 @@ Təşəkkür edirəm. 🙏`;
         };
 
         function openAuthenticatedRoute(tabId, pendingPath) {
-            console.log('ROUTE RESTORE USER:', activeUser);
             if (!activeUser) {
                 setPendingAuthRoute(pendingPath || window.location.pathname + window.location.search + window.location.hash);
                 switchTab('admin-login', { skipPush: true });
@@ -17663,13 +17718,11 @@ Təşəkkür edirəm. 🙏`;
                 if (dashboard) dashboard.insertAdjacentHTML('afterbegin', '<div class="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200" id="admin-access-denied-route">Bu admin bölməsinə giriş icazəniz yoxdur.</div>');
                 return;
             }
-            console.log('OPEN ADMIN SUBTAB:', subtab);
             switchAdminSubtab(subtab, { skipPush: true });
         }
 
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
-            console.log('INITIAL PATH:', path);
             if (ADMIN_ROUTE_SUBTABS[path]) {
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
                 routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
@@ -17817,7 +17870,6 @@ Təşəkkür edirəm. 🙏`;
 
         window.addEventListener('DOMContentLoaded', async () => {
             const initialPath = window.location.pathname;
-            console.log('INITIAL PATH:', initialPath);
             updateMobileModalMetrics();
             renderProjectImageInputs(['']);
             bootstrapCachedData();

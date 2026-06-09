@@ -10,9 +10,6 @@ const BRAND_COLOR = [127 / 255, 127 / 255, 255 / 255];
 const DARK = [15 / 255, 23 / 255, 42 / 255];
 const MUTED = [71 / 255, 85 / 255, 105 / 255];
 const LIGHT = [241 / 255, 245 / 255, 249 / 255];
-const LOGO_URL = 'https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG';
-const LOGO_MAX_WIDTH = 120;
-const LOGO_FALLBACK_BACKGROUND = '#ffffff';
 
 function cleanText(value, maxLength = 4000) {
   const text = String(value ?? '').replace(/\0/g, '').replace(/\r\n/g, '\n').trim();
@@ -106,41 +103,8 @@ async function prepareImage(url, width = 1200, height = 760) {
   }
 }
 
-async function prepareLogo(url) {
-  const source = await loadUrlBuffer(url);
-  if (!source) return null;
-  try {
-    const { data, info } = await sharp(source, { failOn: 'none' })
-      .rotate()
-      .resize({ width: LOGO_MAX_WIDTH, withoutEnlargement: true })
-      .flatten({ background: LOGO_FALLBACK_BACKGROUND })
-      .jpeg({ quality: 92, mozjpeg: true })
-      .toBuffer({ resolveWithObject: true });
-    return { buffer: data, width: info.width || LOGO_MAX_WIDTH, height: info.height || LOGO_MAX_WIDTH };
-  } catch (error) {
-    console.warn('[project-brochure-pdf] Logo conversion failed', { url, message: error.message });
-    return null;
-  }
-}
-
-function logoSize(logo, maxWidth = LOGO_MAX_WIDTH) {
-  if (!logo?.width || !logo?.height) return null;
-  const width = Math.min(maxWidth, logo.width);
-  return { width, height: (width * logo.height) / logo.width };
-}
-
-function drawLogo(doc, page, logo) {
-  const size = logoSize(logo);
-  if (!size) return null;
-  const y = PAGE_HEIGHT - MARGIN - size.height;
-  doc.image(page, logo, MARGIN, y, size.width, size.height);
-  return { ...size, x: MARGIN, y };
-}
-
-function sectionTopY(logo) {
-  const size = logoSize(logo);
-  if (!size) return PAGE_HEIGHT - MARGIN - 30;
-  return PAGE_HEIGHT - MARGIN - size.height - 28;
+function sectionTopY() {
+  return PAGE_HEIGHT - MARGIN - 30;
 }
 
 class PdfDoc {
@@ -270,11 +234,7 @@ function labelValue(doc, page, label, value, x, y, w) {
 async function generateProjectBrochurePdf(project) {
   const doc = new PdfDoc();
   const imageUrls = normalizeImages(project);
-  const [logoImage, ...projectImages] = await Promise.all([
-    prepareLogo(LOGO_URL),
-    ...imageUrls.map((url) => prepareImage(url, 1200, 760)),
-  ]);
-  const logo = doc.addImage(logoImage);
+  const projectImages = await Promise.all(imageUrls.map((url) => prepareImage(url, 1200, 760)));
   const images = projectImages.map((img) => doc.addImage(img)).filter(Boolean);
   const coverImage = images[0] || null;
 
@@ -283,15 +243,13 @@ async function generateProjectBrochurePdf(project) {
   doc.rect(page, 0, 0, PAGE_WIDTH, PAGE_HEIGHT, [0.98, 0.99, 1]);
   if (coverImage) doc.image(page, coverImage, 0, 260, PAGE_WIDTH, 430);
   doc.rect(page, 0, 0, PAGE_WIDTH, 310, [1, 1, 1]);
-  drawLogo(doc, page, logo);
   doc.text(page, 'PROJECT BROCHURE', MARGIN, 226, 10, { bold: true, color: BRAND_COLOR });
   doc.paragraph(page, project.title || 'Project', MARGIN, 190, PAGE_WIDTH - (MARGIN * 2), 34, 39, { bold: true, color: DARK, maxLines: 3 });
   doc.paragraph(page, project.description || '', MARGIN, 105, PAGE_WIDTH - (MARGIN * 2), 12, 16, { color: MUTED, maxLines: 4 });
   footer(doc, page, pageNo++);
 
   page = doc.addPage();
-  drawLogo(doc, page, logo);
-  let y = addSectionTitle(doc, page, 'Project information', sectionTopY(logo));
+  let y = addSectionTitle(doc, page, 'Project information', sectionTopY());
   const info = [
     ['Project name', project.title], ['Description', project.description], ['Area', project.area || project.areaRange], ['Floors', project.floorCount],
     ['Delivery date', project.deliveryDate], ['Buildings', project.buildingCount], ['Apartments', project.apartmentCount], ['Parking', project.parkingSpaces],
@@ -301,13 +259,12 @@ async function generateProjectBrochurePdf(project) {
     labelValue(doc, page, info[i][0], info[i][1], MARGIN, y, 235);
     if (info[i + 1]) labelValue(doc, page, info[i + 1][0], info[i + 1][1], 318, y, 235);
     y -= 56;
-    if (y < 100) { footer(doc, page, pageNo++); page = doc.addPage(); drawLogo(doc, page, logo); y = addSectionTitle(doc, page, 'Project information', sectionTopY(logo)); }
+    if (y < 100) { footer(doc, page, pageNo++); page = doc.addPage(); y = addSectionTitle(doc, page, 'Project information', sectionTopY()); }
   }
   footer(doc, page, pageNo++);
 
   page = doc.addPage();
-  drawLogo(doc, page, logo);
-  y = addSectionTitle(doc, page, 'Apartments and pricing', sectionTopY(logo));
+  y = addSectionTitle(doc, page, 'Apartments and pricing', sectionTopY());
   const pricing = [
     ['Apartment formats', project.apartmentFormats], ['Apartment areas', project.apartmentAreas || project.areaRange], ['Price per m2', project.pricePerM2],
     ['Total price', project.totalPrice], ['Bank mortgage', project.bankMortgage], ['Internal credit', project.internalCredit], ['Down payment', project.downPayment],
@@ -322,15 +279,14 @@ async function generateProjectBrochurePdf(project) {
     doc.text(page, '•', MARGIN + 3, y, 13, { bold: true, color: BRAND_COLOR });
     doc.paragraph(page, item, MARGIN + 20, y, PAGE_WIDTH - (MARGIN * 2) - 20, 11, 15, { color: DARK, maxLines: 2 });
     y -= 28;
-    if (y < 65) { footer(doc, page, pageNo++); page = doc.addPage(); drawLogo(doc, page, logo); y = addSectionTitle(doc, page, 'Infrastructure and features', sectionTopY(logo)); }
+    if (y < 65) { footer(doc, page, pageNo++); page = doc.addPage(); y = addSectionTitle(doc, page, 'Infrastructure and features', sectionTopY()); }
   });
   footer(doc, page, pageNo++);
 
   if (images.length) {
     for (let i = 0; i < images.length; i += 2) {
       page = doc.addPage();
-      drawLogo(doc, page, logo);
-      y = addSectionTitle(doc, page, i === 0 ? 'Image gallery' : 'Image gallery (continued)', sectionTopY(logo));
+      y = addSectionTitle(doc, page, i === 0 ? 'Image gallery' : 'Image gallery (continued)', sectionTopY());
       doc.image(page, images[i], MARGIN, 405, PAGE_WIDTH - (MARGIN * 2), 300);
       doc.text(page, `Image ${i + 1}`, MARGIN, 385, 10, { bold: true, color: MUTED });
       if (images[i + 1]) {
