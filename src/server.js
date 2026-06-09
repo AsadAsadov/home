@@ -26,6 +26,108 @@ app.set('json replacer', (_key, value) => {
 const port = process.env.PORT || 3000;
 const enableSecurityHeaders = process.env.ENABLE_SECURITY_HEADERS === 'true';
 
+const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://besthome.az').replace(/\/+$/, '');
+
+function escapeSitemapXml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function sitemapDate(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
+}
+
+function sitemapUrl(pathname, { lastmod = new Date(), changefreq = 'weekly', priority = '0.7' } = {}) {
+  const normalizedPath = String(pathname || '/').startsWith('/') ? String(pathname || '/') : `/${pathname}`;
+  return [
+    '  <url>',
+    `    <loc>${escapeSitemapXml(`${PUBLIC_SITE_URL}${normalizedPath}`)}</loc>`,
+    `    <lastmod>${sitemapDate(lastmod)}</lastmod>`,
+    `    <changefreq>${escapeSitemapXml(changefreq)}</changefreq>`,
+    `    <priority>${escapeSitemapXml(priority)}</priority>`,
+    '  </url>',
+  ].join('\n');
+}
+
+async function buildSitemapXml() {
+  const now = new Date();
+  const urls = [
+    sitemapUrl('/', { lastmod: now, changefreq: 'daily', priority: '1.0' }),
+    sitemapUrl('/projects', { lastmod: now, changefreq: 'daily', priority: '0.9' }),
+    sitemapUrl('/elanlar', { lastmod: now, changefreq: 'daily', priority: '0.9' }),
+    sitemapUrl('/vacancies', { lastmod: now, changefreq: 'weekly', priority: '0.6' }),
+    sitemapUrl('/gallery', { lastmod: now, changefreq: 'weekly', priority: '0.6' }),
+    sitemapUrl('/videos', { lastmod: now, changefreq: 'weekly', priority: '0.5' }),
+    sitemapUrl('/ipoteka-kalkulyatoru', { lastmod: now, changefreq: 'monthly', priority: '0.5' }),
+  ];
+
+  const [projectsResult, listingsResult, vacanciesResult, galleryResult] = await Promise.allSettled([
+    prisma.project.findMany({
+      where: { isArchived: false },
+      select: { id: true, slug: true, createdAt: true },
+      orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
+      take: 10000,
+    }),
+    prisma.listing.findMany({
+      where: { status: 'approved' },
+      select: { id: true, listingCode: true, approvedAt: true, createdAt: true },
+      orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
+      take: 29980,
+    }),
+    prisma.vacancy.findMany({
+      where: { isActive: true },
+      select: { id: true, slug: true, createdAt: true },
+      orderBy: { id: 'asc' },
+      take: 5000,
+    }),
+    prisma.gallery.findMany({
+      select: { id: true, mediaType: true, createdAt: true },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+      take: 5000,
+    }),
+  ]);
+
+  if (projectsResult.status === 'fulfilled') {
+    for (const project of projectsResult.value) {
+      urls.push(sitemapUrl(`/project/${project.slug || project.id}`, { lastmod: project.createdAt, changefreq: 'weekly', priority: '0.8' }));
+    }
+  } else {
+    console.warn('Sitemap projects skipped:', projectsResult.reason?.message || projectsResult.reason);
+  }
+
+  if (listingsResult.status === 'fulfilled') {
+    for (const listing of listingsResult.value) {
+      urls.push(sitemapUrl(`/listing/${listing.listingCode || listing.id}`, { lastmod: listing.approvedAt || listing.createdAt, changefreq: 'weekly', priority: '0.8' }));
+    }
+  } else {
+    console.warn('Sitemap listings skipped:', listingsResult.reason?.message || listingsResult.reason);
+  }
+
+  if (vacanciesResult.status === 'fulfilled') {
+    for (const vacancy of vacanciesResult.value) {
+      urls.push(sitemapUrl(`/vacancy/${vacancy.slug || vacancy.id}`, { lastmod: vacancy.createdAt, changefreq: 'weekly', priority: '0.6' }));
+    }
+  } else {
+    console.warn('Sitemap vacancies skipped:', vacanciesResult.reason?.message || vacanciesResult.reason);
+  }
+
+  if (galleryResult.status === 'fulfilled') {
+    for (const item of galleryResult.value) {
+      const pathPrefix = item.mediaType === 'video' ? '/video' : '/gallery';
+      urls.push(sitemapUrl(`${pathPrefix}/${item.id}`, { lastmod: item.createdAt, changefreq: 'monthly', priority: item.mediaType === 'video' ? '0.5' : '0.6' }));
+    }
+  } else {
+    console.warn('Sitemap gallery skipped:', galleryResult.reason?.message || galleryResult.reason);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+}
+
 function warnMissingRequiredEnv() {
   for (const name of ['JWT_SECRET', 'DATABASE_URL']) {
     if (!process.env[name]) console.warn(`WARNING: ${name} is missing`);
@@ -100,6 +202,16 @@ app.get('/robots.txt', (_req, res) => {
   res.type('text/plain');
   res.setHeader('Cache-Control', 'public, max-age=3600');
   res.send('User-agent: *\nAllow: /\n\nSitemap: https://besthome.az/sitemap.xml\n');
+});
+
+app.get('/sitemap.xml', async (_req, res, next) => {
+  try {
+    res.type('application/xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(await buildSitemapXml());
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
