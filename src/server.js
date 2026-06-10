@@ -39,6 +39,14 @@ const PUBLIC_SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://besthome.az').r
 
 
 const indexHtmlPath = path.join(process.cwd(), 'index.html');
+const publicDir = path.join(process.cwd(), 'public');
+const faviconAssets = Object.freeze({
+  '/favicon.ico': { filename: 'favicon.ico', contentType: 'image/x-icon' },
+  '/favicon.png': { filename: 'favicon.png', contentType: 'image/png' },
+  '/favicon-192.png': { filename: 'favicon-192.png', contentType: 'image/png' },
+  '/apple-touch-icon.png': { filename: 'apple-touch-icon.png', contentType: 'image/png' },
+});
+const faviconAssetPaths = Object.keys(faviconAssets);
 
 function routePathname(req) {
   return String(req.path || '/').split('?')[0] || '/';
@@ -303,6 +311,21 @@ const immutableAssetStaticOptions = {
 app.use('/uploads', express.static(uploadDir, uploadCacheStaticOptions));
 if (uploadsStaticDir !== uploadDir) app.use('/uploads', express.static(uploadsStaticDir, uploadCacheStaticOptions));
 app.use('/public/assets', express.static(path.join(process.cwd(), 'public/assets'), immutableAssetStaticOptions));
+
+app.get(faviconAssetPaths, (req, res, next) => {
+  const asset = faviconAssets[req.path];
+  if (!asset) return next();
+
+  res.type(asset.contentType);
+  res.setHeader('Cache-Control', 'public, max-age=2592000');
+  return res.sendFile(path.join(publicDir, asset.filename), (error) => {
+    if (!error) return;
+    if (error.code === 'ENOENT') {
+      return res.status(404).end();
+    }
+    return next(error);
+  });
+});
 
 app.get('/robots.txt', (_req, res) => {
   res.type('text/plain');

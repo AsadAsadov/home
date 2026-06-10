@@ -72,3 +72,41 @@ Write operations require `Authorization: Bearer <JWT>` unless the endpoint is a 
 - `JWT_SECRET` (Render can generate it)
 
 The build command runs `npm install && npx prisma generate` only. Run database migrations manually before or during deployment.
+
+## Production favicon assets
+
+The application advertises the site icon from the document `<head>` and the Express server reserves the exact favicon routes before the SPA fallback. Keep these icon files in `public/` on every production deployment, but do not commit the binary image/icon files to the repository:
+
+- `public/favicon.ico` served as `/favicon.ico` with `Content-Type: image/x-icon`
+- `public/favicon.png` served as `/favicon.png` with `Content-Type: image/png`
+- `public/favicon-192.png` served as `/favicon-192.png` with `Content-Type: image/png`
+- `public/apple-touch-icon.png` served as `/apple-touch-icon.png` with `Content-Type: image/png`
+
+Recommended Nginx overrides for the VPS:
+
+```nginx
+location = /favicon.ico {
+    alias /var/www/besthome/public/favicon.ico;
+    default_type image/x-icon;
+    access_log off;
+    expires 30d;
+}
+location = /apple-touch-icon.png {
+    alias /var/www/besthome/public/apple-touch-icon.png;
+    default_type image/png;
+    access_log off;
+    expires 30d;
+}
+location = /favicon-192.png {
+    alias /var/www/besthome/public/favicon-192.png;
+    default_type image/png;
+    access_log off;
+    expires 30d;
+}
+location = /favicon.png {
+    alias /var/www/besthome/public/favicon.png;
+    default_type image/png;
+    access_log off;
+    expires 30d;
+}
+```
