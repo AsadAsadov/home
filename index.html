@@ -9515,18 +9515,32 @@ Title: CASPIAN DREAM LINER
         }
 
 
-        function withHomepageTimeout(promise, label, timeoutMs = 1800) {
+        function withHomepageTimeout(promise, label, timeoutMs = 5000) {
             let timerId;
+            let didTimeout = false;
+            const sourcePromise = Promise.resolve(promise)
+                .then(value => ({ value, label }))
+                .catch(error => ({ error, label }));
             const timeout = new Promise(resolve => {
                 timerId = window.setTimeout(() => {
-                    console.warn(`${label} ${timeoutMs}ms ərzində cavab vermədi; səhifə mövcud məlumatlarla göstərilir.`);
+                    didTimeout = true;
+                    console.warn(`${label} ${timeoutMs}ms ərzində cavab vermədi; səhifə mövcud məlumatlarla göstərilir və cavab gələndə yenilənəcək.`);
                     resolve({ timedOut: true, label });
                 }, timeoutMs);
             });
-            return Promise.race([
-                Promise.resolve(promise).then(value => ({ value, label })).catch(error => ({ error, label })),
-                timeout
-            ]).finally(() => window.clearTimeout(timerId));
+            sourcePromise.finally(() => window.clearTimeout(timerId));
+            return Promise.race([sourcePromise, timeout]).then(result => ({ ...result, late: didTimeout && !result.timedOut }));
+        }
+
+        async function homepageApiRequestWithRetry(url, options = {}, retries = 1) {
+            try {
+                return await apiRequest(url, options);
+            } catch (error) {
+                if (retries <= 0) throw error;
+                console.warn(`${url} oxunmadı, bir dəfə yenidən cəhd edilir:`, error.message);
+                await new Promise(resolve => window.setTimeout(resolve, 700));
+                return homepageApiRequestWithRetry(url, options, retries - 1);
+            }
         }
 
         let activeTabId = null;
@@ -9589,20 +9603,23 @@ Title: CASPIAN DREAM LINER
         async function loadListingHeroPriority() {
             if (homepageHydration.listingHero) return;
             try {
-                const items = await apiRequest('/api/listing-hero-items').catch(() => []);
+                const items = await homepageApiRequestWithRetry('/api/listing-hero-items').catch(() => []);
                 homepageHydration.rawListingHeroItems = items;
                 cacheData('listingHeroItems', normalizeListingHeroItems(items));
             } catch (error) {
                 console.warn('Elan hero oxunmadı, cache istifadə olunur:', error.message);
             } finally {
                 homepageHydration.listingHero = true;
+                if (homepageHydration.initialHomepageLoaded || isTabAktiv('seabreeze')) {
+                    safeHomepageRender('listing hero', renderListingHero);
+                }
             }
         }
 
         async function loadHeroSlidesPriority() {
             if (homepageHydration.heroSlides) return;
             try {
-                const heroSlides = await apiRequest('/api/hero-slides').catch(() => []);
+                const heroSlides = await homepageApiRequestWithRetry('/api/hero-slides').catch(() => []);
                 homepageHydration.rawHeroSlides = heroSlides;
                 cacheData('heroSlides', normalizeHeroSlides(heroSlides, false));
                 isHeroSlidesLoaded = true;
@@ -9613,6 +9630,9 @@ Title: CASPIAN DREAM LINER
                 appData.heroSection = getRenderableHeroSlides()[0] || null;
             } finally {
                 homepageHydration.heroSlides = true;
+                if (homepageHydration.initialHomepageLoaded || isTabAktiv('seabreeze')) {
+                    safeHomepageRender('hero', renderSeaBreezeHero);
+                }
             }
         }
 
@@ -9622,7 +9642,7 @@ Title: CASPIAN DREAM LINER
             dataLoadState.projects.loading = true;
             if (shouldRender) renderOfficialProjects();
             try {
-                const projects = await apiRequest('/api/projects?all=true');
+                const projects = await homepageApiRequestWithRetry('/api/projects?all=true');
                 const projectRows = Array.isArray(projects) ? projects : (projects.data || []);
                 cacheData('projects', projectRows.map(dbProjectToUi));
             } catch (error) {
@@ -14115,114 +14135,156 @@ Təşəkkür edirəm. 🙏`;
             alert('Elan linki kopyalandı.');
         }
 
+        function findListingByIdentifier(identifier) {
+            const idText = String(identifier ?? '');
+            return (appData.listings || []).find(item =>
+                String(item.id ?? '') === idText ||
+                String(item.listingCode ?? item.listing_code ?? item.code ?? '') === idText
+            ) || null;
+        }
+
+        async function fetchListingDetail(identifier) {
+            const encodedId = encodeURIComponent(String(identifier ?? ''));
+            if (!encodedId) return null;
+            try {
+                return dbListingToUi(await apiRequest(`/api/listings/code/${encodedId}`));
+            } catch (codeError) {
+                try {
+                    return dbListingToUi(await apiRequest(`/api/listings/${encodedId}`));
+                } catch (idError) {
+                    console.warn('Elan detalları API-dən oxunmadı:', idError.message || codeError.message);
+                    return null;
+                }
+            }
+        }
+
         async function openPropertyModal(id, pushRoute = false) {
-            const list = appData.listings;
-            const p = list.find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
-            if (!p) return;
-            if (getAuthToken() && !homepageHydration.favorites) await loadFavoritesLazy();
-            activePropertyListing = p;
+            try {
+                let p = findListingByIdentifier(id);
+                if (!p) {
+                    p = await fetchListingDetail(id);
+                    if (p) upsertCachedItem('listings', p);
+                }
+                if (!p) {
+                    showToast('Elan məlumatları tapılmadı. Zəhmət olmasa yenidən cəhd edin.');
+                    return;
+                }
+                if (getAuthToken() && !homepageHydration.favorites) await loadFavoritesLazy();
 
-            if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
-            updateSeo({ title: listingSeoTitle(p), description: listingSeoDescription(p), path: listingPath(p), image: p.img, type: 'article' });
+                const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
+                const listingTitle = p.title || p.name || p.heading || 'Elan';
+                const listingPrice = Number(p.price);
+                const listingLocation = getListingLocationLabel(p) || p.locationLabel || p.project || p.city || '';
+                const listingImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
+                const listingDescription = p.desc || p.description || p.details || '';
+                const listingCode = p.listingCode || p.listing_code || p.code || p.id || '';
+                const listingOwner = p.user || appData.agents.find(a => String(a.id) === String(p.authorId || p.ownerId)) || null;
+                const listingPhone = listingOwner?.phone || p.ownerPhone || p.agentPhone || '';
 
-            const fallbackImage = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
-            activePropertyImages = Array.isArray(p.images) && p.images.length ? p.images : [p.img || fallbackImage].filter(Boolean);
-            activePropertyImageIndex = 0;
-            renderPropertyThumbnails(activePropertyImages);
-            setPropertyMainImage(0);
+                activePropertyListing = p;
 
-            const listingLabel = listingTypeLabel(p.listingType);
-            const isRent = canonicalListingType(p.listingType) === 'Kiraye';
-            const isDailyRent = canonicalListingType(p.listingType) === 'GunlukKiraye';
-            const categoryLabel = [...SEA_BREEZE_CATEGORIES, ...GENERAL_CATEGORIES].find(item => item.value === p.category)?.label || (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
-            const price = Number(p.price);
-            const area = Number(p.area);
-            const pricePerM2 = Number(p.pricePerM2 || (area && price ? price / area : 0));
+                if (pushRoute) history.pushState({ route: 'listing', id: p.id }, '', listingPath(p));
+                updateSeo({ title: listingSeoTitle(p), description: listingSeoDescription(p), path: listingPath(p), image: p.img, type: 'article' });
 
-            const typeBadge = document.getElementById('p-modal-type');
-            typeBadge.textContent = listingLabel;
-            typeBadge.className = `${listingTypeBadgeClass(p.listingType).replace('/90', '/10')} text-gray-900 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200`;
-            document.getElementById('p-modal-category').textContent = categoryLabel;
-            document.getElementById('p-modal-project').textContent = getListingLocationLabel(p);
-            document.getElementById('p-modal-badges').innerHTML = renderListingBadgeStack(p, true);
-            document.getElementById('p-modal-title').textContent = listingTitle;
-            const codeBadgeHtml = `<span id="p-modal-code" class="location-badge location-badge--code">Elan kodu: ${escapeHtml(formatListingCode(p.listingCode))}</span>`;
-            document.getElementById('p-modal-location-badges').innerHTML = `${renderLocationBadges(p)}${codeBadgeHtml}`;
-            document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
-            document.getElementById('p-modal-desc').textContent = listingDesc || 'Təsvir əlavə edilməyib.';
-            document.getElementById('p-modal-price').textContent = Number.isFinite(price) ? `${formatPrice(price, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
-            document.getElementById('p-modal-rooms').textContent = p.rooms ?? '—';
-            document.getElementById('p-modal-area').textContent = Number.isFinite(area) ? `${area.toLocaleString('az-AZ')} m²` : '—';
-            document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
-            const sqPriceEl = document.getElementById('p-modal-sqprice');
-            if (isSaleListing(p.listingType) && pricePerM2) {
-                sqPriceEl.textContent = `1 m²: ${formatPrice(Math.round(pricePerM2), p.currency)}`;
-                sqPriceEl.classList.remove('hidden');
-            } else {
-                sqPriceEl.textContent = '';
-                sqPriceEl.classList.add('hidden');
+                activePropertyImages = listingImages.length ? listingImages : [fallbackImage];
+                activePropertyImageIndex = 0;
+                renderPropertyThumbnails(activePropertyImages);
+                setPropertyMainImage(0);
+
+                const listingLabel = listingTypeLabel(p.listingType);
+                const isRent = canonicalListingType(p.listingType) === 'Kiraye';
+                const isDailyRent = canonicalListingType(p.listingType) === 'GunlukKiraye';
+                const categoryLabel = [...SEA_BREEZE_CATEGORIES, ...GENERAL_CATEGORIES].find(item => item.value === p.category)?.label || (p.category === 'Land' ? 'Torpaq' : 'Mənzil');
+                const area = Number(p.area);
+                const pricePerM2 = Number(p.pricePerM2 || (area && listingPrice ? listingPrice / area : 0));
+
+                const typeBadge = document.getElementById('p-modal-type');
+                typeBadge.textContent = listingLabel;
+                typeBadge.className = `${listingTypeBadgeClass(p.listingType).replace('/90', '/10')} text-gray-900 text-[10px] font-black px-3 py-1 rounded-full uppercase border border-slate-200`;
+                document.getElementById('p-modal-category').textContent = categoryLabel;
+                document.getElementById('p-modal-project').textContent = listingLocation;
+                document.getElementById('p-modal-badges').innerHTML = renderListingBadgeStack(p, true);
+                document.getElementById('p-modal-title').textContent = listingTitle;
+                const codeBadgeHtml = `<span id="p-modal-code" class="location-badge location-badge--code">Elan kodu: ${escapeHtml(formatListingCode(listingCode))}</span>`;
+                document.getElementById('p-modal-location-badges').innerHTML = `${renderLocationBadges(p)}${codeBadgeHtml}`;
+                document.getElementById('p-modal-date').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i>Paylaşılıb: ${formatAzDateTime(p.createdAt)}`;
+                document.getElementById('p-modal-desc').textContent = listingDescription || 'Təsvir əlavə edilməyib.';
+                document.getElementById('p-modal-price').textContent = Number.isFinite(listingPrice) ? `${formatPrice(listingPrice, p.currency)}${isRent ? ' /ay' : ''}${isDailyRent ? ' /gün' : ''}` : '—';
+                document.getElementById('p-modal-rooms').textContent = p.rooms ?? '—';
+                document.getElementById('p-modal-area').textContent = Number.isFinite(area) ? `${area.toLocaleString('az-AZ')} m²` : '—';
+                document.getElementById('p-modal-floor').textContent = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount);
+                const sqPriceEl = document.getElementById('p-modal-sqprice');
+                if (isSaleListing(p.listingType) && pricePerM2) {
+                    sqPriceEl.textContent = `1 m²: ${formatPrice(Math.round(pricePerM2), p.currency)}`;
+                    sqPriceEl.classList.remove('hidden');
+                } else {
+                    sqPriceEl.textContent = '';
+                    sqPriceEl.classList.add('hidden');
+                }
+
+                const visibleLocationLabel = listingLocation;
+                const compactStreetAddress = isListingLocationVisible(p) ? (p.streetAddress || visibleLocationLabel || '') : '';
+                document.getElementById('p-modal-street-address').textContent = compactStreetAddress ? `📌 ${compactStreetAddress}` : '';
+                const locationSection = document.getElementById('p-modal-location-section');
+                locationSection?.classList.toggle('hidden', !compactStreetAddress && !renderLocationBadges(p));
+                if (isListingLocationVisible(p)) renderListingDetailMap(p);
+
+                const creditPanel = document.getElementById('p-modal-credit');
+                if (creditPanel) {
+                    creditPanel.classList.toggle('hidden', !p.isCredit);
+                    document.getElementById('p-modal-credit-down').textContent = formatPrice(p.creditDownPayment, p.currency);
+                    document.getElementById('p-modal-credit-monthly').textContent = formatPrice(p.creditMonthlyPayment, p.currency);
+                    document.getElementById('p-modal-credit-years').textContent = p.creditYears ? `${p.creditYears} il` : '—';
+                }
+
+                const authorName = listingOwner
+                    ? (listingOwner.fullname || `${listingOwner.name || ''} ${listingOwner.surname || ''}`.trim() || 'BestHome Əmlak')
+                    : (p.ownerName || 'BestHome Əmlak');
+                const authorPhone = listingPhone;
+                const normalizedPhone = normalizePhoneForLink(authorPhone);
+                const phoneAvailable = Boolean(normalizedPhone);
+
+                document.getElementById('p-modal-agent-name').textContent = authorName;
+                document.getElementById('p-modal-agent-phone').textContent = authorPhone || 'Nömrə qeyd edilməyib';
+
+                const messageText = buildWhatsAppMessage(p, authorName);
+                const whatsappBtn = document.getElementById('p-modal-whatsapp-btn');
+                const callBtn = document.getElementById('p-modal-call-btn');
+                const updateContactAction = (btn, isAvailable, enabledClasses, disabledLabel) => {
+                    btn.classList.toggle('is-disabled', !isAvailable);
+                    btn.classList.toggle('opacity-50', !isAvailable);
+                    btn.classList.toggle('cursor-not-allowed', !isAvailable);
+                    btn.classList.toggle('shadow-none', !isAvailable);
+                    enabledClasses.forEach((className) => btn.classList.toggle(className, isAvailable));
+                    btn.setAttribute('aria-disabled', isAvailable ? 'false' : 'true');
+                    btn.setAttribute('aria-label', isAvailable ? btn.dataset.enabledLabel : disabledLabel);
+                    btn.tabIndex = isAvailable ? 0 : -1;
+                    if (!isAvailable) btn.removeAttribute('href');
+                };
+                whatsappBtn.dataset.enabledLabel = 'WhatsApp ilə əlaqə saxla';
+                callBtn.dataset.enabledLabel = 'Zəng et';
+                updateContactAction(whatsappBtn, phoneAvailable, ['bg-green-500', 'hover:bg-green-600', 'text-white'], 'WhatsApp nömrəsi mövcud deyil');
+                updateContactAction(callBtn, phoneAvailable, ['bg-blue-600', 'hover:bg-blue-700', 'text-white'], 'Zəng üçün nömrə mövcud deyil');
+                if (phoneAvailable) {
+                    whatsappBtn.href = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(messageText)}`;
+                    callBtn.href = `tel:${normalizedPhone}`;
+                }
+                document.getElementById('p-modal-share-top-btn').onclick = () => shareListing(p);
+                const messageBtn = document.getElementById('p-modal-message-btn');
+                if (messageBtn) messageBtn.onclick = () => startListingConversation(p.id);
+                const favoriteBtn = document.getElementById('p-modal-favorite-btn');
+                if (favoriteBtn) favoriteBtn.onclick = (event) => toggleFavorite(event, p.id);
+                renderFavoriteControlState(p.id);
+                const previewBanner = document.getElementById('p-modal-preview-banner');
+                if (previewBanner) previewBanner.classList.toggle('hidden', normalizeListingStatus(p.status) === 'approved');
+
+                document.getElementById('property-detail-modal').classList.remove('hidden');
+                setModalOpenState(true);
+                if (normalizeListingStatus(p.status) === 'approved') await trackListingView(p.id || id);
+            } catch (error) {
+                console.error('Elan modalı açıla bilmədi:', error);
+                showToast('Elan açılmadı. Zəhmət olmasa yenidən cəhd edin.');
             }
-
-            const visibleLocationLabel = getListingLocationLabel(p);
-            const compactStreetAddress = isListingLocationVisible(p) ? (p.streetAddress || visibleLocationLabel || '') : '';
-            document.getElementById('p-modal-street-address').textContent = compactStreetAddress ? `📌 ${compactStreetAddress}` : '';
-            const locationSection = document.getElementById('p-modal-location-section');
-            locationSection?.classList.toggle('hidden', !compactStreetAddress && !renderLocationBadges(p));
-            if (isListingLocationVisible(p)) renderListingDetailMap(p);
-
-            const creditPanel = document.getElementById('p-modal-credit');
-            if (creditPanel) {
-                creditPanel.classList.toggle('hidden', !p.isCredit);
-                document.getElementById('p-modal-credit-down').textContent = formatPrice(p.creditDownPayment, p.currency);
-                document.getElementById('p-modal-credit-monthly').textContent = formatPrice(p.creditMonthlyPayment, p.currency);
-                document.getElementById('p-modal-credit-years').textContent = p.creditYears ? `${p.creditYears} il` : '—';
-            }
-
-            const listingUser = p.user || appData.agents.find(a => String(a.id) === String(p.authorId)) || null;
-            const authorName = listingUser
-                ? (listingUser.fullname || `${listingUser.name || ''} ${listingUser.surname || ''}`.trim() || 'BestHome Əmlak')
-                : 'BestHome Əmlak';
-            const authorPhone = listingUser?.phone || p.ownerPhone || '';
-            const normalizedPhone = normalizePhoneForLink(authorPhone);
-            const phoneAvailable = Boolean(normalizedPhone);
-
-            document.getElementById('p-modal-agent-name').textContent = authorName;
-            document.getElementById('p-modal-agent-phone').textContent = authorPhone || 'Nömrə qeyd edilməyib';
-
-            const messageText = buildWhatsAppMessage(p, authorName);
-            const whatsappBtn = document.getElementById('p-modal-whatsapp-btn');
-            const callBtn = document.getElementById('p-modal-call-btn');
-            const updateContactAction = (btn, isAvailable, enabledClasses, disabledLabel) => {
-                btn.classList.toggle('is-disabled', !isAvailable);
-                btn.classList.toggle('opacity-50', !isAvailable);
-                btn.classList.toggle('cursor-not-allowed', !isAvailable);
-                btn.classList.toggle('shadow-none', !isAvailable);
-                enabledClasses.forEach((className) => btn.classList.toggle(className, isAvailable));
-                btn.setAttribute('aria-disabled', isAvailable ? 'false' : 'true');
-                btn.setAttribute('aria-label', isAvailable ? btn.dataset.enabledLabel : disabledLabel);
-                btn.tabIndex = isAvailable ? 0 : -1;
-                if (!isAvailable) btn.removeAttribute('href');
-            };
-            whatsappBtn.dataset.enabledLabel = 'WhatsApp ilə əlaqə saxla';
-            callBtn.dataset.enabledLabel = 'Zəng et';
-            updateContactAction(whatsappBtn, phoneAvailable, ['bg-green-500', 'hover:bg-green-600', 'text-white'], 'WhatsApp nömrəsi mövcud deyil');
-            updateContactAction(callBtn, phoneAvailable, ['bg-blue-600', 'hover:bg-blue-700', 'text-white'], 'Zəng üçün nömrə mövcud deyil');
-            if (phoneAvailable) {
-                whatsappBtn.href = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(messageText)}`;
-                callBtn.href = `tel:${normalizedPhone}`;
-            }
-            document.getElementById('p-modal-share-top-btn').onclick = () => shareListing(p);
-            const messageBtn = document.getElementById('p-modal-message-btn');
-            if (messageBtn) messageBtn.onclick = () => startListingConversation(p.id);
-            const favoriteBtn = document.getElementById('p-modal-favorite-btn');
-            if (favoriteBtn) favoriteBtn.onclick = (event) => toggleFavorite(event, p.id);
-            renderFavoriteControlState(p.id);
-            const previewBanner = document.getElementById('p-modal-preview-banner');
-            if (previewBanner) previewBanner.classList.toggle('hidden', normalizeListingStatus(p.status) === 'approved');
-
-            document.getElementById('property-detail-modal').classList.remove('hidden');
-            setModalOpenState(true);
-            if (normalizeListingStatus(p.status) === 'approved') await trackListingView(id);
         }
 
         function closePropertyModal({ updateRoute = true, immediateLightbox = false } = {}) {
