@@ -1188,20 +1188,39 @@
         @media (min-width: 641px) {
             .listing-hero-panel { padding: 1.15rem 1.25rem; }
         }
-        @media (max-width: 640px) {
-            .listing-hero-premium-badge {
+        @media (max-width: 768px) {
+            .listing-hero .listing-hero-premium-badge {
                 top: .8rem;
                 left: .8rem;
                 height: 38px;
                 font-size: 8px;
                 padding-inline: .7rem;
             }
-            .listing-hero-panel {
-                width: 90%;
-                max-width: 90%;
-                padding: .85rem;
+            .listing-hero .listing-hero-panel {
+                width: auto !important;
+                max-width: calc(100% - 32px) !important;
+                margin: 0 1rem .9rem !important;
+                padding: .85rem !important;
+                gap: .4rem;
+                z-index: 21;
             }
-            .listing-hero-stats span { font-size: 9px; }
+            .listing-hero .listing-hero-title {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                max-width: calc(100% - 32px);
+                font-size: clamp(1.15rem, 5vw, 1.55rem) !important;
+                line-height: 1.12 !important;
+                letter-spacing: .03em !important;
+            }
+            .listing-hero .listing-hero-price {
+                font-size: clamp(1.7rem, 8vw, 2.4rem);
+            }
+            .listing-hero .listing-hero-stats {
+                gap: .28rem;
+            }
+            .listing-hero .listing-hero-stats span { font-size: 9px; }
         }
         .hero-nav-arrow {
             position: absolute;
