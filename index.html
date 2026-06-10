@@ -4249,6 +4249,77 @@
                 font-size: .84rem !important;
                 line-height: 1 !important;
             }
+            #project-detail-modal-official .op-modal-hero {
+                height: clamp(220px, 60vw, 240px) !important;
+                min-height: 220px;
+            }
+            #project-detail-modal-official .op-modal-hero picture,
+            #project-detail-modal-official .op-modal-hero img {
+                height: 100%;
+                object-fit: cover;
+            }
+            #project-detail-modal-official .op-modal-hero-copy {
+                left: 12px !important;
+                right: 12px !important;
+                bottom: 12px !important;
+                max-width: calc(100% - 24px);
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: .35rem;
+            }
+            #project-detail-modal-official #op-modal-title {
+                display: -webkit-box;
+                max-width: min(100%, 28rem);
+                margin-top: 0 !important;
+                overflow: hidden;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                border: 1px solid rgba(255, 255, 255, .16);
+                border-radius: 14px;
+                background: rgba(15, 23, 42, .58);
+                padding: 9px 11px;
+                color: #fff;
+                font-size: clamp(1.25rem, 5.1vw, 1.4rem) !important;
+                font-weight: 800 !important;
+                line-height: 1.18 !important;
+                text-shadow: 0 1px 8px rgba(0, 0, 0, .36);
+                overflow-wrap: anywhere;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            #project-detail-modal-official #op-modal-year {
+                padding: .18rem .58rem !important;
+                font-size: .62rem !important;
+                line-height: 1.1 !important;
+                letter-spacing: .04em;
+                box-shadow: 0 8px 18px rgba(15, 23, 42, .18);
+            }
+            #project-detail-modal-official #op-modal-project-counter {
+                margin-top: 0;
+                padding: .18rem .5rem;
+                font-size: .62rem;
+                line-height: 1.1;
+            }
+            #project-detail-modal-official #op-modal-slider-controls {
+                padding-inline: 10px !important;
+                z-index: 12;
+            }
+            #project-detail-modal-official #op-modal-slider-controls button {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: .75rem;
+                background: rgba(15, 23, 42, .62) !important;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            #project-detail-modal-official #op-modal-image-counter {
+                top: 12px !important;
+                left: 12px !important;
+                padding: .22rem .55rem !important;
+                font-size: .62rem !important;
+            }
         }
 
         /* Project modal navigation and polished header controls. */
@@ -6188,7 +6259,7 @@ Title: CASPIAN DREAM LINER
                 <button type="button" onclick="closeOfficialProjectModal()" class="detail-close-btn" aria-label="Bağla">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
-                <div class="relative h-72 md:h-96 overflow-hidden">
+                <div class="op-modal-hero relative h-72 md:h-96 overflow-hidden">
                     <picture class="block w-full h-full imageMove">
                         <source id="op-modal-source-desktop" media="(min-width: 1024px)" srcset="">
                         <source id="op-modal-source-tablet" media="(min-width: 640px)" srcset="">
@@ -6200,7 +6271,7 @@ Title: CASPIAN DREAM LINER
                         <button onclick="changeOfficialProjectImage(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-brand-500 text-white flex items-center justify-center pointer-events-auto transition" aria-label="Növbəti layihə şəkli"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                     <div id="op-modal-image-counter" class="hidden absolute top-4 left-4 bg-black/50 text-white text-[10px] font-bold px-3 py-1 rounded-full z-10"></div>
-                    <div class="absolute bottom-6 left-6 md:left-8">
+                    <div class="op-modal-hero-copy absolute bottom-6 left-6 md:left-8">
                         <span id="op-modal-year" class="bg-brand-700 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase"></span>
                         <h3 id="op-modal-title" class="text-3xl font-extrabold text-white mt-2"></h3>
                         <p id="op-modal-project-counter" class="project-modal-counter"></p>
