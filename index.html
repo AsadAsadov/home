@@ -5927,11 +5927,9 @@ Title: CASPIAN DREAM LINER
             <!-- SUBTAB 5: GALLERY -->
             <div id="admin-subtab-gallery-manager" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-5 space-y-4">
-                    <button type="button" id="gallery-form-toggle-btn" onclick="window.toggleGalleryForm(event)" class="w-full glass-card p-4 rounded-2xl text-left text-sm font-black text-white bg-brand-500/20 hover:bg-brand-500/30 border border-brand-400/30 transition">+ Yeni Qalereya</button>
-                    <div id="admin-gallery-form-wrapper" class="hidden glass-card p-6 rounded-2xl space-y-4" style="display: none;">
+                    <div id="admin-gallery-form-wrapper" class="glass-card p-6 rounded-2xl space-y-4">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="text-base font-bold text-white" id="gallery-form-title">Yeni Qalereya</h3>
-                            <button type="button" onclick="window.closeGalleryForm(event)" class="shrink-0 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white">Bağla</button>
                         </div>
                     <form onsubmit="handleSaveGalleryItem(event)" class="space-y-3">
                         <input type="hidden" id="edit-g-id">
@@ -5959,10 +5957,7 @@ Title: CASPIAN DREAM LINER
                         </div>
 
                         <input type="text" id="g-desc" placeholder="Açıqlama" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
-                            <button type="button" onclick="window.closeGalleryForm(event)" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 font-bold py-2.5 rounded-xl text-sm">Bağla</button>
-                        </div>
+                        <button type="submit" id="gallery-save-submit-btn" class="w-full bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm">Saxla</button>
                     </form>
                     </div>
                 </div>
@@ -8804,6 +8799,14 @@ Title: CASPIAN DREAM LINER
         function openListingModal(listingId) {
             return openPropertyModal(String(listingId), false);
         }
+        window.openListingModal = window.openListingModal || openListingModal;
+        window.openListingDetail = window.openListingDetail || window.openListingModal;
+        window.showListingDetail = window.showListingDetail || window.openListingModal;
+
+        function getListingDetailModalOpener() {
+            return [window.openListingModal, window.openListingDetail, window.showListingDetail]
+                .find(fn => typeof fn === 'function');
+        }
 
         function isListingCardInteractiveClick(target) {
             if (!(target instanceof Element)) return true;
@@ -8815,29 +8818,32 @@ Title: CASPIAN DREAM LINER
                 'textarea',
                 'label',
                 '[role="button"]',
-                '[data-favorite-btn]',
-                '[data-share-btn]',
-                '[data-phone-btn]',
-                '[data-whatsapp-btn]',
                 '.favorite-btn',
                 '.share-btn',
                 '.heart-btn',
+                '.listing-action-btn',
+                '.admin-action-btn',
                 '.admin-listing-action',
                 '.listing-card-action',
-                '.listing-card-actions'
+                '.listing-card-actions',
+                '[data-favorite-btn]',
+                '[data-share-btn]',
+                '[data-phone-btn]',
+                '[data-whatsapp-btn]'
             ].join(',')));
         }
 
         function handleDelegatedListingCardClick(event) {
             if (event.defaultPrevented || isListingCardInteractiveClick(event.target)) return;
-            const card = event.target instanceof Element ? event.target.closest('[data-listing-id], .listing-card') : null;
+            const card = event.target instanceof Element ? event.target.closest('[data-listing-id]') : null;
             if (!card) return;
             const listingId = card.dataset?.listingId || card.getAttribute('data-listing-id');
             if (!listingId) return;
-            openListingModal(listingId);
+            const openDetailModal = getListingDetailModalOpener();
+            if (openDetailModal) openDetailModal(String(listingId));
         }
 
-        document.addEventListener('click', handleDelegatedListingCardClick, true);
+        document.addEventListener('click', handleDelegatedListingCardClick);
 
         function fillHeroAdminForm(slide = null) {
             const fallbackType = slide ? 'custom' : 'project';
@@ -17622,67 +17628,47 @@ Təşəkkür edirəm. 🙏`;
 
 
         // SAVE & MANAGE GALLERY (EVENTS / VIDEOS)
-        let isGalleryFormOpen = false;
+        let isGalleryFormOpen = true;
 
         function getGalleryFormWrapper() {
             return document.getElementById('admin-gallery-form-wrapper') || document.getElementById('admin-gallery-form-card');
         }
 
-        function setGalleryFormOpen(isOpen) {
-            isGalleryFormOpen = Boolean(isOpen);
+        function setGalleryFormOpen() {
+            isGalleryFormOpen = true;
             const wrapper = getGalleryFormWrapper();
-            const toggleButton = document.getElementById('gallery-form-toggle-btn');
             if (wrapper) {
-                wrapper.classList.toggle('hidden', !isGalleryFormOpen);
-                wrapper.hidden = !isGalleryFormOpen;
-                wrapper.style.display = isGalleryFormOpen ? 'block' : 'none';
-                wrapper.setAttribute('aria-hidden', isGalleryFormOpen ? 'false' : 'true');
-                if (isGalleryFormOpen) wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                wrapper.classList.remove('hidden');
+                wrapper.hidden = false;
+                wrapper.style.display = 'block';
+                wrapper.setAttribute('aria-hidden', 'false');
             }
-            if (toggleButton) {
-                toggleButton.textContent = isGalleryFormOpen ? '− Qalereya formasını bağla' : '+ Yeni Qalereya';
-                toggleButton.setAttribute('aria-expanded', isGalleryFormOpen ? 'true' : 'false');
-                toggleButton.setAttribute('aria-controls', wrapper?.id || 'admin-gallery-form-wrapper');
-            }
+            const toggleButton = document.getElementById('gallery-form-toggle-btn');
+            if (toggleButton) toggleButton.classList.add('hidden');
         }
 
         function openGalleryForm(event) {
             event?.preventDefault?.();
-            setGalleryFormOpen(true);
+            setGalleryFormOpen();
         }
 
         function closeGalleryForm(event) {
             event?.preventDefault?.();
             resetGalleryForm();
-            setGalleryFormOpen(false);
+            setGalleryFormOpen();
         }
 
         function toggleGalleryForm(event) {
             event?.preventDefault?.();
-            if (isGalleryFormOpen) closeGalleryForm();
-            else { resetGalleryForm(); openGalleryForm(); }
+            setGalleryFormOpen();
         }
 
         window.toggleGalleryForm = toggleGalleryForm;
         window.openGalleryForm = openGalleryForm;
         window.closeGalleryForm = closeGalleryForm;
 
-        function bindGalleryFormToggleButton() {
-            const toggleButton = document.getElementById('gallery-form-toggle-btn');
-            if (!toggleButton || toggleButton.dataset.galleryToggleBound) return;
-            if ((toggleButton.getAttribute('onclick') || '').includes('toggleGalleryForm')) {
-                toggleButton.dataset.galleryToggleBound = 'inline';
-                return;
-            }
-            toggleButton.dataset.galleryToggleBound = 'true';
-            toggleButton.addEventListener('click', (event) => {
-                if (typeof window.toggleGalleryForm !== 'function') return;
-                event.preventDefault();
-                window.toggleGalleryForm();
-            });
-        }
-        bindGalleryFormToggleButton();
-        document.addEventListener('DOMContentLoaded', bindGalleryFormToggleButton);
+        setGalleryFormOpen();
+        document.addEventListener('DOMContentLoaded', setGalleryFormOpen);
 
         function toggleGalleryTypeFields() {
             const type = document.getElementById('g-type').value;
@@ -17752,7 +17738,7 @@ Təşəkkür edirəm. 🙏`;
                 await refreshAdminStats({ render: true }).catch(() => {});
                 renderPortfolio();
                 resetGalleryForm();
-                setGalleryFormOpen(false);
+                setGalleryFormOpen();
                 renderAdminDashboard();
             } catch (error) {
                 alert('Qalereya API-yə yazılmadı: ' + error.message);
