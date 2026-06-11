@@ -1119,25 +1119,24 @@
         @media (max-width: 1023px) { .listing-hero.glass-card { height: var(--hero-height-tablet, 420px); } }
         @media (max-width: 640px) { .listing-hero.glass-card { height: var(--hero-height-mobile, 280px); border-radius: 20px; } }
         .listing-hero-premium-badge {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
+            position: static;
             z-index: 20;
-            height: 44px;
+            width: fit-content;
+            min-height: 38px;
             min-width: 0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #fff !important;
-            background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
-            border: 1px solid rgba(255,255,255,.28);
-            box-shadow: 0 14px 34px rgba(0,0,0,.20);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+            border: 1px solid rgba(255,255,255,.26);
+            box-shadow: 0 10px 28px rgba(0,0,0,.18);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             text-shadow: 0 2px 14px rgba(0,0,0,.45);
             font-size: 9px;
             letter-spacing: .14em;
-            padding-inline: .85rem;
+            padding: .58rem .9rem;
         }
         .listing-hero::after {
             content: '';
@@ -1146,14 +1145,20 @@
             z-index: 5;
             pointer-events: none;
             background:
-                linear-gradient(90deg, rgba(2,6,23,.72) 0%, rgba(15,23,42,.48) 34%, rgba(15,23,42,.14) 66%, rgba(15,23,42,.04) 100%),
-                linear-gradient(180deg, rgba(2,6,23,.04) 0%, rgba(2,6,23,.44) 100%);
+                linear-gradient(90deg, rgba(2,6,23,.82) 0%, rgba(15,23,42,.62) 24%, rgba(15,23,42,.28) 48%, rgba(15,23,42,.08) 72%, rgba(15,23,42,.02) 100%),
+                linear-gradient(180deg, rgba(2,6,23,.02) 0%, rgba(2,6,23,.30) 100%);
         }
         .listing-hero-panel {
-            width: min(520px, 90%);
-            max-width: min(520px, 90%);
-            padding: 1rem;
+            width: min(48%, 660px);
+            max-width: min(48%, 660px);
+            padding: clamp(1.25rem, 2.8vw, 2.75rem);
+            margin: 0 0 0 clamp(2rem, 5vw, 5.5rem);
             z-index: 10;
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: blur(0) !important;
+            -webkit-backdrop-filter: blur(0) !important;
         }
         .listing-hero-panel > :not([hidden]) ~ :not([hidden]) {
             margin-top: .45rem !important;
@@ -1195,8 +1200,8 @@
             padding: .35rem .62rem;
             background: rgba(15,23,42,.36);
             border: 1px solid rgba(255,255,255,.16);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             font-size: 10px;
             font-weight: 800;
             line-height: 1.2;
@@ -1210,16 +1215,14 @@
             font-size: 9px !important;
             background: rgba(15,23,42,.30) !important;
         }
-        @media (min-width: 641px) {
+        @media (min-width: 641px) and (max-width: 768px) {
             .listing-hero-panel { padding: 1.15rem 1.25rem; }
         }
         @media (max-width: 768px) {
             .listing-hero .listing-hero-premium-badge {
-                top: .8rem;
-                left: .8rem;
-                height: 38px;
+                min-height: 34px;
                 font-size: 8px;
-                padding-inline: .7rem;
+                padding: .5rem .7rem;
             }
             .listing-hero::after {
                 background:
@@ -5021,10 +5024,9 @@
             <!-- Premium Listing Hero banner -->
             <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
                 <div id="listing-hero-media" class="absolute inset-0" role="img" aria-label="BestHome premium elan vitrini"></div>
-                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,.18);"></div>
-                <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.32));"></div>
-                <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
-                <div id="listing-hero-panel" class="listing-hero-panel hero-glass-panel relative z-10 rounded-2xl text-left space-y-2 mb-4 sm:mb-6 ml-4 sm:ml-8 mr-auto">
+                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: transparent;"></div>
+                <div id="listing-hero-panel" class="listing-hero-panel relative z-10 text-left space-y-2">
+                    <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
                     <h1 id="listing-hero-title" class="listing-hero-title font-semibold leading-tight uppercase drop-shadow-xl"></h1>
                     <p id="listing-hero-price" class="listing-hero-price font-black text-white drop-shadow-xl"></p>
                     <div id="listing-hero-stats" class="listing-hero-stats"></div>
@@ -8575,22 +8577,23 @@ Title: CASPIAN DREAM LINER
 
         function applyHeroVisualStyles(container, panel, title, description, button, badge, hero) {
             const isProject = hero.slide_type === 'project';
+            const isListingHero = hero.slide_type === 'custom';
             if (container) {
                 container.style.setProperty('--hero-height-desktop', '520px');
                 container.style.setProperty('--hero-height-tablet', '420px');
                 container.style.setProperty('--hero-height-mobile', '280px');
-                container.style.alignItems = 'flex-end';
+                container.style.alignItems = isListingHero && window.innerWidth > 768 ? 'center' : 'flex-end';
                 container.style.justifyContent = 'flex-start';
                 container.style.textAlign = 'left';
             }
             if (panel) {
-                panel.style.background = '';
-                panel.style.backdropFilter = '';
-                panel.style.webkitBackdropFilter = '';
-                panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : '420px';
-                panel.style.width = 'auto';
-                panel.style.padding = window.innerWidth <= 640 ? '16px' : '22px 24px';
-                panel.style.margin = window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px';
+                panel.style.background = 'transparent';
+                panel.style.backdropFilter = 'blur(0)';
+                panel.style.webkitBackdropFilter = 'blur(0)';
+                panel.style.maxWidth = isListingHero && window.innerWidth > 640 ? 'min(48%, 660px)' : (window.innerWidth <= 640 ? 'calc(100% - 28px)' : '420px');
+                panel.style.width = isListingHero && window.innerWidth > 640 ? 'min(48%, 660px)' : 'auto';
+                panel.style.padding = isListingHero && window.innerWidth > 640 ? 'clamp(1.25rem, 2.8vw, 2.75rem)' : (window.innerWidth <= 640 ? '16px' : '22px 24px');
+                panel.style.margin = isListingHero && window.innerWidth > 768 ? '0 0 0 clamp(2rem, 5vw, 5.5rem)' : (window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px');
                 panel.style.textAlign = 'left';
             }
             if (title) {
@@ -8886,8 +8889,10 @@ Title: CASPIAN DREAM LINER
             }
             applyHeroVisualStyles(slider, panel, title, null, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
             if (panel) {
-                panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : '520px';
-                panel.style.padding = window.innerWidth <= 640 ? '14px' : '18px 20px';
+                panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : 'min(48%, 660px)';
+                panel.style.width = window.innerWidth <= 640 ? 'auto' : 'min(48%, 660px)';
+                panel.style.padding = window.innerWidth <= 640 ? '14px' : 'clamp(1.25rem, 2.8vw, 2.75rem)';
+                panel.style.margin = window.innerWidth <= 768 ? (window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px') : '0 0 0 clamp(2rem, 5vw, 5.5rem)';
             }
             if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
             const prev = document.getElementById('listing-hero-prev');
