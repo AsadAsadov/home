@@ -5125,6 +5125,75 @@
             }
             .sea-breeze-projects-shell { margin-top: .9rem; }
         }
+
+
+        /* Project hero composition: keep the image frame unchanged while anchoring text in a consistent lower-left zone. */
+        #sea-breeze-hero-slider.sea-breeze-hero.glass-card {
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+        }
+        #sea-breeze-hero-panel.hero-content {
+            position: relative !important;
+            z-index: 10;
+            display: flex !important;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-end;
+            width: 70% !important;
+            max-width: 70% !important;
+            height: 100%;
+            margin: 0 0 0 clamp(1rem, 3vw, 2rem) !important;
+            padding: 0 0 60px !important;
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        #sea-breeze-hero-panel.hero-content > :not([hidden]) ~ :not([hidden]) {
+            margin-top: .55rem !important;
+        }
+        #sea-breeze-hero-title {
+            max-width: 100% !important;
+            font-size: clamp(28px, 2.5vw, 40px) !important;
+            font-weight: 800 !important;
+            line-height: 1.15 !important;
+            letter-spacing: -.025em !important;
+            text-transform: none !important;
+        }
+        @media (max-width: 640px) {
+            #sea-breeze-hero-slider.sea-breeze-hero.glass-card {
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+            }
+            #sea-breeze-hero-panel.hero-content {
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                width: 85% !important;
+                max-width: 85% !important;
+                height: 100%;
+                margin-left: 24px !important;
+                margin-right: 24px !important;
+                padding: 0 0 clamp(46px, 12vw, 62px) !important;
+            }
+            #sea-breeze-hero-title {
+                display: -webkit-box !important;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                -webkit-box-orient: vertical;
+                max-width: 100% !important;
+                white-space: normal !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                font-size: clamp(22px, 5vw, 30px) !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                letter-spacing: -.02em !important;
+            }
+            #sea-breeze-hero-panel.hero-content > :not([hidden]) ~ :not([hidden]) {
+                margin-top: .5rem !important;
+            }
+        }
         @media (max-width: 420px) {
             .project-filter-panel .project-category-segment .project-cat-btn {
                 flex-basis: calc(50% - .45rem);
@@ -5254,7 +5323,7 @@
                 <div id="sea-breeze-hero-color-overlay" class="absolute inset-0 pointer-events-none"></div>
                 <div id="sea-breeze-hero-gradient-overlay" class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.28));"></div>
 
-                <div id="sea-breeze-hero-panel" class="hero-glass-panel relative z-10 rounded-2xl p-5 sm:p-6 text-left space-y-2 mb-5 sm:mb-8 ml-4 sm:ml-8 mr-auto">
+                <div id="sea-breeze-hero-panel" class="hero-content hero-glass-panel relative z-10 rounded-2xl p-5 sm:p-6 text-left space-y-2 mb-5 sm:mb-8 ml-4 sm:ml-8 mr-auto">
                     <span id="sea-breeze-hero-badge" class="hidden inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]"></span>
                     <h1 id="sea-breeze-hero-title" class="text-2xl sm:text-4xl font-semibold leading-tight tracking-[0.08em] uppercase drop-shadow-xl"></h1>
                     <p id="sea-breeze-hero-description" class="hidden text-sm font-medium leading-relaxed text-white/85"></p>
