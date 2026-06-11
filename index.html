@@ -1109,34 +1109,45 @@
         }
         .listing-hero.glass-card {
             width: 100%;
-            height: var(--hero-height-desktop, 520px);
-            min-height: 0;
+            height: var(--hero-height-desktop, 500px);
+            min-height: var(--hero-height-desktop, 500px);
             border-radius: 28px;
             background: #0f172a;
             border: none;
-            box-shadow: 0 30px 90px rgba(15, 23, 42, 0.20);
+            box-shadow: 0 30px 90px rgba(15, 23, 42, 0.18);
         }
-        @media (max-width: 1023px) { .listing-hero.glass-card { height: var(--hero-height-tablet, 420px); } }
-        @media (max-width: 640px) { .listing-hero.glass-card { height: var(--hero-height-mobile, 280px); border-radius: 20px; } }
+        @media (max-width: 1023px) {
+            .listing-hero.glass-card {
+                height: var(--hero-height-tablet, 430px);
+                min-height: var(--hero-height-tablet, 430px);
+            }
+        }
+        @media (max-width: 640px) {
+            .listing-hero.glass-card {
+                height: var(--hero-height-mobile, 440px);
+                min-height: var(--hero-height-mobile, 440px);
+                border-radius: 20px;
+            }
+        }
         .listing-hero-premium-badge {
             position: static;
             z-index: 20;
             width: fit-content;
-            min-height: 38px;
+            min-height: 30px;
             min-width: 0;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #fff !important;
-            background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
-            border: 1px solid rgba(255,255,255,.26);
-            box-shadow: 0 10px 28px rgba(0,0,0,.18);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            text-shadow: 0 2px 14px rgba(0,0,0,.45);
+            background: rgba(255,255,255,.16) !important;
+            border: 1px solid rgba(255,255,255,.24);
+            box-shadow: 0 8px 22px rgba(0,0,0,.16);
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,.38);
             font-size: 9px;
-            letter-spacing: .14em;
-            padding: .58rem .9rem;
+            letter-spacing: .12em;
+            padding: .46rem .72rem;
         }
         .listing-hero::after {
             content: '';
@@ -1144,52 +1155,60 @@
             inset: 0;
             z-index: 5;
             pointer-events: none;
-            background:
-                linear-gradient(90deg, rgba(2,6,23,.82) 0%, rgba(15,23,42,.62) 24%, rgba(15,23,42,.28) 48%, rgba(15,23,42,.08) 72%, rgba(15,23,42,.02) 100%),
-                linear-gradient(180deg, rgba(2,6,23,.02) 0%, rgba(2,6,23,.30) 100%);
+            background: linear-gradient(
+                90deg,
+                rgba(0,0,0,.42) 0%,
+                rgba(0,0,0,.22) 45%,
+                rgba(0,0,0,.06) 100%
+            );
+        }
+        .listing-hero .hero-slide-media {
+            object-position: center center;
         }
         .listing-hero-panel {
-            width: min(48%, 660px);
-            max-width: min(48%, 660px);
-            padding: clamp(1.25rem, 2.8vw, 2.75rem);
-            margin: 0 0 0 clamp(2rem, 5vw, 5.5rem);
+            width: min(58%, 760px);
+            max-width: min(58%, 760px);
+            padding: 0;
+            margin: 0 0 0 clamp(2.5rem, 6vw, 6rem);
             z-index: 10;
             background: transparent !important;
             border-color: transparent !important;
             box-shadow: none !important;
-            backdrop-filter: blur(0) !important;
-            -webkit-backdrop-filter: blur(0) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         .listing-hero-panel > :not([hidden]) ~ :not([hidden]) {
-            margin-top: .45rem !important;
+            margin-top: .55rem !important;
         }
         .listing-hero-panel .hero-luxury-link {
-            margin-top: .4rem !important;
-            text-shadow: 0 2px 10px rgba(0,0,0,.42) !important;
+            margin-top: .55rem !important;
+            text-shadow: 0 2px 10px rgba(0,0,0,.34) !important;
         }
         .listing-hero-title {
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 520px;
-            font-size: clamp(2rem, 3vw, 3.2rem) !important;
-            line-height: 1.08 !important;
-            font-weight: 900 !important;
-            letter-spacing: -0.02em !important;
-            text-shadow: 0 2px 14px rgba(0,0,0,.46) !important;
+            max-width: 760px;
+            font-size: clamp(2rem, 3.1vw, 3rem) !important;
+            line-height: 1.05 !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.03em !important;
+            text-transform: none !important;
+            text-shadow: 0 2px 14px rgba(0,0,0,.42) !important;
         }
         .listing-hero-price {
-            font-size: clamp(1.55rem, 2.45vw, 2.15rem);
+            font-size: clamp(1.45rem, 2.25vw, 2rem);
             line-height: 1.05;
-            text-shadow: 0 2px 12px rgba(0,0,0,.48) !important;
+            text-shadow: 0 2px 12px rgba(0,0,0,.42) !important;
         }
         .listing-hero-stats {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: .35rem;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .45rem;
             color: #fff;
         }
         .listing-hero-stats span {
@@ -1197,11 +1216,11 @@
             align-items: center;
             gap: .35rem;
             border-radius: 999px;
-            padding: .35rem .62rem;
-            background: rgba(15,23,42,.36);
-            border: 1px solid rgba(255,255,255,.16);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            padding: .34rem .58rem;
+            background: rgba(15,23,42,.24);
+            border: 1px solid rgba(255,255,255,.14);
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             font-size: 10px;
             font-weight: 800;
             line-height: 1.2;
@@ -1213,51 +1232,55 @@
         .listing-hero-stats__views {
             padding: .27rem .5rem !important;
             font-size: 9px !important;
-            background: rgba(15,23,42,.30) !important;
-        }
-        @media (min-width: 641px) and (max-width: 768px) {
-            .listing-hero-panel { padding: 1.15rem 1.25rem; }
+            background: rgba(15,23,42,.22) !important;
         }
         @media (max-width: 768px) {
-            .listing-hero .listing-hero-premium-badge {
-                min-height: 34px;
-                font-size: 8px;
-                padding: .5rem .7rem;
+            .listing-hero.glass-card {
+                align-items: center !important;
+                justify-content: flex-start !important;
             }
-            .listing-hero::after {
-                background:
-                    linear-gradient(90deg, rgba(2,6,23,.70) 0%, rgba(15,23,42,.38) 58%, rgba(15,23,42,.08) 100%),
-                    linear-gradient(180deg, rgba(2,6,23,.04) 0%, rgba(2,6,23,.48) 100%);
+            .listing-hero .listing-hero-premium-badge {
+                min-height: 28px;
+                font-size: 8px;
+                padding: .4rem .62rem;
             }
             .listing-hero .listing-hero-panel {
-                width: auto !important;
-                max-width: calc(100% - 32px) !important;
-                margin: 0 1rem .9rem !important;
-                padding: .85rem !important;
-                gap: .35rem;
+                width: calc(100% - 48px) !important;
+                max-width: none !important;
+                margin: 0 24px !important;
+                padding: 0 !important;
                 z-index: 21;
             }
             .listing-hero .listing-hero-panel > :not([hidden]) ~ :not([hidden]) {
-                margin-top: .35rem !important;
+                margin-top: .38rem !important;
+            }
+            .listing-hero .listing-hero-panel .hero-luxury-link {
+                margin-top: .48rem !important;
             }
             .listing-hero .listing-hero-title {
                 display: -webkit-box;
-                -webkit-line-clamp: 3;
+                -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                max-width: 86%;
-                font-size: clamp(1.35rem, 7vw, 2rem) !important;
-                line-height: 1.1 !important;
-                letter-spacing: -0.015em !important;
+                max-width: 100% !important;
+                font-size: clamp(18px, 5.4vw, 30px) !important;
+                line-height: 1.05 !important;
+                letter-spacing: -0.03em !important;
+                font-weight: 800 !important;
+                text-transform: none !important;
             }
             .listing-hero .listing-hero-price {
-                font-size: clamp(1.45rem, 7vw, 2.05rem);
+                font-size: clamp(1.25rem, 5.2vw, 1.75rem);
             }
             .listing-hero .listing-hero-stats {
-                gap: .28rem;
+                flex-direction: row;
+                gap: .32rem;
             }
-            .listing-hero .listing-hero-stats span { font-size: 9px; }
+            .listing-hero .listing-hero-stats span {
+                font-size: 9px;
+                padding: .28rem .48rem;
+            }
         }
         .hero-nav-arrow {
             position: absolute;
@@ -1269,13 +1292,24 @@
             background: rgba(255,255,255,.14);
             border: 1px solid rgba(255,255,255,.22);
             color: #fff;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             box-shadow: 0 14px 34px rgba(0,0,0,.18);
         }
         .hero-nav-arrow:hover { background: rgba(255,255,255,.24); }
         .hero-nav-arrow--prev { left: 1rem; }
         .hero-nav-arrow--next { right: 1rem; }
+        @media (max-width: 768px) {
+            .listing-hero .hero-nav-arrow {
+                width: 42px;
+                height: 42px;
+                top: 50%;
+                font-size: 1.35rem;
+                background: rgba(15,23,42,.24);
+            }
+            .listing-hero .hero-nav-arrow--prev { left: .65rem; }
+            .listing-hero .hero-nav-arrow--next { right: .65rem; }
+        }
         .hero-indicators {
             position: absolute;
             left: 50%;
@@ -5024,7 +5058,6 @@
             <!-- Premium Listing Hero banner -->
             <div id="listing-hero-slider" class="listing-hero sea-breeze-hero hidden relative overflow-hidden glass-card flex items-end justify-start" style="display: none;">
                 <div id="listing-hero-media" class="absolute inset-0" role="img" aria-label="BestHome premium elan vitrini"></div>
-                <div id="listing-hero-color-overlay" class="absolute inset-0 pointer-events-none" style="background: transparent;"></div>
                 <div id="listing-hero-panel" class="listing-hero-panel relative z-10 text-left space-y-2">
                     <span id="listing-hero-badge" class="listing-hero-premium-badge hidden rounded-full font-black uppercase"></span>
                     <h1 id="listing-hero-title" class="listing-hero-title font-semibold leading-tight uppercase drop-shadow-xl"></h1>
@@ -8579,30 +8612,39 @@ Title: CASPIAN DREAM LINER
             const isProject = hero.slide_type === 'project';
             const isListingHero = hero.slide_type === 'custom';
             if (container) {
-                container.style.setProperty('--hero-height-desktop', '520px');
-                container.style.setProperty('--hero-height-tablet', '420px');
-                container.style.setProperty('--hero-height-mobile', '280px');
-                container.style.alignItems = isListingHero && window.innerWidth > 768 ? 'center' : 'flex-end';
+                container.style.setProperty('--hero-height-desktop', isListingHero ? '500px' : '520px');
+                container.style.setProperty('--hero-height-tablet', isListingHero ? '430px' : '420px');
+                container.style.setProperty('--hero-height-mobile', isListingHero ? '440px' : '280px');
+                container.style.alignItems = isListingHero ? 'center' : 'flex-end';
                 container.style.justifyContent = 'flex-start';
                 container.style.textAlign = 'left';
             }
             if (panel) {
                 panel.style.background = 'transparent';
-                panel.style.backdropFilter = 'blur(0)';
-                panel.style.webkitBackdropFilter = 'blur(0)';
-                panel.style.maxWidth = isListingHero && window.innerWidth > 640 ? 'min(48%, 660px)' : (window.innerWidth <= 640 ? 'calc(100% - 28px)' : '420px');
-                panel.style.width = isListingHero && window.innerWidth > 640 ? 'min(48%, 660px)' : 'auto';
-                panel.style.padding = isListingHero && window.innerWidth > 640 ? 'clamp(1.25rem, 2.8vw, 2.75rem)' : (window.innerWidth <= 640 ? '16px' : '22px 24px');
-                panel.style.margin = isListingHero && window.innerWidth > 768 ? '0 0 0 clamp(2rem, 5vw, 5.5rem)' : (window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px');
+                panel.style.backdropFilter = 'none';
+                panel.style.webkitBackdropFilter = 'none';
+                panel.style.boxShadow = 'none';
+                panel.style.borderColor = 'transparent';
+                if (isListingHero) {
+                    panel.style.maxWidth = window.innerWidth <= 768 ? 'none' : 'min(58%, 760px)';
+                    panel.style.width = window.innerWidth <= 768 ? 'calc(100% - 48px)' : 'min(58%, 760px)';
+                    panel.style.padding = '0';
+                    panel.style.margin = window.innerWidth <= 768 ? '0 24px' : '0 0 0 clamp(2.5rem, 6vw, 6rem)';
+                } else {
+                    panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : '420px';
+                    panel.style.width = 'auto';
+                    panel.style.padding = window.innerWidth <= 640 ? '16px' : '22px 24px';
+                    panel.style.margin = window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px';
+                }
                 panel.style.textAlign = 'left';
             }
             if (title) {
                 title.style.color = '#FFFFFF';
                 title.style.fontSize = '';
-                title.style.fontWeight = '600';
-                title.style.textShadow = '0 3px 22px rgba(0, 0, 0, 0.62)';
-                title.style.letterSpacing = '0.08em';
-                title.style.textTransform = 'uppercase';
+                title.style.fontWeight = isListingHero ? '800' : '600';
+                title.style.textShadow = isListingHero ? '0 2px 14px rgba(0, 0, 0, 0.42)' : '0 3px 22px rgba(0, 0, 0, 0.62)';
+                title.style.letterSpacing = isListingHero ? '-0.03em' : '0.08em';
+                title.style.textTransform = isListingHero ? 'none' : 'uppercase';
             }
             if (description) {
                 description.textContent = isProject ? '' : (hero.description || '');
@@ -8612,12 +8654,12 @@ Title: CASPIAN DREAM LINER
             if (button) {
                 button.style.background = 'transparent';
                 button.style.color = '#FFFFFF';
-                button.style.textShadow = '0 2px 16px rgba(0, 0, 0, 0.55)';
+                button.style.textShadow = isListingHero ? '0 2px 10px rgba(0, 0, 0, 0.34)' : '0 2px 16px rgba(0, 0, 0, 0.55)';
                 button.classList.toggle('hidden', !hero.button_text);
             }
             if (badge) {
                 badge.textContent = isProject ? '' : (hero.badge_text || '');
-                badge.style.background = 'transparent';
+                badge.style.background = isListingHero ? 'rgba(255,255,255,.16)' : 'transparent';
                 badge.style.color = '#FFFFFF';
                 badge.classList.toggle('hidden', isProject || !hero.badge_text);
             }
@@ -8724,6 +8766,7 @@ Title: CASPIAN DREAM LINER
                 video.playsInline = true;
                 video.preload = options.eager ? 'auto' : 'metadata';
                 video.setAttribute('playsinline', '');
+                video.style.objectPosition = 'center center';
                 video.setAttribute('aria-hidden', 'true');
                 return video;
             }
@@ -8735,6 +8778,7 @@ Title: CASPIAN DREAM LINER
             image.width = 1280;
             image.height = 520;
             if (options.eager) image.fetchPriority = 'high';
+            image.style.objectPosition = 'center center';
             image.src = url;
             loadedHeroImages.add(url);
             image.setAttribute('aria-hidden', 'true');
@@ -8857,14 +8901,15 @@ Title: CASPIAN DREAM LINER
             }
             const mediaWrap = document.getElementById('listing-hero-media');
             if (mediaWrap) {
-                mediaWrap.innerHTML = '';
-                slides.forEach((slide, index) => {
-                    const el = createHeroMediaElement(slide);
-                    el.setAttribute('loading', 'lazy');
-                    if (index === listingHeroIndex) el.classList.add('is-active');
-                    mediaWrap.appendChild(el);
-                    if (slide.media_type === 'video' && index === listingHeroIndex) el.play?.().catch(() => {});
+                mediaWrap.querySelectorAll('.hero-slide-media').forEach(el => {
+                    el.classList.remove('is-active', 'is-entering', 'is-leaving');
+                    if (el.tagName === 'VIDEO') el.pause?.();
                 });
+                const el = createHeroMediaElement(hero, { eager: true });
+                el.classList.add('is-active');
+                mediaWrap.replaceChildren(el);
+                if (hero.media_type === 'video') el.play?.().catch(() => {});
+                preloadNextHeroImage(slides, listingHeroIndex);
             }
             const title = document.getElementById('listing-hero-title');
             const badge = document.getElementById('listing-hero-badge');
@@ -8872,7 +8917,7 @@ Title: CASPIAN DREAM LINER
             const stats = document.getElementById('listing-hero-stats');
             const panel = document.getElementById('listing-hero-panel');
             const btn = document.getElementById('listing-hero-button');
-            if (title) title.innerHTML = formatHeroTitle(hero.title || listing.title || 'Premium elan');
+            if (title) title.textContent = String(hero.title || listing.title || 'Premium elan').replace(/\s+/g, ' ').trim();
             if (badge) { badge.textContent = hero.badge_text || ''; badge.classList.toggle('hidden', !hero.badge_text); }
             if (price) price.textContent = formatPrice(listing.price, listing.currency || 'AZN');
             if (stats) {
@@ -8889,10 +8934,10 @@ Title: CASPIAN DREAM LINER
             }
             applyHeroVisualStyles(slider, panel, title, null, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
             if (panel) {
-                panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : 'min(48%, 660px)';
-                panel.style.width = window.innerWidth <= 640 ? 'auto' : 'min(48%, 660px)';
-                panel.style.padding = window.innerWidth <= 640 ? '14px' : 'clamp(1.25rem, 2.8vw, 2.75rem)';
-                panel.style.margin = window.innerWidth <= 768 ? (window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px') : '0 0 0 clamp(2rem, 5vw, 5.5rem)';
+                panel.style.maxWidth = window.innerWidth <= 768 ? 'none' : 'min(58%, 760px)';
+                panel.style.width = window.innerWidth <= 768 ? 'calc(100% - 48px)' : 'min(58%, 760px)';
+                panel.style.padding = '0';
+                panel.style.margin = window.innerWidth <= 768 ? '0 24px' : '0 0 0 clamp(2.5rem, 6vw, 6rem)';
             }
             if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
             const prev = document.getElementById('listing-hero-prev');
