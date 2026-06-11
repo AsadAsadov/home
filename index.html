@@ -726,7 +726,7 @@
             .homepage-skeleton-hero { height: var(--hero-height-tablet, 420px); }
         }
         @media (max-width: 640px) {
-            .homepage-skeleton-hero { height: var(--hero-height-mobile, 280px); border-radius: 20px; }
+            .homepage-skeleton-hero { height: var(--hero-height-mobile, clamp(300px, 62vw, 380px)); min-height: 300px; max-height: 380px; border-radius: 20px; overflow: hidden; }
             .homepage-skeleton-filters { min-height: 172px; }
             .homepage-skeleton-grid span { min-height: 240px; }
         }
@@ -1105,7 +1105,13 @@
             .sea-breeze-hero.glass-card { height: var(--hero-height-tablet, 350px); }
         }
         @media (max-width: 640px) {
-            .sea-breeze-hero.glass-card { height: var(--hero-height-mobile, 240px); border-radius: 20px; }
+            .sea-breeze-hero.glass-card {
+                height: var(--hero-height-mobile, clamp(300px, 62vw, 380px));
+                min-height: 300px;
+                max-height: 380px;
+                border-radius: 20px;
+                overflow: hidden;
+            }
         }
         .listing-hero.glass-card {
             width: 100%;
@@ -1124,9 +1130,11 @@
         }
         @media (max-width: 640px) {
             .listing-hero.glass-card {
-                height: var(--hero-height-mobile, 440px);
-                min-height: var(--hero-height-mobile, 440px);
+                height: var(--hero-height-mobile, clamp(300px, 62vw, 380px));
+                min-height: 300px;
+                max-height: 380px;
                 border-radius: 20px;
+                overflow: hidden;
             }
         }
         .listing-hero-premium-badge {
@@ -1236,8 +1244,12 @@
         }
         @media (max-width: 768px) {
             .listing-hero.glass-card {
-                align-items: center !important;
+                align-items: flex-end !important;
                 justify-content: flex-start !important;
+                height: clamp(300px, 62vw, 380px) !important;
+                min-height: 300px !important;
+                max-height: 380px !important;
+                overflow: hidden !important;
             }
             .listing-hero .listing-hero-premium-badge {
                 min-height: 28px;
@@ -1245,9 +1257,13 @@
                 padding: .4rem .62rem;
             }
             .listing-hero .listing-hero-panel {
-                width: calc(100% - 48px) !important;
+                position: absolute !important;
+                left: 24px !important;
+                right: 24px !important;
+                bottom: 54px !important;
+                width: auto !important;
                 max-width: none !important;
-                margin: 0 24px !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 z-index: 21;
             }
@@ -1264,7 +1280,7 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 max-width: 100% !important;
-                font-size: clamp(18px, 5.4vw, 30px) !important;
+                font-size: clamp(22px, 6.4vw, 34px) !important;
                 line-height: 1.05 !important;
                 letter-spacing: -0.03em !important;
                 font-weight: 800 !important;
@@ -1309,6 +1325,58 @@
             }
             .listing-hero .hero-nav-arrow--prev { left: .65rem; }
             .listing-hero .hero-nav-arrow--next { right: .65rem; }
+        }
+        @media (max-width: 640px) {
+            #sea-breeze-hero-slider.sea-breeze-hero.glass-card {
+                height: clamp(300px, 62vw, 380px) !important;
+                min-height: 300px !important;
+                max-height: 380px !important;
+                overflow: hidden !important;
+            }
+            #sea-breeze-hero-media,
+            #listing-hero-media {
+                overflow: hidden;
+                border-radius: inherit;
+            }
+            .sea-breeze-hero .hero-slide-media {
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: cover !important;
+                aspect-ratio: auto !important;
+            }
+            #sea-breeze-hero-panel.hero-glass-panel {
+                position: absolute !important;
+                left: 24px !important;
+                right: 24px !important;
+                bottom: 54px !important;
+                z-index: 21;
+                width: auto !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: transparent !important;
+                border-color: transparent !important;
+                box-shadow: none !important;
+                transform: none !important;
+            }
+            #sea-breeze-hero-panel.hero-glass-panel > :not([hidden]) ~ :not([hidden]) {
+                margin-top: .45rem !important;
+            }
+            #sea-breeze-hero-title {
+                display: block !important;
+                max-width: 100% !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                font-size: clamp(22px, 6vw, 32px) !important;
+                line-height: 1.05 !important;
+                letter-spacing: -0.015em !important;
+            }
+            #sea-breeze-hero-title br { display: none !important; }
+            #sea-breeze-hero-description { display: none !important; }
+            .hero-indicators {
+                bottom: 1rem;
+            }
         }
         .hero-indicators {
             position: absolute;
@@ -8614,8 +8682,8 @@ Title: CASPIAN DREAM LINER
             if (container) {
                 container.style.setProperty('--hero-height-desktop', isListingHero ? '500px' : '520px');
                 container.style.setProperty('--hero-height-tablet', isListingHero ? '430px' : '420px');
-                container.style.setProperty('--hero-height-mobile', isListingHero ? '440px' : '280px');
-                container.style.alignItems = isListingHero ? 'center' : 'flex-end';
+                container.style.setProperty('--hero-height-mobile', 'clamp(300px, 62vw, 380px)');
+                container.style.alignItems = 'flex-end';
                 container.style.justifyContent = 'flex-start';
                 container.style.textAlign = 'left';
             }
@@ -8629,12 +8697,39 @@ Title: CASPIAN DREAM LINER
                     panel.style.maxWidth = window.innerWidth <= 768 ? 'none' : 'min(58%, 760px)';
                     panel.style.width = window.innerWidth <= 768 ? 'calc(100% - 48px)' : 'min(58%, 760px)';
                     panel.style.padding = '0';
-                    panel.style.margin = window.innerWidth <= 768 ? '0 24px' : '0 0 0 clamp(2.5rem, 6vw, 6rem)';
+                    if (window.innerWidth <= 768) {
+                        panel.style.position = 'absolute';
+                        panel.style.left = '24px';
+                        panel.style.right = '24px';
+                        panel.style.bottom = '54px';
+                        panel.style.margin = '0';
+                    } else {
+                        panel.style.position = '';
+                        panel.style.left = '';
+                        panel.style.right = '';
+                        panel.style.bottom = '';
+                        panel.style.margin = '0 0 0 clamp(2.5rem, 6vw, 6rem)';
+                    }
                 } else {
-                    panel.style.maxWidth = window.innerWidth <= 640 ? 'calc(100% - 28px)' : '420px';
-                    panel.style.width = 'auto';
-                    panel.style.padding = window.innerWidth <= 640 ? '16px' : '22px 24px';
-                    panel.style.margin = window.innerWidth <= 640 ? '0 0 18px 14px' : '0 0 32px 32px';
+                    if (window.innerWidth <= 640) {
+                        panel.style.position = 'absolute';
+                        panel.style.left = '24px';
+                        panel.style.right = '24px';
+                        panel.style.bottom = '54px';
+                        panel.style.maxWidth = 'none';
+                        panel.style.width = 'auto';
+                        panel.style.padding = '0';
+                        panel.style.margin = '0';
+                    } else {
+                        panel.style.position = '';
+                        panel.style.left = '';
+                        panel.style.right = '';
+                        panel.style.bottom = '';
+                        panel.style.maxWidth = '420px';
+                        panel.style.width = 'auto';
+                        panel.style.padding = '22px 24px';
+                        panel.style.margin = '0 0 32px 32px';
+                    }
                 }
                 panel.style.textAlign = 'left';
             }
@@ -8821,7 +8916,11 @@ Title: CASPIAN DREAM LINER
                 if (hero.media_type === 'video') el.play?.().catch(() => {});
                 preloadNextHeroImage(slides, heroSliderIndex);
             }
-            if (title) title.innerHTML = formatHeroTitle(hero.title || '');
+            if (title) {
+                const heroTitleText = String(hero.title || defaultSeaBreezeHero.title).replace(/\s+/g, ' ').trim();
+                if (window.innerWidth <= 640) title.textContent = heroTitleText;
+                else title.innerHTML = formatHeroTitle(hero.title || '');
+            }
             if (description) description.textContent = hero.description || '';
             applyHeroVisualStyles(slider, panel, title, description, button, badge, hero);
             if (slider) {
@@ -8937,7 +9036,19 @@ Title: CASPIAN DREAM LINER
                 panel.style.maxWidth = window.innerWidth <= 768 ? 'none' : 'min(58%, 760px)';
                 panel.style.width = window.innerWidth <= 768 ? 'calc(100% - 48px)' : 'min(58%, 760px)';
                 panel.style.padding = '0';
-                panel.style.margin = window.innerWidth <= 768 ? '0 24px' : '0 0 0 clamp(2.5rem, 6vw, 6rem)';
+                if (window.innerWidth <= 768) {
+                    panel.style.position = 'absolute';
+                    panel.style.left = '24px';
+                    panel.style.right = '24px';
+                    panel.style.bottom = '54px';
+                    panel.style.margin = '0';
+                } else {
+                    panel.style.position = '';
+                    panel.style.left = '';
+                    panel.style.right = '';
+                    panel.style.bottom = '';
+                    panel.style.margin = '0 0 0 clamp(2.5rem, 6vw, 6rem)';
+                }
             }
             if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
             const prev = document.getElementById('listing-hero-prev');
