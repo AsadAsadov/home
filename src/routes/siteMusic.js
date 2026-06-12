@@ -113,19 +113,39 @@ router.get('/admin/site-music', authenticate, authorize('admin'), asyncHandler(a
   res.json(tracks.map(serializeTrack));
 }));
 
+function logMusicMutationError(action, error, context = {}) {
+  console.error(`Site music ${action} failed`, {
+    ...context,
+    message: error.message,
+    name: error.name,
+    code: error.code,
+    meta: error.meta,
+  });
+}
+
 router.post('/admin/site-music', authenticate, authorize('admin'), upload.single('audio'), asyncHandler(async (req, res) => {
-  const data = payload(req.body, req.file ? localUploadUrl(req.file) : null);
-  const created = await prisma.siteMusicTrack.create({ data });
-  res.status(201).json(serializeTrack(created));
+  try {
+    const data = payload(req.body, req.file ? localUploadUrl(req.file) : null);
+    const created = await prisma.siteMusicTrack.create({ data });
+    return res.status(201).json(serializeTrack(created));
+  } catch (error) {
+    logMusicMutationError('create', error, { title: req.body?.title, hasUpload: Boolean(req.file) });
+    throw error;
+  }
 }));
 
 router.put('/admin/site-music/:id', authenticate, authorize('admin'), upload.single('audio'), asyncHandler(async (req, res) => {
   const id = Number.parseInt(req.params.id, 10);
-  const existing = await prisma.siteMusicTrack.findUnique({ where: { id } });
-  if (!existing) return res.status(404).json({ message: 'Music track not found.' });
-  const data = payload(req.body, req.file ? localUploadUrl(req.file) : null, existing);
-  const updated = await prisma.siteMusicTrack.update({ where: { id }, data });
-  res.json(serializeTrack(updated));
+  try {
+    const existing = await prisma.siteMusicTrack.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ message: 'Music track not found.' });
+    const data = payload(req.body, req.file ? localUploadUrl(req.file) : null, existing);
+    const updated = await prisma.siteMusicTrack.update({ where: { id }, data });
+    return res.json(serializeTrack(updated));
+  } catch (error) {
+    logMusicMutationError('update', error, { id, title: req.body?.title, hasUpload: Boolean(req.file) });
+    throw error;
+  }
 }));
 
 router.delete('/admin/site-music/:id', authenticate, authorize('admin'), asyncHandler(async (req, res) => {

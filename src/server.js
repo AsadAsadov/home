@@ -505,6 +505,27 @@ async function ensureProjectArchiveColumn() {
 
 
 
+async function ensureSiteMusicTrackTable() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS public."site_music_tracks" (
+        "id" SERIAL PRIMARY KEY,
+        "title" TEXT NOT NULL,
+        "audio_url" TEXT NOT NULL,
+        "is_active" BOOLEAN NOT NULL DEFAULT true,
+        "sort_order" INTEGER NOT NULL DEFAULT 0,
+        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_site_music_tracks_active_order" ON public."site_music_tracks"("is_active", "sort_order", "id")');
+    await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "idx_site_music_tracks_sort_created" ON public."site_music_tracks"("sort_order", "created_at")');
+  } catch (error) {
+    console.warn('Site music table bootstrap failed:', { message: error.message, code: error.code, meta: error.meta });
+  }
+}
+
+
 async function ensureProjectAnalyticsAndInquiryTables() {
   try {
     await prisma.$executeRawUnsafe(`
@@ -588,7 +609,7 @@ async function ensureDefaultAdmin() {
 const server = http.createServer(app);
 initRealtime(server, { jwtSecret: process.env.JWT_SECRET });
 
-Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureStructuredProjectColumns(), ensureProjectAnalyticsAndInquiryTables()])
+Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensureSiteMusicTrackTable(), ensureStructuredProjectColumns(), ensureProjectAnalyticsAndInquiryTables()])
   .then(() => Promise.all([ensureDefaultAdmin(), ensureSeoIdentifiers()]))
   .catch((error) => {
     console.error('Default admin bootstrap failed:', error);
