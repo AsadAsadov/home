@@ -489,6 +489,20 @@ model SiteAd {
   @@map("site_ads")
 }
 
+model SiteMusicTrack {
+  id        Int      @id @default(autoincrement())
+  title     String
+  audioUrl  String   @map("audio_url") @db.Text
+  isActive  Boolean  @default(true) @map("is_active")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder, id], map: "idx_site_music_tracks_active_order")
+  @@index([sortOrder, createdAt], map: "idx_site_music_tracks_sort_created")
+  @@map("site_music_tracks")
+}
+
 model SiteSettings {
   id               Int      @id @default(1)
 
