@@ -25,6 +25,7 @@ const { generateNextListingCodeInLockedTransaction } = require('./utils/listingC
 const { authenticate, authorize } = require('./middleware/auth');
 const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 const { initRealtime } = require('./utils/realtime');
+const { startAutoApproveExpiredListingsJob } = require('./utils/autoApproveListings');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -594,5 +595,6 @@ Promise.all([ensurePublicUsersAuthColumns(), ensureProjectArchiveColumn(), ensur
   .finally(() => {
     server.listen(port, () => {
       console.log(`BestHome backend listening on :${port}`);
+      startAutoApproveExpiredListingsJob();
     });
   });
