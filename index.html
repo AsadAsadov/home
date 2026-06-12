@@ -45,10 +45,29 @@
             --color-card-background: #FFFFFF;
             --color-text-primary: #1F2937;
             --color-text-secondary: #6B7280;
+            --color-border: #E5E7EB;
+            --color-input-bg: rgba(255, 255, 255, 0.94);
+            --color-input-text: #111827;
+            --color-muted-surface: rgba(255, 255, 255, 0.78);
         }
 
-        html, body { max-width: 100%; overflow-x: clip; background: #ffffff; }
-        body { background: #ffffff; color: var(--color-text-primary); }
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --color-background: #07111F;
+            --color-secondary-background: #0F172A;
+            --color-card-background: #111827;
+            --color-text-primary: #F8FAFC;
+            --color-text-secondary: #CBD5E1;
+            --color-primary-light: rgba(127, 127, 255, 0.16);
+            --color-primary-border: rgba(148, 163, 184, 0.28);
+            --color-border: rgba(148, 163, 184, 0.24);
+            --color-input-bg: rgba(15, 23, 42, 0.92);
+            --color-input-text: #F8FAFC;
+            --color-muted-surface: rgba(15, 23, 42, 0.78);
+        }
+
+        html, body { max-width: 100%; overflow-x: clip; background: var(--color-background); }
+        body { background: var(--color-background); color: var(--color-text-primary); transition: background-color 180ms ease, color 180ms ease; }
         .desktop-ad-layout, main.flex-grow, .tab-content, #tab-seabreeze, #seabreeze-home-content, #sea-breeze-projects-list { background: transparent; }
         *, *::before, *::after { box-sizing: border-box; }
         img, video, iframe, canvas, svg { max-width: 100%; }
@@ -58,6 +77,64 @@
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--color-primary-border);
             box-shadow: 0 18px 45px rgba(127, 127, 255, 0.10);
+        }
+
+
+        html[data-theme="dark"] .glass-card { background: rgba(15, 23, 42, 0.86); border-color: var(--color-border); box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32); }
+        html[data-theme="dark"] .bg-white,
+        html[data-theme="dark"] .bg-gray-50,
+        html[data-theme="dark"] .bg-slate-50 { background-color: var(--color-card-background) !important; }
+        html[data-theme="dark"] .text-gray-900,
+        html[data-theme="dark"] .text-gray-800,
+        html[data-theme="dark"] .text-gray-700,
+        html[data-theme="dark"] .text-slate-900,
+        html[data-theme="dark"] .text-slate-800 { color: var(--color-text-primary) !important; }
+        html[data-theme="dark"] .text-gray-600,
+        html[data-theme="dark"] .text-gray-500,
+        html[data-theme="dark"] .text-slate-600 { color: var(--color-text-secondary) !important; }
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea { background-color: var(--color-input-bg) !important; border-color: var(--color-border) !important; color: var(--color-input-text) !important; }
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder { color: #94A3B8 !important; }
+        html[data-theme="dark"] .mobile-bottom-nav,
+        html[data-theme="dark"] .profile-dropdown-menu,
+        html[data-theme="dark"] .mobile-profile-sheet { background: rgba(15, 23, 42, 0.96) !important; color: var(--color-text-primary); border-color: var(--color-border); }
+        html[data-theme="dark"] .modal-glass-panel,
+        html[data-theme="dark"] .op-modal-body { background: rgba(15, 23, 42, 0.96) !important; color: var(--color-text-primary); }
+        .theme-toggle-btn,
+        .site-music-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            border: 1px solid var(--color-primary-border);
+            background: var(--color-muted-surface);
+            color: var(--color-text-primary);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
+            transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+        }
+        .theme-toggle-btn:hover,
+        .site-music-toggle:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
+        .theme-toggle-btn { min-height: 40px; border-radius: 999px; padding: .55rem .8rem; font-size: .78rem; font-weight: 800; }
+        .site-music-toggle {
+            position: fixed;
+            right: max(16px, env(safe-area-inset-right));
+            bottom: calc(22px + env(safe-area-inset-bottom));
+            z-index: 55;
+            min-height: 44px;
+            border-radius: 999px;
+            padding: .65rem .9rem;
+            font-size: .82rem;
+            font-weight: 900;
+        }
+        .site-music-toggle.is-hidden { display: none; }
+        .site-music-toggle.is-playing { background: rgba(var(--primary-rgb), .95); color: #fff; }
+        @media (max-width: 767px) {
+            .site-music-toggle { bottom: calc(var(--mobile-bottom-nav-height) + 18px + env(safe-area-inset-bottom)); right: 14px; padding: .6rem .75rem; }
+        }
+        @media (min-width: 768px) {
+            .site-music-toggle { right: 24px; }
         }
 
         .login-submit-btn,
@@ -5307,6 +5384,7 @@
     </nav>
 
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
+    <button id="site-music-toggle" type="button" onclick="toggleSiteMusic()" class="site-music-toggle is-hidden" aria-label="Sayt musiqisini aç"><i class="fa-solid fa-volume-high"></i><span>Səsi aç</span></button>
 
     <!-- MAIN CONTAINER -->
     <div id="desktop-ad-layout" class="desktop-ad-layout">
@@ -5958,6 +6036,10 @@
                             </div>
                         </div>
                     </div>
+                    <div class="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between gap-3">
+                        <div><h3 class="text-sm font-black text-white">Görünüş</h3><p class="text-[11px] text-gray-400">İşıqlı, qaranlıq və ya sistem rejimi.</p></div>
+                        <button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn"><i data-theme-toggle-icon class="fa-solid fa-circle-half-stroke"></i><span data-theme-toggle-label>Sistem</span></button>
+                    </div>
                     <form onsubmit="handleProfileUpdate(event)" class="space-y-3">
                         <input id="profile-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                         <input id="profile-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
@@ -6547,6 +6629,45 @@ Title: CASPIAN DREAM LINER
                 <div class="lg:col-span-7 space-y-4">
                     <div id="admin-ad-stats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                     <div id="admin-ads-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+
+            <!-- SUBTAB 7: SITE MUSIC -->
+            <div id="admin-subtab-site-music" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="glass-card p-6 rounded-2xl space-y-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white" id="music-form-title">Yeni musiqi</h3>
+                            <p class="text-[11px] text-gray-400 mt-1">MP3, WAV, OGG və M4A faylı yükləyin və ya birbaşa audio URL daxil edin.</p>
+                        </div>
+                        <form onsubmit="handleSaveMusicTrack(event)" class="space-y-3">
+                            <input type="hidden" id="edit-music-id">
+                            <input type="text" id="music-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+                            <label class="block space-y-1">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase">Audio URL</span>
+                                <input type="url" id="music-audio-url" placeholder="https://example.com/music.mp3 və ya /uploads/music/..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                            </label>
+                            <label class="block space-y-1">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase">Cihazdan fayl</span>
+                                <input type="file" id="music-audio-file" accept=".mp3,.wav,.ogg,.m4a,audio/mpeg,audio/wav,audio/ogg,audio/mp4" onchange="updateMusicAdminPreview()" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-gray-300">
+                                <span class="block text-[10px] text-gray-500">Fayl seçilərsə URL-dən üstün tutulur.</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" id="music-sort-order" min="0" value="0" placeholder="Sıra" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+                                <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="music-is-active" checked> Aktiv</label>
+                            </div>
+                            <audio id="music-admin-form-preview" controls class="hidden w-full"></audio>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="submit" id="music-save-submit-btn" class="async-submit-btn bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 rounded-xl text-sm">Yadda Saxla</button>
+                                <button type="button" onclick="resetMusicForm()" class="bg-white/5 border border-white/10 text-gray-600 font-bold py-2.5 rounded-xl text-sm">Təmizlə</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="glass-card p-4 rounded-2xl text-xs text-gray-300">Saytda yalnız aktiv treklər sıra nömrəsinə görə çalınır. Autoplay brauzer icazə verdikdə yoxlanılır, əks halda istifadəçi “Səsi aç” düyməsinə basır.</div>
+                    <div id="admin-music-list" class="space-y-3"></div>
                 </div>
             </div>
         </section>
@@ -7680,6 +7801,7 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Karyera & Vakansiyalar', adminOnly: true },
             { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', adminOnly: true },
             { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklam', adminOnly: true },
+            { id: 'subtab-btn-site-music', subtab: 'site-music', label: 'Sayt Musiqisi', adminOnly: true },
             { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
         ];
 
@@ -7830,6 +7952,139 @@ Title: CASPIAN DREAM LINER
                 throw error;
             }
             return response.status === 204 ? null : response.json();
+        }
+
+
+        const SITE_THEME_KEY = 'siteTheme';
+        const SITE_MUSIC_ENABLED_KEY = 'siteMusicEnabled';
+        const SITE_MUSIC_VOLUME_KEY = 'siteMusicVolume';
+        const SITE_MUSIC_TRACK_INDEX_KEY = 'currentTrackIndex';
+        const siteMusicState = { tracks: [], audio: null, currentIndex: 0, enabled: false, volume: 0.35, autoplayAttempted: false, loading: false };
+
+        function preferredTheme() {
+            const saved = localStorage.getItem(SITE_THEME_KEY) || 'system';
+            return ['light', 'dark', 'system'].includes(saved) ? saved : 'system';
+        }
+
+        function resolvedTheme(choice = preferredTheme()) {
+            if (choice === 'system') return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            return choice;
+        }
+
+        function applySiteTheme(choice = preferredTheme()) {
+            localStorage.setItem(SITE_THEME_KEY, choice);
+            document.documentElement.dataset.theme = resolvedTheme(choice);
+            document.documentElement.dataset.themePreference = choice;
+            document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
+            document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
+        }
+
+        function cycleSiteTheme() {
+            const order = ['light', 'dark', 'system'];
+            const current = preferredTheme();
+            applySiteTheme(order[(order.indexOf(current) + 1) % order.length]);
+            updateHeaderUI();
+        }
+
+        function themeToggleHtml(extraClass = '') {
+            return `<button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn ${extraClass}" aria-label="Light/Dark rejimini dəyiş"><i data-theme-toggle-icon class="fa-solid fa-circle-half-stroke"></i><span data-theme-toggle-label>Sistem</span></button>`;
+        }
+
+        function normalizeMusicTrack(track = {}) {
+            return {
+                id: track.id,
+                title: track.title || 'Musiqi',
+                audioUrl: track.audioUrl || track.audio_url || track.fileUrl || track.file_url || '',
+                isActive: Boolean(track.isActive ?? track.is_active),
+                sortOrder: Number(track.sortOrder ?? track.sort_order ?? 0),
+                createdAt: track.createdAt || track.created_at || ''
+            };
+        }
+
+        function orderedMusicTracks(tracks = appData.musicTracks || []) {
+            return (Array.isArray(tracks) ? tracks : []).map(normalizeMusicTrack).filter(t => t.audioUrl).sort((a, b) => (a.sortOrder - b.sortOrder) || String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || Number(a.id || 0) - Number(b.id || 0));
+        }
+
+        function ensureSiteMusicAudio() {
+            if (siteMusicState.audio) return siteMusicState.audio;
+            const audio = new Audio();
+            audio.preload = 'metadata';
+            audio.volume = siteMusicState.volume;
+            audio.addEventListener('ended', () => playSiteMusicAt(siteMusicState.currentIndex + 1, { userInitiated: false }));
+            audio.addEventListener('error', () => playSiteMusicAt(siteMusicState.currentIndex + 1, { userInitiated: false, skipFailed: true }));
+            siteMusicState.audio = audio;
+            return audio;
+        }
+
+        function updateSiteMusicButton() {
+            const btn = document.getElementById('site-music-toggle');
+            if (!btn) return;
+            const hasTracks = orderedMusicTracks(siteMusicState.tracks).length > 0;
+            btn.classList.toggle('is-hidden', !hasTracks);
+            btn.classList.toggle('is-playing', Boolean(siteMusicState.enabled && siteMusicState.audio && !siteMusicState.audio.paused));
+            const isPlaying = Boolean(siteMusicState.enabled && siteMusicState.audio && !siteMusicState.audio.paused);
+            btn.innerHTML = `<i class="fa-solid ${isPlaying ? 'fa-volume-xmark' : 'fa-volume-high'}"></i><span>${isPlaying ? 'Səsi bağla' : 'Səsi aç'}</span>`;
+            btn.setAttribute('aria-label', isPlaying ? 'Sayt musiqisini bağla' : 'Sayt musiqisini aç');
+        }
+
+        async function playSiteMusicAt(index = siteMusicState.currentIndex, options = {}) {
+            const tracks = orderedMusicTracks(siteMusicState.tracks);
+            if (!tracks.length) return updateSiteMusicButton();
+            const audio = ensureSiteMusicAudio();
+            const nextIndex = ((Number(index) || 0) % tracks.length + tracks.length) % tracks.length;
+            siteMusicState.currentIndex = nextIndex;
+            localStorage.setItem(SITE_MUSIC_TRACK_INDEX_KEY, String(nextIndex));
+            audio.volume = siteMusicState.volume;
+            if (audio.src !== new URL(tracks[nextIndex].audioUrl, window.location.origin).href) audio.src = tracks[nextIndex].audioUrl;
+            try {
+                await audio.play();
+                siteMusicState.enabled = true;
+                localStorage.setItem(SITE_MUSIC_ENABLED_KEY, 'true');
+            } catch (error) {
+                if (options.skipFailed && tracks.length > 1) return playSiteMusicAt(nextIndex + 1, options);
+                if (options.userInitiated) console.warn('Musiqi başladılmadı:', error.message);
+                siteMusicState.enabled = false;
+            } finally {
+                updateSiteMusicButton();
+            }
+        }
+
+        function stopSiteMusic() {
+            siteMusicState.enabled = false;
+            localStorage.setItem(SITE_MUSIC_ENABLED_KEY, 'false');
+            if (siteMusicState.audio) siteMusicState.audio.pause();
+            updateSiteMusicButton();
+        }
+
+        function toggleSiteMusic() {
+            const audio = ensureSiteMusicAudio();
+            if (siteMusicState.enabled && !audio.paused) return stopSiteMusic();
+            siteMusicState.enabled = true;
+            playSiteMusicAt(siteMusicState.currentIndex, { userInitiated: true });
+        }
+
+        async function loadSiteMusicBackground({ render = true, admin = false } = {}) {
+            siteMusicState.loading = true;
+            try {
+                const endpoint = admin ? '/api/admin/site-music' : '/api/site-music';
+                const tracks = await apiRequest(endpoint, { authRedirect: false }).catch(() => appData.musicTracks || []);
+                const normalized = orderedMusicTracks(tracks);
+                cacheData('musicTracks', normalized);
+                siteMusicState.tracks = normalized;
+                siteMusicState.volume = Math.min(1, Math.max(0, Number(localStorage.getItem(SITE_MUSIC_VOLUME_KEY) || 0.35)));
+                localStorage.setItem(SITE_MUSIC_VOLUME_KEY, String(siteMusicState.volume));
+                siteMusicState.currentIndex = Math.min(normalized.length - 1, Math.max(0, Number(localStorage.getItem(SITE_MUSIC_TRACK_INDEX_KEY) || 0))) || 0;
+                siteMusicState.enabled = localStorage.getItem(SITE_MUSIC_ENABLED_KEY) === 'true';
+                homepageHydration.musicTracks = !admin;
+                if (siteMusicState.enabled && !siteMusicState.autoplayAttempted) {
+                    siteMusicState.autoplayAttempted = true;
+                    playSiteMusicAt(siteMusicState.currentIndex, { userInitiated: false });
+                }
+                return normalized;
+            } finally {
+                siteMusicState.loading = false;
+                if (render) updateSiteMusicButton();
+            }
         }
 
         const PROJECT_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e2e8f0"/><stop offset="1" stop-color="#cbd5e1"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><g fill="none" stroke="#64748b" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" opacity=".72"><rect x="455" y="225" width="290" height="220" rx="24"/><circle cx="540" cy="310" r="32"/><path d="m475 420 95-90 70 65 45-42 40 38"/></g><text x="600" y="545" text-anchor="middle" fill="#475569" font-family="Arial, sans-serif" font-size="42" font-weight="700">Şəkil əlavə olunmayıb</text></svg>`)}`;
@@ -8739,6 +8994,181 @@ Title: CASPIAN DREAM LINER
             }
         }
 
+
+        function setMusicSaveButtonLoading(isLoading) {
+            setSubmitButtonLoading('music-save-submit-btn', Boolean(isLoading), 'Saxlanılır…', 'Yadda Saxla');
+        }
+
+        function musicFormValue(id) { return document.getElementById(id)?.value?.trim?.() || ''; }
+
+        function buildMusicFormData() {
+            const formData = new FormData();
+            formData.append('title', musicFormValue('music-title'));
+            formData.append('audio_url', musicFormValue('music-audio-url'));
+            formData.append('sort_order', musicFormValue('music-sort-order') || '0');
+            formData.append('is_active', document.getElementById('music-is-active')?.checked ? 'true' : 'false');
+            const file = document.getElementById('music-audio-file')?.files?.[0];
+            if (file) formData.append('audio', file);
+            return formData;
+        }
+
+        function updateMusicAdminPreview() {
+            const preview = document.getElementById('music-admin-form-preview');
+            if (!preview) return;
+            const file = document.getElementById('music-audio-file')?.files?.[0];
+            const url = file ? URL.createObjectURL(file) : musicFormValue('music-audio-url');
+            preview.classList.toggle('hidden', !url);
+            if (url) preview.src = url;
+        }
+
+        function resetMusicForm() {
+            ['edit-music-id', 'music-title', 'music-audio-url'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            const sort = document.getElementById('music-sort-order');
+            if (sort) sort.value = '0';
+            const active = document.getElementById('music-is-active');
+            if (active) active.checked = true;
+            const file = document.getElementById('music-audio-file');
+            if (file) file.value = '';
+            const title = document.getElementById('music-form-title');
+            if (title) title.textContent = 'Yeni musiqi';
+            const preview = document.getElementById('music-admin-form-preview');
+            if (preview) { preview.pause(); preview.removeAttribute('src'); preview.classList.add('hidden'); }
+        }
+
+        function renderAdminMusicTracks() {
+            const list = document.getElementById('admin-music-list');
+            if (!list) return;
+            const tracks = orderedMusicTracks(appData.musicTracks || []);
+            if (dataLoadState.musicTracks.loading && !tracks.length) {
+                list.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Musiqi siyahısı yüklənir…</div>';
+                return;
+            }
+            if (!tracks.length) {
+                list.innerHTML = '<div class="glass-card p-6 rounded-2xl text-center text-sm font-bold text-gray-400">Musiqi əlavə edilməyib</div>';
+                return;
+            }
+            list.innerHTML = tracks.map((track, index) => `
+                <article class="admin-music-card glass-card p-4 rounded-2xl space-y-3" data-music-id="${escapeHtml(track.id)}">
+                    <div class="flex flex-col md:flex-row md:items-center gap-3">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <strong class="text-white">${escapeHtml(track.title)}</strong>
+                                <span class="rounded-full ${track.isActive ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-300'} px-2 py-0.5 text-[10px] font-bold">${track.isActive ? 'Aktiv' : 'Passiv'}</span>
+                                <span class="rounded-full bg-brand-500/15 text-brand-200 px-2 py-0.5 text-[10px] font-bold">#${index + 1}</span>
+                            </div>
+                            <div class="mt-1 truncate text-[11px] text-gray-400">${escapeHtml(track.audioUrl)}</div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 shrink-0">
+                            <button type="button" onclick="moveMusicTrack(${track.id}, -1)" ${index === 0 ? 'disabled' : ''} class="text-gray-300 px-3 py-2 bg-white/5 hover:bg-white/15 rounded-xl transition disabled:opacity-40"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveMusicTrack(${track.id}, 1)" ${index === tracks.length - 1 ? 'disabled' : ''} class="text-gray-300 px-3 py-2 bg-white/5 hover:bg-white/15 rounded-xl transition disabled:opacity-40"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" onclick="editMusicTrack(${track.id})" class="text-blue-400 px-3 py-2 bg-blue-500/10 hover:bg-blue-500 hover:text-white rounded-xl transition">Redaktə</button>
+                            <button type="button" onclick="toggleMusicTrackStatus(${track.id}, ${!track.isActive})" class="${track.isActive ? 'text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500' : 'text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500'} hover:text-white px-3 py-2 rounded-xl transition">${track.isActive ? 'Deaktiv et' : 'Aktiv et'}</button>
+                            <button type="button" onclick="deleteMusicTrack(${track.id})" class="text-red-400 px-3 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-xl transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <audio controls preload="metadata" class="w-full" src="${escapeHtml(track.audioUrl)}"></audio>
+                </article>
+            `).join('');
+        }
+
+        async function loadAdminMusicTracks({ force = true } = {}) {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return [];
+            if (dataLoadState.musicTracks.loading && !force) return appData.musicTracks || [];
+            dataLoadState.musicTracks.loading = true;
+            dataLoadState.musicTracks.error = '';
+            renderAdminMusicTracks();
+            try {
+                const tracks = await apiRequest('/api/admin/site-music', { authRedirect: false });
+                cacheData('musicTracks', orderedMusicTracks(tracks));
+                siteMusicState.tracks = appData.musicTracks;
+                dataLoadState.musicTracks.loaded = true;
+                return appData.musicTracks;
+            } catch (error) {
+                dataLoadState.musicTracks.error = error.message;
+                return appData.musicTracks || [];
+            } finally {
+                dataLoadState.musicTracks.loading = false;
+                renderAdminMusicTracks();
+                updateSiteMusicButton();
+            }
+        }
+
+        async function handleSaveMusicTrack(event) {
+            event.preventDefault();
+            setMusicSaveButtonLoading(true);
+            const editId = musicFormValue('edit-music-id');
+            try {
+                const saved = await apiRequest(editId ? `/api/admin/site-music/${editId}` : '/api/admin/site-music', editId ? 'PUT' : 'POST', buildMusicFormData());
+                if (saved) upsertCachedItem('musicTracks', normalizeMusicTrack(saved));
+                resetMusicForm();
+                await loadAdminMusicTracks({ force: true });
+                await loadSiteMusicBackground({ render: true, admin: false });
+            } catch (error) {
+                alert('Musiqi yadda saxlanılmadı: ' + error.message);
+            } finally {
+                setMusicSaveButtonLoading(false);
+            }
+        }
+
+        function editMusicTrack(id) {
+            const track = (appData.musicTracks || []).find(item => String(item.id) === String(id));
+            if (!track) return;
+            document.getElementById('edit-music-id').value = track.id;
+            document.getElementById('music-title').value = track.title || '';
+            document.getElementById('music-audio-url').value = track.audioUrl || '';
+            document.getElementById('music-sort-order').value = track.sortOrder ?? 0;
+            document.getElementById('music-is-active').checked = Boolean(track.isActive);
+            const file = document.getElementById('music-audio-file');
+            if (file) file.value = '';
+            document.getElementById('music-form-title').textContent = 'Musiqini redaktə et';
+            updateMusicAdminPreview();
+        }
+
+        async function toggleMusicTrackStatus(id, isActive) {
+            const track = (appData.musicTracks || []).find(item => String(item.id) === String(id));
+            if (!track) return;
+            try {
+                await apiRequest(`/api/admin/site-music/${id}`, { method: 'PUT', body: JSON.stringify({ ...track, is_active: Boolean(isActive) }) });
+                await loadAdminMusicTracks({ force: true });
+                await loadSiteMusicBackground({ render: true, admin: false });
+            } catch (error) {
+                alert('Musiqi statusu yenilənmədi: ' + error.message);
+            }
+        }
+
+        async function deleteMusicTrack(id) {
+            if (!confirm('Musiqi silinsin?')) return;
+            try {
+                await apiRequest(`/api/admin/site-music/${id}`, { method: 'DELETE' });
+                cacheData('musicTracks', (appData.musicTracks || []).filter(track => String(track.id) !== String(id)));
+                await loadAdminMusicTracks({ force: true });
+                await loadSiteMusicBackground({ render: true, admin: false });
+            } catch (error) {
+                alert('Musiqi silinmədi: ' + error.message);
+            }
+        }
+
+        async function moveMusicTrack(id, direction) {
+            const tracks = orderedMusicTracks(appData.musicTracks || []);
+            const index = tracks.findIndex(track => String(track.id) === String(id));
+            const nextIndex = index + Number(direction || 0);
+            if (index < 0 || nextIndex < 0 || nextIndex >= tracks.length) return;
+            const reordered = tracks.slice();
+            const [item] = reordered.splice(index, 1);
+            reordered.splice(nextIndex, 0, item);
+            cacheData('musicTracks', reordered.map((track, orderIndex) => ({ ...track, sortOrder: orderIndex + 1 })));
+            renderAdminMusicTracks();
+            try {
+                const response = await apiRequest('/api/admin/site-music/reorder', { method: 'POST', body: JSON.stringify({ order: appData.musicTracks.map((track, orderIndex) => ({ id: track.id, sortOrder: orderIndex + 1 })) }) });
+                if (Array.isArray(response?.items)) cacheData('musicTracks', response.items.map(normalizeMusicTrack));
+                renderAdminMusicTracks();
+                await loadSiteMusicBackground({ render: true, admin: false });
+            } catch (error) {
+                alert('Musiqi sırası saxlanılmadı: ' + error.message);
+                await loadAdminMusicTracks({ force: true }).catch(() => {});
+            }
+        }
+
         function clearAdDropTargets() {
             document.querySelectorAll('#admin-ads-list .is-drop-target').forEach(card => card.classList.remove('is-drop-target'));
         }
@@ -8820,6 +9250,7 @@ Title: CASPIAN DREAM LINER
             heroSection: null,
             listingHeroItems: [],
             ads: [],
+            musicTracks: [],
             adStats: null,
             siteSettings: null,
             careerText: "BestHome komandası olaraq karyera qurmaq istəyən gənclərə geniş imkanlar yaradırıq."
@@ -8837,6 +9268,7 @@ Title: CASPIAN DREAM LINER
             listingHeroItems: 'besthome_listing_hero_items',
             careerText: 'besthome_career_text',
             ads: 'besthome_site_ads',
+            musicTracks: 'besthome_site_music_tracks',
             siteSettings: 'besthome_site_settings',
             favoriteListingIds: 'besthome_favorite_listing_ids'
         };
@@ -8900,6 +9332,7 @@ Title: CASPIAN DREAM LINER
             appData.listingHeroItems = normalizeListingHeroItems(readCache(CACHE_KEYS.listingHeroItems, []));
             appData.careerText = localStorage.getItem(CACHE_KEYS.careerText) || appData.careerText;
             appData.ads = readCache(CACHE_KEYS.ads, []);
+            appData.musicTracks = readCache(CACHE_KEYS.musicTracks, []);
             appData.siteSettings = normalizeSiteSettings(readCache(CACHE_KEYS.siteSettings, DEFAULT_SITE_SETTINGS));
             appData.favoriteListingIds = readCachedFavoriteListingIds();
         }
@@ -10024,6 +10457,7 @@ Title: CASPIAN DREAM LINER
             listings: { loading: true, loaded: false },
             gallery: { loading: true, loaded: false, error: '' },
             ads: { loading: false, loaded: false, error: '' },
+            musicTracks: { loading: false, loaded: false, error: '' },
             adminListings: { loading: false, loaded: false, error: '' }
         };
 
@@ -10038,6 +10472,7 @@ Title: CASPIAN DREAM LINER
             gallery: false,
             vacancies: false,
             ads: false,
+            musicTracks: false,
             admin: false,
             initialHomepageLoaded: false,
             initialHomepageLoading: true,
@@ -10454,6 +10889,7 @@ Title: CASPIAN DREAM LINER
                     withHomepageTimeout(loadHeroSlidesPriority(), 'Hero slaydları'),
                     withHomepageTimeout(loadProjectsPriority({ render: false }), 'Layihələr'),
                     withHomepageTimeout(loadAdsBackground({ render: false }), 'Reklamlar'),
+                    withHomepageTimeout(loadSiteMusicBackground({ render: false }), 'Sayt musiqisi'),
                     withHomepageTimeout(loadListingHeroPriority(), 'Elan hero')
                 ];
                 await Promise.allSettled(criticalTasks);
@@ -13372,6 +13808,7 @@ Title: CASPIAN DREAM LINER
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
                 container.innerHTML = `
+                    ${themeToggleHtml()}
                     <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>
                     <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar"><i class="fa-solid fa-message"></i>${badgeSlotHtml('message', messagingState.messagesUnread)}</button>
                     <div class="relative group">
@@ -13384,7 +13821,7 @@ ${profileMenuItemsHtml()}
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon mobile-notification-btn" aria-label="Bildirişlər">🔔${badgeSlotHtml('notification', messagingState.notificationsUnread, { variant: 'mobile', badgeClass: 'mobile-notification-badge' })}</button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon" aria-label="Mesajlar">💬${badgeSlotHtml('message', messagingState.messagesUnread)}</button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}<button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon mobile-notification-btn" aria-label="Bildirişlər">🔔${badgeSlotHtml('notification', messagingState.notificationsUnread, { variant: 'mobile', badgeClass: 'mobile-notification-badge' })}</button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon" aria-label="Mesajlar">💬${badgeSlotHtml('message', messagingState.messagesUnread)}</button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
                 readMessagingCache();
                 refreshHeaderBadges();
                 loadBadgeSummary();
@@ -13393,15 +13830,17 @@ ${profileMenuItemsHtml()}
                 mobileActions.innerHTML = ``;
             } else {
                 container.innerHTML = `
+                    ${themeToggleHtml()}
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<button onclick="switchTab('admin-login')" aria-label="Mobil giriş və admin paneli" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
+                mobileIcon.innerHTML = `${themeToggleHtml('mobile-header-icon')}<button onclick="switchTab('admin-login')" aria-label="Mobil giriş və admin paneli" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
                 mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
                 messagingState.messagesUnread = 0;
             }
+            applySiteTheme(preferredTheme());
         }
 
         async function logoutAdmin() {
@@ -15799,6 +16238,7 @@ Təşəkkür edirəm. 🙏`;
             'project-inquiries': '/admin/project-inquiries',
             'gallery-manager': '/admin/gallery',
             'ads-manager': '/admin/ads',
+            'site-music': '/admin/site-music',
             'vacancy-manager': '/admin/vacancies',
             'site-settings': '/admin/site-settings',
             'hero-sections': '/admin/project-hero',
@@ -15810,7 +16250,7 @@ Təşəkkür edirəm. 🙏`;
 
         function normalizeAdminSubtab(subtab) {
             const key = String(subtab || '').trim().toLowerCase();
-            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', gallery: 'gallery-manager', 'media-gallery': 'gallery-manager', qalereya: 'gallery-manager', 'media-qalereya': 'gallery-manager' };
+            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', music: 'site-music', musiqi: 'site-music', 'site-music': 'site-music', gallery: 'gallery-manager', 'media-gallery': 'gallery-manager', qalereya: 'gallery-manager', 'media-qalereya': 'gallery-manager' };
             return subtabAliases[key] || subtab;
         }
 
@@ -15818,7 +16258,7 @@ Təşəkkür edirəm. 🙏`;
             subtab = normalizeAdminSubtab(subtab);
             const isAdmin = isAdminRole(activeUser?.role);
             currentAdminSubtab = subtab || currentAdminSubtab;
-            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-settings'].includes(subtab);
+            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-music', 'site-settings'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'seabreeze-manager';
                 currentAdminSubtab = subtab;
@@ -15837,6 +16277,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
             document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
             document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
+            document.getElementById('admin-subtab-site-music')?.classList.add('hidden');
             document.getElementById('admin-subtab-site-settings').classList.add('hidden');
             document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
 
@@ -15848,7 +16289,7 @@ Təşəkkür edirəm. 🙏`;
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
-            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries','gallery-manager','ads-manager'].includes(subtab)) refreshAdminStats({ render: true });
+            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries','gallery-manager','ads-manager','site-music'].includes(subtab)) refreshAdminStats({ render: true });
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
@@ -17512,6 +17953,7 @@ Təşəkkür edirəm. 🙏`;
                 renderAdminGallery();
 
                 renderAdminAds();
+                renderAdminMusicTracks();
             }
         }
 
@@ -18838,6 +19280,9 @@ Təşəkkür edirəm. 🙏`;
             ads: 'ads-manager',
             reklam: 'ads-manager',
             advertisements: 'ads-manager',
+            music: 'site-music',
+            musiqi: 'site-music',
+            'site-music': 'site-music',
             vakansiya: 'vacancy-manager',
             vacancy: 'vacancy-manager',
             'site-settings': 'site-settings',
@@ -18860,6 +19305,8 @@ Təşəkkür edirəm. 🙏`;
             '/admin/ads': 'ads-manager',
             '/admin/reklam': 'ads-manager',
             '/admin/advertisements': 'ads-manager',
+            '/admin/site-music': 'site-music',
+            '/admin/musiqi': 'site-music',
             '/admin/vakansiya': 'vacancy-manager',
             '/admin/vacancy': 'vacancy-manager',
             '/admin/site-settings': 'site-settings',
@@ -19042,6 +19489,8 @@ Təşəkkür edirəm. 🙏`;
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
+            applySiteTheme(preferredTheme());
+            window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (preferredTheme() === 'system') applySiteTheme('system'); });
             const initialPath = window.location.pathname;
             updateMobileModalMetrics();
             renderProjectImageInputs(['']);
@@ -19062,6 +19511,7 @@ Təşəkkür edirəm. 🙏`;
             }
             await routeToCurrentPath();
             hydrateFromDatabase().catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
+            loadSiteMusicBackground({ render: true }).catch(error => console.warn('Sayt musiqisi yüklənmədi:', error.message));
             setMobileBottomNavActive();
             populateMetroSelect();
             toggleMetroFieldForCity();
