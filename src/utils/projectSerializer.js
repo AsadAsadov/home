@@ -50,6 +50,14 @@ function toBool(value) {
 }
 
 function serializeProject(body) {
+  const latitude = toCoordinate(body.latitude, -90, 90);
+  const longitude = toCoordinate(body.longitude, -180, 180);
+  const hasValidCoordinates = latitude !== undefined && longitude !== undefined;
+  const verifiedInput = body.map_location_verified ?? body.mapLocationVerified;
+  const mapLocationVerified = verifiedInput === undefined || verifiedInput === null || verifiedInput === ''
+    ? (hasValidCoordinates ? true : undefined)
+    : toBool(verifiedInput);
+
   return {
     title: cleanString(body.title),
     category: cleanString(body.category ?? body.type ?? body.projectType),
@@ -85,9 +93,9 @@ function serializeProject(body) {
     brochureUrl: cleanString(body.brochure_url ?? body.brochureUrl),
     brochureFilename: cleanString(body.brochure_filename ?? body.brochureFilename),
     aliases: cleanString(body.aliases),
-    latitude: toCoordinate(body.latitude, -90, 90),
-    longitude: toCoordinate(body.longitude, -180, 180),
-    mapLocationVerified: toBool(body.map_location_verified ?? body.mapLocationVerified),
+    latitude,
+    longitude,
+    mapLocationVerified,
     mapLocationLabel: cleanString(body.map_location_label ?? body.mapLocationLabel),
   };
 }
