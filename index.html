@@ -131,14 +131,23 @@
         }
         .site-music-controls.is-hidden { display: none; }
         .site-music-controls.is-playing { background: rgba(var(--primary-rgb), .95); color: #fff; }
+        .site-music-controls.is-collapsed { width: 44px; height: 44px; min-height: 44px; padding: 0; gap: 0; transform: translateX(0); }
+        .site-music-controls.is-collapsed .site-music-title,
+        .site-music-controls.is-collapsed .site-music-control-btn:not(.site-music-expand-btn) { display: none; }
+        .site-music-controls:not(.is-collapsed) .site-music-expand-btn { display: none; }
         .site-music-title { max-width: 132px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .site-music-control-btn { width: 34px; height: 34px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 180ms ease, transform 180ms ease; }
+        .site-music-control-btn { width: 34px; height: 34px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background-color 180ms ease, transform 180ms ease, opacity 180ms ease; }
         .site-music-control-btn:hover { background: rgba(var(--primary-rgb), .14); transform: translateY(-1px); }
         .site-music-controls.is-playing .site-music-control-btn:hover { background: rgba(255,255,255,.16); }
         @media (max-width: 767px) {
-            .site-music-controls { bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom)); right: 14px; padding: .38rem .45rem; gap: .2rem; max-width: min(250px, calc(100vw - 28px)); }
-            .site-music-title { max-width: 82px; font-size: .68rem; }
+            .site-music-controls { bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom)); right: 14px; height: 52px; min-height: 48px; padding: .36rem .44rem .36rem .58rem; gap: .24rem; max-width: min(300px, calc(100vw - 28px)); transition: transform 220ms ease, opacity 220ms ease, width 220ms ease, background-color 180ms ease, border-color 180ms ease; }
+            .site-music-title { max-width: 104px; font-size: .72rem; }
             .site-music-control-btn { width: 30px; height: 30px; font-size: .76rem; }
+        }
+        @media (max-width: 374px) {
+            .site-music-controls { gap: .12rem; max-width: min(260px, calc(100vw - 20px)); right: 10px; }
+            .site-music-title { max-width: 68px; }
+            .site-music-control-btn { width: 28px; height: 28px; }
         }
         @media (min-width: 768px) {
             .site-music-controls { right: 24px; }
@@ -5831,11 +5840,11 @@
         }
         @media (max-width: 767px) {
             .site-music-controls {
-                bottom: calc(var(--mobile-bottom-nav-height) + 12px + env(safe-area-inset-bottom));
+                bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom));
                 right: max(10px, env(safe-area-inset-right));
-                min-height: 38px;
-                max-width: min(250px, calc(100vw - 24px));
-                padding: .48rem .62rem;
+                min-height: 48px;
+                max-width: min(300px, calc(100vw - 24px));
+                padding: .36rem .44rem .36rem .58rem;
                 font-size: .72rem;
                 line-height: 1.05;
                 z-index: 55;
@@ -6328,7 +6337,7 @@
                 bottom: calc(var(--mobile-bottom-nav-height, 84px) + 14px + env(safe-area-inset-bottom)) !important;
                 right: 16px !important;
                 z-index: 55 !important;
-                max-width: min(250px, calc(100vw - 32px));
+                max-width: min(300px, calc(100vw - 32px));
             }
             #property-detail-modal:not(.hidden) ~ .site-music-controls,
             #project-detail-modal-official:not(.hidden) ~ .site-music-controls,
@@ -6386,7 +6395,8 @@
     </nav>
 
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
-    <div id="site-music-controls" class="site-music-controls is-hidden" aria-label="Sayt musiqisi idarəetmələri">
+    <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
+        <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
         <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
         <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
         <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
@@ -8979,7 +8989,7 @@ Title: CASPIAN DREAM LINER
         const SITE_MUSIC_ENABLED_KEY = 'siteMusicEnabled';
         const SITE_MUSIC_VOLUME_KEY = 'siteMusicVolume';
         const SITE_MUSIC_TRACK_INDEX_KEY = 'currentTrackIndex';
-        const siteMusicState = { tracks: [], audio: null, currentIndex: 0, enabled: false, volume: 0.35, autoplayAttempted: false, loading: false };
+        const siteMusicState = { tracks: [], audio: null, currentIndex: 0, enabled: false, volume: 0.35, autoplayAttempted: false, loading: false, collapsed: true, inactivityTimer: null, scrollTimer: null };
 
         function preferredTheme() {
             const saved = localStorage.getItem(SITE_THEME_KEY) || 'system';
@@ -9046,6 +9056,9 @@ Title: CASPIAN DREAM LINER
             const currentTrack = tracks[siteMusicState.currentIndex] || tracks[0];
             controls.classList.toggle('is-hidden', !hasTracks);
             controls.classList.toggle('is-playing', isPlaying);
+            controls.classList.toggle('is-collapsed', Boolean(siteMusicState.collapsed));
+            const expandBtn = document.getElementById('site-music-expand');
+            if (expandBtn) expandBtn.textContent = isPlaying ? '🔊' : '🎵';
             btn.textContent = isPlaying ? '⏸' : '▶️';
             btn.setAttribute('aria-label', isPlaying ? 'Musiqini dayandır' : 'Musiqini başlat');
             const title = document.getElementById('site-music-title');
@@ -9054,6 +9067,29 @@ Title: CASPIAN DREAM LINER
                 title.title = currentTrack?.title || 'Musiqi';
             }
         }
+
+        function collapseSiteMusicPlayer() {
+            siteMusicState.collapsed = true;
+            clearTimeout(siteMusicState.inactivityTimer);
+            updateSiteMusicButton();
+        }
+
+        function scheduleSiteMusicCollapse(delay = 4000) {
+            clearTimeout(siteMusicState.inactivityTimer);
+            siteMusicState.inactivityTimer = setTimeout(collapseSiteMusicPlayer, delay);
+        }
+
+        function expandSiteMusicPlayer() {
+            siteMusicState.collapsed = false;
+            updateSiteMusicButton();
+            scheduleSiteMusicCollapse();
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!orderedMusicTracks(siteMusicState.tracks).length) return;
+            clearTimeout(siteMusicState.scrollTimer);
+            siteMusicState.scrollTimer = setTimeout(collapseSiteMusicPlayer, 80);
+        }, { passive: true });
 
         async function playSiteMusicAt(index = siteMusicState.currentIndex, options = {}) {
             const tracks = orderedMusicTracks(siteMusicState.tracks);
@@ -9090,6 +9126,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function toggleSiteMusic() {
+            expandSiteMusicPlayer();
             const audio = ensureSiteMusicAudio();
             if (siteMusicState.enabled && !audio.paused) return stopSiteMusic();
             siteMusicState.enabled = true;
@@ -9100,6 +9137,7 @@ Title: CASPIAN DREAM LINER
             const tracks = orderedMusicTracks(siteMusicState.tracks);
             if (!tracks.length) return updateSiteMusicButton();
             const targetIndex = tracks.length === 1 ? siteMusicState.currentIndex : siteMusicState.currentIndex - 1;
+            expandSiteMusicPlayer();
             playSiteMusicAt(targetIndex, { userInitiated: true, announce: true, restartCurrent: true });
         }
 
@@ -9107,6 +9145,7 @@ Title: CASPIAN DREAM LINER
             const tracks = orderedMusicTracks(siteMusicState.tracks);
             if (!tracks.length) return updateSiteMusicButton();
             const targetIndex = tracks.length === 1 ? siteMusicState.currentIndex : siteMusicState.currentIndex + 1;
+            expandSiteMusicPlayer();
             playSiteMusicAt(targetIndex, { userInitiated: true, announce: true, restartCurrent: true });
         }
 

@@ -405,7 +405,7 @@ app.get('*', (req, res, next) => {
   return sendSpaIndexWithSeo(req, res, next);
 });
 
-app.use((err, _req, res, _next) => {
+app.use((err, req, res, _next) => {
   console.error('API ERROR', {
     message: err.message,
     name: err.name,
@@ -414,7 +414,10 @@ app.use((err, _req, res, _next) => {
     stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
   });
   if (err instanceof multer.MulterError) {
-    const message = err.code === 'LIMIT_FILE_SIZE' ? 'Uploaded file is too large.' : err.message;
+    const isMusicUpload = req?.path?.includes('/admin/site-music') || err.field === 'audio';
+    const message = err.code === 'LIMIT_FILE_SIZE' && isMusicUpload
+      ? 'Fayl çox böyükdür. Server limitini artırın və yenidən yoxlayın.'
+      : err.code === 'LIMIT_FILE_SIZE' ? 'Uploaded file is too large.' : err.message;
     return res.status(413).json({ success: false, error: message, message });
   }
   if (err.type === 'entity.too.large') {
