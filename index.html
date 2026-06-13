@@ -5841,6 +5841,362 @@
             .site-music-toggle span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         }
 
+        /* Final dark theme design pass: use explicit surfaces and protect branded actions from generic overrides. */
+        html[data-theme="dark"] {
+            --dark-page: #070b16;
+            --dark-surface: #0f172a;
+            --dark-surface-2: #111827;
+            --dark-card: #111827;
+            --dark-border: rgba(255,255,255,.14);
+            --dark-text: #f8fafc;
+            --dark-text-2: #cbd5e1;
+            --dark-muted: #94a3b8;
+            --primary: #7c6cff;
+            --primary-2: #6d5dfc;
+            --color-background: var(--dark-page);
+            --color-secondary-background: var(--dark-surface);
+            --color-card-background: var(--dark-card);
+            --color-text-primary: var(--dark-text);
+            --color-text-secondary: var(--dark-text-2);
+            --color-border: var(--dark-border);
+            --color-input-bg: var(--dark-card);
+            --color-input-text: var(--dark-text);
+            --color-primary: var(--primary);
+            --color-primary-hover: var(--primary-2);
+        }
+        html[data-theme="dark"],
+        html[data-theme="dark"] body,
+        html[data-theme="dark"] main,
+        html[data-theme="dark"] main.flex-grow,
+        html[data-theme="dark"] section,
+        html[data-theme="dark"] .tab-content,
+        html[data-theme="dark"] .public-page,
+        html[data-theme="dark"] .page-shell,
+        html[data-theme="dark"] .sea-breeze-page,
+        html[data-theme="dark"] .projects-section,
+        html[data-theme="dark"] #tab-seabreeze,
+        html[data-theme="dark"] #seabreeze-home-content,
+        html[data-theme="dark"] #sea-breeze-projects-list {
+            background: var(--dark-page) !important;
+            color: var(--dark-text) !important;
+            opacity: 1 !important;
+            filter: none !important;
+        }
+        html[data-theme="dark"] h1,
+        html[data-theme="dark"] h2,
+        html[data-theme="dark"] h3,
+        html[data-theme="dark"] h4,
+        html[data-theme="dark"] h5,
+        html[data-theme="dark"] h6,
+        html[data-theme="dark"] strong,
+        html[data-theme="dark"] .text-gray-950,
+        html[data-theme="dark"] .text-gray-900,
+        html[data-theme="dark"] .text-gray-800,
+        html[data-theme="dark"] .text-gray-700,
+        html[data-theme="dark"] .text-slate-950,
+        html[data-theme="dark"] .text-slate-900,
+        html[data-theme="dark"] .text-slate-800,
+        html[data-theme="dark"] .text-slate-700 { color: var(--dark-text) !important; }
+        html[data-theme="dark"] body,
+        html[data-theme="dark"] p,
+        html[data-theme="dark"] li,
+        html[data-theme="dark"] label,
+        html[data-theme="dark"] .text-gray-600,
+        html[data-theme="dark"] .text-gray-500,
+        html[data-theme="dark"] .text-slate-600,
+        html[data-theme="dark"] .text-slate-500 { color: var(--dark-text-2) !important; }
+        html[data-theme="dark"] small,
+        html[data-theme="dark"] .text-gray-400,
+        html[data-theme="dark"] .text-slate-400,
+        html[data-theme="dark"] .text-muted { color: var(--dark-muted) !important; }
+        html[data-theme="dark"] .glass-card,
+        html[data-theme="dark"] .bg-white,
+        html[data-theme="dark"] .bg-white\/70,
+        html[data-theme="dark"] .bg-white\/80,
+        html[data-theme="dark"] .bg-white\/85,
+        html[data-theme="dark"] .bg-white\/90,
+        html[data-theme="dark"] .bg-gray-50,
+        html[data-theme="dark"] .bg-gray-100,
+        html[data-theme="dark"] .bg-slate-50,
+        html[data-theme="dark"] .bg-slate-100,
+        html[data-theme="dark"] .public-form-card,
+        html[data-theme="dark"] .public-section-box,
+        html[data-theme="dark"] .listing-submission-card,
+        html[data-theme="dark"] .premium-filter-bar,
+        html[data-theme="dark"] .project-filter-panel,
+        html[data-theme="dark"] .homepage-skeleton-filters,
+        html[data-theme="dark"] .profile-dropdown-menu,
+        html[data-theme="dark"] .mobile-profile-sheet,
+        html[data-theme="dark"] #public-listing-root > div,
+        html[data-theme="dark"] #my-listings-root > div,
+        html[data-theme="dark"] #admin-dashboard-root > div {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: 0 18px 45px rgba(0,0,0,.34) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        html[data-theme="dark"] .border,
+        html[data-theme="dark"] .border-t,
+        html[data-theme="dark"] .border-b,
+        html[data-theme="dark"] .border-gray-100,
+        html[data-theme="dark"] .border-gray-200,
+        html[data-theme="dark"] .border-slate-200,
+        html[data-theme="dark"] .border-brand-200\/70,
+        html[data-theme="dark"] .border-brand-200\/80 { border-color: var(--dark-border) !important; }
+
+        /* Dark forms and filters. */
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea,
+        html[data-theme="dark"] .public-form-input,
+        html[data-theme="dark"] .premium-filter-control,
+        html[data-theme="dark"] .mortgage-input,
+        html[data-theme="dark"] input[type="file"] {
+            background: var(--dark-card) !important;
+            color: var(--dark-text) !important;
+            border-color: rgba(255,255,255,.16) !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder,
+        html[data-theme="dark"] .public-form-input::placeholder,
+        html[data-theme="dark"] .premium-filter-control::placeholder { color: var(--dark-muted) !important; opacity: 1 !important; }
+        html[data-theme="dark"] option { background: var(--dark-card); color: var(--dark-text); }
+        html[data-theme="dark"] .premium-filter-label,
+        html[data-theme="dark"] .public-form-label,
+        html[data-theme="dark"] .admin-responsive-form label,
+        html[data-theme="dark"] .admin-responsive-form .field-label,
+        html[data-theme="dark"] .admin-responsive-form label > span { color: var(--dark-text-2) !important; }
+
+        /* Listing and project cards. */
+        html[data-theme="dark"] .sea-breeze-listing-card,
+        html[data-theme="dark"] .sea-breeze-project-card,
+        html[data-theme="dark"] .listing-card,
+        html[data-theme="dark"] .project-card,
+        html[data-theme="dark"] [class*="listing-card"],
+        html[data-theme="dark"] [class*="project-card"] {
+            background: var(--dark-card) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .sea-breeze-listing-card__title,
+        html[data-theme="dark"] .sea-breeze-listing-card__price,
+        html[data-theme="dark"] .sea-breeze-project-card__title { color: var(--dark-text) !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card__meta,
+        html[data-theme="dark"] .sea-breeze-listing-card__description,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-period,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-per-m2,
+        html[data-theme="dark"] .sea-breeze-listing-card__stats span,
+        html[data-theme="dark"] .sea-breeze-project-card__description,
+        html[data-theme="dark"] .project-card-meta,
+        html[data-theme="dark"] .project-card-meta-badge { color: var(--dark-text-2) !important; opacity: 1 !important; }
+
+        /* Listing detail modal. */
+        html[data-theme="dark"] #property-detail-modal > .listing-detail-shell,
+        html[data-theme="dark"] #property-detail-modal .listing-detail-scroll,
+        html[data-theme="dark"] #property-detail-modal .listing-detail-content,
+        html[data-theme="dark"] .listing-detail-card,
+        html[data-theme="dark"] .listing-detail-gallery-card,
+        html[data-theme="dark"] .listing-detail-section {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .listing-detail-price-panel,
+        html[data-theme="dark"] .listing-detail-credit-panel,
+        html[data-theme="dark"] .listing-detail-location-section,
+        html[data-theme="dark"] .listing-detail-agent-panel,
+        html[data-theme="dark"] .listing-detail-stat,
+        html[data-theme="dark"] #property-detail-modal .bg-white,
+        html[data-theme="dark"] #property-detail-modal .bg-slate-50,
+        html[data-theme="dark"] #property-detail-modal .bg-brand-50 {
+            background: var(--dark-card) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: 0 14px 35px rgba(0,0,0,.26) !important;
+        }
+        html[data-theme="dark"] .listing-detail-price-panel.bg-gradient-to-br {
+            background: linear-gradient(135deg, rgba(124,108,255,.24), var(--dark-card) 52%, var(--dark-surface)) !important;
+        }
+        html[data-theme="dark"] .listing-detail-price-panel *,
+        html[data-theme="dark"] .listing-detail-credit-panel *,
+        html[data-theme="dark"] .listing-detail-stat strong,
+        html[data-theme="dark"] .listing-detail-content strong,
+        html[data-theme="dark"] #property-detail-modal [id^="p-modal-"] { color: var(--dark-text) !important; }
+        html[data-theme="dark"] .listing-detail-stat span,
+        html[data-theme="dark"] .listing-detail-location-section span,
+        html[data-theme="dark"] .listing-detail-content .text-gray-400,
+        html[data-theme="dark"] .listing-detail-content .text-gray-500 { color: var(--dark-muted) !important; }
+        html[data-theme="dark"] .listing-detail-action,
+        html[data-theme="dark"] .listing-detail-image-action {
+            background: var(--dark-card) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .listing-detail-action:hover,
+        html[data-theme="dark"] .listing-detail-image-action:hover { background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important; color: #fff !important; }
+
+        /* Project detail modal tabs and actions. */
+        html[data-theme="dark"] #project-detail-modal-official > .glass-card,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-body,
+        html[data-theme="dark"] #project-detail-modal-official .project-modal-content,
+        html[data-theme="dark"] #project-detail-modal-official .project-detail-section,
+        html[data-theme="dark"] #project-detail-modal-official .project-detail-sections > div,
+        html[data-theme="dark"] #op-tab-description {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tabs-row,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tabs,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-share,
+        html[data-theme="dark"] #project-detail-modal-official .project-modal-actions { background: transparent !important; border-color: transparent !important; }
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tab-pill {
+            background: var(--dark-card) !important;
+            color: var(--dark-text-2) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tab-pill.is-active,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tab-pill[aria-selected="true"] {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.24) !important;
+            box-shadow: 0 14px 30px rgba(124,108,255,.32) !important;
+        }
+        html[data-theme="dark"] #op-modal-share-btn,
+        html[data-theme="dark"] .op-modal-share-btn {
+            background: rgba(17,24,39,.94) !important;
+            color: var(--dark-text) !important;
+            border: 1px solid var(--dark-border) !important;
+            box-shadow: 0 12px 26px rgba(0,0,0,.26) !important;
+        }
+        html[data-theme="dark"] #op-modal-share-btn:hover,
+        html[data-theme="dark"] .op-modal-share-btn:hover { background: rgba(124,108,255,.20) !important; color: #fff !important; border-color: rgba(124,108,255,.50) !important; }
+        html[data-theme="dark"] #op-modal-pdf-btn,
+        html[data-theme="dark"] .project-pdf-download-btn,
+        html[data-theme="dark"] .project-pdf-download-btn:not(:disabled) {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.20) !important;
+            box-shadow: 0 14px 28px rgba(239,68,68,.30) !important;
+        }
+        html[data-theme="dark"] .project-inquiry-open-btn,
+        html[data-theme="dark"] .project-inquiry-open-btn:not(:disabled) {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.20) !important;
+            box-shadow: 0 14px 28px rgba(124,108,255,.30) !important;
+        }
+        html[data-theme="dark"] #project-detail-modal-official .project-detail-row span { color: var(--dark-muted) !important; }
+        html[data-theme="dark"] #project-detail-modal-official .project-detail-row strong { color: var(--dark-text) !important; }
+
+        /* Admin panel. */
+        html[data-theme="dark"] .admin-subtabs,
+        html[data-theme="dark"] .admin-dashboard-shell,
+        html[data-theme="dark"] .admin-stat-card,
+        html[data-theme="dark"] .admin-project-card,
+        html[data-theme="dark"] .admin-ad-card,
+        html[data-theme="dark"] .admin-listing-card,
+        html[data-theme="dark"] .admin-music-card,
+        html[data-theme="dark"] .admin-listing-management-card,
+        html[data-theme="dark"] .project-form-card,
+        html[data-theme="dark"] .project-form-section {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] #admin-subtabs-container button,
+        html[data-theme="dark"] .admin-subtab-button,
+        html[data-theme="dark"] #admin-subtabs-container .admin-subtab-button {
+            background: var(--dark-card) !important;
+            color: var(--dark-text-2) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] #admin-subtabs-container button:hover,
+        html[data-theme="dark"] .admin-subtab-button:hover { color: #fff !important; border-color: rgba(124,108,255,.50) !important; background: rgba(124,108,255,.18) !important; }
+        html[data-theme="dark"] #admin-subtabs-container button.is-active,
+        html[data-theme="dark"] #admin-subtabs-container button[aria-selected="true"],
+        html[data-theme="dark"] #admin-subtabs-container .admin-subtab-button.is-active,
+        html[data-theme="dark"] .admin-subtab-button.is-active,
+        html[data-theme="dark"] .admin-subtab-button:active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.24) !important;
+            box-shadow: 0 12px 26px rgba(124,108,255,.30) !important;
+        }
+        html[data-theme="dark"] table,
+        html[data-theme="dark"] thead,
+        html[data-theme="dark"] tbody,
+        html[data-theme="dark"] tr,
+        html[data-theme="dark"] td,
+        html[data-theme="dark"] th { color: var(--dark-text-2) !important; border-color: var(--dark-border) !important; }
+
+        /* Footer/about/contact. */
+        html[data-theme="dark"] footer,
+        html[data-theme="dark"] .footer,
+        html[data-theme="dark"] .footer-premium {
+            background: linear-gradient(180deg, var(--dark-surface), var(--dark-card)) !important;
+            color: var(--dark-text-2) !important;
+            border-top-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] footer .bg-white\/70,
+        html[data-theme="dark"] footer .bg-white\/80,
+        html[data-theme="dark"] footer .footer-stat-card,
+        html[data-theme="dark"] footer a:not(.footer-quick-link) {
+            background: var(--dark-card) !important;
+            color: var(--dark-text-2) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] footer h3,
+        html[data-theme="dark"] footer strong { color: var(--dark-text) !important; }
+        html[data-theme="dark"] .footer-quick-link,
+        html[data-theme="dark"] footer .text-gray-600,
+        html[data-theme="dark"] footer .text-gray-700 { color: var(--dark-text-2) !important; }
+        html[data-theme="dark"] footer a:hover,
+        html[data-theme="dark"] .footer-quick-link:hover { color: #fff !important; border-color: rgba(124,108,255,.50) !important; }
+        html[data-theme="dark"] footer .bg-brand-50 { background: rgba(124,108,255,.18) !important; color: #c4b5fd !important; }
+
+        /* Mobile bottom nav and music button. */
+        html[data-theme="dark"] .mobile-bottom-nav {
+            background: rgba(15,23,42,.96) !important;
+            color: var(--dark-text-2) !important;
+            border-top-color: rgba(255,255,255,.12) !important;
+            box-shadow: 0 -18px 45px rgba(0,0,0,.42) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        html[data-theme="dark"] .mobile-bottom-nav__item,
+        html[data-theme="dark"] .mobile-bottom-nav__item i,
+        html[data-theme="dark"] .mobile-bottom-nav__item svg { color: var(--dark-text-2) !important; }
+        html[data-theme="dark"] .mobile-bottom-nav__item.is-active,
+        html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+            color: #fff !important;
+            box-shadow: 0 10px 24px rgba(124,108,255,.32) !important;
+        }
+        html[data-theme="dark"] .mobile-bottom-nav__item.is-active *,
+        html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] * { color: #fff !important; }
+        .site-music-toggle { z-index: 55; }
+        @media (max-width: 767px) {
+            .site-music-toggle {
+                bottom: calc(var(--mobile-bottom-nav-height, 84px) + 14px + env(safe-area-inset-bottom)) !important;
+                right: 16px !important;
+                z-index: 55 !important;
+                max-width: min(176px, calc(100vw - 32px));
+            }
+            #property-detail-modal:not(.hidden) ~ .site-music-toggle,
+            #project-detail-modal-official:not(.hidden) ~ .site-music-toggle,
+            body:has(#property-detail-modal:not(.hidden)) .site-music-toggle,
+            body:has(#project-detail-modal-official:not(.hidden)) .site-music-toggle {
+                opacity: .42;
+                pointer-events: none;
+            }
+        }
+
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
