@@ -31,6 +31,18 @@ function parseJsonArray(value) {
   return null;
 }
 
+function toFloat(value) {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function toCoordinate(value, min, max) {
+  const parsed = toFloat(value);
+  if (parsed === undefined) return undefined;
+  return parsed >= min && parsed <= max ? parsed : undefined;
+}
+
 function toBool(value) {
   if (value === undefined || value === null || value === '') return undefined;
   if (typeof value === 'boolean') return value;
@@ -72,6 +84,11 @@ function serializeProject(body) {
     pdfFilename: cleanString(body.pdf_filename ?? body.pdfFilename),
     brochureUrl: cleanString(body.brochure_url ?? body.brochureUrl),
     brochureFilename: cleanString(body.brochure_filename ?? body.brochureFilename),
+    aliases: cleanString(body.aliases),
+    latitude: toCoordinate(body.latitude, -90, 90),
+    longitude: toCoordinate(body.longitude, -180, 180),
+    mapLocationVerified: toBool(body.map_location_verified ?? body.mapLocationVerified),
+    mapLocationLabel: cleanString(body.map_location_label ?? body.mapLocationLabel),
   };
 }
 

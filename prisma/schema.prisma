@@ -42,6 +42,11 @@ model Project {
   pdfFilename      String?     @map("pdf_filename") @db.Text
   brochureUrl      String?     @map("brochure_url") @db.Text
   brochureFilename String?     @map("brochure_filename") @db.Text
+  aliases          String?     @db.Text
+  latitude         Float?
+  longitude        Float?
+  mapLocationVerified Boolean @default(false) @map("map_location_verified")
+  mapLocationLabel String?    @map("map_location_label") @db.Text
   viewCount        Int         @default(0) @map("view_count")
   clickCount       Int         @default(0) @map("click_count")
   inquiryCount     Int         @default(0) @map("inquiry_count")
