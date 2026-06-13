@@ -110,3 +110,14 @@ location = /favicon.png {
     expires 30d;
 }
 ```
+
+
+## Site music upload limit
+
+Set `MUSIC_UPLOAD_MAX_SIZE_MB=1024` to allow 1GB site music uploads. On VPS/Nginx, also increase the virtual host body limit, for example:
+
+```nginx
+client_max_body_size 2G;
+```
+
+Then validate and reload Nginx before restarting the backend with updated environment variables.

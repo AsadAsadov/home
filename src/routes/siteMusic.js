@@ -6,6 +6,10 @@ const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+const DEFAULT_MUSIC_UPLOAD_MAX_SIZE_MB = 1024;
+const MUSIC_UPLOAD_MAX_SIZE_MB = Number.parseInt(process.env.MUSIC_UPLOAD_MAX_SIZE_MB || String(DEFAULT_MUSIC_UPLOAD_MAX_SIZE_MB), 10);
+const MUSIC_UPLOAD_MAX_SIZE_BYTES = Math.max(1, Number.isFinite(MUSIC_UPLOAD_MAX_SIZE_MB) ? MUSIC_UPLOAD_MAX_SIZE_MB : DEFAULT_MUSIC_UPLOAD_MAX_SIZE_MB) * 1024 * 1024;
+// VPS/Nginx deployments must also raise client_max_body_size (for example: client_max_body_size 2G;) so 1GB music uploads reach Node.
 const ALLOWED_AUDIO_EXTENSIONS = new Set(['.mp3', '.wav', '.ogg', '.m4a']);
 const ALLOWED_AUDIO_MIME_TYPES = new Set([
   'audio/mpeg',
@@ -21,7 +25,7 @@ const ALLOWED_AUDIO_MIME_TYPES = new Set([
 
 const upload = createUpload('music', {
   files: 1,
-  fileSize: Number(process.env.MAX_MUSIC_UPLOAD_FILE_SIZE || 50 * 1024 * 1024),
+  fileSize: MUSIC_UPLOAD_MAX_SIZE_BYTES,
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '').toLowerCase();
     const mime = String(file.mimetype || '').toLowerCase();
