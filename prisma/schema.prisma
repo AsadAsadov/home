@@ -42,7 +42,7 @@ model Project {
   pdfFilename      String?     @map("pdf_filename") @db.Text
   brochureUrl      String?     @map("brochure_url") @db.Text
   brochureFilename String?     @map("brochure_filename") @db.Text
-  aliases          String?     @db.Text
+  aliases          Json?
   latitude         Float?
   longitude        Float?
   mapLocationVerified Boolean @default(false) @map("map_location_verified")
