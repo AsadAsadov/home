@@ -103,7 +103,7 @@
         html[data-theme="dark"] .modal-glass-panel,
         html[data-theme="dark"] .op-modal-body { background: rgba(15, 23, 42, 0.96) !important; color: var(--color-text-primary); }
         .theme-toggle-btn,
-        .site-music-toggle {
+        .site-music-controls {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -115,26 +115,33 @@
             transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
         }
         .theme-toggle-btn:hover,
-        .site-music-toggle:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
+        .site-music-controls:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
         .theme-toggle-btn { min-height: 40px; border-radius: 999px; padding: .55rem .8rem; font-size: .78rem; font-weight: 800; }
-        .site-music-toggle {
+        .site-music-controls {
             position: fixed;
             right: max(16px, env(safe-area-inset-right));
             bottom: calc(22px + env(safe-area-inset-bottom));
             z-index: 55;
             min-height: 44px;
             border-radius: 999px;
-            padding: .65rem .9rem;
+            padding: .45rem .55rem .45rem .7rem;
             font-size: .82rem;
             font-weight: 900;
+            max-width: min(360px, calc(100vw - 32px));
         }
-        .site-music-toggle.is-hidden { display: none; }
-        .site-music-toggle.is-playing { background: rgba(var(--primary-rgb), .95); color: #fff; }
+        .site-music-controls.is-hidden { display: none; }
+        .site-music-controls.is-playing { background: rgba(var(--primary-rgb), .95); color: #fff; }
+        .site-music-title { max-width: 132px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .site-music-control-btn { width: 34px; height: 34px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 180ms ease, transform 180ms ease; }
+        .site-music-control-btn:hover { background: rgba(var(--primary-rgb), .14); transform: translateY(-1px); }
+        .site-music-controls.is-playing .site-music-control-btn:hover { background: rgba(255,255,255,.16); }
         @media (max-width: 767px) {
-            .site-music-toggle { bottom: calc(var(--mobile-bottom-nav-height) + 18px + env(safe-area-inset-bottom)); right: 14px; padding: .6rem .75rem; }
+            .site-music-controls { bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom)); right: 14px; padding: .38rem .45rem; gap: .2rem; max-width: min(250px, calc(100vw - 28px)); }
+            .site-music-title { max-width: 82px; font-size: .68rem; }
+            .site-music-control-btn { width: 30px; height: 30px; font-size: .76rem; }
         }
         @media (min-width: 768px) {
-            .site-music-toggle { right: 24px; }
+            .site-music-controls { right: 24px; }
         }
 
         .login-submit-btn,
@@ -5513,13 +5520,13 @@
         }
         html[data-theme="dark"] button,
         html[data-theme="dark"] .theme-toggle-btn,
-        html[data-theme="dark"] .site-music-toggle {
+        html[data-theme="dark"] .site-music-controls {
             color: var(--text-primary-dark);
         }
         html[data-theme="dark"] .bg-brand-500,
         html[data-theme="dark"] .bg-brand-600,
         html[data-theme="dark"] button.bg-brand-500,
-        html[data-theme="dark"] .site-music-toggle.is-playing {
+        html[data-theme="dark"] .site-music-controls.is-playing {
             color: #fff !important;
         }
         html[data-theme="dark"] .sea-breeze-listing-card__badge,
@@ -5811,31 +5818,30 @@
             color: var(--dark-text) !important;
             box-shadow: 0 10px 25px rgba(0, 0, 0, .28) !important;
         }
-        html[data-theme="dark"] .site-music-toggle {
+        html[data-theme="dark"] .site-music-controls {
             background: var(--dark-surface-soft) !important;
             color: var(--dark-text) !important;
             border-color: var(--dark-border) !important;
             box-shadow: 0 12px 30px rgba(0, 0, 0, .34) !important;
             z-index: 55;
         }
-        html[data-theme="dark"] .site-music-toggle.is-playing {
+        html[data-theme="dark"] .site-music-controls.is-playing {
             background: rgba(var(--primary-rgb), .95) !important;
             color: #ffffff !important;
         }
         @media (max-width: 767px) {
-            .site-music-toggle {
+            .site-music-controls {
                 bottom: calc(var(--mobile-bottom-nav-height) + 12px + env(safe-area-inset-bottom));
                 right: max(10px, env(safe-area-inset-right));
                 min-height: 38px;
-                max-width: min(178px, calc(100vw - 24px));
+                max-width: min(250px, calc(100vw - 24px));
                 padding: .48rem .62rem;
                 font-size: .72rem;
                 line-height: 1.05;
                 z-index: 55;
             }
-            .site-music-toggle i,
-            .site-music-toggle svg { flex: 0 0 auto; }
-            .site-music-toggle span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .site-music-control-btn { flex: 0 0 auto; }
+            .site-music-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         }
 
         /* Final dark theme design pass: use explicit surfaces and protect branded actions from generic overrides. */
@@ -6316,18 +6322,18 @@
         }
         html[data-theme="dark"] .mobile-bottom-nav__item.is-active *,
         html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] * { color: #fff !important; }
-        .site-music-toggle { z-index: 55; }
+        .site-music-controls { z-index: 55; }
         @media (max-width: 767px) {
-            .site-music-toggle {
+            .site-music-controls {
                 bottom: calc(var(--mobile-bottom-nav-height, 84px) + 14px + env(safe-area-inset-bottom)) !important;
                 right: 16px !important;
                 z-index: 55 !important;
-                max-width: min(176px, calc(100vw - 32px));
+                max-width: min(250px, calc(100vw - 32px));
             }
-            #property-detail-modal:not(.hidden) ~ .site-music-toggle,
-            #project-detail-modal-official:not(.hidden) ~ .site-music-toggle,
-            body:has(#property-detail-modal:not(.hidden)) .site-music-toggle,
-            body:has(#project-detail-modal-official:not(.hidden)) .site-music-toggle {
+            #property-detail-modal:not(.hidden) ~ .site-music-controls,
+            #project-detail-modal-official:not(.hidden) ~ .site-music-controls,
+            body:has(#property-detail-modal:not(.hidden)) .site-music-controls,
+            body:has(#project-detail-modal-official:not(.hidden)) .site-music-controls {
                 opacity: .42;
                 pointer-events: none;
             }
@@ -6380,7 +6386,12 @@
     </nav>
 
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
-    <button id="site-music-toggle" type="button" onclick="toggleSiteMusic()" class="site-music-toggle is-hidden" aria-label="Sayt musiqisini aç"><i class="fa-solid fa-volume-high"></i><span>Səsi aç</span></button>
+    <div id="site-music-controls" class="site-music-controls is-hidden" aria-label="Sayt musiqisi idarəetmələri">
+        <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
+        <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
+        <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
+        <button type="button" class="site-music-control-btn" onclick="playNextSiteMusicTrack()" aria-label="Növbəti musiqi">⏭</button>
+    </div>
 
     <!-- MAIN CONTAINER -->
     <div id="desktop-ad-layout" class="desktop-ad-layout">
@@ -9026,14 +9037,22 @@ Title: CASPIAN DREAM LINER
         }
 
         function updateSiteMusicButton() {
+            const controls = document.getElementById('site-music-controls');
             const btn = document.getElementById('site-music-toggle');
-            if (!btn) return;
-            const hasTracks = orderedMusicTracks(siteMusicState.tracks).length > 0;
-            btn.classList.toggle('is-hidden', !hasTracks);
-            btn.classList.toggle('is-playing', Boolean(siteMusicState.enabled && siteMusicState.audio && !siteMusicState.audio.paused));
+            if (!controls || !btn) return;
+            const tracks = orderedMusicTracks(siteMusicState.tracks);
+            const hasTracks = tracks.length > 0;
             const isPlaying = Boolean(siteMusicState.enabled && siteMusicState.audio && !siteMusicState.audio.paused);
-            btn.innerHTML = `<i class="fa-solid ${isPlaying ? 'fa-volume-xmark' : 'fa-volume-high'}"></i><span>${isPlaying ? 'Səsi bağla' : 'Səsi aç'}</span>`;
-            btn.setAttribute('aria-label', isPlaying ? 'Sayt musiqisini bağla' : 'Sayt musiqisini aç');
+            const currentTrack = tracks[siteMusicState.currentIndex] || tracks[0];
+            controls.classList.toggle('is-hidden', !hasTracks);
+            controls.classList.toggle('is-playing', isPlaying);
+            btn.textContent = isPlaying ? '⏸' : '▶️';
+            btn.setAttribute('aria-label', isPlaying ? 'Musiqini dayandır' : 'Musiqini başlat');
+            const title = document.getElementById('site-music-title');
+            if (title) {
+                title.textContent = currentTrack?.title || 'Musiqi';
+                title.title = currentTrack?.title || 'Musiqi';
+            }
         }
 
         async function playSiteMusicAt(index = siteMusicState.currentIndex, options = {}) {
@@ -9041,10 +9060,14 @@ Title: CASPIAN DREAM LINER
             if (!tracks.length) return updateSiteMusicButton();
             const audio = ensureSiteMusicAudio();
             const nextIndex = ((Number(index) || 0) % tracks.length + tracks.length) % tracks.length;
+            const previousIndex = siteMusicState.currentIndex;
             siteMusicState.currentIndex = nextIndex;
             localStorage.setItem(SITE_MUSIC_TRACK_INDEX_KEY, String(nextIndex));
             audio.volume = siteMusicState.volume;
-            if (audio.src !== new URL(tracks[nextIndex].audioUrl, window.location.origin).href) audio.src = tracks[nextIndex].audioUrl;
+            const nextSrc = new URL(tracks[nextIndex].audioUrl, window.location.origin).href;
+            const shouldRestart = tracks.length === 1 && options.restartCurrent;
+            if (audio.src !== nextSrc) audio.src = tracks[nextIndex].audioUrl;
+            if (shouldRestart || options.restartCurrent || previousIndex !== nextIndex) audio.currentTime = 0;
             try {
                 await audio.play();
                 siteMusicState.enabled = true;
@@ -9054,6 +9077,7 @@ Title: CASPIAN DREAM LINER
                 if (options.userInitiated) console.warn('Musiqi başladılmadı:', error.message);
                 siteMusicState.enabled = false;
             } finally {
+                if (options.userInitiated && options.announce && typeof showToast === 'function') showToast(`🎵 ${tracks[nextIndex].title || 'Musiqi'}`);
                 updateSiteMusicButton();
             }
         }
@@ -9070,6 +9094,20 @@ Title: CASPIAN DREAM LINER
             if (siteMusicState.enabled && !audio.paused) return stopSiteMusic();
             siteMusicState.enabled = true;
             playSiteMusicAt(siteMusicState.currentIndex, { userInitiated: true });
+        }
+
+        function playPreviousSiteMusicTrack() {
+            const tracks = orderedMusicTracks(siteMusicState.tracks);
+            if (!tracks.length) return updateSiteMusicButton();
+            const targetIndex = tracks.length === 1 ? siteMusicState.currentIndex : siteMusicState.currentIndex - 1;
+            playSiteMusicAt(targetIndex, { userInitiated: true, announce: true, restartCurrent: true });
+        }
+
+        function playNextSiteMusicTrack() {
+            const tracks = orderedMusicTracks(siteMusicState.tracks);
+            if (!tracks.length) return updateSiteMusicButton();
+            const targetIndex = tracks.length === 1 ? siteMusicState.currentIndex : siteMusicState.currentIndex + 1;
+            playSiteMusicAt(targetIndex, { userInitiated: true, announce: true, restartCurrent: true });
         }
 
         async function loadSiteMusicBackground({ render = true, admin = false } = {}) {
