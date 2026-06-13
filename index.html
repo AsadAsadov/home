@@ -4267,17 +4267,15 @@
             }
 
             #project-detail-modal-official:not(.hidden) {
-                align-items: stretch !important;
-                justify-content: stretch !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
 
             #project-detail-modal-official > .glass-card {
-                left: 0 !important;
-                right: 0 !important;
-                transform: none !important;
-                border-radius: 0 !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                border-radius: 20px !important;
             }
 
             .project-detail-tabs,
@@ -4426,17 +4424,16 @@
             #project-detail-modal-official:not(.hidden) {
                 align-items: center !important;
                 justify-content: center !important;
-                padding: 10px !important;
                 overflow-x: hidden !important;
             }
             #project-detail-modal-official > .glass-card,
             #project-detail-modal-official .modal-glass-panel {
-                width: calc(100vw - 20px) !important;
-                max-width: calc(100vw - 20px) !important;
+                width: calc(100vw - 16px) !important;
+                max-width: calc(100vw - 16px) !important;
                 height: auto !important;
-                max-height: calc(100dvh - 20px) !important;
-                margin: 0 auto !important;
-                border-radius: 1.35rem !important;
+                max-height: calc(100dvh - var(--header-height) - var(--mobile-bottom-nav-height) - 18px) !important;
+                margin: 0 !important;
+                border-radius: 20px !important;
                 overflow-x: hidden !important;
                 box-sizing: border-box !important;
             }
