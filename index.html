@@ -140,14 +140,17 @@
         .site-music-control-btn:hover { background: rgba(var(--primary-rgb), .14); transform: translateY(-1px); }
         .site-music-controls.is-playing .site-music-control-btn:hover { background: rgba(255,255,255,.16); }
         @media (max-width: 767px) {
-            .site-music-controls { bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom)); right: 14px; height: 52px; min-height: 48px; padding: .36rem .44rem .36rem .58rem; gap: .24rem; max-width: min(300px, calc(100vw - 28px)); transition: transform 220ms ease, opacity 220ms ease, width 220ms ease, background-color 180ms ease, border-color 180ms ease; }
+            .site-music-controls { position: relative; right: auto; bottom: auto; height: 42px; min-height: 42px; padding: .3rem .4rem .3rem .52rem; gap: .2rem; width: min(230px, calc(100vw - 188px)); max-width: min(230px, calc(100vw - 188px)); overflow: hidden; transition: transform 220ms ease, opacity 220ms ease, width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease; }
+            .site-music-controls.is-collapsed { width: 42px; height: 42px; min-height: 42px; max-width: 42px; }
             .site-music-title { max-width: 104px; font-size: .72rem; }
             .site-music-control-btn { width: 30px; height: 30px; font-size: .76rem; }
         }
         @media (max-width: 374px) {
-            .site-music-controls { gap: .12rem; max-width: min(260px, calc(100vw - 20px)); right: 10px; }
-            .site-music-title { max-width: 68px; }
-            .site-music-control-btn { width: 28px; height: 28px; }
+            .site-music-controls { gap: .1rem; width: min(182px, calc(100vw - 168px)); max-width: min(182px, calc(100vw - 168px)); padding-inline: .22rem; }
+            .site-music-controls.is-collapsed { width: 38px; height: 38px; min-height: 38px; max-width: 38px; }
+            .site-music-title { max-width: 52px; font-size: .66rem; }
+            .site-music-control-btn { width: 26px; height: 26px; font-size: .68rem; }
+            .project-modal-actions .project-cta-text { display: none; }
         }
         @media (min-width: 768px) {
             .site-music-controls { right: 24px; }
@@ -5840,11 +5843,11 @@
         }
         @media (max-width: 767px) {
             .site-music-controls {
-                bottom: calc(var(--mobile-bottom-nav-height) + 14px + env(safe-area-inset-bottom));
-                right: max(10px, env(safe-area-inset-right));
-                min-height: 48px;
-                max-width: min(300px, calc(100vw - 24px));
-                padding: .36rem .44rem .36rem .58rem;
+                position: relative;
+                inset: auto;
+                min-height: 42px;
+                max-width: min(230px, calc(100vw - 188px));
+                padding: .3rem .4rem .3rem .52rem;
                 font-size: .72rem;
                 line-height: 1.05;
                 z-index: 55;
@@ -6334,17 +6337,9 @@
         .site-music-controls { z-index: 55; }
         @media (max-width: 767px) {
             .site-music-controls {
-                bottom: calc(var(--mobile-bottom-nav-height, 84px) + 14px + env(safe-area-inset-bottom)) !important;
-                right: 16px !important;
+                position: relative !important;
+                inset: auto !important;
                 z-index: 55 !important;
-                max-width: min(300px, calc(100vw - 32px));
-            }
-            #property-detail-modal:not(.hidden) ~ .site-music-controls,
-            #project-detail-modal-official:not(.hidden) ~ .site-music-controls,
-            body:has(#property-detail-modal:not(.hidden)) .site-music-controls,
-            body:has(#project-detail-modal-official:not(.hidden)) .site-music-controls {
-                opacity: .42;
-                pointer-events: none;
             }
         }
 
@@ -6375,7 +6370,15 @@
                     <div id="header-user-status" class="header-actions-row"></div>
                 </div>
 
-                <!-- Mobile Menu Button -->
+                <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
+                    <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
+                    <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
+                    <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
+                    <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
+                    <button type="button" class="site-music-control-btn" onclick="playNextSiteMusicTrack()" aria-label="Növbəti musiqi">⏭</button>
+                </div>
+
+                <!-- Mobile Header Actions -->
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
                     <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
@@ -6395,13 +6398,6 @@
     </nav>
 
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
-    <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
-        <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
-        <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
-        <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
-        <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
-        <button type="button" class="site-music-control-btn" onclick="playNextSiteMusicTrack()" aria-label="Növbəti musiqi">⏭</button>
-    </div>
 
     <!-- MAIN CONTAINER -->
     <div id="desktop-ad-layout" class="desktop-ad-layout">
@@ -7870,9 +7866,9 @@ Title: CASPIAN DREAM LINER
                             <span id="op-modal-share-status" class="hidden text-xs font-black text-green-300">✅ Link kopyalandı</span>
                         </div>
                     </div>
-                    <div class="project-modal-actions flex flex-col sm:flex-row gap-3">
-                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black text-white transition">📄 PDF Yüklə</button>
-                        <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-black text-white hover:bg-brand-600 transition">💬 Maraqlanıram</button>
+                    <div class="project-modal-actions flex flex-row gap-3">
+                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black text-white transition"><span aria-hidden="true">📄</span><span class="project-cta-text truncate">PDF Yüklə</span></button>
+                        <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-3 py-3 text-sm font-black text-white hover:bg-brand-600 transition"><span aria-hidden="true">💬</span><span class="project-cta-text truncate">Maraqlanıram</span></button>
                     </div>
 
                     <div id="op-tab-details" class="project-detail-sections"></div>
@@ -15059,7 +15055,7 @@ ${profileMenuItemsHtml()}
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}<button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-header-icon mobile-notification-btn" aria-label="Bildirişlər">🔔${badgeSlotHtml('notification', messagingState.notificationsUnread, { variant: 'mobile', badgeClass: 'mobile-notification-badge' })}</button><button onclick="navigateToMessages()" class="header-action-btn header-badge-btn mobile-header-icon" aria-label="Mesajlar">💬${badgeSlotHtml('message', messagingState.messagesUnread)}</button><div onclick="navigateToProfileInfo()" class="mobile-header-icon rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer">${initial}</div></div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
                 readMessagingCache();
                 refreshHeaderBadges();
                 loadBadgeSummary();
@@ -15072,7 +15068,7 @@ ${profileMenuItemsHtml()}
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `${themeToggleHtml('mobile-header-icon')}<button onclick="switchTab('admin-login')" aria-label="Mobil giriş və admin paneli" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-md w-9 h-9 flex items-center justify-center transition"><i class="fa-solid fa-sign-in-alt text-sm"></i></button>`;
+                mobileIcon.innerHTML = `${themeToggleHtml('mobile-header-icon')}`;
                 mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
