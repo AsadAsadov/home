@@ -6776,7 +6776,7 @@
                                 <button type="button" class="map-expand-btn" onclick="openFullscreenMap('admin')">⛶ Xəritəni böyüt</button>
                                 <div id="sb-location-map" class="admin-location-map"></div>
                                 <div id="sb-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
-                                <p id="sb-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
+                                <p class="manual-pin-note">Xəritədə yeri dəqiq seçin, elan bu koordinata görə göstəriləcək.</p><p id="sb-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
                             </div>
                             <label id="sb-metro-wrap" class="block space-y-1">
                                 <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">🚇 Metro stansiyası (istəyə bağlı)</span>
@@ -6983,6 +6983,15 @@
                                 <label>Dənizə məsafə<input type="text" id="project-sea-distance" placeholder="100 m"></label>
                             </div>
                             <label class="project-form-wide">SEO slug<input type="text" id="project-slug" placeholder="Avtomatik yaradılır"></label>
+                            <label class="project-form-wide">Aliaslar (vergül və ya yeni sətirlə)<textarea id="project-aliases" rows="3" placeholder="reportage, sea breeze reportage, kazino yanı"></textarea></label>
+                            <div class="project-form-wide space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                <input type="hidden" id="project-latitude"><input type="hidden" id="project-longitude"><input type="hidden" id="project-map-verified" value="false">
+                                <label>Xəritə yeri axtar<input type="search" id="project-location-search" oninput="debouncedProjectLocationSearch()" onfocus="showProjectLocationSuggestions()" placeholder="Layihə, bina və ya ünvan axtar"></label>
+                                <div id="project-location-results" class="hidden space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow"></div>
+                                <div class="map-frame"><div id="project-location-map" class="admin-location-map"></div><div id="project-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div>
+                                <p id="project-map-status" class="text-[11px] font-bold text-amber-600">Xəritə yeri təsdiqlənməyib.</p>
+                                <button type="button" onclick="verifyProjectMapLocation()" class="w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white">Xəritə yerini təsdiqlə</button>
+                            </div>
                         </section>
                         <section class="project-form-section">
                             <h3><span>🏢</span><span>Bina Məlumatları</span></h3>
@@ -9001,6 +9010,11 @@ Title: CASPIAN DREAM LINER
                 pdfFilename: p.pdfFilename || p.pdf_filename || '',
                 brochureUrl: p.brochureUrl || p.brochure_url || '',
                 brochureFilename: p.brochureFilename || p.brochure_filename || '',
+                aliases: p.aliases || '',
+                latitude: safeNumber(p.latitude),
+                longitude: safeNumber(p.longitude),
+                mapLocationVerified: Boolean(p.mapLocationVerified ?? p.map_location_verified),
+                mapLocationLabel: p.mapLocationLabel || p.map_location_label || '',
                 viewCount: Number(p.viewCount ?? p.view_count ?? 0),
                 clickCount: Number(p.clickCount ?? p.click_count ?? 0),
                 inquiryCount: Number(p.inquiryCount ?? p.inquiry_count ?? 0)
@@ -11182,7 +11196,12 @@ Title: CASPIAN DREAM LINER
                 featured_in_hero: Boolean(p.featuredInHero ?? p.featured_in_hero),
                 is_archived: Boolean(p.isArchived ?? p.is_archived),
                 pdf_url: p.pdfUrl || p.pdf_url || undefined,
-                pdf_filename: p.pdfFilename || p.pdf_filename || undefined
+                pdf_filename: p.pdfFilename || p.pdf_filename || undefined,
+                aliases: p.aliases || undefined,
+                latitude: safeNumber(p.latitude),
+                longitude: safeNumber(p.longitude),
+                map_location_verified: Boolean(p.mapLocationVerified ?? p.map_location_verified),
+                map_location_label: p.mapLocationLabel || p.map_location_label || undefined
             };
         }
 
@@ -11967,6 +11986,56 @@ Title: CASPIAN DREAM LINER
             toggleFormFieldsBasedOnCategory();
         }
 
+
+        let projectLocationMap = null;
+        let projectLocationMarker = null;
+        function setProjectMapCoordinates(lat, lng, { moveMap = true, zoom = 16, verified = false, label = '' } = {}) {
+            const latNum = Number(lat), lngNum = Number(lng);
+            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            document.getElementById('project-latitude').value = latNum.toFixed(7);
+            document.getElementById('project-longitude').value = lngNum.toFixed(7);
+            if (verified) document.getElementById('project-map-verified').value = 'true';
+            else document.getElementById('project-map-verified').value = 'false';
+            if (label && document.getElementById('project-location-search')) document.getElementById('project-location-search').value = label;
+            if (projectLocationMap && typeof L !== 'undefined') {
+                const point = [latNum, lngNum];
+                if (!projectLocationMarker) {
+                    projectLocationMarker = L.marker(point, { draggable: true }).addTo(projectLocationMap);
+                    projectLocationMarker.on('dragend', event => { const pos = event.target.getLatLng(); setProjectMapCoordinates(pos.lat, pos.lng, { moveMap: false }); });
+                } else projectLocationMarker.setLatLng(point);
+                if (moveMap) projectLocationMap.setView(point, Math.max(projectLocationMap.getZoom(), zoom));
+            }
+            updateProjectMapStatus();
+        }
+        function updateProjectMapStatus() {
+            const status = document.getElementById('project-map-status');
+            if (!status) return;
+            const verified = document.getElementById('project-map-verified')?.value === 'true';
+            const lat = document.getElementById('project-latitude')?.value;
+            const lng = document.getElementById('project-longitude')?.value;
+            status.textContent = verified && lat && lng ? `✅ Təsdiqli layihə yeri: ${lat}, ${lng}` : (lat && lng ? 'Koordinat seçilib, təsdiq gözləyir.' : 'Xəritə yeri təsdiqlənməyib.');
+        }
+        function verifyProjectMapLocation() {
+            const lat = document.getElementById('project-latitude')?.value;
+            const lng = document.getElementById('project-longitude')?.value;
+            if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) { alert('Əvvəlcə xəritədə nöqtə seçin.'); return; }
+            document.getElementById('project-map-verified').value = 'true';
+            updateProjectMapStatus();
+        }
+        function initProjectLocationMap() {
+            const el = document.getElementById('project-location-map');
+            if (!el) return;
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initProjectLocationMap).catch(console.error); return; }
+            if (!projectLocationMap) { setMapLoading('project-location-map-loading', true); projectLocationMap = L.map(el, { scrollWheelZoom: true }).setView(SEA_BREEZE_DEFAULT_CENTER, 13); addOpenStreetMapLayer(projectLocationMap); attachMapLoadingOverlay(projectLocationMap, 'project-location-map-loading'); projectLocationMap.on('click', e => setProjectMapCoordinates(e.latlng.lat, e.latlng.lng)); }
+            setTimeout(()=>projectLocationMap.invalidateSize(), 80);
+            const lat=document.getElementById('project-latitude')?.value, lng=document.getElementById('project-longitude')?.value;
+            if (lat && lng) setProjectMapCoordinates(lat,lng,{moveMap:true,verified:document.getElementById('project-map-verified')?.value==='true'});
+        }
+        function showProjectLocationSuggestions(){ document.getElementById('project-location-results')?.classList.remove('hidden'); }
+        function debouncedProjectLocationSearch(){ clearTimeout(window.__projectLocationTimer); const q=(document.getElementById('project-location-search')?.value||'').trim(); const el=document.getElementById('project-location-results'); if(!el) return; if(q.length<3){el.innerHTML=q?'<div class="p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; el.classList.toggle('hidden',!q); return;} el.innerHTML='<div class="p-2 font-bold text-slate-600">Axtarılır...</div>'; el.classList.remove('hidden'); window.__projectLocationTimer=setTimeout(searchProjectLocation,500); }
+        async function searchProjectLocation(){ const q=(document.getElementById('project-location-search')?.value||'').trim(); const el=document.getElementById('project-location-results'); if(q.length<3||!el) return; const rows=await searchLocationsWithPriority(q,{city:'Sea Breeze, Bakı',includeLocal:false}).catch(()=>[]); window.__lastProjectLocationResults=rows.filter(r=>r.source!=='project'||r.verifiedProjectLocation); el.innerHTML=window.__lastProjectLocationResults.length?window.__lastProjectLocationResults.map((item,idx)=>`<button type="button" onclick="selectProjectLocationResult(${idx})" class="block w-full rounded-xl px-3 py-2 text-left hover:bg-slate-50"><strong>${escapeHtml((item.display_name||q).split(',').slice(0,2).join(', '))}</strong><span class="block text-[10px] text-slate-500">${escapeHtml(item.display_name||q)}</span></button>`).join(''):'<div class="p-2 font-bold text-red-700">Uyğun yer tapılmadı</div>'; }
+        function selectProjectLocationResult(index){ const item=(window.__lastProjectLocationResults||[])[index]; if(!item) return; setProjectMapCoordinates(item.lat,item.lon,{moveMap:true,label:item.display_name||item.name||'',verified:false}); document.getElementById('project-location-results')?.classList.add('hidden'); }
+
         let adminListingMap = null;
         let adminListingMarker = null;
         let detailListingMap = null;
@@ -12082,7 +12151,9 @@ Title: CASPIAN DREAM LINER
                 const searchInput = document.getElementById('sb-location-search');
                 if (searchInput && selectedProject) searchInput.value = selectedProject;
             }
+            const meta = getOfficialProjects().find(item => item.title === selectedProject);
             clearAdminListingCoordinates({ resetMapView: true });
+            if (meta && hasVerifiedProjectCoordinates(meta)) setAdminListingCoordinates(meta.latitude, meta.longitude, { moveMap: true, reverse: false, zoom: 16 });
         }
 
         function initAdminListingMap() {
@@ -12350,12 +12421,55 @@ Title: CASPIAN DREAM LINER
                 .slice(0, 6);
         }
 
-        function projectLocationRowsForQuery(_query = '') {
-            return [];
+        const PROJECT_ALIAS_FALLBACKS = {
+            'Reportage Heights': ['reportage', 'reportage heights', 'sea breeze reportage', 'kazino yanı', 'halfmoon yanı', 'halfmoon'],
+            'Brabus Island': ['brabus', 'brabus island', 'brabus island baku', 'sea breeze brabus'],
+            'Sea Breeze': ['seabreeze', 'sea breeze baku', 'sea breeze resort'],
+            'Panorama by Elie Saab': ['panorama', 'elie saab', 'panorama elie saab'],
+            'Caspian Dream Liner': ['caspian', 'dream liner', 'caspian dream'],
+            'The Grand': ['grand', 'the grand sea breeze'],
+            'Park Residences': ['park residence', 'park residences'],
+            'Gardens Residences': ['garden residence', 'gardens residences'],
+            'Malibu Residence': ['malibu', 'malibu residence']
+        };
+
+        function projectAliases(project = {}) {
+            const explicit = String(project.aliases || '').split(/[\n,;|]+/).map(item => item.trim()).filter(Boolean);
+            return [...new Set([...(PROJECT_ALIAS_FALLBACKS[project.title] || []), ...explicit])];
+        }
+
+        function hasVerifiedProjectCoordinates(project = {}) {
+            return Boolean(project.mapLocationVerified) && Number.isFinite(Number(project.latitude)) && Number.isFinite(Number(project.longitude));
+        }
+
+        function projectLocationRowsForQuery(query = '') {
+            const parsed = normalizeAddressQuery(query);
+            const q = parsed.normalized;
+            if (q.length < 2) return [];
+            return getOfficialProjects().map((project, index) => {
+                const title = normalizeAddressQuery(project.title || '');
+                const aliases = projectAliases(project).map(alias => normalizeAddressQuery(alias));
+                const address = normalizeAddressQuery([project.mapLocationLabel, project.zone, project.location].filter(Boolean).join(' '));
+                let score = 0, matchKind = 'project';
+                if (title.normalized === q) score = 500;
+                else if (aliases.some(a => a.normalized === q || a.loose === parsed.loose)) { score = 450; matchKind = 'alias'; }
+                else if (title.normalized.includes(q) || q.includes(title.normalized)) score = 380;
+                else if (aliases.some(a => a.normalized.includes(q) || a.loose.includes(parsed.loose))) { score = 350; matchKind = 'alias'; }
+                else if (address.normalized.includes(q)) { score = 300; matchKind = 'address'; }
+                if (!score) return null;
+                const verified = hasVerifiedProjectCoordinates(project);
+                return {
+                    source: 'project', type: 'project', class: 'place', projectId: project.id, projectTitle: project.title,
+                    lat: verified ? project.latitude : null, lon: verified ? project.longitude : null,
+                    display_name: project.mapLocationLabel || `${project.title}, Sea Breeze, Baku, Azerbaijan`,
+                    address: { city: 'Sea Breeze', city_district: project.title, suburb: project.title, neighbourhood: project.title },
+                    verifiedProjectLocation: verified, matchKind, score: score + (verified ? 20 : 0), index
+                };
+            }).filter(Boolean).sort((a,b) => b.score - a.score || a.index - b.index).slice(0, 8);
         }
 
         function locationRowsBeforeRemote(query = '') {
-            return mergeLocationRows(localLocationRowsForQuery(query), projectLocationRowsForQuery(query), 8);
+            return mergeLocationRows(projectLocationRowsForQuery(query), localLocationRowsForQuery(query), 8);
         }
 
         function mergeLocationRows(...args) {
@@ -12622,7 +12736,7 @@ Title: CASPIAN DREAM LINER
                 console.info('[map-search] final count', 0);
                 return [];
             }
-            const localRows = includeLocal ? mergeLocationRows(localLocationRowsForQuery(q), projectLocationRowsForQuery(q), 10) : [];
+            const localRows = includeLocal ? mergeLocationRows(projectLocationRowsForQuery(q), localLocationRowsForQuery(q), 10) : projectLocationRowsForQuery(q);
             console.info('[map-search] provider local count', localRows.length);
             let mapboxRows = [];
             let nominatimRows = [];
@@ -12650,12 +12764,22 @@ Title: CASPIAN DREAM LINER
             return item.knownPlace ? '<span class="known-place-badge">Tanınmış məkan</span>' : '';
         }
 
+        function renderLocationSourceBadge(item = {}) {
+            if (item.source === 'project') return `<span class="known-place-badge">${item.verifiedProjectLocation ? 'Təsdiqli layihə yeri' : (item.matchKind === 'alias' ? 'Alias' : 'Layihə')}</span>`;
+            return '<span class="known-place-badge">Xəritə</span>';
+        }
+
+        function locationSuggestionSubtext(item = {}, query = '') {
+            if (item.source === 'project' && !item.verifiedProjectLocation) return 'Layihə tapıldı, xəritə yeri təsdiqlənməyib';
+            return item.display_name || query;
+        }
+
         function renderAdminLocationResults(rows, query, { loading = false, error = false } = {}) {
             const resultsEl = document.getElementById('sb-location-results');
             if (!resultsEl) return;
             resultsEl.classList.remove('hidden');
             const hasRows = Array.isArray(rows) && rows.length;
-            const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="flex items-center gap-2"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span>${renderLocationSuggestionBadge(item)}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(item.display_name || query)}</span></button>`).join('') : '';
+            const rowsHtml = hasRows ? rows.map((item, idx) => `<button type="button" onclick="selectAdminLocationResult(${idx})" class="admin-location-suggestion"><span class="flex items-center gap-2"><span class="block font-extrabold">${escapeHtml((item.display_name || query).split(',').slice(0, 2).join(', '))}</span>${renderLocationSuggestionBadge(item)}${renderLocationSourceBadge(item)}</span><span class="mt-1 block text-[10px] font-semibold text-slate-400">${escapeHtml(locationSuggestionSubtext(item, query))}</span></button>`).join('') : '';
             if (hasRows) {
                 resultsEl.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-white/5 border border-white/10 p-2 text-gray-300">Axtarılır...</div>' : ''}`;
                 return;
@@ -12666,7 +12790,7 @@ Title: CASPIAN DREAM LINER
             }
             resultsEl.innerHTML = error
                 ? '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Axtarış alınmadı. Xəritədən pin seçə bilərsiniz.</div>'
-                : '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Nəticə tapılmadı. Xəritədən pin seçə bilərsiniz.</div>';
+                : '<div class="rounded-xl bg-red-500/10 border border-red-500/20 p-2 text-red-200">Uyğun yer tapılmadı. Xəritədən pin seçə bilərsiniz.</div>';
         }
 
         function debouncedAdminLocationSearch() {
@@ -12728,6 +12852,11 @@ Title: CASPIAN DREAM LINER
             }
             const searchInput = document.getElementById('sb-location-search');
             if (item.source === 'project' || item.projectTitle) applyProjectLocationSelection(item.projectTitle || item.display_name || '');
+            if (item.source === 'project' && !item.verifiedProjectLocation) {
+                if (searchInput) { searchInput.value = item.projectTitle || searchInput.value; searchInput.dataset.selectedLocation = searchInput.value; }
+                alert('Layihə tapıldı, xəritə yeri təsdiqlənməyib. Dəqiq nöqtəni xəritədə seçin.');
+                return;
+            }
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
             setAdminListingCoordinates(item.lat, item.lon, { moveMap: true, reverse: false, zoom });
             fillLocationFieldsFromAddress(item.address || {}, item.display_name || item.name || '');
@@ -13498,7 +13627,7 @@ Title: CASPIAN DREAM LINER
                             <input type="hidden" id="pl-street-address"><input type="hidden" id="pl-latitude"><input type="hidden" id="pl-longitude">
                             <span class="public-form-label">Ünvan və xəritə</span>
                             <label class="relative block public-form-field"><span class="public-form-label">Xəritədə axtar</span><input id="pl-location-search" type="search" oninput="debouncedPublicLocationSearch()" onfocus="showPublicLocationSuggestions()" onkeydown="handlePublicLocationSearchKeydown(event)" class="public-form-input" placeholder="🔍 Ünvan və ya obyekt axtar…" aria-controls="pl-location-results" aria-expanded="false" autocomplete="off"><div id="pl-location-results" class="public-location-suggestions hidden absolute left-0 right-0 top-full z-[1000] mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl"></div></label>
-                            <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div><p id="pl-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
+                            <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div><p class="manual-pin-note">Xəritədə yeri dəqiq seçin, elan bu koordinata görə göstəriləcək.</p><p id="pl-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
                         </div>
                         <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-700"><p class="mt-3 text-xs font-bold leading-5 text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
                         <button id="pl-submit-btn" type="submit" class="async-submit-btn w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black py-4 transition"><span id="pl-submit-spinner" class="button-spinner hidden"></span><span id="pl-submit-text">Yerləşdir</span></button>
@@ -13519,6 +13648,8 @@ Title: CASPIAN DREAM LINER
             if (districtInput) districtInput.value = project;
             if (settlementInput && !settlementInput.value) settlementInput.value = project;
             if (streetInput && !streetInput.value) streetInput.value = project;
+            const meta = getOfficialProjects().find(item => item.title === project);
+            if (meta && hasVerifiedProjectCoordinates(meta)) setPublicListingCoordinates(meta.latitude, meta.longitude, { moveMap: true, reverse: false, zoom: 16 });
         }
 
         function handlePublicListingRegionChange() {
@@ -13680,7 +13811,7 @@ Title: CASPIAN DREAM LINER
             if (target === 'pl') openPublicAddressSuggestions();
             else el.classList.remove('hidden');
             const hasRows = Array.isArray(rows) && rows.length;
-            const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="flex items-center gap-2"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span>${renderLocationSuggestionBadge(item)}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(item.display_name||query)}</span></button>`).join('') : '';
+            const rowsHtml = hasRows ? rows.map((item, idx)=>`<button type="button" onclick="${target === 'fullscreen' ? `selectFullscreenLocationResult(${idx})` : `selectPublicLocationResult(${idx})`}" class="public-location-suggestion"><span class="flex items-center gap-2"><span class="block font-extrabold">${escapeHtml((item.display_name||query).split(',').slice(0,2).join(', '))}</span>${renderLocationSuggestionBadge(item)}${renderLocationSourceBadge(item)}</span><span class="mt-1 block text-[10px] font-semibold text-slate-500">${escapeHtml(locationSuggestionSubtext(item, query))}</span></button>`).join('') : '';
             if (hasRows) { el.innerHTML = `${rowsHtml}${loading ? '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>' : ''}`; return; }
             if (loading) { el.innerHTML = '<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarılır...</div>'; return; }
             el.innerHTML = error
@@ -13701,7 +13832,7 @@ Title: CASPIAN DREAM LINER
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!el) return; if(q.length<3){el.innerHTML=q.length?'<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; if(q.length) openPublicAddressSuggestions(); else closePublicAddressSuggestions(); return;} openPublicAddressSuggestions(); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
         async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<3) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:false}); } catch(e){ if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
-        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); if(item.source==='project' && !item.verifiedProjectLocation){ if(input) input.value=item.projectTitle||input.value; alert('Layihə tapıldı, xəritə yeri təsdiqlənməyib. Dəqiq nöqtəni xəritədə seçin.'); return; } setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key==='Escape') { event.preventDefault(); closePublicAddressSuggestions(); return; } if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
@@ -17596,6 +17727,9 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-slug').value = '';
             document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
             document.getElementById('official-project-form')?.reset();
+            document.getElementById('project-map-verified') && (document.getElementById('project-map-verified').value = 'false');
+            updateProjectMapStatus();
+            if (projectLocationMarker) { projectLocationMarker.remove(); projectLocationMarker = null; }
             document.getElementById('project-featured-hero').checked = false;
             document.getElementById('project-hero-badge')?.classList.add('hidden');
             document.getElementById('project-save-success')?.classList.add('hidden');
@@ -18260,7 +18394,12 @@ Təşəkkür edirəm. 🙏`;
                 infrastructure: document.getElementById('project-infrastructure').value.trim(),
                 features: document.getElementById('project-features').value.trim(),
                 slug: document.getElementById('project-slug').value.trim(),
-                featuredInHero: document.getElementById('project-featured-hero')?.checked || false
+                featuredInHero: document.getElementById('project-featured-hero')?.checked || false,
+                aliases: document.getElementById('project-aliases')?.value.trim() || '',
+                latitude: safeNumber(document.getElementById('project-latitude')?.value),
+                longitude: safeNumber(document.getElementById('project-longitude')?.value),
+                mapLocationVerified: document.getElementById('project-map-verified')?.value === 'true',
+                mapLocationLabel: document.getElementById('project-location-search')?.value.trim() || title
             };
 
             try {
@@ -18301,6 +18440,12 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-form-action-title').textContent = 'Layihəni redaktə et';
             document.getElementById('project-title').value = project.title;
             document.getElementById('project-slug').value = project.slug || '';
+            document.getElementById('project-aliases').value = project.aliases || '';
+            document.getElementById('project-latitude').value = Number.isFinite(Number(project.latitude)) ? Number(project.latitude).toFixed(7) : '';
+            document.getElementById('project-longitude').value = Number.isFinite(Number(project.longitude)) ? Number(project.longitude).toFixed(7) : '';
+            document.getElementById('project-map-verified').value = project.mapLocationVerified ? 'true' : 'false';
+            updateProjectMapStatus();
+            setTimeout(initProjectLocationMap, 120);
             document.getElementById('project-category').value = project.category;
             document.getElementById('project-zone').value = project.zone || '';
             document.getElementById('project-year').value = project.year;
