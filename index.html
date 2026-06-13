@@ -403,8 +403,8 @@
                 height: calc(70px + env(safe-area-inset-bottom));
                 padding: 7px max(8px, env(safe-area-inset-left)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-right));
                 display: grid;
-                grid-template-columns: repeat(5, minmax(0, 1fr));
-                gap: 3px;
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                gap: 2px;
                 z-index: 1100;
                 background: rgba(255,255,255,.96);
                 border-top: 1px solid rgba(207,207,255,.9);
@@ -415,10 +415,11 @@
             .mobile-bottom-nav__item {
                 min-width: 0;
                 border: 0;
-                border-radius: 18px;
+                position: relative;
+                border-radius: 16px;
                 background: transparent;
                 color: #64748b;
-                font-size: 10px;
+                font-size: 9px;
                 font-weight: 900;
                 line-height: 1.05;
                 display: inline-flex;
@@ -428,7 +429,16 @@
                 gap: 4px;
                 transition: transform 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
             }
-            .mobile-bottom-nav__item span:first-child { font-size: 19px; line-height: 1; }
+            .mobile-bottom-nav__item span:first-child { font-size: 18px; line-height: 1; }
+            .mobile-bottom-nav__item .header-badge-btn__slot { position: static; display: block; }
+            .mobile-bottom-nav__item .mobile-notification-badge { top: 4px; right: 8px; }
+            .mobile-bottom-nav__item.is-hidden { display: none; }
+            @media (max-width: 374px) {
+                .mobile-bottom-nav { padding-inline: max(4px, env(safe-area-inset-left)); gap: 1px; }
+                .mobile-bottom-nav__item { border-radius: 13px; font-size: 8px; gap: 3px; }
+                .mobile-bottom-nav__item span:first-child { font-size: 17px; }
+                .mobile-bottom-nav__item .mobile-notification-badge { right: 5px; }
+            }
             .mobile-bottom-nav__item.is-active {
                 color: var(--color-primary-hover);
                 background: linear-gradient(180deg, rgba(234,234,255,.96), rgba(248,250,255,.96));
@@ -8107,6 +8117,7 @@ Title: CASPIAN DREAM LINER
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="listings" onclick="closeMobileProfileMenu(); switchTab('listings')"><span>🔍</span><span>Elanlar</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="mortgage" onclick="closeMobileProfileMenu(); switchTab('mortgage')"><span>🏦</span><span>İpoteka</span></button>
+        <button type="button" id="mobile-bottom-notification-btn" class="mobile-bottom-nav__item is-hidden" data-mobile-tab="notifications" data-notification-toggle onclick="closeMobileProfileMenu(); toggleNotificationsPanel()" aria-label="Bildirişlər"><span><i class="fa-solid fa-bell"></i></span><span>Bildiriş</span><span data-notification-badge data-badge-variant="mobile" class="header-badge-btn__slot"><span class="header-badge-btn__badge mobile-notification-badge is-empty">0</span></span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="profile" onclick="toggleMobileProfileMenu()"><span>👤</span><span>Profil</span></button>
     </nav>
 
@@ -14268,8 +14279,16 @@ Title: CASPIAN DREAM LINER
             return type === 'notification' && el?.dataset?.badgeVariant === 'mobile' ? 'mobile-notification-badge' : '';
         }
 
+        function updateMobileNotificationAccess() {
+            const btn = document.getElementById('mobile-bottom-notification-btn');
+            if (!btn) return;
+            btn.classList.toggle('is-hidden', !activeUser);
+            btn.setAttribute('aria-hidden', activeUser ? 'false' : 'true');
+        }
+
         function refreshHeaderBadges() {
             clearTimeout(messagingState.badgeRefreshTimer);
+            updateMobileNotificationAccess();
             document.querySelectorAll('[data-notification-badge]').forEach(el => {
                 el.innerHTML = badgeHtml(messagingState.notificationsUnread, badgeClassForSlot(el, 'notification'));
             });
@@ -14431,12 +14450,27 @@ Title: CASPIAN DREAM LINER
 
         function positionNotificationPanel(panel) {
             if (!panel || panel.classList.contains('notification-panel--full')) return;
-            const anchor = document.querySelector('[data-notification-toggle]:focus') || document.querySelector('[data-notification-toggle]');
-            const rect = anchor?.getBoundingClientRect();
             const isMobile = window.innerWidth <= 768;
+            const mobileBottomToggle = document.getElementById('mobile-bottom-notification-btn');
+            const anchor = document.querySelector('[data-notification-toggle]:focus')
+                || (isMobile && mobileBottomToggle && !mobileBottomToggle.classList.contains('is-hidden') ? mobileBottomToggle : null)
+                || document.querySelector('[data-notification-toggle]');
+            const rect = anchor?.getBoundingClientRect();
+            const anchoredInBottomNav = Boolean(anchor?.closest?.('#mobile-bottom-nav'));
             const top = Math.max(70, (rect?.bottom || 78) + 8);
+            panel.style.bottom = '';
+            panel.style.maxHeight = '';
             panel.style.top = `${top}px`;
-            if (isMobile) { panel.style.left = '10px'; panel.style.right = '10px'; return; }
+            if (isMobile) {
+                panel.style.left = '10px';
+                panel.style.right = '10px';
+                if (anchoredInBottomNav) {
+                    panel.style.top = 'auto';
+                    panel.style.bottom = 'calc(var(--mobile-bottom-nav-height) + 12px + env(safe-area-inset-bottom))';
+                    panel.style.maxHeight = 'calc(100dvh - var(--header-height) - var(--mobile-bottom-nav-height) - 24px)';
+                }
+                return;
+            }
             const width = Math.min(380, window.innerWidth - 28);
             panel.style.width = `${width}px`;
             panel.style.left = `${Math.max(14, Math.min(window.innerWidth - width - 14, (rect?.right || window.innerWidth - 18) - width))}px`;
@@ -15062,6 +15096,7 @@ ${profileMenuItemsHtml()}
                 connectRealtime();
                 preloadMessagingData();
                 mobileActions.innerHTML = ``;
+                updateMobileNotificationAccess();
             } else {
                 container.innerHTML = `
                     ${themeToggleHtml()}
@@ -15073,6 +15108,8 @@ ${profileMenuItemsHtml()}
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
                 messagingState.messagesUnread = 0;
+                refreshHeaderBadges();
+                updateMobileNotificationAccess();
             }
             applySiteTheme(preferredTheme());
         }
