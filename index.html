@@ -5539,6 +5539,308 @@
             -webkit-backdrop-filter: none !important;
         }
 
+
+
+        /* Dark mode contrast pass: keep light mode unchanged while normalizing dark surfaces, text, forms, cards, filters, modals, and mobile controls. */
+        html[data-theme="dark"] {
+            --dark-bg: #070b16;
+            --dark-surface: #0f172a;
+            --dark-surface-soft: #111827;
+            --dark-border: rgba(255,255,255,.14);
+            --dark-text: #f8fafc;
+            --dark-text-secondary: #cbd5e1;
+            --dark-text-muted: #94a3b8;
+            --dark-input-bg: #111827;
+            --color-background: var(--dark-bg);
+            --color-secondary-background: var(--dark-surface);
+            --color-card-background: var(--dark-surface);
+            --color-text-primary: var(--dark-text);
+            --color-text-secondary: var(--dark-text-secondary);
+            --color-border: var(--dark-border);
+            --color-input-bg: var(--dark-input-bg);
+            --color-input-text: var(--dark-text);
+            --color-muted-surface: rgba(15, 23, 42, .88);
+        }
+        html[data-theme="dark"],
+        html[data-theme="dark"] body,
+        html[data-theme="dark"] main.flex-grow,
+        html[data-theme="dark"] .tab-content,
+        html[data-theme="dark"] .public-page,
+        html[data-theme="dark"] .page-shell,
+        html[data-theme="dark"] .sea-breeze-page,
+        html[data-theme="dark"] .projects-section {
+            background: var(--dark-bg) !important;
+            color: var(--dark-text) !important;
+        }
+        html[data-theme="dark"] .glass-card,
+        html[data-theme="dark"] .bg-white,
+        html[data-theme="dark"] .bg-white\/80,
+        html[data-theme="dark"] .bg-white\/85,
+        html[data-theme="dark"] .bg-white\/90,
+        html[data-theme="dark"] .bg-gray-50,
+        html[data-theme="dark"] .bg-slate-50,
+        html[data-theme="dark"] .bg-slate-100,
+        html[data-theme="dark"] .listing-submission-card,
+        html[data-theme="dark"] .public-section-box,
+        html[data-theme="dark"] .admin-project-card,
+        html[data-theme="dark"] .admin-ad-card,
+        html[data-theme="dark"] .project-form-card,
+        html[data-theme="dark"] .messages-shell,
+        html[data-theme="dark"] .conversation-list,
+        html[data-theme="dark"] .notification-panel,
+        html[data-theme="dark"] .listing-chat-card,
+        html[data-theme="dark"] .profile-dropdown-menu,
+        html[data-theme="dark"] .mobile-profile-sheet,
+        html[data-theme="dark"] #public-listing-root > div,
+        html[data-theme="dark"] #my-listings-root > div,
+        html[data-theme="dark"] #admin-dashboard-root > div {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, .32) !important;
+        }
+        html[data-theme="dark"] .bg-brand-50,
+        html[data-theme="dark"] .bg-brand-100,
+        html[data-theme="dark"] .bg-indigo-50,
+        html[data-theme="dark"] .bg-purple-50,
+        html[data-theme="dark"] .bg-blue-50,
+        html[data-theme="dark"] .bg-emerald-50,
+        html[data-theme="dark"] .bg-red-50,
+        html[data-theme="dark"] .bg-amber-50,
+        html[data-theme="dark"] .public-calc-box,
+        html[data-theme="dark"] .project-card-meta-badge,
+        html[data-theme="dark"] .known-place-badge,
+        html[data-theme="dark"] .premium-filter-check,
+        html[data-theme="dark"] .public-checkbox-pill,
+        html[data-theme="dark"] .conversation-item,
+        html[data-theme="dark"] .conversation-item__menu,
+        html[data-theme="dark"] .listing-detail-stat,
+        html[data-theme="dark"] .project-detail-sections > div {
+            background: var(--dark-surface-soft) !important;
+            color: var(--dark-text-secondary) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .text-gray-950,
+        html[data-theme="dark"] .text-gray-900,
+        html[data-theme="dark"] .text-gray-800,
+        html[data-theme="dark"] .text-gray-700,
+        html[data-theme="dark"] .text-slate-950,
+        html[data-theme="dark"] .text-slate-900,
+        html[data-theme="dark"] .text-slate-800,
+        html[data-theme="dark"] .text-slate-700,
+        html[data-theme="dark"] h1,
+        html[data-theme="dark"] h2,
+        html[data-theme="dark"] h3,
+        html[data-theme="dark"] h4,
+        html[data-theme="dark"] strong {
+            color: var(--dark-text) !important;
+        }
+        html[data-theme="dark"] .text-gray-600,
+        html[data-theme="dark"] .text-gray-500,
+        html[data-theme="dark"] .text-slate-600,
+        html[data-theme="dark"] .text-slate-500,
+        html[data-theme="dark"] .premium-filter-label,
+        html[data-theme="dark"] .public-form-label,
+        html[data-theme="dark"] .typing-placeholder,
+        html[data-theme="dark"] .message-status {
+            color: var(--dark-text-secondary) !important;
+        }
+        html[data-theme="dark"] .text-gray-400,
+        html[data-theme="dark"] .text-slate-400,
+        html[data-theme="dark"] small,
+        html[data-theme="dark"] .manual-pin-note {
+            color: var(--dark-text-muted) !important;
+        }
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea,
+        html[data-theme="dark"] .public-form-input,
+        html[data-theme="dark"] .premium-filter-control,
+        html[data-theme="dark"] .mortgage-input,
+        html[data-theme="dark"] .fullscreen-map-search input,
+        html[data-theme="dark"] input[type="file"] {
+            background: var(--dark-input-bg) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder,
+        html[data-theme="dark"] .public-form-input::placeholder,
+        html[data-theme="dark"] .premium-filter-control::placeholder,
+        html[data-theme="dark"] .mortgage-input::placeholder {
+            color: #94a3b8 !important;
+        }
+        html[data-theme="dark"] option { background: var(--dark-input-bg); color: var(--dark-text); }
+        html[data-theme="dark"] .premium-filter-bar,
+        html[data-theme="dark"] .project-filter-panel,
+        html[data-theme="dark"] .homepage-skeleton-filters,
+        html[data-theme="dark"] .fullscreen-map-search,
+        html[data-theme="dark"] .public-location-suggestions,
+        html[data-theme="dark"] .fullscreen-location-suggestions,
+        html[data-theme="dark"] #pl-location-results {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, .34) !important;
+        }
+        html[data-theme="dark"] .premium-filter-control:hover,
+        html[data-theme="dark"] .premium-filter-check:hover,
+        html[data-theme="dark"] .public-checkbox-pill:hover,
+        html[data-theme="dark"] .public-location-suggestion:hover,
+        html[data-theme="dark"] .public-location-suggestion:focus-visible {
+            background: #162033 !important;
+            color: var(--dark-text) !important;
+            border-color: rgba(127, 127, 255, .45) !important;
+        }
+        html[data-theme="dark"] .sea-breeze-listing-card,
+        html[data-theme="dark"] .sea-breeze-project-card,
+        html[data-theme="dark"] .listing-card,
+        html[data-theme="dark"] .project-card,
+        html[data-theme="dark"] [class*="listing-card"],
+        html[data-theme="dark"] [class*="project-card"] {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .sea-breeze-listing-card__title,
+        html[data-theme="dark"] .sea-breeze-project-card__title,
+        html[data-theme="dark"] .sea-breeze-listing-card h3,
+        html[data-theme="dark"] .sea-breeze-project-card h3,
+        html[data-theme="dark"] .project-card h3,
+        html[data-theme="dark"] .listing-card h3 {
+            color: var(--dark-text) !important;
+        }
+        html[data-theme="dark"] .sea-breeze-listing-card__description,
+        html[data-theme="dark"] .sea-breeze-project-card__description,
+        html[data-theme="dark"] .sea-breeze-listing-card p,
+        html[data-theme="dark"] .sea-breeze-project-card p,
+        html[data-theme="dark"] .project-card-meta,
+        html[data-theme="dark"] .project-card-meta-badge span {
+            color: var(--dark-text-secondary) !important;
+        }
+        html[data-theme="dark"] #property-detail-modal > .listing-detail-shell,
+        html[data-theme="dark"] #project-detail-modal-official > .glass-card,
+        html[data-theme="dark"] #project-detail-modal-official .modal-glass-panel,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-body,
+        html[data-theme="dark"] #project-detail-modal-official .project-modal-content,
+        html[data-theme="dark"] #property-detail-modal .listing-detail-scroll,
+        html[data-theme="dark"] .modal-panel,
+        html[data-theme="dark"] .popup-panel,
+        html[data-theme="dark"] .gallery-detail-modal,
+        html[data-theme="dark"] .project-detail-modal,
+        html[data-theme="dark"] .listing-detail-modal {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] #property-detail-modal .bg-white,
+        html[data-theme="dark"] #property-detail-modal .bg-slate-50,
+        html[data-theme="dark"] #project-detail-modal-official .bg-white,
+        html[data-theme="dark"] #project-detail-modal-official .bg-slate-50,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tabs,
+        html[data-theme="dark"] #project-detail-modal-official .op-modal-tabs-row,
+        html[data-theme="dark"] #op-tab-description,
+        html[data-theme="dark"] #op-modal-thumbnails,
+        html[data-theme="dark"] .project-modal-actions,
+        html[data-theme="dark"] .op-modal-share {
+            background: var(--dark-surface-soft) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .op-modal-tab-pill,
+        html[data-theme="dark"] .project-cat-btn:not(.bg-brand-500),
+        html[data-theme="dark"] .portfolio-filter-btn:not(.bg-brand-500),
+        html[data-theme="dark"] .op-modal-share-btn,
+        html[data-theme="dark"] .project-modal-actions > button,
+        html[data-theme="dark"] .close-modal-btn,
+        html[data-theme="dark"] .detail-close-btn,
+        html[data-theme="dark"] .modal-close,
+        html[data-theme="dark"] .popup-close,
+        html[data-theme="dark"] .gallery-detail-close,
+        html[data-theme="dark"] .fullscreen-map-close {
+            background: var(--dark-surface-soft) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+        }
+        html[data-theme="dark"] .op-modal-tab-pill.is-active,
+        html[data-theme="dark"] .project-cat-btn.bg-brand-500,
+        html[data-theme="dark"] .portfolio-filter-btn.bg-brand-500,
+        html[data-theme="dark"] .portfolio-filter-btn.bg-brand-700,
+        html[data-theme="dark"] .bg-brand-500,
+        html[data-theme="dark"] .bg-brand-600,
+        html[data-theme="dark"] .bg-brand-700,
+        html[data-theme="dark"] .sea-breeze-listing-card__promo-badge.bg-purple-600\/90 {
+            background: #5656E8 !important;
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, .28) !important;
+        }
+        html[data-theme="dark"] button:disabled,
+        html[data-theme="dark"] button[disabled],
+        html[data-theme="dark"] .op-modal-tab-pill:disabled,
+        html[data-theme="dark"] .project-pdf-download-btn:disabled,
+        html[data-theme="dark"] .disabled,
+        html[data-theme="dark"] [aria-disabled="true"] {
+            background: #1f2937 !important;
+            color: var(--dark-text-secondary) !important;
+            border-color: var(--dark-border) !important;
+            text-shadow: none !important;
+        }
+        html[data-theme="dark"] #tab-mortgage .glass-card,
+        html[data-theme="dark"] #mortgage-results > div {
+            background: var(--dark-surface) !important;
+            color: var(--dark-text) !important;
+            border: 1px solid var(--dark-border) !important;
+        }
+        html[data-theme="dark"] #mortgage-results > div:nth-child(2) {
+            background: linear-gradient(135deg, #5656E8, #6B6BFF) !important;
+            color: #ffffff !important;
+            border-color: rgba(255,255,255,.28) !important;
+        }
+        html[data-theme="dark"] #mortgage-results span,
+        html[data-theme="dark"] #mortgage-results strong { color: inherit !important; }
+        html[data-theme="dark"] .mobile-bottom-nav {
+            background: rgba(15, 23, 42, .97) !important;
+            color: var(--dark-text-secondary) !important;
+            border-top-color: var(--dark-border) !important;
+            box-shadow: 0 -18px 45px rgba(0, 0, 0, .38) !important;
+        }
+        html[data-theme="dark"] .mobile-bottom-nav__item {
+            color: var(--dark-text-secondary) !important;
+            background: transparent !important;
+        }
+        html[data-theme="dark"] .mobile-bottom-nav__item.is-active {
+            background: rgba(127, 127, 255, .18) !important;
+            color: var(--dark-text) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .28) !important;
+        }
+        html[data-theme="dark"] .site-music-toggle {
+            background: var(--dark-surface-soft) !important;
+            color: var(--dark-text) !important;
+            border-color: var(--dark-border) !important;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .34) !important;
+            z-index: 55;
+        }
+        html[data-theme="dark"] .site-music-toggle.is-playing {
+            background: rgba(var(--primary-rgb), .95) !important;
+            color: #ffffff !important;
+        }
+        @media (max-width: 767px) {
+            .site-music-toggle {
+                bottom: calc(var(--mobile-bottom-nav-height) + 12px + env(safe-area-inset-bottom));
+                right: max(10px, env(safe-area-inset-right));
+                min-height: 38px;
+                max-width: min(178px, calc(100vw - 24px));
+                padding: .48rem .62rem;
+                font-size: .72rem;
+                line-height: 1.05;
+                z-index: 55;
+            }
+            .site-music-toggle i,
+            .site-music-toggle svg { flex: 0 0 auto; }
+            .site-music-toggle span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        }
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
