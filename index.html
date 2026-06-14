@@ -119,9 +119,9 @@
         .theme-toggle-btn { min-height: 40px; border-radius: 999px; padding: .55rem .8rem; font-size: .78rem; font-weight: 800; }
         .site-music-controls {
             position: fixed;
-            right: max(16px, env(safe-area-inset-right));
-            bottom: calc(22px + env(safe-area-inset-bottom));
-            z-index: 55;
+            right: 24px;
+            bottom: 90px;
+            z-index: 1201;
             min-height: 44px;
             border-radius: 999px;
             padding: .45rem .55rem .45rem .7rem;
@@ -155,14 +155,14 @@
         @media (min-width: 768px) {
             .site-music-controls {
                 right: 24px;
-                bottom: clamp(90px, 12vh, 150px);
+                bottom: 90px;
             }
         }
         @media (min-width: 1024px) {
             .site-music-controls,
             .site-header-inner > .site-music-controls {
                 position: fixed;
-                inset: auto 24px clamp(90px, 12vh, 150px) auto;
+                inset: auto 24px 90px auto;
                 width: auto;
                 max-width: min(360px, calc(100vw - 48px));
                 height: auto;
@@ -456,7 +456,7 @@
                 height: calc(70px + env(safe-area-inset-bottom));
                 padding: 7px max(8px, env(safe-area-inset-left)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-right));
                 display: grid;
-                grid-template-columns: repeat(6, minmax(0, 1fr));
+                grid-template-columns: repeat(5, minmax(0, 1fr));
                 gap: 2px;
                 z-index: 1100;
                 background: rgba(255,255,255,.96);
@@ -5913,7 +5913,7 @@
                 padding: .3rem .4rem .3rem .52rem;
                 font-size: .72rem;
                 line-height: 1.05;
-                z-index: 55;
+                z-index: 1201;
             }
             .site-music-control-btn { flex: 0 0 auto; }
             .site-music-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -6397,12 +6397,13 @@
         }
         html[data-theme="dark"] .mobile-bottom-nav__item.is-active *,
         html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] * { color: #fff !important; }
-        .site-music-controls { z-index: 55; }
+        .site-music-controls { z-index: 1201; }
         @media (max-width: 767px) {
-            .site-music-controls {
+            #site-music-mobile-anchor .site-music-controls {
                 position: relative !important;
                 inset: auto !important;
-                z-index: 55 !important;
+                z-index: 1201 !important;
+                transform-origin: right center;
             }
         }
 
@@ -6433,6 +6434,7 @@
                     <div id="header-user-status" class="header-actions-row"></div>
                 </div>
 
+                <span id="site-music-desktop-anchor" hidden></span>
                 <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
                     <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
                     <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
@@ -6444,6 +6446,7 @@
                 <!-- Mobile Header Actions -->
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
+                    <span id="site-music-mobile-anchor" class="inline-flex"></span>
                     <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
                         <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
                     </button>
@@ -8170,7 +8173,6 @@ Title: CASPIAN DREAM LINER
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="listings" onclick="closeMobileProfileMenu(); switchTab('listings')"><span>🔍</span><span>Elanlar</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="mortgage" onclick="closeMobileProfileMenu(); switchTab('mortgage')"><span>🏦</span><span>İpoteka</span></button>
-        <button type="button" id="mobile-bottom-notification-btn" class="mobile-bottom-nav__item is-hidden" data-mobile-tab="notifications" data-notification-toggle onclick="closeMobileProfileMenu(); toggleNotificationsPanel()" aria-label="Bildirişlər"><span><i class="fa-solid fa-bell"></i></span><span>Bildiriş</span><span data-notification-badge data-badge-variant="mobile" class="header-badge-btn__slot"><span class="header-badge-btn__badge mobile-notification-badge is-empty">0</span></span></button>
         <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="profile" onclick="toggleMobileProfileMenu()"><span>👤</span><span>Profil</span></button>
     </nav>
 
@@ -9112,6 +9114,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function updateSiteMusicButton() {
+            syncSiteMusicPlacement();
             const controls = document.getElementById('site-music-controls');
             const btn = document.getElementById('site-music-toggle');
             if (!controls || !btn) return;
@@ -9152,12 +9155,23 @@ Title: CASPIAN DREAM LINER
             scheduleSiteMusicCollapse();
         }
 
+        function syncSiteMusicPlacement() {
+            const controls = document.getElementById('site-music-controls');
+            const mobileAnchor = document.getElementById('site-music-mobile-anchor');
+            const desktopAnchor = document.getElementById('site-music-desktop-anchor');
+            if (!controls || !mobileAnchor || !desktopAnchor) return;
+            const target = window.innerWidth < 768 ? mobileAnchor : desktopAnchor.parentElement;
+            if (target && controls.parentElement !== target) {
+                target.insertBefore(controls, window.innerWidth < 768 ? null : desktopAnchor.nextSibling);
+            }
+        }
+
         window.addEventListener('scroll', () => {
             if (!orderedMusicTracks(siteMusicState.tracks).length) return;
             clearTimeout(siteMusicState.scrollTimer);
             siteMusicState.scrollTimer = setTimeout(collapseSiteMusicPlayer, 80);
         }, { passive: true });
-        window.addEventListener('resize', () => updateSiteMusicButton(), { passive: true });
+        window.addEventListener('resize', () => { syncSiteMusicPlacement(); updateSiteMusicButton(); }, { passive: true });
 
         async function playSiteMusicAt(index = siteMusicState.currentIndex, options = {}) {
             const tracks = orderedMusicTracks(siteMusicState.tracks);
@@ -14341,10 +14355,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function updateMobileNotificationAccess() {
-            const btn = document.getElementById('mobile-bottom-notification-btn');
-            if (!btn) return;
-            btn.classList.toggle('is-hidden', !activeUser);
-            btn.setAttribute('aria-hidden', activeUser ? 'false' : 'true');
+            document.getElementById('mobile-bottom-notification-btn')?.remove();
         }
 
         function refreshHeaderBadges() {
@@ -15150,7 +15161,7 @@ ${profileMenuItemsHtml()}
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-notification-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>${themeToggleHtml('mobile-header-icon')}</div>`;
                 readMessagingCache();
                 refreshHeaderBadges();
                 loadBadgeSummary();
@@ -15164,7 +15175,7 @@ ${profileMenuItemsHtml()}
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `${themeToggleHtml('mobile-header-icon')}`;
+                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
                 mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
