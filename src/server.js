@@ -387,6 +387,7 @@ app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/hero-sections', require('./routes/heroSections'));
 app.use('/api/hero-slides', require('./routes/heroSlides'));
+app.use('/api/seabreeze', require('./routes/seaBreeze'));
 app.use('/api/listing-hero-items', require('./routes/listingHeroItems'));
 app.use('/api/applications', require('./routes/applications'));
 app.use('/api/users', require('./routes/users'));
