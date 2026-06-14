@@ -714,6 +714,8 @@
         .listing-detail-section,
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
+        #user-edit-modal { display: none; visibility: hidden; }
+        #user-edit-modal:not(.hidden)[aria-hidden="false"] { display: flex; visibility: visible; }
         :root { --mobile-modal-gap: 12px; }
         .listing-detail-shell { max-height: 90vh; height: auto; }
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
@@ -7881,11 +7883,11 @@ Title: CASPIAN DREAM LINER
     </div>
 
     <!-- İSTİFADƏÇİ REDAKTƏ MODALI -->
-    <div id="user-edit-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+    <div id="user-edit-modal" class="hidden fixed inset-0 bg-black/80 z-50 items-center justify-center p-4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="user-edit-modal-title">
         <div class="glass-card max-w-md w-full rounded-3xl border border-white/10 p-6 space-y-4 relative">
-            <button onclick="closeUserEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white" aria-label="İstifadəçi redaktəsini bağla"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" data-close-user-edit-modal class="absolute top-4 right-4 text-gray-400 hover:text-white" aria-label="İstifadəçi redaktəsini bağla"><i class="fa-solid fa-xmark"></i></button>
             <div>
-                <h3 class="text-lg font-extrabold text-white">İstifadəçini redaktə et</h3>
+                <h3 id="user-edit-modal-title" class="text-lg font-extrabold text-white">İstifadəçini redaktə et</h3>
                 <p class="text-xs text-gray-400">Tam ad, e-poçt və rol məlumatlarını yeniləyin.</p>
             </div>
             <form onsubmit="handleSaveUserEdit(event)" class="space-y-3">
@@ -13389,9 +13391,10 @@ Title: CASPIAN DREAM LINER
             'project-lightbox',
             'media-modal',
             'property-lightbox',
-            'fullscreen-map-modal'
+            'fullscreen-map-modal',
+            'user-edit-modal'
         ];
-        const MODAL_STATE_CLASSES = ['modal-open', 'menu-open', 'player-expanded', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
+        const MODAL_STATE_CLASSES = ['modal-open', 'no-scroll', 'blur-active', 'menu-open', 'player-expanded', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
         const MODAL_BACKGROUND_SELECTORS = ['#app', '#root', '#page', '#main', 'main', '.app', '.page', '.content', '.tab-content', '.page-shell', '.public-page'];
         const MODAL_BACKGROUND_CLASSES = ['blur', 'blur-sm', 'blur-md', 'blur-lg', 'backdrop-blur', 'backdrop-blur-sm', 'backdrop-blur-md', 'filter', 'is-blurred', 'app-blur', 'modal-blur'];
 
@@ -13467,7 +13470,20 @@ Title: CASPIAN DREAM LINER
         }
 
 
+        function forceHideUserEditModal() {
+            const modal = document.getElementById('user-edit-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.style.display = '';
+            modal.style.visibility = '';
+            const password = document.getElementById('edit-user-password');
+            if (password) password.value = '';
+        }
+
         function emergencyStartupOverlayCleanup() {
+            forceHideUserEditModal();
             cleanupModalState();
             document.querySelectorAll('.modal-backdrop, .site-overlay, .music-backdrop, [data-site-overlay], [data-modal-backdrop]').forEach((el) => {
                 if (APP_MODAL_IDS.includes(el.id)) return;
@@ -13479,6 +13495,7 @@ Title: CASPIAN DREAM LINER
                 if (!APP_MODAL_IDS.includes(el.id)) return;
                 el.classList.add('hidden');
                 el.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+                if (el.id === 'user-edit-modal') el.setAttribute('aria-hidden', 'true');
             });
             syncModalOpenState();
         }
@@ -19373,7 +19390,7 @@ Təşəkkür edirəm. 🙏`;
                                     <p class="text-[10px] text-gray-500">Son giriş: ${lastLoginText} • Son aktivlik: ${lastActiveText} • Bio: ${escapeHtml(a.bio || '—')}</p>
                                 </div>
                                 <div class="flex md:flex-col items-center gap-2 shrink-0">
-                                    <button onclick="event.stopPropagation(); openUserEditModal('${a.id}')" class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="button" data-edit-user-id="${escapeHtml(a.id)}" class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" aria-label="İstifadəçini redaktə et"><i class="fa-solid fa-pen"></i></button>
                                     ${!a.emailVerified ? `<button onclick="event.stopPropagation(); verifyUserEmail('${a.id}')" class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition" aria-label="Emaili təsdiqlə"><i class="fa-solid fa-envelope-circle-check"></i></button>` : ''}
                                     <button onclick="event.stopPropagation(); toggleUserActive('${a.id}', ${a.isActive === false ? 'true' : 'false'})" class="w-9 h-9 rounded-lg ${a.isActive === false ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500'} hover:text-white transition" aria-label="Status"><i class="fa-solid ${a.isActive === false ? 'fa-check' : 'fa-ban'}"></i></button>
                                     <button onclick="event.stopPropagation(); deleteAgent('${a.id}')" class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition" aria-label="İstifadəçini sil"><i class="fa-solid fa-trash"></i></button>
@@ -19953,23 +19970,63 @@ Təşəkkür edirəm. 🙏`;
 
         function openUserEditModal(id) {
             const user = appData.agents.find(x => String(x.id) === String(id));
-            if (!user) return;
+            const modal = document.getElementById('user-edit-modal');
+            if (!user || !modal) return;
             document.getElementById('edit-user-id').value = user.id;
             document.getElementById('edit-user-fullname').value = user.fullname || `${user.name || ''} ${user.surname || ''}`.trim();
             document.getElementById('edit-user-email').value = user.email || '';
             document.getElementById('edit-user-phone').value = user.phone || '';
             document.getElementById('edit-user-role').value = normalizeAuthRole(user.role);
             document.getElementById('edit-user-email-verified').checked = Boolean(user.emailVerified);
-            document.getElementById('user-edit-modal').classList.remove('hidden');
+            const password = document.getElementById('edit-user-password');
+            if (password) password.value = '';
+            modal.classList.remove('hidden', 'active', 'open', 'show', 'visible');
+            modal.setAttribute('aria-hidden', 'false');
+            setModalOpenState(true);
         }
 
         function closeUserEditModal() {
-            document.getElementById('user-edit-modal').classList.add('hidden');
+            const modal = document.getElementById('user-edit-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+                modal.setAttribute('aria-hidden', 'true');
+                modal.style.display = '';
+                modal.style.visibility = '';
+            }
             document.getElementById('edit-user-id').value = '';
             const phone = document.getElementById('edit-user-phone');
             if (phone) phone.value = '';
             const pass = document.getElementById('edit-user-password');
             if (pass) pass.value = '';
+            syncModalOpenState();
+        }
+
+        function bindUserEditModalHandlers() {
+            if (window.__userEditModalHandlersBound) return;
+            window.__userEditModalHandlersBound = true;
+            document.addEventListener('click', (event) => {
+                const editButton = event.target.closest('[data-edit-user-id]');
+                if (editButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openUserEditModal(editButton.dataset.editUserId);
+                    return;
+                }
+                if (event.target.closest('[data-close-user-edit-modal]')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    closeUserEditModal();
+                    return;
+                }
+                const modal = document.getElementById('user-edit-modal');
+                if (modal && event.target === modal) closeUserEditModal();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape') return;
+                const modal = document.getElementById('user-edit-modal');
+                if (modal && !modal.classList.contains('hidden')) closeUserEditModal();
+            });
         }
 
         async function handleSaveUserEdit(e) {
@@ -20946,6 +21003,7 @@ Təşəkkür edirəm. 🙏`;
 
         window.addEventListener('DOMContentLoaded', async () => {
             emergencyStartupOverlayCleanup();
+            bindUserEditModalHandlers();
             applySiteTheme(preferredTheme());
             window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (preferredTheme() === 'system') applySiteTheme('system'); });
             const initialPath = window.location.pathname;
