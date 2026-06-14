@@ -12508,7 +12508,7 @@ Title: CASPIAN DREAM LINER
         let projectLocationMarker = null;
         function setProjectMapCoordinates(lat, lng, { moveMap = true, zoom = 16, verified = true, label = '' } = {}) {
             const latNum = Number(lat), lngNum = Number(lng);
-            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) { updateProjectMapStatus(); return; }
+            if (!isValidCoordinate(latNum, lngNum)) { updateProjectMapStatus(); return; }
             document.getElementById('project-latitude').value = latNum.toFixed(7);
             document.getElementById('project-longitude').value = lngNum.toFixed(7);
             document.getElementById('project-map-verified').value = verified ? 'true' : 'false';
@@ -12529,25 +12529,25 @@ Title: CASPIAN DREAM LINER
             const verified = document.getElementById('project-map-verified')?.value === 'true';
             const lat = document.getElementById('project-latitude')?.value;
             const lng = document.getElementById('project-longitude')?.value;
-            const hasCoordinates = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+            const hasCoordinates = isValidCoordinate(lat, lng);
             document.getElementById('project-map-verify-btn')?.toggleAttribute('disabled', !hasCoordinates);
             status.textContent = verified && hasCoordinates ? `✅ Xəritə yeri təsdiqləndi: ${lat}, ${lng}` : (hasCoordinates ? 'Koordinat seçilib, təsdiq gözləyir.' : 'Xəritə yeri təsdiqlənməyib.');
         }
         function verifyProjectMapLocation() {
             const lat = document.getElementById('project-latitude')?.value;
             const lng = document.getElementById('project-longitude')?.value;
-            if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) { showToast('Əvvəlcə xəritədə nöqtə seçin.'); return; }
+            if (!isValidCoordinate(lat, lng)) { showToast('Əvvəlcə xəritədə nöqtə seçin.'); return; }
             document.getElementById('project-map-verified').value = 'true';
             updateProjectMapStatus();
         }
         function initProjectLocationMap() {
             const el = document.getElementById('project-location-map');
             if (!el) return;
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initProjectLocationMap).catch(console.error); return; }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initProjectLocationMap).catch(error => { console.error(error); setMapLoading('project-location-map-loading', false); }); return; }
             if (!projectLocationMap) { setMapLoading('project-location-map-loading', true); projectLocationMap = L.map(el, { scrollWheelZoom: true }).setView(SEA_BREEZE_DEFAULT_CENTER, 13); addOpenStreetMapLayer(projectLocationMap); attachMapLoadingOverlay(projectLocationMap, 'project-location-map-loading'); projectLocationMap.on('click', e => setProjectMapCoordinates(e.latlng.lat, e.latlng.lng, { verified: true })); }
             setTimeout(()=>projectLocationMap.invalidateSize(), 80);
             const lat=document.getElementById('project-latitude')?.value, lng=document.getElementById('project-longitude')?.value;
-            if (lat && lng) setProjectMapCoordinates(lat,lng,{moveMap:true,verified:document.getElementById('project-map-verified')?.value==='true'});
+            if (isValidCoordinate(lat, lng)) setProjectMapCoordinates(lat,lng,{moveMap:true,verified:document.getElementById('project-map-verified')?.value==='true'});
         }
         function showProjectLocationSuggestions(){ document.getElementById('project-location-results')?.classList.remove('hidden'); }
         function debouncedProjectLocationSearch(){ clearTimeout(window.__projectLocationTimer); const q=(document.getElementById('project-location-search')?.value||'').trim(); const el=document.getElementById('project-location-results'); if(!el) return; if(q.length<3){el.innerHTML=q?'<div class="p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; el.classList.toggle('hidden',!q); return;} el.innerHTML='<div class="p-2 font-bold text-slate-600">Axtarılır...</div>'; el.classList.remove('hidden'); window.__projectLocationTimer=setTimeout(searchProjectLocation,500); }
@@ -12602,8 +12602,24 @@ Title: CASPIAN DREAM LINER
         }
 
 
+        const DEFAULT_SEA_BREEZE_LOCATION = { lat: 40.5936578, lng: 49.9658956, zoom: 14 };
+        const AZERBAIJAN_COORDINATE_BOUNDS = { minLat: 38, maxLat: 42, minLng: 44, maxLng: 52 };
+        const SEA_BREEZE_DEFAULT_CENTER = [DEFAULT_SEA_BREEZE_LOCATION.lat, DEFAULT_SEA_BREEZE_LOCATION.lng];
         const BAKU_DEFAULT_CENTER = [40.4093, 49.8671];
         const BAKU_DEFAULT_ZOOM = 12;
+
+        function isValidCoordinate(lat, lng) {
+            if (lat === null || lat === undefined || lng === null || lng === undefined || lat === '' || lng === '') return false;
+            const latNum = Number(lat);
+            const lngNum = Number(lng);
+            return Number.isFinite(latNum)
+                && Number.isFinite(lngNum)
+                && !(latNum === 0 && lngNum === 0)
+                && latNum >= AZERBAIJAN_COORDINATE_BOUNDS.minLat
+                && latNum <= AZERBAIJAN_COORDINATE_BOUNDS.maxLat
+                && lngNum >= AZERBAIJAN_COORDINATE_BOUNDS.minLng
+                && lngNum <= AZERBAIJAN_COORDINATE_BOUNDS.maxLng;
+        }
 
         function adminMapDefaultCenter() {
             const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
@@ -12622,7 +12638,7 @@ Title: CASPIAN DREAM LINER
         function setAdminListingCoordinates(lat, lng, { moveMap = true, reverse = true, zoom = 16, manual = false, note = '', warning = false } = {}) {
             const latNum = Number(lat);
             const lngNum = Number(lng);
-            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            if (!isValidCoordinate(latNum, lngNum)) return;
             document.getElementById('sb-latitude').value = latNum.toFixed(7);
             document.getElementById('sb-longitude').value = lngNum.toFixed(7);
             setAdminListingMapNote(note || (manual ? 'Pin xəritədə əl ilə seçildi' : ''), { warning });
@@ -12682,7 +12698,7 @@ Title: CASPIAN DREAM LINER
             }
             const meta = getOfficialProjects().find(item => item.title === selectedProject);
             clearAdminListingCoordinates({ resetMapView: true });
-            if (meta && Number.isFinite(Number(meta.latitude)) && Number.isFinite(Number(meta.longitude))) {
+            if (meta && hasProjectCoordinates(meta)) {
                 const verified = hasVerifiedProjectCoordinates(meta);
                 setAdminListingCoordinates(meta.latitude, meta.longitude, {
                     moveMap: true,
@@ -12697,7 +12713,7 @@ Title: CASPIAN DREAM LINER
         function initAdminListingMap() {
             const el = document.getElementById('sb-location-map');
             if (!el) return;
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initAdminListingMap).catch(error => console.error(error)); return; }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initAdminListingMap).catch(error => { console.error(error); setMapLoading('sb-location-map-loading', false); }); return; }
             if (!adminListingMap) {
                 setMapLoading('sb-location-map-loading', true);
                 adminListingMap = L.map(el, { scrollWheelZoom: true }).setView(adminMapDefaultCenter(), 12);
@@ -12708,7 +12724,7 @@ Title: CASPIAN DREAM LINER
             setTimeout(() => adminListingMap.invalidateSize(), 80);
             const lat = document.getElementById('sb-latitude')?.value;
             const lng = document.getElementById('sb-longitude')?.value;
-            if (lat && lng) setAdminListingCoordinates(lat, lng, { moveMap: true });
+            if (isValidCoordinate(lat, lng)) setAdminListingCoordinates(lat, lng, { moveMap: true });
             else {
                 if (adminListingMarker) {
                     adminListingMarker.remove();
@@ -12861,7 +12877,6 @@ Title: CASPIAN DREAM LINER
             return queryTokens.every(token => targetTokens.some(targetToken => locationTokenMatches(token, targetToken)));
         }
 
-        const SEA_BREEZE_DEFAULT_CENTER = [40.5912, 49.9867];
         const KNOWN_SEA_BREEZE_PLACES = [];
         const LOCAL_LOCATION_INDEX = [
             ...KNOWN_SEA_BREEZE_PLACES.map(place => ({ ...place, city: 'Sea Breeze', knownPlace: true, addressText: `${place.title}, Sea Breeze, Baku, Azerbaijan` })),
@@ -12977,7 +12992,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function hasProjectCoordinates(project = {}) {
-            return Number.isFinite(Number(project.latitude)) && Number.isFinite(Number(project.longitude));
+            return isValidCoordinate(project.latitude, project.longitude);
         }
 
         function hasVerifiedProjectCoordinates(project = {}) {
@@ -13059,7 +13074,7 @@ Title: CASPIAN DREAM LINER
 
         function filterRemoteLocationRows(rows = [], query = '') {
             return (Array.isArray(rows) ? rows : []).filter(item => {
-                if (!Number.isFinite(Number(item?.lat)) || !Number.isFinite(Number(item?.lon))) return false;
+                if (!isValidCoordinate(item?.lat, item?.lon)) return false;
                 return !isWeakGenericRemoteLocation(item, query);
             });
         }
@@ -13235,7 +13250,7 @@ Title: CASPIAN DREAM LINER
                 .flatMap(data => Array.isArray(data.features) ? data.features : [])
                 .map(feature => mapboxFeatureToLocationRow(feature, q))
                 .filter(item => {
-                    if (!Number.isFinite(Number(item.lat)) || !Number.isFinite(Number(item.lon))) return false;
+                    if (!isValidCoordinate(item.lat, item.lon)) return false;
                     const key = item.mapbox_id || `${item.lat},${item.lon},${item.display_name}`;
                     if (seen.has(key)) return false;
                     seen.add(key);
@@ -13401,7 +13416,7 @@ Title: CASPIAN DREAM LINER
                 showToast('Layihə üçün koordinat saxlanmayıb. İstəsəniz xəritədən pin seçə bilərsiniz.');
             }
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
-            if (Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))) {
+            if (isValidCoordinate(item.lat, item.lon)) {
                 setAdminListingCoordinates(item.lat, item.lon, {
                     moveMap: true,
                     reverse: false,
@@ -13527,7 +13542,7 @@ Title: CASPIAN DREAM LINER
                 return;
             }
             const point = [Number(item.lat), Number(item.lon)];
-            if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) return;
+            if (!isValidCoordinate(point[0], point[1])) return;
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
             const address = item.display_name || item.name || '';
             if (fullscreenMapSource === 'admin' || fullscreenMapSource === 'public') {
@@ -13728,12 +13743,23 @@ Title: CASPIAN DREAM LINER
             const frameEl = document.getElementById('p-modal-map-frame');
             const lat = Number(listing.latitude);
             const lng = Number(listing.longitude);
-            const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+            const relatedProject = getOfficialProjects().find(project => project.title === listing.project);
+            const hasListingCoordinates = isValidCoordinate(listing.latitude, listing.longitude);
+            const hasProjectFallbackCoordinates = !hasListingCoordinates && hasProjectCoordinates(relatedProject);
+            const hasCoordinates = hasListingCoordinates || hasProjectFallbackCoordinates;
             if (!mapEl) return;
-            frameEl?.classList.remove('hidden');
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => console.error(error)); return; }
-            const point = hasCoordinates ? [lat, lng] : BAKU_DEFAULT_CENTER;
-            const zoom = hasCoordinates ? 15 : BAKU_DEFAULT_ZOOM;
+            frameEl?.classList.toggle('hidden', !hasCoordinates);
+            if (!hasCoordinates) {
+                if (detailListingMarker) {
+                    detailListingMarker.remove();
+                    detailListingMarker = null;
+                }
+                setMapLoading('p-modal-location-map-loading', false);
+                return;
+            }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => { console.error(error); frameEl?.classList.add('hidden'); }); return; }
+            const point = hasListingCoordinates ? [lat, lng] : [Number(relatedProject.latitude), Number(relatedProject.longitude)];
+            const zoom = hasListingCoordinates ? 15 : 16;
             setTimeout(() => {
                 if (!detailListingMap) {
                     detailListingMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, zoom);
@@ -13749,7 +13775,8 @@ Title: CASPIAN DREAM LINER
                     detailListingMarker = null;
                 }
                 detailListingMap.invalidateSize();
-                if (!hasCoordinates) geocodeListingDetailAddressFallback(listing);
+                setTimeout(() => { detailListingMap?.invalidateSize(); detailListingMap?.setView(point, zoom); }, 150);
+                setTimeout(() => { detailListingMap?.invalidateSize(); detailListingMap?.setView(point, zoom); }, 500);
             }, 120);
         }
 
@@ -13787,7 +13814,7 @@ Title: CASPIAN DREAM LINER
             if (input) input.value = item.display_name || item.name || input.value;
             document.getElementById('fullscreen-location-results')?.classList.add('hidden');
             const point = [Number(item.lat), Number(item.lon)];
-            if (!Number.isFinite(point[0]) || !Number.isFinite(point[1])) return;
+            if (!isValidCoordinate(point[0], point[1])) return;
             const zoom = item.type === 'house' ? 17 : 16;
             setFullscreenMapSelection(point[0], point[1], { address: item.display_name || item.name || '', addressData: item.address || null, projectTitle: item.projectTitle || '', updateMarker: true, moveMap: true, zoom, manual: false });
         }
@@ -13811,7 +13838,7 @@ Title: CASPIAN DREAM LINER
         function setFullscreenMapSelection(lat, lng, { address = '', addressData = null, projectTitle = '', updateMarker = true, moveMap = false, zoom = 16, manual = false } = {}) {
             const latNum = Number(lat);
             const lngNum = Number(lng);
-            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            if (!isValidCoordinate(latNum, lngNum)) return;
             fullscreenMapSelection = { lat: latNum, lng: lngNum, address, addressData, projectTitle, manual };
             const point = [latNum, lngNum];
             if (updateMarker) updateFullscreenMarker(point, ['admin','public'].includes(fullscreenMapSource));
@@ -13852,18 +13879,18 @@ Title: CASPIAN DREAM LINER
             if (source === 'admin') {
                 const lat = Number(document.getElementById('sb-latitude')?.value);
                 const lng = Number(document.getElementById('sb-longitude')?.value);
-                if (Number.isFinite(lat) && Number.isFinite(lng)) return { point: [lat, lng], zoom: Math.max(adminListingMap?.getZoom?.() || 16, 15), hasMarker: true };
+                if (isValidCoordinate(lat, lng)) return { point: [lat, lng], zoom: Math.max(adminListingMap?.getZoom?.() || 16, 15), hasMarker: true };
                 return { point: adminMapDefaultCenter(), zoom: BAKU_DEFAULT_ZOOM, hasMarker: false };
             }
             if (source === 'public') {
                 const lat = Number(document.getElementById('pl-latitude')?.value);
                 const lng = Number(document.getElementById('pl-longitude')?.value);
-                if (Number.isFinite(lat) && Number.isFinite(lng)) return { point: [lat, lng], zoom: Math.max(publicListingMap?.getZoom?.() || 16, 15), hasMarker: true };
+                if (isValidCoordinate(lat, lng)) return { point: [lat, lng], zoom: Math.max(publicListingMap?.getZoom?.() || 16, 15), hasMarker: true };
                 return { point: publicMapDefaultCenter(), zoom: 12, hasMarker: false };
             }
             const markerPoint = detailListingMarker?.getLatLng?.();
             if (markerPoint) return { point: [markerPoint.lat, markerPoint.lng], zoom: detailListingMap?.getZoom?.() || 15, hasMarker: true };
-            return { point: BAKU_DEFAULT_CENTER, zoom: BAKU_DEFAULT_ZOOM, hasMarker: false };
+            return { point: SEA_BREEZE_DEFAULT_CENTER, zoom: DEFAULT_SEA_BREEZE_LOCATION.zoom, hasMarker: false };
         }
 
         function resizeFullscreenMapAfterOpen() {
@@ -13876,7 +13903,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function openFullscreenMap(source = 'detail') {
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => openFullscreenMap(source)).catch(error => console.error(error)); return; }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => openFullscreenMap(source)).catch(error => { console.error(error); setMapLoading('fullscreen-map-loading', false); }); return; }
             fullscreenMapSource = source;
             const modal = document.getElementById('fullscreen-map-modal');
             const canvas = document.getElementById('fullscreen-map-canvas');
@@ -14308,6 +14335,7 @@ Title: CASPIAN DREAM LINER
             if (streetInput && !streetInput.value) streetInput.value = project;
             const meta = getOfficialProjects().find(item => item.title === project);
             if (meta && hasProjectCoordinates(meta)) setPublicListingCoordinates(meta.latitude, meta.longitude, { moveMap: true, reverse: false, zoom: 16 });
+            else clearPublicListingCoordinates({ resetMapView: true });
         }
 
         function handlePublicListingRegionChange() {
@@ -14334,7 +14362,7 @@ Title: CASPIAN DREAM LINER
 
         function publicMapDefaultCenter() {
             const city = document.getElementById('pl-city')?.value || 'Sea Breeze';
-            if (city === 'Sea Breeze') return [40.591, 49.986];
+            if (city === 'Sea Breeze') return SEA_BREEZE_DEFAULT_CENTER;
             if (city === 'Abşeron') return [40.457, 49.75];
             if (city === 'Sumqayıt') return [40.585, 49.631];
             return [40.4093, 49.8671];
@@ -14361,9 +14389,19 @@ Title: CASPIAN DREAM LINER
             if (streetInput) streetInput.value = title;
         }
 
+        function clearPublicListingCoordinates({ resetMapView = false } = {}) {
+            const latInput = document.getElementById('pl-latitude');
+            const lngInput = document.getElementById('pl-longitude');
+            if (latInput) latInput.value = '';
+            if (lngInput) lngInput.value = '';
+            document.getElementById('pl-manual-pin-note')?.classList.add('hidden');
+            if (publicListingMarker) { publicListingMarker.remove(); publicListingMarker = null; }
+            if (resetMapView && publicListingMap) publicListingMap.setView(publicMapDefaultCenter(), DEFAULT_SEA_BREEZE_LOCATION.zoom);
+        }
+
         function setPublicListingCoordinates(lat, lng, { moveMap = true, reverse = true, zoom = 16, manual = false } = {}) {
             const latNum = Number(lat), lngNum = Number(lng);
-            if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) return;
+            if (!isValidCoordinate(latNum, lngNum)) return;
             document.getElementById('pl-latitude').value = latNum.toFixed(7);
             document.getElementById('pl-longitude').value = lngNum.toFixed(7);
             document.getElementById('pl-manual-pin-note')?.classList.toggle('hidden', !manual);
@@ -14382,10 +14420,10 @@ Title: CASPIAN DREAM LINER
         function initPublicListingMap() {
             const el = document.getElementById('pl-location-map');
             if (!el) return;
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initPublicListingMap).catch(error => console.error(error)); return; }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(initPublicListingMap).catch(error => { console.error(error); setMapLoading('pl-location-map-loading', false); }); return; }
             if (publicListingMap) { publicListingMap.remove(); publicListingMap = null; publicListingMarker = null; }
             setMapLoading('pl-location-map-loading', true);
-            publicListingMap = L.map(el, { scrollWheelZoom: true }).setView(publicMapDefaultCenter(), 12);
+            publicListingMap = L.map(el, { scrollWheelZoom: true }).setView(publicMapDefaultCenter(), DEFAULT_SEA_BREEZE_LOCATION.zoom);
             addOpenStreetMapLayer(publicListingMap);
             attachMapLoadingOverlay(publicListingMap, 'pl-location-map-loading');
             publicListingMap.on('click', e => setPublicListingCoordinates(e.latlng.lat, e.latlng.lng, { moveMap:false, reverse:false, manual:true }));
@@ -14490,7 +14528,7 @@ Title: CASPIAN DREAM LINER
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!el) return; if(q.length<3){el.innerHTML=q.length?'<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; if(q.length) openPublicAddressSuggestions(); else closePublicAddressSuggestions(); return;} openPublicAddressSuggestions(); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
         async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<3) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:false}); } catch(e){ if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
-        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); if(Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))) setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); if(isValidCoordinate(item.lat, item.lon)) setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key==='Escape') { event.preventDefault(); closePublicAddressSuggestions(); return; } if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
@@ -14532,7 +14570,7 @@ Title: CASPIAN DREAM LINER
                 const selectedProject=document.getElementById('pl-project')?.value || document.getElementById('pl-district')?.value || '';
                 const district=selectedProject;
                 const isCredit = document.getElementById('pl-is-credit')?.checked || false;
-                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?selectedProject:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:document.getElementById('pl-latitude').value, longitude:document.getElementById('pl-longitude').value, desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
+                const payload={ title:document.getElementById('pl-title')?.value?.trim() || [city,district,document.getElementById('pl-category').selectedOptions[0]?.textContent].filter(Boolean).join(' • '), regionType, city, district, project: regionType==='seabreeze'?selectedProject:'', category:document.getElementById('pl-category').value, listingType:document.getElementById('pl-listing-type').value, price:document.getElementById('pl-price').value, currency:document.getElementById('pl-currency')?.value || 'AZN', rooms:document.getElementById('pl-rooms').value, area:document.getElementById('pl-area').value, floorNumber:document.getElementById('pl-floor-number').value, floorCount:document.getElementById('pl-floor-count').value, land:document.getElementById('pl-land')?.value || '', pricePerM2:(parseFloat(document.getElementById('pl-area')?.value)>0 && parseFloat(document.getElementById('pl-price')?.value)>0) ? Math.round(parseFloat(document.getElementById('pl-price').value)/parseFloat(document.getElementById('pl-area').value)) : null, metroStation:document.getElementById('pl-metro')?.value || '', settlement:document.getElementById('pl-settlement')?.value || '', streetAddress:document.getElementById('pl-street-address').value, latitude:isValidCoordinate(document.getElementById('pl-latitude').value, document.getElementById('pl-longitude').value) ? document.getElementById('pl-latitude').value : '', longitude:isValidCoordinate(document.getElementById('pl-latitude').value, document.getElementById('pl-longitude').value) ? document.getElementById('pl-longitude').value : '', desc:document.getElementById('pl-desc').value, isCredit, ownerType:document.getElementById('pl-owner-type')?.value || 'owner', hasDocument:document.getElementById('pl-has-document')?.checked || false, creditDownPayment:isCredit && document.getElementById('pl-credit-down')?.value ? parseFloat(document.getElementById('pl-credit-down').value) : null, creditMonthlyPayment:isCredit && document.getElementById('pl-credit-monthly')?.value ? parseFloat(document.getElementById('pl-credit-monthly').value) : null, creditYears:isCredit && document.getElementById('pl-credit-years')?.value ? parseInt(document.getElementById('pl-credit-years').value, 10) : null };
                 const formData = new FormData(); const apiPayload = { ...uiListingToApi(payload), region_type: 'seabreeze', city: '', district: selectedProject, project_name: selectedProject }; Object.entries(apiPayload).forEach(([k,v])=>{ if(v!==undefined && v!==null && k!=='images') formData.append(k,v); }); publicListingImageFiles.forEach(file=>formData.append('images',file)); formData.append('image_order', JSON.stringify(publicListingImageFiles.map((_, idx) => ({ type: 'file', fileIndex: idx }))));
                 setListingFormDisabled('public-listing-form', true);
                 showListingSubmissionOverlay();
@@ -16066,7 +16104,7 @@ Təşəkkür edirəm. 🙏`;
             const googleBtn = document.getElementById('op-modal-google-maps-btn');
             const lat = Number(project.latitude);
             const lng = Number(project.longitude);
-            const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+            const hasCoordinates = isValidCoordinate(project.latitude, project.longitude);
             if (!section || !mapEl) return;
             section.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
@@ -16074,12 +16112,13 @@ Təşəkkür edirəm. 🙏`;
                     projectDetailMarker.remove();
                     projectDetailMarker = null;
                 }
+                setMapLoading('op-modal-location-map-loading', false);
                 return;
             }
             const point = [lat, lng];
             if (googleBtn) googleBtn.href = `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
             if (typeof L === 'undefined') {
-                ensureLeafletLoaded().then(() => renderProjectDetailLocationMap(project)).catch(error => console.error(error));
+                ensureLeafletLoaded().then(() => renderProjectDetailLocationMap(project)).catch(error => { console.error(error); setMapLoading('op-modal-location-map-loading', false); section.classList.add('hidden'); });
                 return;
             }
             setMapLoading('op-modal-location-map-loading', true);
@@ -16094,6 +16133,8 @@ Təşəkkür edirəm. 🙏`;
                 if (!projectDetailMarker) projectDetailMarker = L.marker(point).addTo(projectDetailMap);
                 else projectDetailMarker.setLatLng(point);
                 projectDetailMap.invalidateSize();
+                setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 150);
+                setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 500);
             }, 80);
         }
 
@@ -16939,7 +16980,7 @@ Təşəkkür edirəm. 🙏`;
                 document.getElementById('p-modal-street-address').textContent = compactStreetAddress ? `📌 ${compactStreetAddress}` : '';
                 const locationSection = document.getElementById('p-modal-location-section');
                 locationSection?.classList.toggle('hidden', !compactStreetAddress && !renderLocationBadges(p));
-                if (isListingLocationVisible(p)) renderListingDetailMap(p);
+                renderListingDetailMap(p);
 
                 const creditPanel = document.getElementById('p-modal-credit');
                 if (creditPanel) {
@@ -19140,9 +19181,9 @@ Təşəkkür edirəm. 🙏`;
                 slug: document.getElementById('project-slug').value.trim(),
                 featuredInHero: document.getElementById('project-featured-hero')?.checked || false,
                 aliases: document.getElementById('project-aliases')?.value.trim() || '',
-                latitude: safeNumber(document.getElementById('project-latitude')?.value),
-                longitude: safeNumber(document.getElementById('project-longitude')?.value),
-                mapLocationVerified: Number.isFinite(safeNumber(document.getElementById('project-latitude')?.value)) && Number.isFinite(safeNumber(document.getElementById('project-longitude')?.value))
+                latitude: isValidCoordinate(document.getElementById('project-latitude')?.value, document.getElementById('project-longitude')?.value) ? safeNumber(document.getElementById('project-latitude')?.value) : null,
+                longitude: isValidCoordinate(document.getElementById('project-latitude')?.value, document.getElementById('project-longitude')?.value) ? safeNumber(document.getElementById('project-longitude')?.value) : null,
+                mapLocationVerified: isValidCoordinate(document.getElementById('project-latitude')?.value, document.getElementById('project-longitude')?.value)
                     ? document.getElementById('project-map-verified')?.value !== 'false'
                     : false,
                 mapLocationLabel: document.getElementById('project-location-search')?.value.trim() || title
@@ -19909,8 +19950,8 @@ Təşəkkür edirəm. 🙏`;
             const latitude = safeNumber(document.getElementById('sb-latitude')?.value);
             const longitude = safeNumber(document.getElementById('sb-longitude')?.value);
 
-            const listingLatitude = Number.isFinite(latitude) ? latitude : null;
-            const listingLongitude = Number.isFinite(longitude) ? longitude : null;
+            const listingLatitude = isValidCoordinate(latitude, longitude) ? latitude : null;
+            const listingLongitude = isValidCoordinate(latitude, longitude) ? longitude : null;
 
             if (!editId && !(await ensureListingContactPhone())) {
                 isListingSaveSubmitting = false;
@@ -20050,10 +20091,10 @@ Təşəkkür edirəm. 🙏`;
                 toggleMetroFieldForCity();
                 document.getElementById('sb-metro').value = p.metroStation || '';
                 document.getElementById('sb-street-address').value = p.streetAddress || '';
-                document.getElementById('sb-latitude').value = Number.isFinite(Number(p.latitude)) ? Number(p.latitude).toFixed(7) : '';
-                document.getElementById('sb-longitude').value = Number.isFinite(Number(p.longitude)) ? Number(p.longitude).toFixed(7) : '';
+                document.getElementById('sb-latitude').value = isValidCoordinate(p.latitude, p.longitude) ? Number(p.latitude).toFixed(7) : '';
+                document.getElementById('sb-longitude').value = isValidCoordinate(p.latitude, p.longitude) ? Number(p.longitude).toFixed(7) : '';
                 document.getElementById('sb-manual-pin-note')?.classList.add('hidden');
-                setTimeout(() => { initAdminListingMap(); if (p.latitude && p.longitude) setAdminListingCoordinates(p.latitude, p.longitude); }, 120);
+                setTimeout(() => { initAdminListingMap(); if (isValidCoordinate(p.latitude, p.longitude)) setAdminListingCoordinates(p.latitude, p.longitude); }, 120);
                 document.getElementById('sb-listing-type').value = p.listingType;
                 document.getElementById('sb-form-category').value = p.category || "Apartment";
                 document.getElementById('sb-rooms').value = p.rooms;
