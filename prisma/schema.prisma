@@ -524,6 +524,58 @@ model SiteSettings {
   @@map("site_settings")
 }
 
+
+model SeaBreezeHeroSlide {
+  id        Int      @id @default(autoincrement())
+  title     String
+  subtitle  String?  @db.Text
+  mediaType String   @default("image") @map("media_type")
+  imageUrl  String?  @map("image_url") @db.Text
+  videoUrl  String?  @map("video_url") @db.Text
+  ctaText   String?  @map("cta_text")
+  ctaLink   String?  @map("cta_link") @db.Text
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder, id], map: "idx_seabreeze_hero_slides_active_order")
+  @@map("seabreeze_hero_slides")
+}
+
+model SeaBreezeSection {
+  id         Int      @id @default(autoincrement())
+  sectionKey String?  @map("section_key")
+  title      String
+  content    String?  @db.Text
+  imageUrl   String?  @map("image_url") @db.Text
+  videoUrl   String?  @map("video_url") @db.Text
+  facts      Json?
+  sortOrder  Int      @default(0) @map("sort_order")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder, id], map: "idx_seabreeze_sections_active_order")
+  @@map("seabreeze_sections")
+}
+
+model SeaBreezeGallery {
+  id           Int      @id @default(autoincrement())
+  title        String?
+  category     String?
+  mediaType    String   @default("image") @map("media_type")
+  mediaUrl     String   @map("media_url") @db.Text
+  thumbnailUrl String?  @map("thumbnail_url") @db.Text
+  sortOrder    Int      @default(0) @map("sort_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([isActive, category, sortOrder, id], map: "idx_seabreeze_gallery_active_category_order")
+  @@map("seabreeze_gallery")
+}
+
 enum Role {
   admin
   user
