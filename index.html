@@ -714,6 +714,21 @@
         .listing-detail-section,
         .listing-detail-gallery-card { overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 3990;
+            display: none;
+            background: rgba(15, 23, 42, 0.58);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+        .modal-backdrop.active { display: block; pointer-events: auto; }
+        .modal.active, .modal.show, .modal.open,
+        .modal-glass-backdrop:not(.hidden),
+        .fullscreen-map-backdrop:not(.hidden),
+        #user-edit-modal:not(.hidden)[aria-hidden="false"] { z-index: 4000; }
         #user-edit-modal { display: none; visibility: hidden; }
         #user-edit-modal:not(.hidden)[aria-hidden="false"] { display: flex; visibility: visible; }
         :root { --mobile-modal-gap: 12px; }
@@ -722,7 +737,7 @@
 
         .modal-glass-backdrop {
             display: none;
-            background: rgba(255,255,255,.08) !important;
+            background: transparent !important;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
         }
@@ -3656,7 +3671,6 @@
         @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } .notification-video-modal{ padding:0; align-items:stretch; } .notification-video-modal__card{ width:100%; min-height:100dvh; border-radius:0; display:flex; flex-direction:column; justify-content:center; } }
 
         /* Production-safe modal layout: keep every popup above fixed header/bottom nav. */
-        .modal-backdrop,
         .popup-backdrop,
         .modal-glass-backdrop:not(.hidden),
         #property-detail-modal:not(.hidden),
@@ -3666,7 +3680,7 @@
             position: fixed !important;
             inset: 0 !important;
             z-index: 4000 !important;
-            background: rgba(15, 23, 42, 0.55);
+            background: transparent;
         }
         .modal-panel,
         .popup-panel,
@@ -8929,7 +8943,7 @@ Title: CASPIAN DREAM LINER
                     const classes = ['admin-subtab-button'];
                     if (item.adminOnly) classes.push('admin-only-element');
                     if (item.subtab === activeSubtab) classes.push('is-active');
-                    return `<button onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}"><span>${item.label}</span></button>`;
+                    return `<button type="button" data-admin-tab="${item.subtab}" onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}" aria-controls="admin-subtab-${item.subtab}" aria-selected="${item.subtab === activeSubtab ? 'true' : 'false'}"><span>${item.label}</span></button>`;
                 })
                 .join('');
         }
@@ -9469,6 +9483,7 @@ Title: CASPIAN DREAM LINER
 
         function closeContactPhoneModal() {
             document.getElementById('contact-phone-modal')?.remove();
+            syncModalOpenState();
         }
 
         function promptForContactPhone() {
@@ -9482,6 +9497,7 @@ Title: CASPIAN DREAM LINER
                         <div class="grid grid-cols-2 gap-3"><button id="contact-phone-cancel-btn" type="button" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 font-black transition">Ləğv et</button><button id="contact-phone-save-btn" type="button" class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-4 py-3 font-black transition">Qeyd et və davam et</button></div>
                     </div>
                 </div>`);
+                setModalOpenState(true);
                 const input = document.getElementById('contact-phone-input');
                 const error = document.getElementById('contact-phone-error');
                 const finish = (value) => { closeContactPhoneModal(); resolve(value); };
@@ -13394,7 +13410,7 @@ Title: CASPIAN DREAM LINER
             'fullscreen-map-modal',
             'user-edit-modal'
         ];
-        const MODAL_STATE_CLASSES = ['modal-open', 'no-scroll', 'blur-active', 'menu-open', 'player-expanded', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
+        const MODAL_STATE_CLASSES = ['modal-open', 'no-scroll', 'blur-active', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
         const MODAL_BACKGROUND_SELECTORS = ['#app', '#root', '#page', '#main', 'main', '.app', '.page', '.content', '.tab-content', '.page-shell', '.public-page'];
         const MODAL_BACKGROUND_CLASSES = ['blur', 'blur-sm', 'blur-md', 'blur-lg', 'backdrop-blur', 'backdrop-blur-sm', 'backdrop-blur-md', 'filter', 'is-blurred', 'app-blur', 'modal-blur'];
 
@@ -13407,6 +13423,18 @@ Title: CASPIAN DREAM LINER
             return APP_MODAL_IDS.filter(isElementVisibleById);
         }
 
+        function ensureGlobalModalBackdrop() {
+            let backdrop = document.getElementById('global-modal-backdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'global-modal-backdrop';
+                backdrop.className = 'modal-backdrop';
+                backdrop.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(backdrop);
+            }
+            return backdrop;
+        }
+
         function cleanupModalState() {
             document.body.classList.remove(...MODAL_STATE_CLASSES);
             document.documentElement.classList.remove(...MODAL_STATE_CLASSES);
@@ -13414,6 +13442,7 @@ Title: CASPIAN DREAM LINER
             document.body.style.overflow = '';
             document.body.style.filter = '';
             document.documentElement.style.filter = '';
+            document.getElementById('global-modal-backdrop')?.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible');
 
             MODAL_BACKGROUND_SELECTORS.forEach((selector) => {
                 document.querySelectorAll(selector).forEach((el) => {
@@ -13433,9 +13462,8 @@ Title: CASPIAN DREAM LINER
                 });
             });
 
-            document.querySelectorAll('.modal-glass-backdrop.hidden, .fullscreen-map-backdrop.hidden, [data-modal-backdrop].hidden, .modal-backdrop.hidden, .site-overlay.hidden, .music-backdrop, [data-site-overlay].hidden').forEach((el) => {
+            document.querySelectorAll('.modal-glass-backdrop.hidden, .fullscreen-map-backdrop.hidden, [data-modal-backdrop].hidden, .modal-backdrop.hidden, .site-overlay.hidden, [data-site-overlay].hidden').forEach((el) => {
                 el.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
-                if (el.classList.contains('music-backdrop')) el.remove();
                 if (el.dataset.modalAriaHidden === 'true') {
                     el.removeAttribute('aria-hidden');
                     delete el.dataset.modalAriaHidden;
@@ -13454,6 +13482,7 @@ Title: CASPIAN DREAM LINER
                 return;
             }
             document.body.classList.add('modal-open');
+            ensureGlobalModalBackdrop().classList.add('active');
             document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
         }
@@ -13485,7 +13514,8 @@ Title: CASPIAN DREAM LINER
         function emergencyStartupOverlayCleanup() {
             forceHideUserEditModal();
             cleanupModalState();
-            document.querySelectorAll('.modal-backdrop, .site-overlay, .music-backdrop, [data-site-overlay], [data-modal-backdrop]').forEach((el) => {
+            document.querySelectorAll('.modal-backdrop, .site-overlay, [data-site-overlay], [data-modal-backdrop]').forEach((el) => {
+                if (el.id === 'global-modal-backdrop') return;
                 if (APP_MODAL_IDS.includes(el.id)) return;
                 const ownsVisibleModal = el.closest(APP_MODAL_IDS.map(id => `#${id}`).join(','));
                 if (ownsVisibleModal) return;
@@ -16858,8 +16888,6 @@ Təşəkkür edirəm. 🙏`;
         function renderAdminGallery() {
             const items = adminGalleryItems();
             const container = getAdminGalleryContainer();
-            console.log('admin gallery items', items);
-            console.log('admin gallery container', container);
             if (!container) return;
             container.innerHTML = '';
             if (dataLoadState.gallery.loading && items.length === 0) {
@@ -17719,26 +17747,32 @@ Təşəkkür edirəm. 🙏`;
                 currentAdminSubtab = subtab;
             }
 
-            document.getElementById('admin-subtab-seabreeze-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-projects-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-projects-archive').classList.add('hidden');
-            document.getElementById('admin-subtab-project-inquiries')?.classList.add('hidden');
-            document.getElementById('admin-subtab-hero-sections').classList.add('hidden');
-            document.getElementById('admin-subtab-listing-hero')?.classList.add('hidden');
-            document.getElementById('admin-subtab-cvs').classList.add('hidden');
-            document.getElementById('admin-subtab-agents-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-google-email')?.classList.add('hidden');
-            document.getElementById('admin-subtab-broadcast-notifications')?.classList.add('hidden');
-            document.getElementById('admin-subtab-vacancy-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-gallery-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-ads-manager').classList.add('hidden');
-            document.getElementById('admin-subtab-site-music')?.classList.add('hidden');
-            document.getElementById('admin-subtab-site-settings').classList.add('hidden');
-            document.getElementById('admin-subtab-user-profile')?.classList.add('hidden');
+            const targetPanelId = `admin-subtab-${subtab}`;
+            const targetPanel = document.getElementById(targetPanelId);
+            if (!targetPanel) {
+                subtab = 'seabreeze-manager';
+                currentAdminSubtab = subtab;
+            }
+
+            document.querySelectorAll('[id^="admin-subtab-"]').forEach((panel) => {
+                panel.classList.add('hidden');
+                panel.classList.remove('active', 'is-active', 'show', 'open');
+                panel.setAttribute('aria-hidden', 'true');
+            });
 
             renderDashboardSubtabButtons(subtab);
 
-            document.getElementById('admin-subtab-' + subtab).classList.remove('hidden');
+            const activePanel = document.getElementById('admin-subtab-' + subtab);
+            activePanel?.classList.remove('hidden');
+            activePanel?.classList.add('active', 'is-active', 'show');
+            activePanel?.setAttribute('aria-hidden', 'false');
+            document.querySelectorAll('#admin-subtabs-container .admin-subtab-button, [data-admin-tab]').forEach((button) => {
+                const buttonSubtab = normalizeAdminSubtab(button.dataset.adminTab || button.getAttribute('data-tab') || button.id?.replace(/^subtab-btn-/, ''));
+                const isActiveButton = buttonSubtab === subtab || (button.id === 'subtab-btn-sb' && subtab === 'seabreeze-manager');
+                button.classList.toggle('is-active', isActiveButton);
+                button.classList.toggle('active', isActiveButton);
+                button.setAttribute('aria-selected', isActiveButton ? 'true' : 'false');
+            });
             const subtabRoute = ADMIN_SUBTAB_ROUTES[subtab] || '/admin';
             if (!options.skipPush && (isAdmin || subtab === 'user-profile') && window.location.pathname !== subtabRoute) {
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
