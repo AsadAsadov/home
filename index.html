@@ -1034,7 +1034,7 @@
             overflow: hidden;
             border-radius: 1rem;
             border: 1px solid rgba(207, 207, 255, 0.75);
-            background: #fff;
+            background: transparent;
             box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
             cursor: pointer;
             transition: transform 180ms ease, box-shadow 180ms ease;
@@ -1052,12 +1052,30 @@
             max-width: var(--ad-width);
             min-height: calc(var(--ad-height) + 2rem);
         }
+        .desktop-ad-stage {
+            position: relative;
+            width: 100%;
+            height: var(--ad-height);
+            overflow: hidden;
+            background: transparent;
+        }
+        .desktop-ad-layer {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            background: transparent;
+            transition: opacity 400ms ease;
+        }
+        .desktop-ad-layer.is-visible {
+            opacity: 1;
+        }
         .desktop-ad-media {
             width: 100% !important;
             height: var(--ad-height) !important;
             max-width: 100%;
             aspect-ratio: var(--ad-width) / var(--ad-height);
-            object-fit: cover;
+            object-fit: cover !important;
+            background: transparent;
         }
         .desktop-ad-label {
             padding: .55rem .65rem;
@@ -6338,8 +6356,7 @@
         html[data-theme="dark"] .desktop-ad-layout {
             background: var(--dark-page) !important;
         }
-        html[data-theme="dark"] .desktop-ad-rail.is-loading::before,
-        html[data-theme="dark"] .desktop-ad-card {
+        html[data-theme="dark"] .desktop-ad-rail.is-loading::before {
             background: var(--dark-surface) !important;
             border-color: rgba(148, 163, 184, .24) !important;
             box-shadow: 0 18px 44px rgba(0, 0, 0, .34) !important;
@@ -8276,7 +8293,7 @@ Title: CASPIAN DREAM LINER
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1366;
         window.addEventListener('resize', () => { updateDesktopAdStickyOffset(); renderDesktopAds({ force: true }); });
-        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '' };
+        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
@@ -9734,12 +9751,16 @@ Title: CASPIAN DREAM LINER
             };
         }
 
+        function adMediaStyle(ad, responsive = false) {
+            const dimensions = getAdDimensions(ad);
+            return responsive ? `width:100%;height:var(--ad-height);object-fit:${dimensions.objectFit};` : `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
+        }
+
         function renderAdMedia(ad, classes = '', options = {}) {
             const url = escapeHtml(ad.mediaUrl || '');
             const title = escapeHtml(ad.title || 'Advertisement');
             const dimensions = getAdDimensions(ad);
-            const responsiveStyle = `width:100%;height:var(--ad-height);object-fit:${dimensions.objectFit};`;
-            const style = options.responsive ? responsiveStyle : `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
+            const style = adMediaStyle(ad, options.responsive);
             if (!url) return `<div class="p-4 text-xs text-gray-400" style="${options.responsive ? 'width:100%;height:var(--ad-height);' : `width:${dimensions.width}px;height:${dimensions.height}px;`}">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
                 const loopAttr = options.loop === false ? '' : ' loop';
@@ -9750,6 +9771,71 @@ Title: CASPIAN DREAM LINER
             const loading = options.eager ? 'eager' : 'lazy';
             const fetchPriority = options.eager ? ' fetchpriority="high"' : '';
             return `<img class="${classes}" style="${style}" width="${dimensions.width}" height="${dimensions.height}" src="${url}" alt="${title}" loading="${loading}" decoding="async"${fetchPriority}>`;
+        }
+
+        function createAdMediaNode(ad, classes = 'desktop-ad-media', options = {}) {
+            const url = String(ad.mediaUrl || '').trim();
+            const dimensions = getAdDimensions(ad);
+            if (!url) {
+                const empty = document.createElement('div');
+                empty.className = 'p-4 text-xs text-gray-400';
+                empty.textContent = 'Media yoxdur';
+                empty.style.cssText = options.responsive ? 'width:100%;height:var(--ad-height);' : `width:${dimensions.width}px;height:${dimensions.height}px;`;
+                return empty;
+            }
+            const media = document.createElement(ad.mediaType === 'video' ? 'video' : 'img');
+            media.className = classes;
+            media.style.cssText = adMediaStyle(ad, options.responsive);
+            media.width = dimensions.width;
+            media.height = dimensions.height;
+            if (ad.mediaType === 'video') {
+                media.src = url;
+                media.muted = true;
+                media.autoplay = true;
+                media.loop = options.loop !== false;
+                media.playsInline = true;
+                media.preload = options.eager ? 'auto' : 'metadata';
+                media.title = ad.title || 'Advertisement';
+                if (options.rotation) {
+                    media.dataset.adRotationVideo = 'true';
+                    media.dataset.adId = ad.id || '';
+                }
+            } else {
+                media.src = url;
+                media.alt = ad.title || 'Advertisement';
+                media.loading = options.eager ? 'eager' : 'lazy';
+                media.decoding = 'async';
+                if (options.eager) media.fetchPriority = 'high';
+            }
+            return media;
+        }
+
+        function preloadAdMedia(ad) {
+            const url = String(ad?.mediaUrl || '').trim();
+            if (!url) return Promise.reject(new Error('Ad media URL is empty'));
+            if (ad.mediaType === 'video') {
+                return new Promise((resolve, reject) => {
+                    const video = document.createElement('video');
+                    let settled = false;
+                    const done = () => { if (!settled) { settled = true; resolve(url); } };
+                    const fail = () => { if (!settled) { settled = true; reject(new Error('Ad video failed to load')); } };
+                    video.preload = 'auto';
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.onloadeddata = done;
+                    video.oncanplay = done;
+                    video.onerror = fail;
+                    video.src = url;
+                    video.load();
+                });
+            }
+            return new Promise((resolve, reject) => {
+                if (loadedAdImages.has(url)) return resolve(url);
+                const img = new Image();
+                img.onload = () => { loadedAdImages.add(url); resolve(url); };
+                img.onerror = () => reject(new Error('Ad image failed to load'));
+                img.src = url;
+            });
         }
 
         function adIsWithinDates(ad) {
@@ -9824,14 +9910,95 @@ Title: CASPIAN DREAM LINER
             document.documentElement.style.setProperty('--desktop-ad-sticky-top', `${headerHeight + 12}px`);
         }
 
-        function renderDesktopAds(options = {}) {
+        function clearDesktopAdRail(rail) {
+            rail.querySelectorAll('video').forEach(video => {
+                video.pause();
+                video.removeAttribute('src');
+                video.load?.();
+            });
+            rail.replaceChildren();
+        }
+
+        function createDesktopAdLayer(ad, visible = false) {
+            const layer = document.createElement('div');
+            layer.className = `desktop-ad-layer${visible ? ' is-visible' : ''}`;
+            layer.dataset.adId = ad.id || '';
+            layer.appendChild(createAdMediaNode(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true }));
+            return layer;
+        }
+
+        function createDesktopAdCard(ad) {
+            const card = document.createElement('article');
+            card.className = 'desktop-ad-card desktop-ad-card--responsive';
+            card.role = 'button';
+            card.tabIndex = 0;
+            const stage = document.createElement('div');
+            stage.className = 'desktop-ad-stage';
+            stage.appendChild(createDesktopAdLayer(ad, true));
+            const label = document.createElement('div');
+            label.className = 'desktop-ad-label';
+            label.textContent = ad.title || '';
+            card.append(stage, label);
+            return card;
+        }
+
+        function configureDesktopAdCard(card, ad) {
+            card.dataset.adId = ad.id || '';
+            card.onclick = () => handleAdClick(ad.id, ad.clickUrl || '');
+            card.onkeydown = event => { if (event.key === 'Enter') handleAdClick(ad.id, ad.clickUrl || ''); };
+            const label = card.querySelector('.desktop-ad-label');
+            if (label) label.textContent = ad.title || '';
+        }
+
+        function showDesktopAdInRail(rail, ad, token) {
+            let card = rail.querySelector('.desktop-ad-card');
+            if (!card) {
+                card = createDesktopAdCard(ad);
+                configureDesktopAdCard(card, ad);
+                rail.replaceChildren(card);
+                return;
+            }
+            if (String(card.dataset.adId) === String(ad.id)) {
+                configureDesktopAdCard(card, ad);
+                return;
+            }
+            configureDesktopAdCard(card, ad);
+            const stage = card.querySelector('.desktop-ad-stage');
+            const nextLayer = createDesktopAdLayer(ad, false);
+            stage.appendChild(nextLayer);
+            requestAnimationFrame(() => {
+                if (token !== adRotationState.transitionToken) return;
+                nextLayer.classList.add('is-visible');
+                stage.querySelectorAll('.desktop-ad-layer').forEach(layer => {
+                    if (layer !== nextLayer) layer.classList.remove('is-visible');
+                });
+            });
+            window.setTimeout(() => {
+                if (token !== adRotationState.transitionToken) return;
+                stage.querySelectorAll('.desktop-ad-layer').forEach(layer => {
+                    if (layer !== nextLayer) layer.remove();
+                });
+            }, 450);
+        }
+
+        function attachDesktopAdVideoHandlers(ad) {
+            if (ad.mediaType !== 'video') return;
+            document.querySelectorAll('[data-ad-rotation-video="true"]').forEach((video, index) => {
+                if (String(video.dataset.adId) !== String(ad.id)) return;
+                video.onended = index === 0 ? () => finishAdRotationRepeat(ad.id) : null;
+                video.currentTime = 0;
+                video.play().catch(() => {});
+            });
+        }
+
+        async function renderDesktopAds(options = {}) {
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
             updateDesktopAdStickyOffset();
             if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
-                left.innerHTML = '';
-                right.innerHTML = '';
+                clearDesktopAdRail(left);
+                clearDesktopAdRail(right);
                 left.classList.remove('is-loading');
                 right.classList.remove('is-loading');
                 resetAdRotationRenderState();
@@ -9839,8 +10006,8 @@ Title: CASPIAN DREAM LINER
             }
             const ads = visibleRotationAds();
             if (!ads.length) {
-                left.innerHTML = '';
-                right.innerHTML = '';
+                clearDesktopAdRail(left);
+                clearDesktopAdRail(right);
                 left.classList.remove('is-loading');
                 right.classList.remove('is-loading');
                 adRotationState.index = 0;
@@ -9864,30 +10031,34 @@ Title: CASPIAN DREAM LINER
             if (!options.force && sameRenderedAd && (adRotationState.timer || (ad.mediaType === 'video' && renderedVideo))) {
                 return;
             }
+            const hasRenderedAd = Boolean(adRotationState.renderedAdId);
+            const token = ++adRotationState.transitionToken;
             clearAdRotationTimer();
+            if (!sameRenderedAd && hasRenderedAd) {
+                try {
+                    await preloadAdMedia(ad);
+                } catch (error) {
+                    console.warn('Reklam mediası yüklənmədi, cari reklam saxlanılır:', error.message);
+                    adRotationState.index = (adRotationState.index + 1) % ads.length;
+                    adRotationState.timer = setTimeout(() => renderDesktopAds({ force: true }), 1000);
+                    return;
+                }
+                if (token !== adRotationState.transitionToken) return;
+            }
             if (String(adRotationState.activeAdId) !== String(ad.id)) {
                 adRotationState.activeAdId = ad.id;
                 adRotationState.repeat = 0;
             }
-            console.log('Current Ad:', ad.id);
             trackAdView(ad);
-            const encodedUrl = encodeURIComponent(ad.clickUrl || '');
             left.classList.remove('is-loading');
             right.classList.remove('is-loading');
-            const cardHtml = `<article class="desktop-ad-card desktop-ad-card--responsive" role="button" tabindex="0" onclick="handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))" onkeydown="if(event.key==='Enter'){handleAdClick('${ad.id}', decodeURIComponent('${encodedUrl}'))}">
-                ${renderAdMedia(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true })}
-                <div class="desktop-ad-label">${escapeHtml(ad.title)}</div>
-            </article>`;
-            left.innerHTML = (ad.position === 'left' || ad.position === 'both') ? cardHtml : '';
-            right.innerHTML = (ad.position === 'right' || ad.position === 'both') ? cardHtml : '';
+            if (ad.position === 'left' || ad.position === 'both') showDesktopAdInRail(left, ad, token);
+            else clearDesktopAdRail(left);
+            if (ad.position === 'right' || ad.position === 'both') showDesktopAdInRail(right, ad, token);
+            else clearDesktopAdRail(right);
             adRotationState.renderedAdId = ad.id;
-            if (ad.mediaType === 'video') {
-                document.querySelectorAll('[data-ad-rotation-video="true"]').forEach((video, index) => {
-                    video.onended = index === 0 ? () => finishAdRotationRepeat(ad.id) : null;
-                    video.currentTime = 0;
-                    video.play().catch(() => {});
-                });
-            } else {
+            attachDesktopAdVideoHandlers(ad);
+            if (ad.mediaType !== 'video') {
                 loadedAdImages.add(ad.mediaUrl || '');
                 preloadNextAdImage(ads, adRotationState.index);
                 const durationSeconds = adDimension(ad.displayDuration, AD_DEFAULT_DISPLAY_DURATION_SECONDS, AD_MIN_DISPLAY_DURATION_SECONDS, AD_MAX_DISPLAY_DURATION_SECONDS);
