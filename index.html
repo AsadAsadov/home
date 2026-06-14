@@ -9222,43 +9222,57 @@ Title: CASPIAN DREAM LINER
         const SITE_MUSIC_ENABLED_KEY = 'siteMusicEnabled';
         const SITE_MUSIC_VOLUME_KEY = 'siteMusicVolume';
         const SITE_MUSIC_TRACK_INDEX_KEY = 'currentTrackIndex';
+        const LIGHT_LOGO_SRC = '/uploads/siteimage/logo/besthomelight.png?v=2';
+        const DARK_LOGO_SRC = '/uploads/siteimage/logo/besthomedark.png?v=2';
         const siteMusicState = { tracks: [], audio: null, currentIndex: 0, enabled: false, volume: 0.35, autoplayAttempted: false, loading: false, collapsed: true, inactivityTimer: null, scrollTimer: null };
 
         function preferredTheme() {
-            const saved = localStorage.getItem(SITE_THEME_KEY) || 'system';
-            return ['light', 'dark', 'system'].includes(saved) ? saved : 'system';
+            const saved = localStorage.getItem(SITE_THEME_KEY) || 'light';
+            return ['light', 'dark', 'system'].includes(saved) ? saved : 'light';
+        }
+
+        function getResolvedSiteTheme() {
+            const savedTheme = localStorage.getItem(SITE_THEME_KEY) || 'light';
+            if (savedTheme === 'dark') return 'dark';
+            if (savedTheme === 'light') return 'light';
+            if (savedTheme === 'system') {
+                return window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches
+                    ? 'dark'
+                    : 'light';
+            }
+            return 'light';
         }
 
         function resolvedTheme(choice = preferredTheme()) {
             if (choice === 'system') return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            return choice;
+            return choice === 'dark' ? 'dark' : 'light';
         }
 
-        function getCurrentThemeLogo(theme = resolvedTheme(preferredTheme())) {
-            return window.getCurrentThemeLogo?.(theme) || (theme === 'dark' ? '/uploads/siteimage/logo/besthomedark.png?v=2' : '/uploads/siteimage/logo/besthomelight.png?v=2');
+        function getCurrentThemeLogo(theme) {
+            const resolvedTheme = theme || getResolvedSiteTheme();
+            return resolvedTheme === 'dark' ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
         }
 
-        function updateThemeLogos(theme = resolvedTheme(preferredTheme())) {
-            if (window.updateThemeLogos) {
-                window.updateThemeLogos(theme);
-                return;
-            }
-            const src = getCurrentThemeLogo(theme);
+        function updateThemeLogos(theme) {
+            const logoSrc = getCurrentThemeLogo(theme);
             document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+                if (img && img.getAttribute('src') !== logoSrc) {
+                    img.setAttribute('src', logoSrc);
+                }
             });
         }
+
+        window.getCurrentThemeLogo = getCurrentThemeLogo;
+        window.updateThemeLogos = updateThemeLogos;
 
         function applySiteTheme(choice = preferredTheme()) {
-            const targetTheme = resolvedTheme(choice);
-            const targetLogo = getCurrentThemeLogo(targetTheme);
             localStorage.setItem(SITE_THEME_KEY, choice);
-            document.documentElement.dataset.theme = targetTheme;
+            const resolvedTheme = getResolvedSiteTheme();
+            document.documentElement.dataset.theme = resolvedTheme;
             document.documentElement.dataset.themePreference = choice;
-            updateThemeLogos(targetTheme);
-            document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                if (img.getAttribute('src') !== targetLogo) img.setAttribute('src', targetLogo);
-            });
+            document.body.classList.toggle('dark-mode', resolvedTheme === 'dark');
+            updateThemeLogos(resolvedTheme);
             document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
         }
