@@ -6528,6 +6528,46 @@
         html[data-theme="dark"] .site-header,
         html[data-theme="dark"] footer,
         html[data-theme="dark"] .glass-nav { background: #000000 !important; border-color: rgba(255,255,255,0.10) !important; }
+
+        /* Fully opaque header/footer surfaces. Keep these late in the cascade to neutralize glass/blur utilities. */
+        .site-header,
+        nav.site-header,
+        .site-header.glass-nav,
+        .glass-nav,
+        .site-header-inner,
+        .site-header > .max-w-7xl,
+        #mobile-menu,
+        .footer-premium,
+        footer.footer-premium,
+        .footer-premium .theme-logo-wrap,
+        .footer-premium .site-footer-logo-wrap {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            opacity: 1 !important;
+            filter: none !important;
+            mix-blend-mode: normal !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        html[data-theme="dark"] .site-header,
+        html[data-theme="dark"] nav.site-header,
+        html[data-theme="dark"] .site-header.glass-nav,
+        html[data-theme="dark"] .glass-nav,
+        html[data-theme="dark"] .site-header-inner,
+        html[data-theme="dark"] .site-header > .max-w-7xl,
+        html[data-theme="dark"] #mobile-menu,
+        html[data-theme="dark"] .footer-premium,
+        html[data-theme="dark"] footer.footer-premium,
+        html[data-theme="dark"] .footer-premium .theme-logo-wrap,
+        html[data-theme="dark"] .footer-premium .site-footer-logo-wrap {
+            background: #000000 !important;
+            background-color: #000000 !important;
+            opacity: 1 !important;
+            filter: none !important;
+            mix-blend-mode: normal !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
         body, header, footer, main, .site-header, .glass-nav, .tab-content, .theme-logo-wrap, .site-footer-logo-wrap, img[data-theme-logo], [data-site-logo] { transition-property: none !important; transition-duration: 0s !important; }
 
         /* Centralized theme-aware BestHome logo wrapper, sizing, and instant switching. */
@@ -9305,8 +9345,8 @@ Title: CASPIAN DREAM LINER
             document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
             document.documentElement.classList.toggle('light', resolvedTheme !== 'dark');
             document.body.classList.toggle('dark-mode', resolvedTheme === 'dark');
-            document.body.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '';
-            document.querySelectorAll('.site-header, header, footer, main').forEach(el => { el.style.transition = 'none'; if (resolvedTheme === 'dark') el.style.backgroundColor = '#000000'; else el.style.backgroundColor = ''; });
+            document.body.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '#ffffff';
+            document.querySelectorAll('.site-header, header, footer').forEach(el => { el.style.transition = 'none'; el.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '#ffffff'; });
             updateThemeLogos(resolvedTheme);
             document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
