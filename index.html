@@ -16,6 +16,8 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="preload" as="image" href="/uploads/siteimage/logo/besthomelight.png?v=2">
+    <link rel="preload" as="image" href="/uploads/siteimage/logo/besthomedark.png?v=2">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
     <meta name="twitter:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
@@ -58,8 +60,12 @@
                 },
                 update: window.updateThemeLogos
             };
-            document.documentElement.dataset.theme = resolveTheme(currentPreference());
-            document.documentElement.dataset.themePreference = currentPreference();
+            const initialPreference = currentPreference();
+            const initialTheme = resolveTheme(initialPreference);
+            document.documentElement.dataset.theme = initialTheme;
+            document.documentElement.dataset.themePreference = initialPreference;
+            document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+            document.documentElement.classList.toggle('light', initialTheme !== 'dark');
         }());
     </script>
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
@@ -95,21 +101,21 @@
 
         html[data-theme="dark"] {
             color-scheme: dark;
-            --color-background: #050505;
-            --color-secondary-background: #111111;
-            --color-card-background: #0B0B0B;
-            --color-text-primary: #F8FAFC;
-            --color-text-secondary: #CBD5E1;
+            --color-background: #000000;
+            --color-secondary-background: #050505;
+            --color-card-background: #090909;
+            --color-text-primary: #FFFFFF;
+            --color-text-secondary: #D6D6D6;
             --color-primary-light: rgba(127, 127, 255, 0.16);
             --color-primary-border: rgba(255, 255, 255, 0.10);
             --color-border: rgba(255, 255, 255, 0.10);
-            --color-input-bg: #111111;
-            --color-input-text: #F8FAFC;
-            --color-muted-surface: #111111;
+            --color-input-bg: #0E0E0E;
+            --color-input-text: #FFFFFF;
+            --color-muted-surface: #0E0E0E;
         }
 
         html, body { max-width: 100%; overflow-x: clip; background: var(--color-background); }
-        body { background: var(--color-background); color: var(--color-text-primary); transition: background-color 180ms ease, color 180ms ease; }
+        body { background: var(--color-background); color: var(--color-text-primary); transition: none !important; }
         html, body, main, .app, #app, .page, .content, .tab-content, .public-page, .page-shell {
             filter: none !important;
             opacity: 1;
@@ -149,7 +155,7 @@
         html[data-theme="dark"] textarea::placeholder { color: #94A3B8 !important; }
         html[data-theme="dark"] .mobile-bottom-nav,
         html[data-theme="dark"] .profile-dropdown-menu,
-        html[data-theme="dark"] .mobile-profile-sheet { background: #050505 !important; color: var(--color-text-primary); border-color: var(--color-border); }
+        html[data-theme="dark"] .mobile-profile-sheet { background: #000000 !important; color: var(--color-text-primary); border-color: var(--color-border); }
         html[data-theme="dark"] .modal-glass-panel,
         html[data-theme="dark"] .op-modal-body { background: #0B0B0B !important; color: var(--color-text-primary); }
         .theme-toggle-btn,
@@ -162,7 +168,7 @@
             background: var(--color-muted-surface);
             color: var(--color-text-primary);
             box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
-            transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+            transition: transform 180ms ease;
         }
         .theme-toggle-btn:hover,
         .site-music-controls:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
@@ -5507,14 +5513,14 @@
 
         /* Dark mode contrast hardening: keep cards, forms, tabs, nav, and listing/project content readable. */
         html[data-theme="dark"] {
-            --text-primary-dark: #f8fafc;
-            --text-secondary-dark: #cbd5e1;
-            --text-muted-dark: #94a3b8;
-            --card-bg-dark: #0B0B0B;
-            --card-bg-soft-dark: #111111;
+            --text-primary-dark: #FFFFFF;
+            --text-secondary-dark: #D6D6D6;
+            --text-muted-dark: #A3A3A3;
+            --card-bg-dark: #090909;
+            --card-bg-soft-dark: #0E0E0E;
             --border-dark: rgba(255,255,255,.10);
-            --color-background: #050505;
-            --color-secondary-background: #111111;
+            --color-background: #000000;
+            --color-secondary-background: #050505;
             --color-card-background: var(--card-bg-dark);
             --color-text-primary: var(--text-primary-dark);
             --color-text-secondary: var(--text-secondary-dark);
@@ -5612,7 +5618,7 @@
         html[data-theme="dark"] textarea,
         html[data-theme="dark"] .public-form-input,
         html[data-theme="dark"] .premium-filter-control {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             border-color: var(--border-dark) !important;
             color: var(--text-primary-dark) !important;
             box-shadow: none !important;
@@ -5633,7 +5639,7 @@
         html[data-theme="dark"] .admin-subtab-button,
         html[data-theme="dark"] .project-cat-btn:not(.bg-brand-500),
         html[data-theme="dark"] .portfolio-filter-btn:not(.bg-brand-500) {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             border-color: var(--border-dark) !important;
             color: var(--text-secondary-dark) !important;
         }
@@ -5657,7 +5663,7 @@
         html[data-theme="dark"] .owner-card * {
             color: var(--text-primary-dark) !important;
         }
-        html[data-theme="dark"] .listing-card-image-strip__thumb { background: #111111 !important; border-color: var(--border-dark) !important; }
+        html[data-theme="dark"] .listing-card-image-strip__thumb { background: #0E0E0E !important; border-color: var(--border-dark) !important; }
         html[data-theme="dark"] .border,
         html[data-theme="dark"] .border-t,
         html[data-theme="dark"] .border-b,
@@ -5669,7 +5675,7 @@
             border-color: var(--border-dark) !important;
         }
         html[data-theme="dark"] .mobile-bottom-nav {
-            background: #050505 !important;
+            background: #000000 !important;
             border-top-color: var(--border-dark) !important;
             box-shadow: 0 -18px 45px rgba(0, 0, 0, .36) !important;
             backdrop-filter: none !important;
@@ -5709,14 +5715,14 @@
 
         /* Dark mode contrast pass: keep light mode unchanged while normalizing dark surfaces, text, forms, cards, filters, modals, and mobile controls. */
         html[data-theme="dark"] {
-            --dark-bg: #050505;
-            --dark-surface: #111111;
-            --dark-surface-soft: #111111;
+            --dark-bg: #000000;
+            --dark-surface: #050505;
+            --dark-surface-soft: #0E0E0E;
             --dark-border: rgba(255,255,255,.10);
-            --dark-text: #f8fafc;
-            --dark-text-secondary: #cbd5e1;
-            --dark-text-muted: #94a3b8;
-            --dark-input-bg: #111111;
+            --dark-text: #FFFFFF;
+            --dark-text-secondary: #D6D6D6;
+            --dark-text-muted: #A3A3A3;
+            --dark-input-bg: #0E0E0E;
             --color-background: var(--dark-bg);
             --color-secondary-background: var(--dark-surface);
             --color-card-background: var(--dark-surface);
@@ -5855,7 +5861,7 @@
         html[data-theme="dark"] .public-checkbox-pill:hover,
         html[data-theme="dark"] .public-location-suggestion:hover,
         html[data-theme="dark"] .public-location-suggestion:focus-visible {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             color: var(--dark-text) !important;
             border-color: rgba(127, 127, 255, .45) !important;
         }
@@ -5966,7 +5972,7 @@
         html[data-theme="dark"] #mortgage-results span,
         html[data-theme="dark"] #mortgage-results strong { color: inherit !important; }
         html[data-theme="dark"] .mobile-bottom-nav {
-            background: #050505 !important;
+            background: #000000 !important;
             color: var(--dark-text-secondary) !important;
             border-top-color: var(--dark-border) !important;
             box-shadow: 0 -18px 45px rgba(0, 0, 0, .38) !important;
@@ -6311,7 +6317,7 @@
         html[data-theme="dark"] footer,
         html[data-theme="dark"] .footer,
         html[data-theme="dark"] .footer-premium {
-            background: #050505 !important;
+            background: #000000 !important;
             color: var(--dark-text-2) !important;
             border-top-color: var(--dark-border) !important;
         }
@@ -6335,7 +6341,7 @@
         /* Dark header, About page, and desktop side ads. */
         html[data-theme="dark"] .site-header.glass-nav,
         html[data-theme="dark"] .glass-nav {
-            background: #050505 !important;
+            background: #000000 !important;
             color: var(--dark-text) !important;
             border: 0 !important;
             border-bottom: 1px solid rgba(255, 255, 255, .10) !important;
@@ -6365,7 +6371,7 @@
         html[data-theme="dark"] #mobile-user-status-icon button,
         html[data-theme="dark"] #mobile-user-status-icon .mobile-header-icon,
         html[data-theme="dark"] .profile-dropdown-shell > button {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             color: var(--dark-text) !important;
             border-color: rgba(255, 255, 255, .10) !important;
             box-shadow: 0 10px 24px rgba(0, 0, 0, .24) !important;
@@ -6390,7 +6396,7 @@
             box-shadow: 0 12px 28px rgba(124, 108, 255, .34) !important;
         }
         html[data-theme="dark"] #mobile-menu {
-            background: #050505 !important;
+            background: #000000 !important;
             border-top-color: rgba(255, 255, 255, .10) !important;
             box-shadow: 0 18px 40px rgba(0, 0, 0, .36) !important;
         }
@@ -6449,7 +6455,7 @@
         }
         html[data-theme="dark"] #tab-home .grid .rounded-2xl.bg-white\/80:hover,
         html[data-theme="dark"] #tab-home .lg\:col-span-8 .rounded-2xl:hover {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             border-color: rgba(124, 108, 255, .50) !important;
         }
         html[data-theme="dark"] #tab-home .lg\:col-span-4 > div {
@@ -6463,7 +6469,7 @@
             border-color: rgba(255, 255, 255, .10) !important;
         }
         html[data-theme="dark"] #tab-home .bg-brand-50\/90 {
-            background: #111111 !important;
+            background: #0E0E0E !important;
             border-color: rgba(124, 108, 255, .30) !important;
         }
         html[data-theme="dark"] #tab-home .bg-brand-50\/90 span {
@@ -6473,7 +6479,7 @@
 
         /* Mobile bottom nav and music button. */
         html[data-theme="dark"] .mobile-bottom-nav {
-            background: #050505 !important;
+            background: #000000 !important;
             color: var(--dark-text-2) !important;
             border-top-color: rgba(255,255,255,.12) !important;
             box-shadow: 0 -18px 45px rgba(0,0,0,.42) !important;
@@ -6505,6 +6511,11 @@
             }
         }
 
+
+        html[data-theme="dark"] .site-header,
+        html[data-theme="dark"] footer,
+        html[data-theme="dark"] .glass-nav { background: #000000 !important; border-color: rgba(255,255,255,0.10) !important; }
+        body, header, footer, main, .site-header, .glass-nav, .tab-content, .theme-logo-wrap, .site-footer-logo-wrap, img[data-theme-logo], [data-site-logo] { transition-property: none !important; transition-duration: 0s !important; }
 
         /* Centralized theme-aware BestHome logo wrapper, sizing, and instant switching. */
         .theme-logo-wrap,
@@ -9271,7 +9282,11 @@ Title: CASPIAN DREAM LINER
             const resolvedTheme = getResolvedSiteTheme();
             document.documentElement.dataset.theme = resolvedTheme;
             document.documentElement.dataset.themePreference = choice;
+            document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+            document.documentElement.classList.toggle('light', resolvedTheme !== 'dark');
             document.body.classList.toggle('dark-mode', resolvedTheme === 'dark');
+            document.body.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '';
+            document.querySelectorAll('.site-header, header, footer, main').forEach(el => { el.style.transition = 'none'; if (resolvedTheme === 'dark') el.style.backgroundColor = '#000000'; else el.style.backgroundColor = ''; });
             updateThemeLogos(resolvedTheme);
             document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
@@ -10150,8 +10165,10 @@ Title: CASPIAN DREAM LINER
             const primaryVideo = videos[0];
             const oneVideoAd = visibleRotationAds().filter(item => item.mediaType === 'video').length === 1 && visibleRotationAds().length === 1;
             let hasPlayed = false;
-            let lastCurrentTime = -1;
+            let lastCurrentTime = 0;
+            let lastProgressAt = Date.now();
             let skipRequested = false;
+            const debugAds = localStorage.getItem('besthomeDebugAds') === 'true';
             const clearVideoTimer = key => {
                 if (adRotationState[key]) {
                     clearTimeout(adRotationState[key]);
@@ -10169,57 +10186,60 @@ Title: CASPIAN DREAM LINER
                 }
                 adRotationState.stallTimer = setTimeout(() => finishAdRotationRepeat(ad.id), Math.max(delay, 0));
             };
-            const skip = (delay = 0, warning = '[ads] video failed/stalled, skipping') => {
+            const skip = (delay = 0, warning = '[ads] video failed, skipping') => {
                 if (token !== adRotationState.transitionToken || skipRequested) return;
                 skipRequested = true;
-                console.warn(warning);
+                if (debugAds) console.warn(warning);
                 clearVideoTimer('safetyTimer');
                 clearVideoTimer('recoveryTimer');
                 clearVideoTimer('stuckTimer');
                 clearVideoTimer('durationTimer');
                 next(delay);
             };
+            const cleanupTimers = () => {
+                clearVideoTimer('safetyTimer');
+                clearVideoTimer('recoveryTimer');
+                clearVideoTimer('stuckTimer');
+                clearVideoTimer('durationTimer');
+            };
             const scheduleStuckCheck = () => {
                 clearVideoTimer('stuckTimer');
                 adRotationState.stuckTimer = setTimeout(() => {
                     if (token !== adRotationState.transitionToken || skipRequested || !primaryVideo || primaryVideo.paused || primaryVideo.ended) return;
                     const current = Number(primaryVideo.currentTime || 0);
-                    if (hasPlayed && current <= lastCurrentTime + 0.05) return skip(0, '[ads] video stuck currentTime, skipping');
-                    lastCurrentTime = current;
+                    if (hasPlayed && current > lastCurrentTime + 0.05) {
+                        lastCurrentTime = current;
+                        lastProgressAt = Date.now();
+                    }
+                    if (hasPlayed && Date.now() - lastProgressAt >= 10000) return skip(0, '[ads] video currentTime stuck for 10s, skipping');
                     scheduleStuckCheck();
-                }, 5000);
-            };
-            const scheduleRecoveryCheck = () => {
-                clearVideoTimer('recoveryTimer');
-                adRotationState.recoveryTimer = setTimeout(() => {
-                    if (token !== adRotationState.transitionToken || skipRequested || !primaryVideo || primaryVideo.ended) return;
-                    if (!hasPlayed || primaryVideo.paused || primaryVideo.readyState < 3) skip(0, '[ads] video failed/stalled, skipping');
-                }, 5000);
+                }, 1000);
             };
             if (!primaryVideo) return skip(0);
             adRotationState.safetyTimer = setTimeout(() => {
-                if (!hasPlayed) skip(0, '[ads] video failed/stalled, skipping');
-            }, 5000);
+                if (!hasPlayed) skip(0, '[ads] video did not start playing within 12s, skipping');
+            }, 12000);
             videos.forEach((video, index) => {
-                const onMetadata = () => {};
-                const onCanPlay = () => { if (index === 0 && hasPlayed) clearVideoTimer('recoveryTimer'); };
+                const onMetadata = () => { if (debugAds && index === 0) console.info('[ads] video metadata loaded'); };
+                const onCanPlay = () => { if (debugAds && index === 0) console.info('[ads] video canplay'); };
                 const onPlaying = () => {
                     if (index !== 0) return;
                     hasPlayed = true;
                     lastCurrentTime = Number(video.currentTime || 0);
+                    lastProgressAt = Date.now();
                     clearVideoTimer('safetyTimer');
                     clearVideoTimer('recoveryTimer');
                     scheduleStuckCheck();
                 };
                 const onTimeUpdate = () => {
                     if (index !== 0) return;
-                    lastCurrentTime = Number(video.currentTime || 0);
+                    const current = Number(video.currentTime || 0);
+                    if (current > lastCurrentTime + 0.05) lastProgressAt = Date.now();
+                    lastCurrentTime = current;
                 };
                 const onEnded = () => {
                     if (index !== 0) return;
-                    console.warn('[ads] video ended, next');
-                    clearVideoTimer('stuckTimer');
-                    clearVideoTimer('recoveryTimer');
+                    cleanupTimers();
                     if (oneVideoAd) {
                         video.currentTime = 0;
                         video.play().catch(() => skip(1000));
@@ -10227,9 +10247,12 @@ Title: CASPIAN DREAM LINER
                         finishAdRotationRepeat(ad.id);
                     }
                 };
-                const onProblem = () => skip(0, '[ads] video failed/stalled, skipping');
-                const onRecoverableStall = () => { if (index === 0) scheduleRecoveryCheck(); };
-                const events = [['loadedmetadata', onMetadata], ['canplay', onCanPlay], ['playing', onPlaying], ['timeupdate', onTimeUpdate], ['waiting', onRecoverableStall], ['stalled', onRecoverableStall], ['ended', onEnded], ['error', onProblem], ['abort', onProblem], ['emptied', onProblem]];
+                const onFatalProblem = () => skip(0, '[ads] video fatal media event, skipping');
+                const onRecoverableBuffering = () => {
+                    if (index !== 0 || !hasPlayed) return;
+                    scheduleStuckCheck();
+                };
+                const events = [['loadedmetadata', onMetadata], ['canplay', onCanPlay], ['playing', onPlaying], ['timeupdate', onTimeUpdate], ['waiting', onRecoverableBuffering], ['stalled', onRecoverableBuffering], ['ended', onEnded], ['error', onFatalProblem], ['abort', onFatalProblem], ['emptied', onFatalProblem]];
                 events.forEach(([name, handler]) => video.addEventListener(name, handler));
                 adRotationState.videoCleanups.push(() => events.forEach(([name, handler]) => video.removeEventListener(name, handler)));
                 video.muted = true;
@@ -10238,7 +10261,7 @@ Title: CASPIAN DREAM LINER
                 video.loop = false;
                 video.preload = 'auto';
                 video.currentTime = 0;
-                video.play().catch(() => skip(0, '[ads] video failed/stalled, skipping'));
+                video.play().catch(() => skip(0, '[ads] video play() rejected, skipping'));
             });
         }
 
@@ -10986,9 +11009,9 @@ Title: CASPIAN DREAM LINER
 
         function bootstrapCachedData() {
             appData.projects = readCache(CACHE_KEYS.projects, []);
-            appData.listings = [];
+            appData.listings = readCache(CACHE_KEYS.listings, []);
             appData.vacancies = readCache(CACHE_KEYS.vacancies, defaultVacancies);
-            appData.gallery = [];
+            appData.gallery = readCache(CACHE_KEYS.gallery, []);
             appData.applications = readCache(CACHE_KEYS.applications, []);
             appData.agents = readCache(CACHE_KEYS.agents, defaultAgents);
             appData.heroSlides = normalizeHeroSlides(readCache(CACHE_KEYS.heroSlides, []), false);
@@ -12181,7 +12204,7 @@ Title: CASPIAN DREAM LINER
         }
 
 
-        function withHomepageTimeout(promise, label, timeoutMs = 5000) {
+        function withHomepageTimeout(promise, label, timeoutMs = 12000, options = {}) {
             let timerId;
             let didTimeout = false;
             const sourcePromise = Promise.resolve(promise)
@@ -12190,7 +12213,7 @@ Title: CASPIAN DREAM LINER
             const timeout = new Promise(resolve => {
                 timerId = window.setTimeout(() => {
                     didTimeout = true;
-                    console.warn(`${label} ${timeoutMs}ms ərzində cavab vermədi; səhifə mövcud məlumatlarla göstərilir və cavab gələndə yenilənəcək.`);
+                    if (options.warn !== false) console.warn(`${label} ${timeoutMs}ms ərzində cavab vermədi; səhifə mövcud məlumatlarla göstərilir və cavab gələndə yenilənəcək.`);
                     resolve({ timedOut: true, label });
                 }, timeoutMs);
             });
@@ -12472,7 +12495,6 @@ Title: CASPIAN DREAM LINER
             try {
                 const [ads, adStats] = await Promise.all([
                     apiRequest('/api/site-ads').catch(error => {
-                        console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
                         return appData.ads || [];
                     }),
                     isAdminRole(activeUser?.role) ? apiRequest('/api/site-ads/stats').catch(() => null) : Promise.resolve(null)
@@ -12480,7 +12502,7 @@ Title: CASPIAN DREAM LINER
                 cacheData('ads', (ads || []).map(dbAdToUi));
                 appData.adStats = adStats;
             } catch (error) {
-                console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
+                if (localStorage.getItem('besthomeDebugAds') === 'true') console.warn('Reklamlar oxunmadı, cache istifadə olunur:', error.message);
             } finally {
                 if (shouldRender || (homepageHydration.initialHomepageLoaded && isTabAktiv('seabreeze'))) renderDesktopAds({ force: true });
             }
@@ -12543,6 +12565,13 @@ Title: CASPIAN DREAM LINER
             runWhenSectionVisible('#tab-career', loadVacanciesBackground, { rootMargin: '500px 0px' });
         }
 
+        function currentRouteKey() {
+            const path = window.location.pathname.toLowerCase();
+            if (path.includes('/gallery') || path.includes('/portfolio')) return 'portfolio';
+            if (path.includes('/elanlar') || path.includes('/listings')) return 'listings';
+            return 'projects';
+        }
+
         async function hydrateFromDatabase() {
             try {
                 bootstrapCachedData();
@@ -12557,15 +12586,17 @@ Title: CASPIAN DREAM LINER
                 safeHomepageRender('ads', () => renderDesktopAds({ force: true }));
                 if (hasCachedHomepageData) setHomepageInitialLoading(false);
 
-                const criticalTasks = [
-                    withHomepageTimeout(loadSiteSettingsPriority(), 'Sayt ayarları'),
-                    withHomepageTimeout(loadHeroSlidesPriority(), 'Hero slaydları'),
-                    withHomepageTimeout(loadProjectsPriority({ render: false }), 'Layihələr'),
-                    withHomepageTimeout(loadAdsBackground({ render: false }), 'Reklamlar'),
-                    withHomepageTimeout(loadSiteMusicBackground({ render: false }), 'Sayt musiqisi'),
-                    withHomepageTimeout(loadListingHeroPriority(), 'Elan hero')
-                ];
+                const route = currentRouteKey();
+                const criticalTasks = [withHomepageTimeout(loadSiteSettingsPriority(), 'Sayt ayarları', 12000, { warn: false })];
+                if (route === 'portfolio') criticalTasks.push(withHomepageTimeout(loadGalleryBackground(), 'Qalereya', 12000));
+                else if (route === 'listings') criticalTasks.push(withHomepageTimeout(loadListingsLazy(), 'Elanlar', 12000), withHomepageTimeout(loadListingHeroPriority(), 'Elan hero', 12000));
+                else criticalTasks.push(withHomepageTimeout(loadHeroSlidesPriority(), 'Hero slaydları', 12000), withHomepageTimeout(loadProjectsPriority({ render: false }), 'Layihələr', 12000));
                 await Promise.allSettled(criticalTasks);
+                setHomepageInitialLoading(false);
+                homepageHydration.initialHomepageLoaded = true;
+                scheduleIdleTask(() => loadAdsBackground({ render: true }).catch(() => {}), 250);
+                scheduleIdleTask(() => loadSiteMusicBackground({ render: true }).catch(() => {}), 600);
+                if (route !== 'listings') scheduleIdleTask(() => loadListingHeroPriority().catch(() => {}), 900);
 
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
@@ -15906,11 +15937,13 @@ ${profileMenuItemsHtml()}
                     setHomepageInitialLoading(true);
                 }
             } else if (tabId === 'listings') {
-                if (homepageHydration.listings) renderSeaBreeze();
-                else loadListingsLazy();
+                renderSeaBreeze();
+                if (!homepageHydration.listings) loadListingsLazy();
+                else scheduleIdleTask(() => { homepageHydration.listings = false; loadListingsLazy().catch(() => {}); }, 200);
             } else if (tabId === 'portfolio') {
                 renderPortfolio();
-                loadGalleryBackground();
+                if (!homepageHydration.gallery) loadGalleryBackground();
+                else scheduleIdleTask(() => loadGalleryPage(galleryPagination.page || 1).catch(() => {}), 200);
             } else if (tabId === 'create-listing') {
                 renderPublicListingForm(false);
             } else if (tabId === 'my-listings') {
@@ -21719,7 +21752,7 @@ Təşəkkür edirəm. 🙏`;
             }
             await routeToCurrentPath();
             hydrateFromDatabase().catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
-            loadSiteMusicBackground({ render: true }).catch(error => console.warn('Sayt musiqisi yüklənmədi:', error.message));
+            scheduleIdleTask(() => loadSiteMusicBackground({ render: true }).catch(() => {}), 1000);
             setMobileBottomNavActive();
             populateMetroSelect();
             toggleMetroFieldForCity();
