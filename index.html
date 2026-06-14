@@ -155,6 +155,56 @@
         @media (min-width: 768px) {
             .site-music-controls { right: 24px; }
         }
+        @media (min-width: 1024px) {
+            .site-header-inner > .site-music-controls {
+                position: static;
+                inset: auto;
+                flex: 0 1 300px;
+                width: min(300px, 22vw);
+                max-width: 320px;
+                height: 42px;
+                min-height: 42px;
+                margin: 0 8px 0 0;
+                padding: .42rem .55rem .42rem .78rem;
+                gap: .56rem;
+                align-self: center;
+                overflow: hidden;
+                border-radius: 16px;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+                transform: none;
+                transition: width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+            }
+            .site-header-inner > .site-music-controls:hover {
+                transform: none;
+                box-shadow: 0 14px 30px rgba(15, 23, 42, .13);
+            }
+            .site-header-inner > .site-music-controls.is-collapsed,
+            .site-header-inner > .site-music-controls.is-space-constrained {
+                flex-basis: 42px;
+                width: 42px;
+                max-width: 42px;
+                height: 42px;
+                min-height: 42px;
+                padding: 0;
+                gap: 0;
+                border-radius: 13px;
+            }
+            .site-header-inner > .site-music-controls.is-space-constrained .site-music-title,
+            .site-header-inner > .site-music-controls.is-space-constrained .site-music-control-btn:not(.site-music-expand-btn) { display: none; }
+            .site-header-inner > .site-music-controls.is-space-constrained .site-music-expand-btn { display: inline-flex; }
+            .site-header-inner > .site-music-controls .site-music-title {
+                flex: 1 1 auto;
+                max-width: 136px;
+                padding-right: .1rem;
+                font-size: .75rem;
+                line-height: 1.1;
+            }
+            .site-header-inner > .site-music-controls .site-music-control-btn { width: 30px; height: 30px; }
+        }
+        @media (min-width: 1024px) and (max-width: 1279px) {
+            .site-header-inner > .site-music-controls:not(.is-collapsed) { flex-basis: 260px; width: 260px; }
+            .site-header-inner > .site-music-controls .site-music-title { max-width: 92px; }
+        }
 
         .login-submit-btn,
         .async-submit-btn {
@@ -9053,6 +9103,17 @@ Title: CASPIAN DREAM LINER
             return audio;
         }
 
+        function shouldConstrainSiteMusicPlayer(controls) {
+            if (!controls || window.innerWidth < 1024) return false;
+            const headerInner = controls.closest('.site-header-inner');
+            if (!headerInner) return window.innerWidth < 1280;
+            const wasConstrained = controls.classList.contains('is-space-constrained');
+            controls.classList.remove('is-space-constrained');
+            const constrained = window.innerWidth < 1200 || headerInner.scrollWidth > headerInner.clientWidth + 2;
+            if (wasConstrained) controls.classList.add('is-space-constrained');
+            return constrained;
+        }
+
         function updateSiteMusicButton() {
             const controls = document.getElementById('site-music-controls');
             const btn = document.getElementById('site-music-toggle');
@@ -9061,9 +9122,11 @@ Title: CASPIAN DREAM LINER
             const hasTracks = tracks.length > 0;
             const isPlaying = Boolean(siteMusicState.enabled && siteMusicState.audio && !siteMusicState.audio.paused);
             const currentTrack = tracks[siteMusicState.currentIndex] || tracks[0];
+            const spaceConstrained = !siteMusicState.collapsed && shouldConstrainSiteMusicPlayer(controls);
             controls.classList.toggle('is-hidden', !hasTracks);
             controls.classList.toggle('is-playing', isPlaying);
             controls.classList.toggle('is-collapsed', Boolean(siteMusicState.collapsed));
+            controls.classList.toggle('is-space-constrained', Boolean(spaceConstrained));
             const expandBtn = document.getElementById('site-music-expand');
             if (expandBtn) expandBtn.textContent = isPlaying ? '🔊' : '🎵';
             btn.textContent = isPlaying ? '⏸' : '▶️';
@@ -9097,6 +9160,7 @@ Title: CASPIAN DREAM LINER
             clearTimeout(siteMusicState.scrollTimer);
             siteMusicState.scrollTimer = setTimeout(collapseSiteMusicPlayer, 80);
         }, { passive: true });
+        window.addEventListener('resize', () => updateSiteMusicButton(), { passive: true });
 
         async function playSiteMusicAt(index = siteMusicState.currentIndex, options = {}) {
             const tracks = orderedMusicTracks(siteMusicState.tracks);
