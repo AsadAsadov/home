@@ -140,14 +140,14 @@
         .site-music-control-btn:hover { background: rgba(var(--primary-rgb), .14); transform: translateY(-1px); }
         .site-music-controls.is-playing .site-music-control-btn:hover { background: rgba(255,255,255,.16); }
         @media (max-width: 767px) {
-            .site-music-controls { position: relative; right: auto; bottom: auto; height: 42px; min-height: 42px; padding: .3rem .4rem .3rem .52rem; gap: .2rem; width: min(230px, calc(100vw - 188px)); max-width: min(230px, calc(100vw - 188px)); overflow: hidden; transition: transform 220ms ease, opacity 220ms ease, width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease; }
+            .site-music-controls { right: 16px; bottom: calc(90px + env(safe-area-inset-bottom)); height: 42px; min-height: 42px; padding: .3rem .4rem .3rem .52rem; gap: .2rem; width: min(230px, calc(100vw - 32px)); max-width: min(230px, calc(100vw - 32px)); overflow: hidden; transition: transform 220ms ease, opacity 220ms ease, width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease; }
             .site-music-controls.is-collapsed { width: 42px; height: 42px; min-height: 42px; max-width: 42px; }
             .site-music-title { max-width: 104px; font-size: .72rem; }
             .site-music-control-btn { width: 30px; height: 30px; font-size: .76rem; }
         }
         @media (max-width: 374px) {
-            .site-music-controls { gap: .1rem; width: min(182px, calc(100vw - 168px)); max-width: min(182px, calc(100vw - 168px)); padding-inline: .22rem; }
-            .site-music-controls.is-collapsed { width: 38px; height: 38px; min-height: 38px; max-width: 38px; }
+            .site-music-controls { gap: .1rem; width: min(182px, calc(100vw - 32px)); max-width: min(182px, calc(100vw - 32px)); padding-inline: .22rem; }
+            .site-music-controls.is-collapsed { width: 42px; height: 42px; min-height: 42px; max-width: 42px; }
             .site-music-title { max-width: 52px; font-size: .66rem; }
             .site-music-control-btn { width: 26px; height: 26px; font-size: .68rem; }
             .project-modal-actions .project-cta-text { display: none; }
@@ -155,14 +155,15 @@
         @media (min-width: 768px) {
             .site-music-controls {
                 right: 24px;
-                bottom: 90px;
+                bottom: 80px;
+                z-index: 9999;
             }
         }
         @media (min-width: 1024px) {
             .site-music-controls,
             .site-header-inner > .site-music-controls {
                 position: fixed;
-                inset: auto 24px 90px auto;
+                inset: auto 24px 80px auto;
                 width: auto;
                 max-width: min(360px, calc(100vw - 48px));
                 height: auto;
@@ -5093,7 +5094,7 @@
             .header-logo-wrap { max-width: calc(100% - 100px); }
             .header-mobile-actions { gap: 6px; }
             #mobile-user-status-icon > div { gap: 6px; }
-            #mobile-user-status-icon .mobile-header-icon:not(:first-child) { display: none; }
+            #mobile-user-status-icon .mobile-header-icon { display: inline-flex; }
         }
         @media (max-width: 380px) {
             .header-logo-wrap { max-width: calc(100% - 92px); }
@@ -5906,14 +5907,15 @@
         }
         @media (max-width: 767px) {
             .site-music-controls {
-                position: relative;
-                inset: auto;
+                position: fixed;
+                right: 16px;
+                bottom: calc(90px + env(safe-area-inset-bottom));
                 min-height: 42px;
-                max-width: min(230px, calc(100vw - 188px));
+                max-width: min(230px, calc(100vw - 32px));
                 padding: .3rem .4rem .3rem .52rem;
                 font-size: .72rem;
                 line-height: 1.05;
-                z-index: 1201;
+                z-index: 9999;
             }
             .site-music-control-btn { flex: 0 0 auto; }
             .site-music-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -6397,12 +6399,16 @@
         }
         html[data-theme="dark"] .mobile-bottom-nav__item.is-active *,
         html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] * { color: #fff !important; }
-        .site-music-controls { z-index: 1201; }
+        .site-music-controls { z-index: 9999; }
         @media (max-width: 767px) {
+            .site-music-controls,
             #site-music-mobile-anchor .site-music-controls {
-                position: relative !important;
-                inset: auto !important;
-                z-index: 1201 !important;
+                position: fixed !important;
+                right: 16px !important;
+                bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+                left: auto !important;
+                top: auto !important;
+                z-index: 9999 !important;
                 transform-origin: right center;
             }
         }
@@ -6434,15 +6440,6 @@
                     <div id="header-user-status" class="header-actions-row"></div>
                 </div>
 
-                <span id="site-music-desktop-anchor" hidden></span>
-                <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
-                    <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
-                    <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
-                    <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
-                    <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
-                    <button type="button" class="site-music-control-btn" onclick="playNextSiteMusicTrack()" aria-label="Növbəti musiqi">⏭</button>
-                </div>
-
                 <!-- Mobile Header Actions -->
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
@@ -6462,6 +6459,15 @@
             <div id="mobile-user-status-actions" class="hidden"></div>
         </div>
     </nav>
+
+    <span id="site-music-desktop-anchor" hidden></span>
+    <div id="site-music-controls" class="site-music-controls is-hidden is-collapsed" aria-label="Sayt musiqisi idarəetmələri">
+        <button id="site-music-expand" type="button" class="site-music-control-btn site-music-expand-btn" onclick="expandSiteMusicPlayer()" aria-label="Musiqi pleyerini aç">🎵</button>
+        <span id="site-music-title" class="site-music-title" title="Musiqi">Musiqi</span>
+        <button type="button" class="site-music-control-btn" onclick="playPreviousSiteMusicTrack()" aria-label="Əvvəlki musiqi">⏮</button>
+        <button id="site-music-toggle" type="button" class="site-music-control-btn" onclick="toggleSiteMusic()" aria-label="Musiqini başlat">▶️</button>
+        <button type="button" class="site-music-control-btn" onclick="playNextSiteMusicTrack()" aria-label="Növbəti musiqi">⏭</button>
+    </div>
 
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
 
@@ -9160,9 +9166,9 @@ Title: CASPIAN DREAM LINER
             const mobileAnchor = document.getElementById('site-music-mobile-anchor');
             const desktopAnchor = document.getElementById('site-music-desktop-anchor');
             if (!controls || !mobileAnchor || !desktopAnchor) return;
-            const target = window.innerWidth < 768 ? mobileAnchor : desktopAnchor.parentElement;
+            const target = desktopAnchor.parentElement;
             if (target && controls.parentElement !== target) {
-                target.insertBefore(controls, window.innerWidth < 768 ? null : desktopAnchor.nextSibling);
+                target.insertBefore(controls, desktopAnchor.nextSibling);
             }
         }
 
