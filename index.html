@@ -6108,6 +6108,13 @@
         html[data-theme="dark"] .sea-breeze-listing-card__title,
         html[data-theme="dark"] .sea-breeze-listing-card__price,
         html[data-theme="dark"] .sea-breeze-project-card__title { color: var(--dark-text) !important; }
+        .sea-breeze-project-card .sea-breeze-project-card__title,
+        html[data-theme="dark"] .sea-breeze-project-card .sea-breeze-project-card__title {
+            background: transparent !important;
+            color: #fff !important;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, .85), 0 1px 2px rgba(0, 0, 0, .7);
+            box-shadow: none !important;
+        }
         html[data-theme="dark"] .sea-breeze-listing-card__meta,
         html[data-theme="dark"] .sea-breeze-listing-card__description,
         html[data-theme="dark"] .sea-breeze-listing-card__price-period,
@@ -6593,24 +6600,6 @@
                     <div id="most-viewed-projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
                 </section>
 
-                <section class="glass-card rounded-3xl border border-white/10 p-4 sm:p-5 space-y-4">
-                    <div><h2 class="text-xl sm:text-2xl font-black text-slate-950">✨ Mənə uyğun layihə tap</h2><p class="text-xs font-bold text-slate-500">Büdcə, otaq sayı, təhvil və kredit imkanlarına görə ən uyğun layihələri hesablayırıq.</p></div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                        <input id="match-min-price" type="number" min="0" placeholder="Min qiymət" oninput="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold">
-                        <input id="match-max-price" type="number" min="0" placeholder="Max qiymət" oninput="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold">
-                        <select id="match-rooms" onchange="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold"><option value="">Otaq sayı</option><option value="1">1 otaq</option><option value="2">2 otaq</option><option value="3">3 otaq</option><option value="4">4+</option></select>
-                        <select id="match-sea" onchange="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold"><option value="any">Dənizə yaxın: fərqi yoxdur</option><option value="yes">Bəli</option></select>
-                        <select id="match-delivery" onchange="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold"><option value="">Təhvil tarixi</option><option value="delivered">Təhvil verilib</option><option>2026</option><option>2027</option><option>2028</option><option value="2029+">2029+</option></select>
-                        <select id="match-credit" onchange="renderProjectMatcher()" class="rounded-2xl border px-4 py-3 text-sm font-bold"><option value="any">Kredit/İpoteka: fərqi yoxdur</option><option value="bank">Bank ipotekası</option><option value="internal">Daxili kredit</option></select>
-                    </div>
-                    <div id="project-match-results" class="space-y-3"></div>
-                </section>
-
-                <section class="glass-card rounded-3xl border border-white/10 p-4 sm:p-5 space-y-4">
-                    <div><h2 class="text-xl sm:text-2xl font-black text-slate-950">🤖 Layihə köməkçisi</h2><p class="text-xs font-bold text-slate-500">Məsələn: “150 min 2 otaq dənizə yaxın Sea Breeze daxilində”. Xarici AI API istifadə edilmir.</p></div>
-                    <div class="flex flex-col sm:flex-row gap-3"><textarea id="project-assistant-input" rows="2" class="flex-1 rounded-2xl border px-4 py-3 text-sm font-bold" placeholder="Tələblərinizi yazın..."></textarea><button type="button" onclick="runProjectAssistant()" class="rounded-2xl bg-brand-500 px-5 py-3 text-sm font-black text-white hover:bg-brand-600">Uyğunları tap</button></div>
-                    <div id="project-assistant-results" class="space-y-3"></div>
-                </section>
 
                 <div id="sea-breeze-projects-list" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5 md:gap-6">
                     <!-- Loaded dynamically via JS -->
@@ -8010,7 +7999,6 @@ Title: CASPIAN DREAM LINER
                     <div class="project-modal-actions flex flex-row gap-3">
                         <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black text-white transition"><span aria-hidden="true">📄</span><span class="project-cta-text truncate">PDF Yüklə</span></button>
                         <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-3 py-3 text-sm font-black text-white hover:bg-brand-600 transition"><span aria-hidden="true">💬</span><span class="project-cta-text truncate">Maraqlanıram</span></button>
-                        <button type="button" onclick="toggleCompareProject(activeOfficialProject?.id)" class="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-3 py-3 text-sm font-black text-white hover:bg-slate-800 transition"><span aria-hidden="true">⚖️</span><span class="project-cta-text truncate">Müqayisə et</span></button>
                     </div>
 
                     <div id="op-tab-details" class="project-detail-sections"></div>
@@ -8036,8 +8024,6 @@ Title: CASPIAN DREAM LINER
     </div>
 
 
-    <div id="project-compare-bar" class="hidden fixed bottom-5 left-1/2 z-[70] -translate-x-1/2 rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-2xl flex items-center gap-3"><span id="project-compare-count" class="text-sm font-black">0 layihə seçildi</span><button type="button" onclick="openProjectCompareModal()" class="rounded-xl bg-brand-500 px-4 py-2 text-xs font-black">Müqayisə et</button><button type="button" onclick="clearCompareProjects()" class="text-xs font-bold text-white/70">Təmizlə</button></div>
-    <div id="project-compare-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[90] flex items-center justify-center p-4" role="dialog" aria-modal="true" onclick="if (event.target === this) closeProjectCompareModal()"><div class="glass-card w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10"><div class="flex items-center justify-between gap-3 p-5 border-b border-white/10"><h3 class="text-xl font-black">⚖️ Layihə müqayisəsi</h3><button type="button" onclick="closeProjectCompareModal()" class="text-2xl font-black">×</button></div><div id="project-compare-content" class="overflow-auto p-5"></div></div></div>
 
     <div id="project-inquiry-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Layihə müraciəti" onclick="if (event.target === this) closeProjectInquiryModal()">
         <div class="glass-card w-full max-w-md rounded-3xl border border-white/10 p-6">
@@ -16038,54 +16024,6 @@ Təşəkkür edirəm. 🙏`;
 
 
         const PROJECT_VIEW_THROTTLE_MS = 6 * 60 * 60 * 1000;
-        const PROJECT_COMPARE_KEY = 'besthome_compare_projects';
-
-        function projectNumberValue(value) {
-            const text = String(value || '').replace(/\s+/g, '').replace(/,/g, '.');
-            const matches = text.match(/\d+(?:\.\d+)?/g) || [];
-            if (!matches.length) return null;
-            const nums = matches.map(Number).filter(Number.isFinite);
-            return nums.length ? Math.min(...nums) : null;
-        }
-
-        function projectHasYes(value) { return /(var|bəli|beli|mövcud|movcud|yes|true|aktiv)/i.test(String(value || '')); }
-        function projectText(project = {}) { return [project.title, project.zone, project.seaDistance, project.deliveryDate, project.apartmentFormats, project.apartmentAreas, project.bankMortgage, project.internalCredit, project.repairStatus, project.features, project.desc].flat().join(' ').toLocaleLowerCase('az-AZ'); }
-        function projectRooms(project = {}) { return [...new Set((String(project.apartmentFormats || '') + ' ' + String(project.apartmentAreas || '')).match(/\b[1-4]\b/g) || [])]; }
-        function isProjectSeaNear(project = {}) { const t = projectText(project); const n = projectNumberValue(project.seaDistance); return /dəniz|deniz|sea|sahil|coast/.test(t) && (n == null || n <= 800); }
-        function projectDeliveryMatches(project, value) { const y = Number(extractProjectDeliveryYear(project)); if (!value) return true; if (value === 'delivered') return /təhvil verilib|tehvil verilib|hazır|hazir/i.test(projectText(project)) || (Number.isFinite(y) && y <= new Date().getFullYear()); if (value === '2029+') return Number.isFinite(y) && y >= 2029; return String(y) === String(value); }
-
-        function scoreProjects(criteria = {}) {
-            const hasCriteria = Object.values(criteria).some(v => v !== undefined && v !== null && v !== '' && v !== 'any' && v !== 0);
-            return getOfficialProjects().map((project, index) => {
-                let score = 0;
-                const reasons = [];
-                const price = projectNumberValue(project.totalPrice) || projectNumberValue(project.pricePerM2);
-                if (criteria.minPrice || criteria.maxPrice) {
-                    if (price != null && (!criteria.minPrice || price >= criteria.minPrice) && (!criteria.maxPrice || price <= criteria.maxPrice)) { score += 35; reasons.push('büdcəyə uyğundur'); }
-                    else if (price != null) { score += 10; reasons.push('qiymətə yaxın seçim'); }
-                }
-                if (criteria.rooms) {
-                    const rooms = projectRooms(project); const ok = criteria.rooms === '4' ? rooms.some(r => Number(r) >= 4) : rooms.includes(String(criteria.rooms));
-                    if (ok) { score += 28; reasons.push(`${criteria.rooms}${criteria.rooms === '4' ? '+' : ''} otaq formatı`); }
-                }
-                if (criteria.seaNear === 'yes') { if (isProjectSeaNear(project)) { score += 18; reasons.push('dənizə yaxın'); } }
-                if (criteria.delivery) { if (projectDeliveryMatches(project, criteria.delivery)) { score += 18; reasons.push('təhvil tarixi uyğundur'); } }
-                if (criteria.credit === 'bank' && projectHasYes(project.bankMortgage)) { score += 18; reasons.push('bank ipotekası'); }
-                if (criteria.credit === 'internal' && projectHasYes(project.internalCredit)) { score += 18; reasons.push('daxili kredit'); }
-                if (criteria.keywords) {
-                    const text = projectText(project);
-                    criteria.keywords.forEach(k => { if (text.includes(k)) { score += 10; reasons.push(k); } });
-                }
-                if (!hasCriteria) score = Math.max(1, Number(project.viewCount || 0));
-                return { project, score, reasons, index };
-            }).sort((a,b) => b.score - a.score || Number(b.project.viewCount || 0) - Number(a.project.viewCount || 0) || a.index - b.index);
-        }
-
-        function compactProjectResultCard(entry) {
-            const p = entry.project || entry;
-            const reasons = entry.reasons?.length ? `<div class="mt-2 flex flex-wrap gap-1">${entry.reasons.slice(0,3).map(r => `<span class="rounded-full bg-brand-500/10 px-2 py-1 text-[10px] font-black text-brand-700">${escapeHtml(r)}</span>`).join('')}</div>` : '';
-            return `<button type="button" onclick="openOfficialProjectModal('${p.id}', true)" class="w-full text-left rounded-2xl border border-slate-200 bg-white/80 p-3 hover:border-brand-500 transition"><div class="flex gap-3"><img src="${escapeHtml(p.img)}" class="h-16 w-20 rounded-xl object-cover" alt="${escapeHtml(p.title)}"><div class="min-w-0"><strong class="block truncate text-sm text-slate-950">${escapeHtml(p.title)}</strong><span class="text-xs font-bold text-slate-500">${escapeHtml(p.totalPrice || p.pricePerM2 || p.year || 'Məlumat sorğu ilə')}</span>${reasons}</div></div></button>`;
-        }
 
         function renderMostViewedProjects() {
             const el = document.getElementById('most-viewed-projects'); if (!el) return;
@@ -16093,33 +16031,6 @@ Təşəkkür edirəm. 🙏`;
             el.innerHTML = rows.length ? rows.map(p => `<button type="button" onclick="openOfficialProjectModal('${p.id}', true)" class="rounded-2xl overflow-hidden border border-slate-200 bg-white/80 text-left hover:-translate-y-1 hover:border-brand-500 transition"><div class="h-28 overflow-hidden">${getProjectPictureMarkup(p,'w-full h-full object-cover')}</div><div class="p-3"><strong class="block truncate text-sm text-slate-950">${escapeHtml(p.title)}</strong><span class="text-xs font-black text-slate-500">👁 ${Number(p.viewCount||0)} baxış</span><div class="mt-2 flex flex-wrap gap-1">${[p.year,p.area].filter(Boolean).slice(0,2).map(x=>`<span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600">${escapeHtml(x)}</span>`).join('')}</div></div></button>`).join('') : '<div class="col-span-full text-sm font-bold text-slate-500">Hələ baxış statistikası yoxdur.</div>';
         }
 
-        function renderProjectMatcher() {
-            const el = document.getElementById('project-match-results'); if (!el) return;
-            const criteria = { minPrice: Number(document.getElementById('match-min-price')?.value)||0, maxPrice: Number(document.getElementById('match-max-price')?.value)||0, rooms: document.getElementById('match-rooms')?.value||'', seaNear: document.getElementById('match-sea')?.value||'any', delivery: document.getElementById('match-delivery')?.value||'', credit: document.getElementById('match-credit')?.value||'any' };
-            const hasCriteria = Object.values(criteria).some(v => v !== undefined && v !== null && v !== '' && v !== 'any' && v !== 0);
-            if (!hasCriteria) { el.innerHTML = '<div class="text-sm font-bold text-slate-500">Filter seçərək uyğun layihələri görün.</div>'; return; }
-            const scored = scoreProjects(criteria).filter(x => x.score > 0).slice(0, 6);
-            const strong = scored.filter(x => x.score >= 28);
-            const rows = (strong.length ? strong : scored).slice(0,4);
-            el.innerHTML = `<p class="text-sm font-black text-slate-700">${strong.length ? `✨ Sizə uyğun ${strong.length} layihə tapıldı` : 'Tam uyğun layihə tapılmadı, amma bunlar yaxın seçimlərdir.'}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${rows.map(compactProjectResultCard).join('') || '<div class="text-sm font-bold text-slate-500">Filter seçərək uyğun layihələri görün.</div>'}</div>`;
-        }
-
-        function parseAssistantCriteria(text='') {
-            const t = String(text).toLocaleLowerCase('az-AZ');
-            const nums = [...t.matchAll(/(\d+(?:[\s.,]?\d+)?)\s*(min|k|min\b|azn|manat)?/g)].map(m => ({ n: Number(String(m[1]).replace(/\s/g,'').replace(',','.')), raw: m[0] })).filter(x=>Number.isFinite(x.n));
-            const budget = nums.find(x => /min|k|azn|manat/.test(x.raw) || x.n > 20)?.n;
-            const rooms = (t.match(/([1-4])\s*(otaq|otaqlı|otaqli)/)?.[1]) || '';
-            return { maxPrice: budget ? (budget < 1000 ? budget * 1000 : budget) : 0, rooms, seaNear: /dənizə yaxın|denize yaxin|sahil|sea/.test(t) ? 'yes' : 'any', delivery: (t.match(/202[6-9]/)?.[0] || (/təhvil|tehvil/.test(t) ? 'delivered' : '')), credit: /daxili kredit/.test(t) ? 'internal' : (/ipoteka/.test(t) ? 'bank' : 'any'), keywords: ['sea breeze','seabreeze','təmirli','temirli'].filter(k => t.includes(k)) };
-        }
-        function runProjectAssistant() { const el=document.getElementById('project-assistant-results'); if(!el) return; const scored=scoreProjects(parseAssistantCriteria(document.getElementById('project-assistant-input')?.value||'')).filter(x=>x.score>0).slice(0,4); el.innerHTML=`<p class="text-sm font-black text-slate-700">Bu tələblərə görə sizə ən uyğun layihələr:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${scored.map(compactProjectResultCard).join('') || '<div class="text-sm font-bold text-slate-500">Uyğun layihə tapılmadı.</div>'}</div>`; }
-
-        function compareIds(){ try { return JSON.parse(localStorage.getItem(PROJECT_COMPARE_KEY)||'[]').map(String); } catch(_) { return []; } }
-        function saveCompareIds(ids){ localStorage.setItem(PROJECT_COMPARE_KEY, JSON.stringify([...new Set(ids.map(String))].slice(0,3))); renderCompareBar(); renderOfficialProjects(); }
-        function toggleCompareProject(id){ if(!id) return; const ids=compareIds(); const sid=String(id); if(ids.includes(sid)) saveCompareIds(ids.filter(x=>x!==sid)); else { if(ids.length>=3) return showToast('Maksimum 3 layihə müqayisə edilə bilər.'); saveCompareIds([...ids,sid]); } }
-        function clearCompareProjects(){ saveCompareIds([]); }
-        function renderCompareBar(){ const ids=compareIds(); const bar=document.getElementById('project-compare-bar'); const count=document.getElementById('project-compare-count'); if(!bar||!count) return; bar.classList.toggle('hidden', ids.length===0); count.textContent=`${ids.length} layihə seçildi`; }
-        function openProjectCompareModal(){ const rows=compareIds().map(id=>getOfficialProjects().find(p=>String(p.id)===id)).filter(Boolean); const modal=document.getElementById('project-compare-modal'); const el=document.getElementById('project-compare-content'); if(!modal||!el) return; const fields=[['Layihə adı','title'],['Zona','zone'],['Təhvil tarixi','year'],['Sahə aralığı','area'],['Mənzil formatları','apartmentFormats'],['Qiymət/m²','pricePerM2'],['Ümumi qiymət','totalPrice'],['Dənizə məsafə','seaDistance'],['Mərtəbə sayı','floors'],['Təmir statusu','repairStatus'],['Bank ipotekası','bankMortgage'],['Daxili kredit','internalCredit'],['Parking','parking'],['Əsas üstünlüklər','features']]; el.innerHTML=rows.length?`<div class="min-w-[760px]"><div class="sticky top-0 grid bg-white z-10" style="grid-template-columns:180px repeat(${rows.length},minmax(180px,1fr))"><div></div>${rows.map(p=>`<div class="p-2 font-black"><img src="${escapeHtml(p.img)}" class="h-24 w-full rounded-xl object-cover mb-2" alt="${escapeHtml(p.title)}">${escapeHtml(p.title)}</div>`).join('')}</div>${fields.map(([label,key])=>`<div class="grid border-t border-slate-200" style="grid-template-columns:180px repeat(${rows.length},minmax(180px,1fr))"><div class="p-3 text-xs font-black text-slate-500">${label}</div>${rows.map(p=>`<div class="p-3 text-sm font-bold text-slate-800">${escapeHtml(Array.isArray(p[key])?p[key].join(' / '):(p[key]||'—'))}</div>`).join('')}</div>`).join('')}</div>`:'<div class="text-sm font-bold text-slate-500">Müqayisə üçün layihə seçin.</div>'; modal.classList.remove('hidden'); setModalOpenState(true); }
-        function closeProjectCompareModal(){ document.getElementById('project-compare-modal')?.classList.add('hidden'); setModalOpenState(false); }
 
         // RENDER OFFICIAL LAYOUTS
         function renderOfficialProjects() {
@@ -16164,14 +16075,12 @@ Təşəkkür edirəm. 🙏`;
                     floors ? `<span class="project-card-meta-badge" title="${escapeHtml(floors)}"><i class="fa-solid fa-building" aria-hidden="true"></i><span>${escapeHtml(floors)}</span></span>` : ''
                 ].filter(Boolean).join('');
                 const projectMeta = metaBadges ? `<div class="project-card-meta">${metaBadges}</div>` : '';
-                const selectedForCompare = compareIds().includes(String(p.id));
                 const cardHtml = `
                     <div onclick="openOfficialProjectModal('${p.id}', true)" class="sea-breeze-project-card group cursor-pointer rounded-2xl overflow-hidden glass-card hover:border-brand-500/50 transition-all duration-300 h-full flex flex-col">
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                             ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
-                            <button type="button" onclick="event.stopPropagation(); toggleCompareProject('${p.id}')" class="absolute top-4 left-4 rounded-full ${selectedForCompare ? 'bg-brand-500' : 'bg-black/55'} px-3 py-1 text-[10px] font-black text-white">⚖️ Müqayisə et</button>
                             <h3 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h3>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
@@ -16184,8 +16093,6 @@ Təşəkkür edirəm. 🙏`;
             });
             renderPagination('projects-pagination', projectPage, totalPages, 'setProjectPage');
             renderMostViewedProjects();
-            renderProjectMatcher();
-            renderCompareBar();
         }
 
         // OPEN OFFICIAL PROJECT MODAL
