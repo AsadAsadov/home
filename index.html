@@ -8301,7 +8301,7 @@ Title: CASPIAN DREAM LINER
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1366;
         window.addEventListener('resize', () => { updateDesktopAdStickyOffset(); renderDesktopAds({ force: true }); });
-        const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
+        const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, recoveryTimer: null, stuckTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
@@ -9873,7 +9873,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function clearAdRotationTimer() {
-            ['timer', 'safetyTimer', 'stallTimer', 'durationTimer'].forEach(key => {
+            ['timer', 'safetyTimer', 'stallTimer', 'durationTimer', 'recoveryTimer', 'stuckTimer'].forEach(key => {
                 if (adRotationState[key]) {
                     clearTimeout(adRotationState[key]);
                     adRotationState[key] = null;
@@ -9998,37 +9998,98 @@ Title: CASPIAN DREAM LINER
         function attachDesktopAdVideoHandlers(ad, token) {
             if (ad.mediaType !== 'video') return;
             const videos = Array.from(document.querySelectorAll('[data-ad-rotation-video="true"]')).filter(video => String(video.dataset.adId) === String(ad.id));
-            let hasPlayed = false;
-            const skip = (delay = 0, warning = '') => {
-                if (token !== adRotationState.transitionToken) return;
-                if (warning) console.warn(warning);
-                if (adRotationState.stallTimer) clearTimeout(adRotationState.stallTimer);
-                adRotationState.stallTimer = setTimeout(() => finishAdRotationRepeat(ad.id), Math.min(Math.max(delay, 0), 1000));
-            };
             const primaryVideo = videos[0];
+            const oneVideoAd = visibleRotationAds().filter(item => item.mediaType === 'video').length === 1 && visibleRotationAds().length === 1;
+            let hasPlayed = false;
+            let lastCurrentTime = -1;
+            let skipRequested = false;
+            const clearVideoTimer = key => {
+                if (adRotationState[key]) {
+                    clearTimeout(adRotationState[key]);
+                    adRotationState[key] = null;
+                }
+            };
+            const next = (delay = 0) => {
+                if (oneVideoAd) {
+                    adRotationState.stallTimer = setTimeout(() => {
+                        if (token !== adRotationState.transitionToken) return;
+                        primaryVideo.currentTime = 0;
+                        primaryVideo.play().catch(() => next(1000));
+                    }, Math.max(delay, 1000));
+                    return;
+                }
+                adRotationState.stallTimer = setTimeout(() => finishAdRotationRepeat(ad.id), Math.max(delay, 0));
+            };
+            const skip = (delay = 0, warning = '[ads] video failed/stalled, skipping') => {
+                if (token !== adRotationState.transitionToken || skipRequested) return;
+                skipRequested = true;
+                console.warn(warning);
+                clearVideoTimer('safetyTimer');
+                clearVideoTimer('recoveryTimer');
+                clearVideoTimer('stuckTimer');
+                clearVideoTimer('durationTimer');
+                next(delay);
+            };
+            const scheduleStuckCheck = () => {
+                clearVideoTimer('stuckTimer');
+                adRotationState.stuckTimer = setTimeout(() => {
+                    if (token !== adRotationState.transitionToken || skipRequested || !primaryVideo || primaryVideo.paused || primaryVideo.ended) return;
+                    const current = Number(primaryVideo.currentTime || 0);
+                    if (hasPlayed && current <= lastCurrentTime + 0.05) return skip(0, '[ads] video stuck currentTime, skipping');
+                    lastCurrentTime = current;
+                    scheduleStuckCheck();
+                }, 5000);
+            };
+            const scheduleRecoveryCheck = () => {
+                clearVideoTimer('recoveryTimer');
+                adRotationState.recoveryTimer = setTimeout(() => {
+                    if (token !== adRotationState.transitionToken || skipRequested || !primaryVideo || primaryVideo.ended) return;
+                    if (!hasPlayed || primaryVideo.paused || primaryVideo.readyState < 3) skip(0, '[ads] video failed/stalled, skipping');
+                }, 5000);
+            };
             if (!primaryVideo) return skip(0);
             adRotationState.safetyTimer = setTimeout(() => {
-                if (!hasPlayed) skip(0, '[ads] video did not start, skipping');
-            }, 3000);
+                if (!hasPlayed) skip(0, '[ads] video failed/stalled, skipping');
+            }, 5000);
             videos.forEach((video, index) => {
-                const onMetadata = () => {
-                    if (Number.isFinite(video.duration) && video.duration > 0 && index === 0) {
-                        if (adRotationState.durationTimer) clearTimeout(adRotationState.durationTimer);
-                        adRotationState.durationTimer = setTimeout(() => {
-                            if (!video.ended) skip(0, '[ads] video duration timeout, skipping');
-                        }, Math.min((video.duration + 2) * 1000, 10 * 60 * 1000));
-                    } else if (video.duration === Infinity || Number.isNaN(video.duration)) {
-                        skip(1000, '[ads] video invalid duration, skipping');
+                const onMetadata = () => {};
+                const onCanPlay = () => { if (index === 0 && hasPlayed) clearVideoTimer('recoveryTimer'); };
+                const onPlaying = () => {
+                    if (index !== 0) return;
+                    hasPlayed = true;
+                    lastCurrentTime = Number(video.currentTime || 0);
+                    clearVideoTimer('safetyTimer');
+                    clearVideoTimer('recoveryTimer');
+                    scheduleStuckCheck();
+                };
+                const onTimeUpdate = () => {
+                    if (index !== 0) return;
+                    lastCurrentTime = Number(video.currentTime || 0);
+                };
+                const onEnded = () => {
+                    if (index !== 0) return;
+                    console.warn('[ads] video ended, next');
+                    clearVideoTimer('stuckTimer');
+                    clearVideoTimer('recoveryTimer');
+                    if (oneVideoAd) {
+                        video.currentTime = 0;
+                        video.play().catch(() => skip(1000));
+                    } else {
+                        finishAdRotationRepeat(ad.id);
                     }
                 };
-                const onPlaying = () => { hasPlayed = true; if (adRotationState.safetyTimer) { clearTimeout(adRotationState.safetyTimer); adRotationState.safetyTimer = null; } };
-                const onEnded = () => { if (index === 0) { console.warn('[ads] video ended, next'); finishAdRotationRepeat(ad.id); } };
-                const onProblem = (event) => skip(1000, event.type === 'stalled' ? '[ads] video stalled, skipping' : `[ads] video ${event.type}, skipping`);
-                const onWaiting = () => skip(1000, '[ads] video waiting, skipping');
-                [['loadedmetadata', onMetadata], ['playing', onPlaying], ['ended', onEnded], ['error', onProblem], ['stalled', onProblem], ['abort', onProblem], ['emptied', onProblem], ['suspend', onProblem], ['waiting', onWaiting]].forEach(([name, handler]) => video.addEventListener(name, handler));
-                adRotationState.videoCleanups.push(() => [['loadedmetadata', onMetadata], ['playing', onPlaying], ['ended', onEnded], ['error', onProblem], ['stalled', onProblem], ['abort', onProblem], ['emptied', onProblem], ['suspend', onProblem], ['waiting', onWaiting]].forEach(([name, handler]) => video.removeEventListener(name, handler)));
+                const onProblem = () => skip(0, '[ads] video failed/stalled, skipping');
+                const onRecoverableStall = () => { if (index === 0) scheduleRecoveryCheck(); };
+                const events = [['loadedmetadata', onMetadata], ['canplay', onCanPlay], ['playing', onPlaying], ['timeupdate', onTimeUpdate], ['waiting', onRecoverableStall], ['stalled', onRecoverableStall], ['ended', onEnded], ['error', onProblem], ['abort', onProblem], ['emptied', onProblem]];
+                events.forEach(([name, handler]) => video.addEventListener(name, handler));
+                adRotationState.videoCleanups.push(() => events.forEach(([name, handler]) => video.removeEventListener(name, handler)));
+                video.muted = true;
+                video.playsInline = true;
+                video.autoplay = true;
+                video.loop = false;
+                video.preload = 'auto';
                 video.currentTime = 0;
-                video.play().catch(() => skip(0, '[ads] video autoplay failed, skipping'));
+                video.play().catch(() => skip(0, '[ads] video failed/stalled, skipping'));
             });
         }
 
@@ -16184,6 +16245,20 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
+        function destroyProjectDetailLocationMap({ hideSection = true } = {}) {
+            const section = document.getElementById('op-modal-location-section');
+            if (projectDetailMarker) {
+                projectDetailMarker.remove();
+                projectDetailMarker = null;
+            }
+            if (projectDetailMap) {
+                projectDetailMap.remove();
+                projectDetailMap = null;
+            }
+            setMapLoading('op-modal-location-map-loading', false);
+            if (hideSection && section) section.classList.add('hidden');
+        }
+
         function renderProjectDetailLocationMap(project = {}) {
             const section = document.getElementById('op-modal-location-section');
             const mapEl = document.getElementById('op-modal-location-map');
@@ -16192,25 +16267,28 @@ Təşəkkür edirəm. 🙏`;
             const lng = Number(project.longitude);
             const hasCoordinates = isValidCoordinate(project.latitude, project.longitude);
             if (!section || !mapEl) return;
+            if (currentProjectModalTab !== 'details') {
+                destroyProjectDetailLocationMap({ hideSection: true });
+                return;
+            }
             section.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
                 console.warn('[map] invalid coordinates, hiding map section');
-                if (projectDetailMarker) {
-                    projectDetailMarker.remove();
-                    projectDetailMarker = null;
-                }
-                setMapLoading('op-modal-location-map-loading', false);
+                destroyProjectDetailLocationMap({ hideSection: true });
                 return;
             }
             const point = [lat, lng];
             if (googleBtn) googleBtn.href = `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
             if (typeof L === 'undefined') {
-                ensureLeafletLoaded().then(() => renderProjectDetailLocationMap(project)).catch(error => { console.error(error); setMapLoading('op-modal-location-map-loading', false); section.classList.add('hidden'); });
+                ensureLeafletLoaded().then(() => {
+                    if (currentProjectModalTab === 'details' && activeOfficialProject && String(activeOfficialProject.id) === String(project.id)) renderProjectDetailLocationMap(project);
+                }).catch(error => { console.error(error); destroyProjectDetailLocationMap({ hideSection: true }); });
                 return;
             }
             setMapLoading('op-modal-location-map-loading', false);
             console.warn('[map] initialized with project coordinates');
             setTimeout(() => {
+                if (currentProjectModalTab !== 'details') return destroyProjectDetailLocationMap({ hideSection: true });
                 if (!projectDetailMap) {
                     projectDetailMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, 16);
                     addOpenStreetMapLayer(projectDetailMap);
@@ -16222,8 +16300,8 @@ Təşəkkür edirəm. 🙏`;
                 else projectDetailMarker.setLatLng(point);
                 projectDetailMap.invalidateSize();
                 setMapLoading('op-modal-location-map-loading', false);
-                setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 150);
-                setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 500);
+                setTimeout(() => { if (currentProjectModalTab === 'details') { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); } }, 150);
+                setTimeout(() => { if (currentProjectModalTab === 'details') { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); } }, 500);
             }, 80);
         }
 
@@ -16287,7 +16365,6 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-project-next').classList.toggle('hidden', !hasMultipleProjects);
 
             renderOfficialProjectDetails(project);
-            renderProjectDetailLocationMap(project);
             renderSimilarProjects(project);
             switchOfficialModalTab('details');
         }
@@ -16556,6 +16633,8 @@ Təşəkkür edirəm. 🙏`;
                 }
                 if (content) content.classList.toggle('hidden', !active);
             });
+            if (tab === 'details') renderProjectDetailLocationMap(activeOfficialProject || {});
+            else destroyProjectDetailLocationMap({ hideSection: true });
         }
 
         // RENDER PROPERTIES ELAN GRID
