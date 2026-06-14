@@ -24,9 +24,13 @@
     <script>
         (function () {
             const LOGOS = {
-                light: '/uploads/siteimage/logo/besthomelight.png',
-                dark: '/uploads/siteimage/logo/besthomedark.png'
+                light: '/uploads/siteimage/logo/besthomelight.png?v=2',
+                dark: '/uploads/siteimage/logo/besthomedark.png?v=2'
             };
+            const lightLogo = new Image();
+            lightLogo.src = LOGOS.light;
+            const darkLogo = new Image();
+            darkLogo.src = LOGOS.dark;
             const THEME_KEY = 'siteTheme';
             const resolveTheme = (choice) => {
                 const preferred = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
@@ -37,20 +41,22 @@
                 try { return localStorage.getItem(THEME_KEY) || 'system'; } catch (_error) { return 'system'; }
             };
             const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'];
+            window.getCurrentThemeLogo = (theme = resolveTheme(currentPreference())) => logoSrc(theme);
+            window.updateThemeLogos = (theme = resolveTheme(currentPreference())) => {
+                const src = window.getCurrentThemeLogo(theme);
+                document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
+                    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+                });
+            };
             window.BestHomeLogo = {
                 paths: LOGOS,
                 resolveTheme,
                 src: logoSrc,
                 html({ className = 'site-logo', width = 180, height = 48, loading = 'lazy', fetchpriority = '', extra = '' } = {}) {
                     const priority = fetchpriority ? ` fetchpriority="${fetchpriority}"` : '';
-                    return `<img src="${logoSrc()}" data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async"${extra ? ` ${extra}` : ''}>`;
+                    return `<span class="theme-logo-wrap"><img src="${logoSrc()}" data-theme-logo data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async"${extra ? ` ${extra}` : ''}></span>`;
                 },
-                update(theme = resolveTheme(currentPreference())) {
-                    const src = logoSrc(theme);
-                    document.querySelectorAll('[data-site-logo]').forEach((img) => {
-                        if (img.getAttribute('src') !== src) img.setAttribute('src', src);
-                    });
-                }
+                update: window.updateThemeLogos
             };
             document.documentElement.dataset.theme = resolveTheme(currentPreference());
             document.documentElement.dataset.themePreference = currentPreference();
@@ -6500,20 +6506,44 @@
         }
 
 
-        /* Centralized theme-aware BestHome logo sizing and visibility. */
+        /* Centralized theme-aware BestHome logo wrapper, sizing, and instant switching. */
+        .theme-logo-wrap,
+        .site-footer-logo-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border-radius: 10px;
+            padding: 4px 8px;
+            line-height: 0;
+        }
+        html[data-theme="dark"] .theme-logo-wrap,
+        html[data-theme="dark"] .site-footer-logo-wrap {
+            background: #020617;
+        }
         .site-logo,
         .site-footer-logo,
         .mobile-bottom-nav-logo,
+        img[data-theme-logo],
         [data-site-logo] {
             display: block;
             width: auto !important;
-            height: 48px !important;
-            max-height: 48px !important;
             max-width: min(220px, 44vw) !important;
             object-fit: contain !important;
             aspect-ratio: auto;
             image-rendering: auto;
+            transition: none !important;
         }
+        .site-logo,
+        [data-site-logo] {
+            height: auto !important;
+            max-height: 52px !important;
+        }
+        .site-footer-logo {
+            height: auto !important;
+            max-height: 54px !important;
+        }
+        html[data-theme="dark"] img[data-theme-logo],
         html[data-theme="dark"] [data-site-logo] {
             filter: drop-shadow(0 0 10px rgba(255, 255, 255, .18));
         }
@@ -6521,9 +6551,10 @@
             .site-logo,
             .site-footer-logo,
             .mobile-bottom-nav-logo,
+            img[data-theme-logo],
             [data-site-logo] {
-                height: 40px !important;
-                max-height: 40px !important;
+                height: auto !important;
+                max-height: 42px !important;
                 max-width: min(180px, 46vw) !important;
             }
         }
@@ -6540,7 +6571,7 @@
                 <!-- Logo -->
                 <div class="header-logo-wrap flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
                     <script>document.write(window.BestHomeLogo.html({ className: 'site-logo', width: 180, height: 48, loading: 'eager', fetchpriority: 'high' }));</script>
-                    <noscript><img src="/uploads/siteimage/logo/besthomelight.png" alt="BestHome.az" class="site-logo" width="180" height="48" loading="eager" decoding="async"></noscript>
+                    <noscript><img src="/uploads/siteimage/logo/besthomelight.png?v=2" data-theme-logo data-site-logo alt="BestHome.az" class="site-logo" width="180" height="48" loading="eager" decoding="async"></noscript>
                 </div>
 
                 <!-- Desktop Menu -->
@@ -8219,7 +8250,7 @@ Title: CASPIAN DREAM LINER
                 <div class="space-y-4 sm:col-span-2 lg:col-span-1">
                     <button type="button" class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')" aria-label="BestHome.az ana səhifə">
                         <script>document.write(window.BestHomeLogo.html({ className: 'site-footer-logo', width: 220, height: 48 }));</script>
-                        <noscript><img src="/uploads/siteimage/logo/besthomelight.png" alt="BestHome.az" class="site-footer-logo" width="220" height="48" loading="lazy" decoding="async"></noscript>
+                        <noscript><img src="/uploads/siteimage/logo/besthomelight.png?v=2" data-theme-logo data-site-logo alt="BestHome.az" class="site-footer-logo" width="220" height="48" loading="lazy" decoding="async"></noscript>
                     </button>
                     <p class="text-sm leading-6 text-gray-600 max-w-sm">
                         BestHome.az Sea Breeze və premium daşınmaz əmlak bazarında etibarlı seçimlər, aktual satış/kirayə elanları və peşəkar məsləhət təqdim edir.
@@ -9203,11 +9234,31 @@ Title: CASPIAN DREAM LINER
             return choice;
         }
 
+        function getCurrentThemeLogo(theme = resolvedTheme(preferredTheme())) {
+            return window.getCurrentThemeLogo?.(theme) || (theme === 'dark' ? '/uploads/siteimage/logo/besthomedark.png?v=2' : '/uploads/siteimage/logo/besthomelight.png?v=2');
+        }
+
+        function updateThemeLogos(theme = resolvedTheme(preferredTheme())) {
+            if (window.updateThemeLogos) {
+                window.updateThemeLogos(theme);
+                return;
+            }
+            const src = getCurrentThemeLogo(theme);
+            document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
+                if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+            });
+        }
+
         function applySiteTheme(choice = preferredTheme()) {
+            const targetTheme = resolvedTheme(choice);
+            const targetLogo = getCurrentThemeLogo(targetTheme);
             localStorage.setItem(SITE_THEME_KEY, choice);
-            document.documentElement.dataset.theme = resolvedTheme(choice);
+            document.documentElement.dataset.theme = targetTheme;
             document.documentElement.dataset.themePreference = choice;
-            window.BestHomeLogo?.update(resolvedTheme(choice));
+            updateThemeLogos(targetTheme);
+            document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
+                if (img.getAttribute('src') !== targetLogo) img.setAttribute('src', targetLogo);
+            });
             document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
         }
