@@ -4,6 +4,7 @@ const { createUpload } = require('../middleware/upload');
 const asyncHandler = require('../utils/asyncHandler');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadToGalleryBucket } = require('../utils/supabaseStorage');
+const seabreezeDefaultContent = require('../data/seabreezeDefaultContent');
 
 const router = express.Router();
 const upload = createUpload('seabreeze');
@@ -18,6 +19,30 @@ async function up(file) { return file ? uploadToGalleryBucket(file) : null; }
 function file(req, name) { return Array.isArray(req.files?.[name]) ? req.files[name][0] : null; }
 function listFile(req) { return Object.values(req.files || {}).flat()[0] || null; }
 function orderBy() { return [{ sortOrder: 'asc' }, { id: 'asc' }]; }
+
+async function seedDefaultSectionsIfEmpty() {
+  await prisma.$transaction(async (tx) => {
+    try {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(735327337)`;
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'test') console.warn('Sea Breeze seed lock skipped:', error.message);
+    }
+
+    const existingCount = await tx.seaBreezeSection.count();
+    if (existingCount > 0) return;
+
+    await tx.seaBreezeSection.createMany({
+      data: seabreezeDefaultContent.map((section) => ({
+        sectionKey: section.sectionKey,
+        title: section.title,
+        content: section.content || '',
+        facts: section.facts || [],
+        sortOrder: section.sortOrder,
+        isActive: section.isActive !== false,
+      })),
+    });
+  });
+}
 
 function heroJson(x) { return { ...x, media_type: x.mediaType, image_url: x.imageUrl, video_url: x.videoUrl, cta_text: x.ctaText, cta_link: x.ctaLink, sort_order: x.sortOrder, is_active: x.isActive }; }
 function sectionJson(x) { return { ...x, image_url: x.imageUrl, video_url: x.videoUrl, section_key: x.sectionKey, facts: x.facts || [], sort_order: x.sortOrder, is_active: x.isActive }; }
@@ -44,7 +69,12 @@ router.put('/hero-slides/:id', adminOnly, mediaFields, asyncHandler(async (req, 
 router.patch('/hero-slides/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const old = await prisma.seaBreezeHeroSlide.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeHeroSlide.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(heroJson(row)); }));
 router.delete('/hero-slides/:id', adminOnly, asyncHandler(async (req, res) => { await prisma.seaBreezeHeroSlide.delete({ where: { id: int(req.params.id) } }); res.json({ success: true }); }));
 
-router.get('/sections', asyncHandler(async (req, res) => { const admin = req.query.admin === '1' || req.query.admin === 'true'; const rows = await prisma.seaBreezeSection.findMany({ where: admin ? undefined : { isActive: true }, orderBy: orderBy() }); res.json(rows.map(sectionJson)); }));
+router.get('/sections', asyncHandler(async (req, res) => {
+  await seedDefaultSectionsIfEmpty();
+  const admin = req.query.admin === '1' || req.query.admin === 'true';
+  const rows = await prisma.seaBreezeSection.findMany({ where: admin ? undefined : { isActive: true }, orderBy: orderBy() });
+  res.json(rows.map(sectionJson));
+}));
 router.post('/sections', adminOnly, mediaFields, asyncHandler(async (req, res) => { const row = await prisma.seaBreezeSection.create({ data: { sectionKey: str(req.body.section_key || req.body.sectionKey), title: str(req.body.title), content: str(req.body.content), imageUrl: await up(file(req, 'image')) || str(req.body.image_url || req.body.imageUrl), videoUrl: await up(file(req, 'video')) || str(req.body.video_url || req.body.videoUrl), facts: req.body.facts ? String(req.body.facts).split('\n').filter(Boolean) : [], sortOrder: int(req.body.sort_order || req.body.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive) } }); res.status(201).json(sectionJson(row)); }));
 router.put('/sections/:id', adminOnly, mediaFields, asyncHandler(async (req, res) => { const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); if (!old) return res.status(404).json({ message: 'Not found' }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { sectionKey: str(req.body.section_key || req.body.sectionKey, old.sectionKey || ''), title: str(req.body.title, old.title), content: str(req.body.content, old.content || ''), imageUrl: await up(file(req, 'image')) || str(req.body.image_url || req.body.imageUrl, old.imageUrl || ''), videoUrl: await up(file(req, 'video')) || str(req.body.video_url || req.body.videoUrl, old.videoUrl || ''), facts: req.body.facts !== undefined ? String(req.body.facts).split('\n').filter(Boolean) : old.facts, sortOrder: int(req.body.sort_order || req.body.sortOrder, old.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive, old.isActive) } }); res.json(sectionJson(row)); }));
 router.patch('/sections/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(sectionJson(row)); }));
