@@ -13372,27 +13372,86 @@ Title: CASPIAN DREAM LINER
             document.documentElement.style.setProperty('--mobile-bottom-nav-height', `${bottomNavHeight}px`);
         }
 
-        function setModalOpenState(isOpen) {
-            updateMobileModalMetrics();
-            document.body.classList.toggle('modal-open', Boolean(isOpen));
-            document.documentElement.style.overflow = isOpen ? 'hidden' : '';
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-        }
+        const APP_MODAL_IDS = [
+            'project-inquiry-modal',
+            'property-detail-modal',
+            'project-detail-modal-official',
+            'project-lightbox',
+            'media-modal',
+            'property-lightbox',
+            'fullscreen-map-modal'
+        ];
+        const MODAL_STATE_CLASSES = ['modal-open', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
+        const MODAL_BACKGROUND_SELECTORS = ['#app', '#root', '#page', '#main', 'main', '.page-shell', '.public-page'];
+        const MODAL_BACKGROUND_CLASSES = ['blur', 'blur-sm', 'blur-md', 'blur-lg', 'backdrop-blur', 'backdrop-blur-sm', 'backdrop-blur-md', 'filter', 'is-blurred', 'app-blur', 'modal-blur'];
 
         function isElementVisibleById(id) {
             const el = document.getElementById(id);
             return Boolean(el && !el.classList.contains('hidden'));
         }
 
+        function getVisibleModalIds() {
+            return APP_MODAL_IDS.filter(isElementVisibleById);
+        }
+
+        function cleanupModalState() {
+            document.body.classList.remove(...MODAL_STATE_CLASSES);
+            document.documentElement.classList.remove(...MODAL_STATE_CLASSES);
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.body.style.filter = '';
+            document.documentElement.style.filter = '';
+
+            MODAL_BACKGROUND_SELECTORS.forEach((selector) => {
+                document.querySelectorAll(selector).forEach((el) => {
+                    el.classList.remove(...MODAL_BACKGROUND_CLASSES);
+                    el.style.filter = '';
+                    el.style.backdropFilter = '';
+                    el.style.webkitBackdropFilter = '';
+                    if (el.dataset.modalAriaHidden === 'true') {
+                        el.removeAttribute('aria-hidden');
+                        delete el.dataset.modalAriaHidden;
+                    }
+                    if (el.dataset.modalInert === 'true') {
+                        el.removeAttribute('inert');
+                        delete el.dataset.modalInert;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.modal-glass-backdrop.hidden, .fullscreen-map-backdrop.hidden, [data-modal-backdrop].hidden').forEach((el) => {
+                el.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+                if (el.dataset.modalAriaHidden === 'true') {
+                    el.removeAttribute('aria-hidden');
+                    delete el.dataset.modalAriaHidden;
+                }
+                if (el.dataset.modalInert === 'true') {
+                    el.removeAttribute('inert');
+                    delete el.dataset.modalInert;
+                }
+            });
+        }
+
+        function setModalOpenState(isOpen) {
+            updateMobileModalMetrics();
+            if (!isOpen) {
+                cleanupModalState();
+                return;
+            }
+            document.body.classList.add('modal-open');
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+        }
+
         function syncModalOpenState() {
-            setModalOpenState(
-                isElementVisibleById('property-detail-modal') ||
-                isElementVisibleById('project-detail-modal-official') ||
-                isElementVisibleById('project-lightbox') ||
-                isElementVisibleById('media-modal') ||
-                isElementVisibleById('property-lightbox') ||
-                isElementVisibleById('fullscreen-map-modal')
-            );
+            const visibleModalIds = getVisibleModalIds();
+            setModalOpenState(visibleModalIds.length > 0);
+            APP_MODAL_IDS.forEach((id) => {
+                const modal = document.getElementById(id);
+                if (!modal) return;
+                modal.classList.toggle('is-active', visibleModalIds.includes(id));
+                if (!visibleModalIds.includes(id)) modal.classList.remove('active', 'open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+            });
         }
 
         let fullscreenMapCloseCleanup = null;
@@ -15694,7 +15753,7 @@ Təşəkkür edirəm. 🙏`;
 
         function closeProjectInquiryModal() {
             document.getElementById('project-inquiry-modal')?.classList.add('hidden');
-            setModalOpenState(false);
+            syncModalOpenState();
         }
 
         async function submitProjectInquiry(event) {
@@ -16024,6 +16083,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function closeOfficialProjectModal() {
+            closeProjectInquiryModal();
             if (isProjectLightboxOpen()) closeProjectLightbox({ immediate: true });
             clearTimeout(officialProjectTransitionTimer);
             officialProjectTransitionTimer = null;
@@ -20529,11 +20589,13 @@ Təşəkkür edirəm. 🙏`;
             if (event.key === 'Escape') closePublicAddressSuggestions();
             const projectLightboxOpen = isProjectLightboxOpen();
             const propertyLightboxOpen = isPropertyLightboxOpen();
+            const inquiryOpen = !document.getElementById('project-inquiry-modal').classList.contains('hidden');
             const mediaOpen = !document.getElementById('media-modal').classList.contains('hidden');
             const projectOpen = !document.getElementById('project-detail-modal-official').classList.contains('hidden');
             const propertyOpen = !document.getElementById('property-detail-modal').classList.contains('hidden');
 
             if (event.key === 'Escape') {
+                if (inquiryOpen) { closeProjectInquiryModal(); return; }
                 if (projectLightboxOpen) { closeProjectLightbox(); return; }
                 if (propertyLightboxOpen) { closePropertyLightbox(); return; }
                 if (mediaOpen) closeModal();
