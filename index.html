@@ -7987,6 +7987,14 @@ Title: CASPIAN DREAM LINER
                     </div>
 
                     <div id="op-tab-details" class="project-detail-sections"></div>
+                    <section id="op-modal-location-section" class="hidden project-detail-section project-detail-section--wide">
+                        <h3>📍 Yerləşmə</h3>
+                        <div class="map-frame">
+                            <div id="op-modal-location-map" class="listing-location-map"></div>
+                            <div id="op-modal-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
+                        </div>
+                        <a id="op-modal-google-maps-btn" href="#" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white hover:bg-brand-700 transition">Google Maps-də aç</a>
+                    </section>
                     <div id="op-tab-apartments" class="hidden project-detail-sections"></div>
                     <div id="op-tab-pricing" class="hidden project-detail-sections"></div>
                     <div id="op-tab-infrastructure" class="hidden project-detail-sections"></div>
@@ -12550,6 +12558,8 @@ Title: CASPIAN DREAM LINER
         let adminListingMarker = null;
         let detailListingMap = null;
         let detailListingMarker = null;
+        let projectDetailMap = null;
+        let projectDetailMarker = null;
         let fullscreenMap = null;
         let fullscreenMapMarker = null;
         let fullscreenMapSource = null;
@@ -12966,8 +12976,12 @@ Title: CASPIAN DREAM LINER
             return [...new Set([...(PROJECT_ALIAS_FALLBACKS[project.title] || []), ...explicit])];
         }
 
+        function hasProjectCoordinates(project = {}) {
+            return Number.isFinite(Number(project.latitude)) && Number.isFinite(Number(project.longitude));
+        }
+
         function hasVerifiedProjectCoordinates(project = {}) {
-            return Boolean(project.mapLocationVerified) && Number.isFinite(Number(project.latitude)) && Number.isFinite(Number(project.longitude));
+            return Boolean(project.mapLocationVerified) && hasProjectCoordinates(project);
         }
 
         function projectLocationRowsForQuery(query = '') {
@@ -13383,17 +13397,19 @@ Title: CASPIAN DREAM LINER
             const searchInput = document.getElementById('sb-location-search');
             if (item.source === 'project' || item.projectTitle) applyProjectLocationSelection(item.projectTitle || item.display_name || '');
             const isUnverifiedProject = item.source === 'project' && !item.verifiedProjectLocation;
-            if (isUnverifiedProject) {
-                showToast('Layihə tapıldı, xəritə yeri təsdiqlənməyib. Dəqiq nöqtəni xəritədə seçin.');
+            if (isUnverifiedProject && !Number.isFinite(Number(item.lat)) && !Number.isFinite(Number(item.lon))) {
+                showToast('Layihə üçün koordinat saxlanmayıb. İstəsəniz xəritədən pin seçə bilərsiniz.');
             }
             const zoom = item.type === 'house' || item.class === 'highway' ? 17 : 16;
-            setAdminListingCoordinates(item.lat, item.lon, {
-                moveMap: true,
-                reverse: false,
-                zoom,
-                note: item.source === 'project' ? (item.verifiedProjectLocation ? 'Təsdiqli layihə koordinatı seçildi' : 'Layihə koordinatı var, xəritə yeri hələ təsdiqlənməyib.') : '',
-                warning: isUnverifiedProject
-            });
+            if (Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))) {
+                setAdminListingCoordinates(item.lat, item.lon, {
+                    moveMap: true,
+                    reverse: false,
+                    zoom,
+                    note: item.source === 'project' ? 'Layihə koordinatı seçildi' : '',
+                    warning: false
+                });
+            }
             fillLocationFieldsFromAddress(item.address || {}, item.display_name || item.name || '');
             if (searchInput) {
                 searchInput.value = item.display_name || item.name || searchInput.value;
@@ -14291,7 +14307,7 @@ Title: CASPIAN DREAM LINER
             if (settlementInput && !settlementInput.value) settlementInput.value = project;
             if (streetInput && !streetInput.value) streetInput.value = project;
             const meta = getOfficialProjects().find(item => item.title === project);
-            if (meta && hasVerifiedProjectCoordinates(meta)) setPublicListingCoordinates(meta.latitude, meta.longitude, { moveMap: true, reverse: false, zoom: 16 });
+            if (meta && hasProjectCoordinates(meta)) setPublicListingCoordinates(meta.latitude, meta.longitude, { moveMap: true, reverse: false, zoom: 16 });
         }
 
         function handlePublicListingRegionChange() {
@@ -14474,7 +14490,7 @@ Title: CASPIAN DREAM LINER
         function showPublicLocationSuggestions() { const el=document.getElementById('pl-location-results'); const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(!el) return; if(q.length<3){el.innerHTML=q.length?'<div class="rounded-xl bg-slate-50 p-2 font-bold text-slate-600">Axtarış üçün ən az 3 hərf yazın</div>':''; if(q.length) openPublicAddressSuggestions(); else closePublicAddressSuggestions(); return;} openPublicAddressSuggestions(); }
         async function nominatimSearch(query, city='Bakı') { return searchLocationsWithPriority(query, { city }); }
         async function searchPublicListingLocation() { const q=(document.getElementById('pl-location-search')?.value||'').trim(); if(q.length<3) return; const token=`${Date.now()}-${q}`; window.__lastPublicLocationToken=token; const instantRows=locationRowsBeforeRemote(q); window.__lastPublicLocationResults=instantRows; renderPublicLocationResults(instantRows,q,'pl',{loading:true}); try { const rows=await searchLocationsWithPriority(q,{city:publicLocationCity()}); if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=rows; renderPublicLocationResults(rows,q,'pl',{error:false}); } catch(e){ if(!isSearchResponseCurrent('pl-location-search','__lastPublicLocationToken',token,q)) return; window.__lastPublicLocationResults=[]; renderPublicLocationResults([],q,'pl',{error:true}); } }
-        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); if(item.source==='project' && !item.verifiedProjectLocation) showToast('Layihə tapıldı, xəritə yeri təsdiqlənməyib. Dəqiq nöqtəni xəritədə seçin.'); setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
+        async function selectPublicLocationResult(index) { let item=(window.__lastPublicLocationResults||[])[index]; if(!item) return; try { item=await resolveLocationResult(item); } catch(error) { warnMapboxFallback(); return; } const input=document.getElementById('pl-location-search'); if(item.knownPlace || item.source==='project' || item.projectTitle) applyPublicKnownPlaceSelection(item.projectTitle || item.display_name || ''); if(Number.isFinite(Number(item.lat)) && Number.isFinite(Number(item.lon))) setPublicListingCoordinates(item.lat,item.lon,{moveMap:true,reverse:false,zoom: item.type==='house'?17:16,manual:false}); fillPublicLocationFieldsFromAddress(item.address||{}, item.display_name||item.name||''); if(input) input.value=item.display_name||item.name||input.value; closePublicAddressSuggestions(); }
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key==='Escape') { event.preventDefault(); closePublicAddressSuggestions(); return; } if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
@@ -16043,6 +16059,44 @@ Təşəkkür edirəm. 🙏`;
             return;
         }
 
+
+        function renderProjectDetailLocationMap(project = {}) {
+            const section = document.getElementById('op-modal-location-section');
+            const mapEl = document.getElementById('op-modal-location-map');
+            const googleBtn = document.getElementById('op-modal-google-maps-btn');
+            const lat = Number(project.latitude);
+            const lng = Number(project.longitude);
+            const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng);
+            if (!section || !mapEl) return;
+            section.classList.toggle('hidden', !hasCoordinates);
+            if (!hasCoordinates) {
+                if (projectDetailMarker) {
+                    projectDetailMarker.remove();
+                    projectDetailMarker = null;
+                }
+                return;
+            }
+            const point = [lat, lng];
+            if (googleBtn) googleBtn.href = `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
+            if (typeof L === 'undefined') {
+                ensureLeafletLoaded().then(() => renderProjectDetailLocationMap(project)).catch(error => console.error(error));
+                return;
+            }
+            setMapLoading('op-modal-location-map-loading', true);
+            setTimeout(() => {
+                if (!projectDetailMap) {
+                    projectDetailMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, 16);
+                    addOpenStreetMapLayer(projectDetailMap);
+                    attachMapLoadingOverlay(projectDetailMap, 'op-modal-location-map-loading');
+                } else {
+                    projectDetailMap.setView(point, 16);
+                }
+                if (!projectDetailMarker) projectDetailMarker = L.marker(point).addTo(projectDetailMap);
+                else projectDetailMarker.setLatLng(point);
+                projectDetailMap.invalidateSize();
+            }, 80);
+        }
+
         function renderOfficialProjectDetails(project) {
             const clean = value => Array.isArray(value) ? value.filter(Boolean).join(' / ') : String(value || '').trim();
             const renderSections = sections => sections.map(([title, rows, wide]) => {
@@ -16103,6 +16157,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('op-project-next').classList.toggle('hidden', !hasMultipleProjects);
 
             renderOfficialProjectDetails(project);
+            renderProjectDetailLocationMap(project);
             renderSimilarProjects(project);
             switchOfficialModalTab('details');
         }
@@ -19854,13 +19909,8 @@ Təşəkkür edirəm. 🙏`;
             const latitude = safeNumber(document.getElementById('sb-latitude')?.value);
             const longitude = safeNumber(document.getElementById('sb-longitude')?.value);
 
-            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-                alert('Xəritədə dəqiq yeri seçin və ya axtarış nəticəsindən seçin.');
-                document.getElementById('sb-location-search')?.focus();
-                isListingSaveSubmitting = false;
-                setListingSaveButtonLoading(false);
-                return;
-            }
+            const listingLatitude = Number.isFinite(latitude) ? latitude : null;
+            const listingLongitude = Number.isFinite(longitude) ? longitude : null;
 
             if (!editId && !(await ensureListingContactPhone())) {
                 isListingSaveSubmitting = false;
@@ -19907,8 +19957,8 @@ Təşəkkür edirəm. 🙏`;
                 settlement,
                 metroStation,
                 streetAddress,
-                latitude,
-                longitude,
+                latitude: listingLatitude,
+                longitude: listingLongitude,
                 generalCityRegion,
                 listingType,
                 category,
