@@ -68,6 +68,14 @@
 
         html, body { max-width: 100%; overflow-x: clip; background: var(--color-background); }
         body { background: var(--color-background); color: var(--color-text-primary); transition: background-color 180ms ease, color 180ms ease; }
+        html, body, main, .app, #app, .page, .content, .tab-content, .public-page, .page-shell {
+            filter: none !important;
+            opacity: 1;
+        }
+        html, body, main, .app, #app, .page, .content {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
         .desktop-ad-layout, main.flex-grow, .tab-content, #tab-seabreeze, #seabreeze-home-content, #sea-breeze-projects-list { background: transparent; }
         *, *::before, *::after { box-sizing: border-box; }
         img, video, iframe, canvas, svg { max-width: 100%; }
@@ -176,8 +184,8 @@
                 overflow: hidden;
                 border-radius: 999px;
                 box-shadow: 0 16px 42px rgba(15, 23, 42, .18);
-                backdrop-filter: blur(14px);
-                -webkit-backdrop-filter: blur(14px);
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
                 transform-origin: right center;
                 transition: transform 180ms ease, width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
             }
@@ -711,10 +719,12 @@
         .listing-detail-scroll { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 120px; }
 
         .modal-glass-backdrop {
+            display: none;
             background: rgba(255,255,255,.08) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
+        .modal-glass-backdrop:not(.hidden) { display: flex; }
         .modal-glass-panel {
             box-shadow:
                 0 20px 60px rgba(0,0,0,.18),
@@ -13381,8 +13391,8 @@ Title: CASPIAN DREAM LINER
             'property-lightbox',
             'fullscreen-map-modal'
         ];
-        const MODAL_STATE_CLASSES = ['modal-open', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
-        const MODAL_BACKGROUND_SELECTORS = ['#app', '#root', '#page', '#main', 'main', '.page-shell', '.public-page'];
+        const MODAL_STATE_CLASSES = ['modal-open', 'menu-open', 'player-expanded', 'overflow-hidden', 'is-modal-open', 'has-modal-open', 'backdrop-active', 'overlay-active', 'blurred', 'is-blurred', 'app-blur', 'modal-blur'];
+        const MODAL_BACKGROUND_SELECTORS = ['#app', '#root', '#page', '#main', 'main', '.app', '.page', '.content', '.tab-content', '.page-shell', '.public-page'];
         const MODAL_BACKGROUND_CLASSES = ['blur', 'blur-sm', 'blur-md', 'blur-lg', 'backdrop-blur', 'backdrop-blur-sm', 'backdrop-blur-md', 'filter', 'is-blurred', 'app-blur', 'modal-blur'];
 
         function isElementVisibleById(id) {
@@ -13408,6 +13418,7 @@ Title: CASPIAN DREAM LINER
                     el.style.filter = '';
                     el.style.backdropFilter = '';
                     el.style.webkitBackdropFilter = '';
+                    el.style.opacity = '';
                     if (el.dataset.modalAriaHidden === 'true') {
                         el.removeAttribute('aria-hidden');
                         delete el.dataset.modalAriaHidden;
@@ -13419,8 +13430,9 @@ Title: CASPIAN DREAM LINER
                 });
             });
 
-            document.querySelectorAll('.modal-glass-backdrop.hidden, .fullscreen-map-backdrop.hidden, [data-modal-backdrop].hidden').forEach((el) => {
+            document.querySelectorAll('.modal-glass-backdrop.hidden, .fullscreen-map-backdrop.hidden, [data-modal-backdrop].hidden, .modal-backdrop.hidden, .site-overlay.hidden, .music-backdrop, [data-site-overlay].hidden').forEach((el) => {
                 el.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+                if (el.classList.contains('music-backdrop')) el.remove();
                 if (el.dataset.modalAriaHidden === 'true') {
                     el.removeAttribute('aria-hidden');
                     delete el.dataset.modalAriaHidden;
@@ -13452,6 +13464,23 @@ Title: CASPIAN DREAM LINER
                 modal.classList.toggle('is-active', visibleModalIds.includes(id));
                 if (!visibleModalIds.includes(id)) modal.classList.remove('active', 'open', 'show', 'visible', 'backdrop-active', 'overlay-active');
             });
+        }
+
+
+        function emergencyStartupOverlayCleanup() {
+            cleanupModalState();
+            document.querySelectorAll('.modal-backdrop, .site-overlay, .music-backdrop, [data-site-overlay], [data-modal-backdrop]').forEach((el) => {
+                if (APP_MODAL_IDS.includes(el.id)) return;
+                const ownsVisibleModal = el.closest(APP_MODAL_IDS.map(id => `#${id}`).join(','));
+                if (ownsVisibleModal) return;
+                el.remove();
+            });
+            document.querySelectorAll('.modal-glass-backdrop, .fullscreen-map-backdrop').forEach((el) => {
+                if (!APP_MODAL_IDS.includes(el.id)) return;
+                el.classList.add('hidden');
+                el.classList.remove('active', 'is-active', 'open', 'is-open', 'show', 'visible', 'backdrop-active', 'overlay-active');
+            });
+            syncModalOpenState();
         }
 
         let fullscreenMapCloseCleanup = null;
@@ -20916,6 +20945,7 @@ Təşəkkür edirəm. 🙏`;
         });
 
         window.addEventListener('DOMContentLoaded', async () => {
+            emergencyStartupOverlayCleanup();
             applySiteTheme(preferredTheme());
             window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (preferredTheme() === 'system') applySiteTheme('system'); });
             const initialPath = window.location.pathname;
