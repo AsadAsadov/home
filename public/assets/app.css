@@ -113,13 +113,22 @@
 .mr-2{margin-right:0.5rem}
 .bg-brand-50{background-color:#EAEAFF}
 .text-gray-500{color:#6b7280}
-.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (min-width:640px){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1280px){.xl\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.rounded-3xl{border-radius:1.5rem}
+.border-white\/10{border-color:rgba(255,255,255,0.1)}
+.p-4{padding:1rem}
+@media (min-width:640px){.sm\:p-5{padding:1.25rem}}
+.space-y-4>:not([hidden])~:not([hidden]){margin-top:1rem}
 .gap-3{gap:0.75rem}
+@media (min-width:640px){.sm\:text-2xl{font-size:1.5rem}}
+.text-slate-950{color:#020617}
+.text-slate-500{color:#64748b}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}
+@media (min-width:640px){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1024px){.lg\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:1280px){.xl\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:640px){.sm\:gap-5{gap:1.25rem}}
 @media (min-width:768px){.md\:gap-6{gap:1.5rem}}
-.space-y-4>:not([hidden])~:not([hidden]){margin-top:1rem}
 .font-extrabold{font-weight:800}
 .text-gray-900{color:#111827}
 .text-gray-600{color:#4b5563}
@@ -144,7 +153,6 @@
 .hover\:text-white:hover{color:#fff}
 @media (min-width:768px){.md\:text-2xl{font-size:1.5rem}}
 @media (min-width:768px){.md\:text-sm{font-size:.875rem}}
-.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}
 @media (min-width:1024px){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .gap-5{gap:1.25rem}
 .flex-wrap{flex-wrap:wrap}
@@ -165,13 +173,10 @@
 .space-x-2>:not([hidden])~:not([hidden]){margin-left:0.5rem}
 @media (min-width:1024px){.lg\:col-span-7{grid-column:span 7 / span 7}}
 @media (min-width:768px){.md\:p-6{padding:1.5rem}}
-.rounded-3xl{border-radius:1.5rem}
 .bg-emerald-500\/10{background-color:rgba(16,185,129,0.1)}
 .border-emerald-500\/30{border-color:rgba(16,185,129,0.3)}
 .text-emerald-400{color:#34d399}
-.p-4{padding:1rem}
 .space-x-3>:not([hidden])~:not([hidden]){margin-left:0.75rem}
-.border-white\/10{border-color:rgba(255,255,255,0.1)}
 .py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}
 .bg-\[\#0f172a\]{background-color:#0f172a}
 .border-2{border-width:2px}
@@ -259,11 +264,9 @@
 .py-8{padding-top:2rem;padding-bottom:2rem}
 .border-slate-200{border-color:#e2e8f0}
 .border-b{border-bottom-width:1px}
-.text-slate-950{color:#020617}
 .bg-brand-600{background-color:#6B6BFF}
 .text-\[11px\]{font-size:11px}
 .flex-1{flex:1 1 0%}
-.text-slate-500{color:#64748b}
 .hover\:bg-white\/10:hover{background-color:rgba(255,255,255,0.1)}
 .space-y-1>:not([hidden])~:not([hidden]){margin-top:0.25rem}
 .tracking-wide{letter-spacing:.025em}
@@ -618,6 +621,7 @@
 .bg-slate-200{background-color:#e2e8f0}
 .h-3{height:0.75rem}
 .w-2\/3{width:66.66666666666666%}
+.hover\:border-brand-500:hover{border-color:#7F7FFF}
 .py-10{padding-top:2.5rem;padding-bottom:2.5rem}
 .hover\:border-brand-500\/50:hover{border-color:rgba(127,127,255,0.5)}
 .from-black\/80{--tw-gradient-from:rgba(0,0,0,0.8);--tw-gradient-to:rgba(255,255,255,0);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}
@@ -1289,7 +1293,6 @@
 @media (min-width:768px){.md\:p-4{padding:1rem}}
 @media (min-width:1024px){.lg\:p-4{padding:1rem}}
 @media (min-width:1280px){.xl\:p-4{padding:1rem}}
-@media (min-width:640px){.sm\:p-5{padding:1.25rem}}
 @media (min-width:1024px){.lg\:p-5{padding:1.25rem}}
 @media (min-width:1280px){.xl\:p-5{padding:1.25rem}}
 @media (min-width:1024px){.lg\:p-6{padding:1.5rem}}
@@ -9234,7 +9237,6 @@
 @media (min-width:768px){.md\:border-brand-500{border-color:#7F7FFF}}
 @media (min-width:1024px){.lg\:border-brand-500{border-color:#7F7FFF}}
 @media (min-width:1280px){.xl\:border-brand-500{border-color:#7F7FFF}}
-.hover\:border-brand-500:hover{border-color:#7F7FFF}
 .focus-visible\:border-brand-500:focus-visible{border-color:#7F7FFF}
 .border-brand-600{border-color:#6B6BFF}
 @media (min-width:640px){.sm\:border-brand-600{border-color:#6B6BFF}}
@@ -10926,7 +10928,6 @@
 .col-span-5{grid-column:span 5 / span 5}
 @media (min-width:640px){.sm\:col-span-5{grid-column:span 5 / span 5}}
 @media (min-width:768px){.md\:col-span-5{grid-column:span 5 / span 5}}
-@media (min-width:1024px){.lg\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media (min-width:1280px){.xl\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media (min-width:1280px){.xl\:col-span-5{grid-column:span 5 / span 5}}
 .grid-cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}

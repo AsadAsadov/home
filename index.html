@@ -20,6 +20,42 @@
     <meta name="twitter:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
     <meta name="twitter:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
     <meta name="twitter:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
+
+    <script>
+        (function () {
+            const LOGOS = {
+                light: '/uploads/siteimage/logo/besthomelight.png',
+                dark: '/uploads/siteimage/logo/besthomedark.png'
+            };
+            const THEME_KEY = 'siteTheme';
+            const resolveTheme = (choice) => {
+                const preferred = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
+                if (preferred === 'system') return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                return preferred;
+            };
+            const currentPreference = () => {
+                try { return localStorage.getItem(THEME_KEY) || 'system'; } catch (_error) { return 'system'; }
+            };
+            const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'];
+            window.BestHomeLogo = {
+                paths: LOGOS,
+                resolveTheme,
+                src: logoSrc,
+                html({ className = 'site-logo', width = 180, height = 48, loading = 'lazy', fetchpriority = '', extra = '' } = {}) {
+                    const priority = fetchpriority ? ` fetchpriority="${fetchpriority}"` : '';
+                    return `<img src="${logoSrc()}" data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async"${extra ? ` ${extra}` : ''}>`;
+                },
+                update(theme = resolveTheme(currentPreference())) {
+                    const src = logoSrc(theme);
+                    document.querySelectorAll('[data-site-logo]').forEach((img) => {
+                        if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+                    });
+                }
+            };
+            document.documentElement.dataset.theme = resolveTheme(currentPreference());
+            document.documentElement.dataset.themePreference = currentPreference();
+        }());
+    </script>
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
     <link rel="preload" href="/public/assets/app.css" as="style">
     <link rel="stylesheet" href="/public/assets/app.css">
@@ -6464,6 +6500,35 @@
         }
 
 
+        /* Centralized theme-aware BestHome logo sizing and visibility. */
+        .site-logo,
+        .site-footer-logo,
+        .mobile-bottom-nav-logo,
+        [data-site-logo] {
+            display: block;
+            width: auto !important;
+            height: 48px !important;
+            max-height: 48px !important;
+            max-width: min(220px, 44vw) !important;
+            object-fit: contain !important;
+            aspect-ratio: auto;
+            image-rendering: auto;
+        }
+        html[data-theme="dark"] [data-site-logo] {
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, .18));
+        }
+        @media (max-width: 767px) {
+            .site-logo,
+            .site-footer-logo,
+            .mobile-bottom-nav-logo,
+            [data-site-logo] {
+                height: 40px !important;
+                max-height: 40px !important;
+                max-width: min(180px, 46vw) !important;
+            }
+        }
+
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -6474,7 +6539,8 @@
             <div class="site-header-inner flex items-center justify-between h-20 md:h-24">
                 <!-- Logo -->
                 <div class="header-logo-wrap flex items-center cursor-pointer" onclick="switchTab('seabreeze')">
-                    <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-logo" width="180" height="80" loading="eager" fetchpriority="high" decoding="async">
+                    <script>document.write(window.BestHomeLogo.html({ className: 'site-logo', width: 180, height: 48, loading: 'eager', fetchpriority: 'high' }));</script>
+                    <noscript><img src="/uploads/siteimage/logo/besthomelight.png" alt="BestHome.az" class="site-logo" width="180" height="48" loading="eager" decoding="async"></noscript>
                 </div>
 
                 <!-- Desktop Menu -->
@@ -8152,7 +8218,8 @@ Title: CASPIAN DREAM LINER
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
                 <div class="space-y-4 sm:col-span-2 lg:col-span-1">
                     <button type="button" class="flex items-center cursor-pointer" onclick="switchTab('seabreeze')" aria-label="BestHome.az ana səhifə">
-                        <img src="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/IMG_6084.PNG" alt="BestHome.az" class="site-footer-logo" width="220" height="108" loading="lazy" decoding="async">
+                        <script>document.write(window.BestHomeLogo.html({ className: 'site-footer-logo', width: 220, height: 48 }));</script>
+                        <noscript><img src="/uploads/siteimage/logo/besthomelight.png" alt="BestHome.az" class="site-footer-logo" width="220" height="48" loading="lazy" decoding="async"></noscript>
                     </button>
                     <p class="text-sm leading-6 text-gray-600 max-w-sm">
                         BestHome.az Sea Breeze və premium daşınmaz əmlak bazarında etibarlı seçimlər, aktual satış/kirayə elanları və peşəkar məsləhət təqdim edir.
@@ -9140,6 +9207,7 @@ Title: CASPIAN DREAM LINER
             localStorage.setItem(SITE_THEME_KEY, choice);
             document.documentElement.dataset.theme = resolvedTheme(choice);
             document.documentElement.dataset.themePreference = choice;
+            window.BestHomeLogo?.update(resolvedTheme(choice));
             document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = choice === 'dark' ? 'Qaranlıq' : choice === 'light' ? 'İşıqlı' : 'Sistem'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = choice === 'dark' ? 'fa-solid fa-moon' : choice === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-circle-half-stroke'; });
         }
