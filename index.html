@@ -2249,6 +2249,69 @@
             border: 1px solid rgba(99,102,241,.16);
             box-shadow: none;
         }
+        .admin-analytics-header {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            width: 100%;
+            align-items: center;
+            gap: .75rem;
+            padding: .8rem .95rem;
+            color: #0f172a;
+            text-align: left;
+        }
+        .admin-analytics-header__icon {
+            flex: 0 0 2rem;
+            width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .75rem;
+            background: rgba(99,102,241,.10);
+        }
+        .admin-analytics-header__eyebrow {
+            display: block;
+            font-size: .62rem;
+            font-weight: 900;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: #4f46e5;
+        }
+        .admin-analytics-header__title {
+            display: block;
+            margin-top: .1rem;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #0f172a;
+        }
+        .admin-analytics-arrow {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            color: #4338ca;
+            background: rgba(99,102,241,.10);
+            transition: transform 220ms ease, background 180ms ease, color 180ms ease;
+        }
+        .admin-analytics-card.is-expanded .admin-analytics-arrow { transform: translateY(-1px); }
+        .admin-analytics-content {
+            position: relative;
+            z-index: 1;
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 .95rem;
+            opacity: 0;
+            transition: max-height 260ms ease, opacity 220ms ease, padding-bottom 260ms ease;
+        }
+        .admin-analytics-card.is-expanded .admin-analytics-content {
+            max-height: 520px;
+            padding-bottom: .95rem;
+            opacity: 1;
+        }
         .admin-analytics-tabs {
             display: inline-flex;
             flex-wrap: wrap;
@@ -2269,8 +2332,6 @@
         }
         .admin-analytics-tab:hover { color: #312e81; background: rgba(99,102,241,.10); }
         .admin-analytics-tab.is-active { color: #fff; background: linear-gradient(135deg, #4f46e5, #06b6d4); box-shadow: 0 8px 18px rgba(79,70,229,.22); }
-        .admin-mini-bar { height: .5rem; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
-        .admin-mini-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4f46e5, #06b6d4); min-width: 4px; }
         .admin-subtabs {
             display: flex;
             flex-wrap: wrap;
@@ -6354,7 +6415,11 @@
             color: var(--dark-text) !important;
             border-color: var(--dark-border) !important;
         }
-        html[data-theme="dark"] .admin-mini-bar { background: rgba(148,163,184,.20); }
+        html[data-theme="dark"] .admin-analytics-header { color: var(--dark-text); }
+        html[data-theme="dark"] .admin-analytics-header__icon,
+        html[data-theme="dark"] .admin-analytics-arrow { color: #c4b5fd; background: rgba(124,108,255,.18); }
+        html[data-theme="dark"] .admin-analytics-header__eyebrow { color: #a5b4fc; }
+        html[data-theme="dark"] .admin-analytics-header__title { color: #f8fafc; }
         html[data-theme="dark"] .admin-analytics-tabs { background: rgba(2,6,23,.78); border-color: var(--dark-border); }
         html[data-theme="dark"] .admin-analytics-tab { color: #cbd5e1; }
         html[data-theme="dark"] .admin-analytics-tab:hover { color: #fff; background: rgba(124,108,255,.18); }
@@ -7171,7 +7236,7 @@
             </div>
         </section>
 
-        <section id="tab-admin-dashboard" class="tab-content hidden space-y-8 admin-dashboard-shell">
+        <section id="tab-admin-dashboard" class="tab-content hidden space-y-5 admin-dashboard-shell">
             <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
             <!-- Dashboard Subtabs are rendered by role so admin-only cabinet buttons are absent from the DOM for normal users. -->
@@ -7181,7 +7246,7 @@
             </div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
-            <div id="admin-subtab-seabreeze-manager" class="admin-subtab-panel grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div id="admin-subtab-seabreeze-manager" class="admin-subtab-panel grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
                     <button id="sb-form-toggle" type="button" onclick="toggleSeaBreezeForm()" aria-expanded="false" aria-controls="admin-listing-form" class="w-full text-left text-lg font-bold text-white flex items-center justify-between gap-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 transition">
                         <span class="flex items-center space-x-2">
@@ -19866,6 +19931,25 @@ Təşəkkür edirəm. 🙏`;
 
 
         let currentAdminAnalyticsTab = 'listings';
+        let adminAnalyticsExpanded = localStorage.getItem('adminAnalyticsExpanded') === 'true';
+
+        function toggleAdminAnalyticsPanel() {
+            adminAnalyticsExpanded = !adminAnalyticsExpanded;
+            localStorage.setItem('adminAnalyticsExpanded', String(adminAnalyticsExpanded));
+            const panel = document.querySelector('.admin-analytics-card');
+            if (!panel) return;
+            panel.classList.toggle('is-expanded', adminAnalyticsExpanded);
+            const header = panel.querySelector('.admin-analytics-header');
+            const content = panel.querySelector('.admin-analytics-content');
+            const arrow = panel.querySelector('.admin-analytics-arrow');
+            header?.setAttribute('aria-expanded', String(adminAnalyticsExpanded));
+            content?.setAttribute('aria-hidden', String(!adminAnalyticsExpanded));
+            if (content) {
+                if (adminAnalyticsExpanded) content.removeAttribute('inert');
+                else content.setAttribute('inert', '');
+            }
+            if (arrow) arrow.textContent = adminAnalyticsExpanded ? '▲' : '▼';
+        }
 
         function setAdminAnalyticsTab(tab = 'listings') {
             currentAdminAnalyticsTab = ['listings', 'ads', 'projects', 'career'].includes(tab) ? tab : 'listings';
@@ -19921,37 +20005,28 @@ Təşəkkür edirəm. 🙏`;
                 ]
             };
             const rows = groups[currentAdminAnalyticsTab] || groups.listings;
-            const chartRows = [
-                ['Reklam baxışları', stats.totalViews],
-                ['Layihə baxışları', stats.totalProjectViews],
-                ['Reklam klikləri', stats.totalClicks],
-                ['PDF yükləmələri', stats.totalProjectClicks]
-            ];
-            const maxValue = Math.max(1, ...chartRows.map(([, value]) => Number(value || 0)));
             return `
-                <section class="admin-analytics-card col-span-full mt-1 p-4 md:p-5">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div class="min-w-0">
-                            <p class="text-[10px] font-black uppercase tracking-[.18em] text-indigo-500 dark:text-indigo-300">Analitika</p>
-                            <h3 class="mt-1 text-lg font-black text-slate-950 dark:text-white">Qruplaşdırılmış göstəricilər</h3>
-                        </div>
+                <section class="admin-analytics-card col-span-full mt-0 ${adminAnalyticsExpanded ? 'is-expanded' : ''}">
+                    <button type="button" class="admin-analytics-header" aria-expanded="${adminAnalyticsExpanded}" onclick="toggleAdminAnalyticsPanel()">
+                        <span class="admin-analytics-header__icon" aria-hidden="true">📊</span>
+                        <span class="min-w-0 text-left">
+                            <span class="admin-analytics-header__eyebrow">Analitika</span>
+                            <span class="admin-analytics-header__title">Qruplaşdırılmış göstəricilər</span>
+                        </span>
+                        <span class="admin-analytics-arrow" aria-hidden="true">${adminAnalyticsExpanded ? '▲' : '▼'}</span>
+                    </button>
+                    <div class="admin-analytics-content" aria-hidden="${!adminAnalyticsExpanded}" ${adminAnalyticsExpanded ? '' : 'inert'}>
                         <div class="admin-analytics-tabs" role="tablist" aria-label="Admin analitika qrupları">
                             ${tabs.map(([key, label]) => `<button type="button" class="admin-analytics-tab ${currentAdminAnalyticsTab === key ? 'is-active' : ''}" role="tab" aria-selected="${currentAdminAnalyticsTab === key}" onclick="setAdminAnalyticsTab('${key}')">${label}</button>`).join('')}
                         </div>
-                    </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
-                        ${rows.map(([label, value, icon]) => `
-                            <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 dark:border-white/10 dark:bg-white/5">
-                                <div class="flex items-center justify-between gap-2 text-slate-500 dark:text-slate-300"><span class="text-[11px] font-black">${label}</span><i class="fa-solid ${icon} text-indigo-500 dark:text-indigo-300"></i></div>
-                                <div class="mt-2 text-xl font-black text-slate-950 dark:text-white">${dashboardNumber(value)}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="mt-4 grid gap-3 lg:grid-cols-2">
-                        ${chartRows.map(([label, value]) => {
-                            const width = Math.max(4, Math.round((Number(value || 0) / maxValue) * 100));
-                            return `<div class="rounded-2xl border border-slate-200/80 bg-white/70 p-3 dark:border-white/10 dark:bg-black/20"><div class="mb-2 flex items-center justify-between gap-3 text-xs font-black text-slate-700 dark:text-slate-200"><span>${label}</span><span>${dashboardNumber(value)}</span></div><div class="admin-mini-bar"><span style="width:${width}%"></span></div></div>`;
-                        }).join('')}
+                        <div class="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
+                            ${rows.map(([label, value, icon]) => `
+                                <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 dark:border-white/10 dark:bg-white/5">
+                                    <div class="flex items-center justify-between gap-2 text-slate-500 dark:text-slate-300"><span class="text-[11px] font-black">${label}</span><i class="fa-solid ${icon} text-indigo-500 dark:text-indigo-300"></i></div>
+                                    <div class="mt-2 text-xl font-black text-slate-950 dark:text-white">${dashboardNumber(value)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </section>
             `;
