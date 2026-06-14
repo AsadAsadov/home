@@ -8301,7 +8301,7 @@ Title: CASPIAN DREAM LINER
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1366;
         window.addEventListener('resize', () => { updateDesktopAdStickyOffset(); renderDesktopAds({ force: true }); });
-        const adRotationState = { index: 0, repeat: 0, timer: null, activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
+        const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
         function normalizeRegionType(value, projectName = '') {
             const normalized = String(value || '').trim().toLowerCase();
@@ -9873,10 +9873,16 @@ Title: CASPIAN DREAM LINER
         }
 
         function clearAdRotationTimer() {
-            if (adRotationState.timer) {
-                clearTimeout(adRotationState.timer);
-                adRotationState.timer = null;
-            }
+            ['timer', 'safetyTimer', 'stallTimer', 'durationTimer'].forEach(key => {
+                if (adRotationState[key]) {
+                    clearTimeout(adRotationState[key]);
+                    adRotationState[key] = null;
+                }
+            });
+            (adRotationState.videoCleanups || []).forEach(cleanup => {
+                try { cleanup(); } catch (_error) {}
+            });
+            adRotationState.videoCleanups = [];
         }
 
         function resetAdRotationRenderState() {
@@ -9891,7 +9897,7 @@ Title: CASPIAN DREAM LINER
             const currentIndex = ads.findIndex(ad => String(ad.id) === String(expectedAdId ?? adRotationState.activeAdId));
             if (currentIndex >= 0) adRotationState.index = currentIndex;
             const currentAd = ads[adRotationState.index] || ads[0];
-            const repeatCount = adDimension(currentAd.repeatCount, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT);
+            const repeatCount = currentAd?.mediaType === 'video' ? 1 : adDimension(currentAd.repeatCount, AD_DEFAULT_REPEAT_COUNT, AD_MIN_REPEAT_COUNT, AD_MAX_REPEAT_COUNT);
             adRotationState.repeat += 1;
             if (adRotationState.repeat >= repeatCount) {
                 adRotationState.index = (adRotationState.index + 1) % ads.length;
@@ -9927,11 +9933,11 @@ Title: CASPIAN DREAM LINER
             rail.replaceChildren();
         }
 
-        function createDesktopAdLayer(ad, visible = false) {
+        function createDesktopAdLayer(ad, visible = false, mediaNode = null) {
             const layer = document.createElement('div');
             layer.className = `desktop-ad-layer${visible ? ' is-visible' : ''}`;
             layer.dataset.adId = ad.id || '';
-            layer.appendChild(createAdMediaNode(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true }));
+            layer.appendChild(mediaNode || createAdMediaNode(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true }));
             return layer;
         }
 
@@ -9958,7 +9964,7 @@ Title: CASPIAN DREAM LINER
             if (label) label.textContent = ad.title || '';
         }
 
-        function showDesktopAdInRail(rail, ad, token) {
+        function showDesktopAdInRail(rail, ad, token, mediaNode = null) {
             let card = rail.querySelector('.desktop-ad-card');
             if (!card) {
                 card = createDesktopAdCard(ad);
@@ -9972,7 +9978,7 @@ Title: CASPIAN DREAM LINER
             }
             configureDesktopAdCard(card, ad);
             const stage = card.querySelector('.desktop-ad-stage');
-            const nextLayer = createDesktopAdLayer(ad, false);
+            const nextLayer = createDesktopAdLayer(ad, false, mediaNode);
             stage.appendChild(nextLayer);
             requestAnimationFrame(() => {
                 if (token !== adRotationState.transitionToken) return;
@@ -9989,13 +9995,70 @@ Title: CASPIAN DREAM LINER
             }, 450);
         }
 
-        function attachDesktopAdVideoHandlers(ad) {
+        function attachDesktopAdVideoHandlers(ad, token) {
             if (ad.mediaType !== 'video') return;
-            document.querySelectorAll('[data-ad-rotation-video="true"]').forEach((video, index) => {
-                if (String(video.dataset.adId) !== String(ad.id)) return;
-                video.onended = index === 0 ? () => finishAdRotationRepeat(ad.id) : null;
+            const videos = Array.from(document.querySelectorAll('[data-ad-rotation-video="true"]')).filter(video => String(video.dataset.adId) === String(ad.id));
+            let hasPlayed = false;
+            const skip = (delay = 0, warning = '') => {
+                if (token !== adRotationState.transitionToken) return;
+                if (warning) console.warn(warning);
+                if (adRotationState.stallTimer) clearTimeout(adRotationState.stallTimer);
+                adRotationState.stallTimer = setTimeout(() => finishAdRotationRepeat(ad.id), Math.min(Math.max(delay, 0), 1000));
+            };
+            const primaryVideo = videos[0];
+            if (!primaryVideo) return skip(0);
+            adRotationState.safetyTimer = setTimeout(() => {
+                if (!hasPlayed) skip(0, '[ads] video did not start, skipping');
+            }, 3000);
+            videos.forEach((video, index) => {
+                const onMetadata = () => {
+                    if (Number.isFinite(video.duration) && video.duration > 0 && index === 0) {
+                        if (adRotationState.durationTimer) clearTimeout(adRotationState.durationTimer);
+                        adRotationState.durationTimer = setTimeout(() => {
+                            if (!video.ended) skip(0, '[ads] video duration timeout, skipping');
+                        }, Math.min((video.duration + 2) * 1000, 10 * 60 * 1000));
+                    } else if (video.duration === Infinity || Number.isNaN(video.duration)) {
+                        skip(1000, '[ads] video invalid duration, skipping');
+                    }
+                };
+                const onPlaying = () => { hasPlayed = true; if (adRotationState.safetyTimer) { clearTimeout(adRotationState.safetyTimer); adRotationState.safetyTimer = null; } };
+                const onEnded = () => { if (index === 0) { console.warn('[ads] video ended, next'); finishAdRotationRepeat(ad.id); } };
+                const onProblem = (event) => skip(1000, event.type === 'stalled' ? '[ads] video stalled, skipping' : `[ads] video ${event.type}, skipping`);
+                const onWaiting = () => skip(1000, '[ads] video waiting, skipping');
+                [['loadedmetadata', onMetadata], ['playing', onPlaying], ['ended', onEnded], ['error', onProblem], ['stalled', onProblem], ['abort', onProblem], ['emptied', onProblem], ['suspend', onProblem], ['waiting', onWaiting]].forEach(([name, handler]) => video.addEventListener(name, handler));
+                adRotationState.videoCleanups.push(() => [['loadedmetadata', onMetadata], ['playing', onPlaying], ['ended', onEnded], ['error', onProblem], ['stalled', onProblem], ['abort', onProblem], ['emptied', onProblem], ['suspend', onProblem], ['waiting', onWaiting]].forEach(([name, handler]) => video.removeEventListener(name, handler)));
                 video.currentTime = 0;
-                video.play().catch(() => {});
+                video.play().catch(() => skip(0, '[ads] video autoplay failed, skipping'));
+            });
+        }
+
+        function preloadAdMediaNode(ad) {
+            return new Promise((resolve, reject) => {
+                const node = createAdMediaNode(ad, 'desktop-ad-media', { loop: false, rotation: true, responsive: true, eager: true });
+                if (ad.mediaType !== 'video') {
+                    const img = node.tagName === 'IMG' ? node : node.querySelector?.('img');
+                    if (!img) return resolve(node);
+                    if (img.complete && img.naturalWidth > 0) return resolve(node);
+                    img.onload = () => { loadedAdImages.add(ad.mediaUrl || ''); resolve(node); };
+                    img.onerror = () => reject(new Error('Ad image failed to load'));
+                    return;
+                }
+                const video = node.tagName === 'VIDEO' ? node : node.querySelector?.('video');
+                if (!video) return resolve(node);
+                let done = false;
+                const finish = () => { if (done) return; done = true; cleanup(); resolve(node); };
+                const fail = () => { if (done) return; done = true; cleanup(); reject(new Error('Ad video failed to load')); };
+                const cleanup = () => {
+                    clearTimeout(timeout);
+                    video.removeEventListener('loadedmetadata', finish);
+                    video.removeEventListener('canplay', finish);
+                    video.removeEventListener('error', fail);
+                };
+                const timeout = setTimeout(finish, 3000);
+                video.addEventListener('loadedmetadata', finish, { once: true });
+                video.addEventListener('canplay', finish, { once: true });
+                video.addEventListener('error', fail, { once: true });
+                video.load?.();
             });
         }
 
@@ -10042,9 +10105,10 @@ Title: CASPIAN DREAM LINER
             const hasRenderedAd = Boolean(adRotationState.renderedAdId);
             const token = ++adRotationState.transitionToken;
             clearAdRotationTimer();
+            let preparedMediaNode = null;
             if (!sameRenderedAd && hasRenderedAd) {
                 try {
-                    await preloadAdMedia(ad);
+                    preparedMediaNode = await preloadAdMediaNode(ad);
                 } catch (error) {
                     console.warn('Reklam mediası yüklənmədi, cari reklam saxlanılır:', error.message);
                     adRotationState.index = (adRotationState.index + 1) % ads.length;
@@ -10060,12 +10124,12 @@ Title: CASPIAN DREAM LINER
             trackAdView(ad);
             left.classList.remove('is-loading');
             right.classList.remove('is-loading');
-            if (ad.position === 'left' || ad.position === 'both') showDesktopAdInRail(left, ad, token);
+            if (ad.position === 'left' || ad.position === 'both') showDesktopAdInRail(left, ad, token, preparedMediaNode);
             else clearDesktopAdRail(left);
-            if (ad.position === 'right' || ad.position === 'both') showDesktopAdInRail(right, ad, token);
+            if (ad.position === 'right' || ad.position === 'both') showDesktopAdInRail(right, ad, token, preparedMediaNode ? preparedMediaNode.cloneNode(true) : null);
             else clearDesktopAdRail(right);
             adRotationState.renderedAdId = ad.id;
-            attachDesktopAdVideoHandlers(ad);
+            attachDesktopAdVideoHandlers(ad, token);
             if (ad.mediaType !== 'video') {
                 loadedAdImages.add(ad.mediaUrl || '');
                 preloadNextAdImage(ads, adRotationState.index);
@@ -12602,26 +12666,38 @@ Title: CASPIAN DREAM LINER
         }
 
 
-        const DEFAULT_SEA_BREEZE_LOCATION = { lat: 40.5936578, lng: 49.9658956, zoom: 14 };
+        const DEFAULT_SEA_BREEZE_LOCATION = {
+            lat: 40.5936578,
+            lng: 49.9658956,
+            zoom: 14
+        };
         const AZERBAIJAN_COORDINATE_BOUNDS = { minLat: 38, maxLat: 42, minLng: 44, maxLng: 52 };
         const SEA_BREEZE_DEFAULT_CENTER = [DEFAULT_SEA_BREEZE_LOCATION.lat, DEFAULT_SEA_BREEZE_LOCATION.lng];
         const BAKU_DEFAULT_CENTER = [40.4093, 49.8671];
         const BAKU_DEFAULT_ZOOM = 12;
 
         function isValidCoordinate(lat, lng) {
-            if (lat === null || lat === undefined || lng === null || lng === undefined || lat === '' || lng === '') return false;
-            const latNum = Number(lat);
-            const lngNum = Number(lng);
-            return Number.isFinite(latNum)
-                && Number.isFinite(lngNum)
-                && !(latNum === 0 && lngNum === 0)
-                && latNum >= AZERBAIJAN_COORDINATE_BOUNDS.minLat
-                && latNum <= AZERBAIJAN_COORDINATE_BOUNDS.maxLat
-                && lngNum >= AZERBAIJAN_COORDINATE_BOUNDS.minLng
-                && lngNum <= AZERBAIJAN_COORDINATE_BOUNDS.maxLng;
+            const nLat = Number(lat);
+            const nLng = Number(lng);
+            return Number.isFinite(nLat)
+                && Number.isFinite(nLng)
+                && !(nLat === 0 && nLng === 0)
+                && nLat >= 38 && nLat <= 42
+                && nLng >= 44 && nLng <= 52;
+        }
+
+        function selectedAdminProjectCoordinates() {
+            const projectTitle = document.getElementById('sb-project')?.value || '';
+            const project = getOfficialProjects().find(item => item.title === projectTitle);
+            return hasProjectCoordinates(project) ? [Number(project.latitude), Number(project.longitude)] : null;
         }
 
         function adminMapDefaultCenter() {
+            const lat = document.getElementById('sb-latitude')?.value;
+            const lng = document.getElementById('sb-longitude')?.value;
+            if (isValidCoordinate(lat, lng)) return [Number(lat), Number(lng)];
+            const projectPoint = selectedAdminProjectCoordinates();
+            if (projectPoint) return projectPoint;
             const region = document.getElementById('sb-region-type')?.value || 'seabreeze';
             return region === 'seabreeze' ? SEA_BREEZE_DEFAULT_CENTER : BAKU_DEFAULT_CENTER;
         }
@@ -12721,7 +12797,8 @@ Title: CASPIAN DREAM LINER
                 attachMapLoadingOverlay(adminListingMap, 'sb-location-map-loading');
                 adminListingMap.on('click', event => setAdminListingCoordinates(event.latlng.lat, event.latlng.lng, { moveMap: false, reverse: false, manual: true }));
             }
-            setTimeout(() => adminListingMap.invalidateSize(), 80);
+            setTimeout(() => { adminListingMap.invalidateSize(); adminListingMap.setView(adminListingMarker?.getLatLng?.() || adminMapDefaultCenter(), adminListingMap.getZoom()); }, 150);
+            setTimeout(() => { adminListingMap.invalidateSize(); adminListingMap.setView(adminListingMarker?.getLatLng?.() || adminMapDefaultCenter(), adminListingMap.getZoom()); }, 500);
             const lat = document.getElementById('sb-latitude')?.value;
             const lng = document.getElementById('sb-longitude')?.value;
             if (isValidCoordinate(lat, lng)) setAdminListingCoordinates(lat, lng, { moveMap: true });
@@ -13041,6 +13118,7 @@ Title: CASPIAN DREAM LINER
                         ? `local:${normalizeLocationSearchText(item.display_name)}`
                         : (item?.mapbox_id || item?.osm_id || `${item?.lat},${item?.lon},${item?.display_name}`));
                 if (!item || seen.has(key)) return false;
+                if (item.lat !== null && item.lat !== undefined && item.lon !== null && item.lon !== undefined && !isValidCoordinate(item.lat, item.lon)) return false;
                 seen.add(key);
                 return true;
             }).slice(0, limit);
@@ -13750,6 +13828,7 @@ Title: CASPIAN DREAM LINER
             if (!mapEl) return;
             frameEl?.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
+                console.warn('[map] invalid coordinates, hiding map section');
                 if (detailListingMarker) {
                     detailListingMarker.remove();
                     detailListingMarker = null;
@@ -13757,7 +13836,7 @@ Title: CASPIAN DREAM LINER
                 setMapLoading('p-modal-location-map-loading', false);
                 return;
             }
-            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => { console.error(error); frameEl?.classList.add('hidden'); }); return; }
+            if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => { console.error(error); setMapLoading('p-modal-location-map-loading', false); frameEl?.classList.add('hidden'); }); return; }
             const point = hasListingCoordinates ? [lat, lng] : [Number(relatedProject.latitude), Number(relatedProject.longitude)];
             const zoom = hasListingCoordinates ? 15 : 16;
             setTimeout(() => {
@@ -14361,6 +14440,12 @@ Title: CASPIAN DREAM LINER
         }
 
         function publicMapDefaultCenter() {
+            const lat = document.getElementById('pl-latitude')?.value;
+            const lng = document.getElementById('pl-longitude')?.value;
+            if (isValidCoordinate(lat, lng)) return [Number(lat), Number(lng)];
+            const projectTitle = document.getElementById('pl-project')?.value || '';
+            const project = getOfficialProjects().find(item => item.title === projectTitle);
+            if (hasProjectCoordinates(project)) return [Number(project.latitude), Number(project.longitude)];
             const city = document.getElementById('pl-city')?.value || 'Sea Breeze';
             if (city === 'Sea Breeze') return SEA_BREEZE_DEFAULT_CENTER;
             if (city === 'Abşeron') return [40.457, 49.75];
@@ -14427,7 +14512,8 @@ Title: CASPIAN DREAM LINER
             addOpenStreetMapLayer(publicListingMap);
             attachMapLoadingOverlay(publicListingMap, 'pl-location-map-loading');
             publicListingMap.on('click', e => setPublicListingCoordinates(e.latlng.lat, e.latlng.lng, { moveMap:false, reverse:false, manual:true }));
-            setTimeout(()=>publicListingMap.invalidateSize(), 120);
+            setTimeout(() => { publicListingMap.invalidateSize(); publicListingMap.setView(publicListingMarker?.getLatLng?.() || publicMapDefaultCenter(), publicListingMap.getZoom()); }, 150);
+            setTimeout(() => { publicListingMap.invalidateSize(); publicListingMap.setView(publicListingMarker?.getLatLng?.() || publicMapDefaultCenter(), publicListingMap.getZoom()); }, 500);
         }
 
         function fillPublicLocationFieldsFromAddress(address = {}, displayName = '') {
@@ -16108,6 +16194,7 @@ Təşəkkür edirəm. 🙏`;
             if (!section || !mapEl) return;
             section.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
+                console.warn('[map] invalid coordinates, hiding map section');
                 if (projectDetailMarker) {
                     projectDetailMarker.remove();
                     projectDetailMarker = null;
@@ -16121,7 +16208,8 @@ Təşəkkür edirəm. 🙏`;
                 ensureLeafletLoaded().then(() => renderProjectDetailLocationMap(project)).catch(error => { console.error(error); setMapLoading('op-modal-location-map-loading', false); section.classList.add('hidden'); });
                 return;
             }
-            setMapLoading('op-modal-location-map-loading', true);
+            setMapLoading('op-modal-location-map-loading', false);
+            console.warn('[map] initialized with project coordinates');
             setTimeout(() => {
                 if (!projectDetailMap) {
                     projectDetailMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, 16);
@@ -16133,6 +16221,7 @@ Təşəkkür edirəm. 🙏`;
                 if (!projectDetailMarker) projectDetailMarker = L.marker(point).addTo(projectDetailMap);
                 else projectDetailMarker.setLatLng(point);
                 projectDetailMap.invalidateSize();
+                setMapLoading('op-modal-location-map-loading', false);
                 setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 150);
                 setTimeout(() => { projectDetailMap?.invalidateSize(); projectDetailMap?.setView(point, 16); }, 500);
             }, 80);
