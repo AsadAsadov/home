@@ -2203,23 +2203,74 @@
         .admin-dashboard-stats {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .75rem;
-            width: min(100%, 76rem);
+            gap: .65rem;
+            width: 100%;
             margin-inline: auto;
         }
+        .admin-stat-card,
+        .admin-analytics-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(15,23,42,.09);
+            background: rgba(255,255,255,.92);
+            color: #0f172a;
+            border-radius: 1rem;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, .06) !important;
+            transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
         .admin-stat-card {
-            min-height: 136px;
-            padding: 1.1rem !important;
-            border-radius: 1.25rem;
-            box-shadow: 0 14px 32px rgba(15, 23, 42, .08) !important;
+            min-height: 86px;
+            padding: .85rem !important;
+        }
+        .admin-stat-card::before,
+        .admin-analytics-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: linear-gradient(180deg, #6366f1, #06b6d4);
+        }
+        .admin-stat-card:hover,
+        .admin-analytics-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99,102,241,.32);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, .10) !important;
         }
         .admin-stat-card__icon {
-            width: 2.8rem;
-            height: 2.8rem;
-            flex: 0 0 2.8rem;
-            border: 1px solid rgba(255,255,255,.28);
-            box-shadow: 0 8px 20px rgba(15,23,42,.08);
+            width: 2rem;
+            height: 2rem;
+            flex: 0 0 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .7rem;
+            color: #4f46e5;
+            background: rgba(99,102,241,.10);
+            border: 1px solid rgba(99,102,241,.16);
+            box-shadow: none;
         }
+        .admin-analytics-tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+            padding: .35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15,23,42,.08);
+            background: rgba(248,250,252,.85);
+        }
+        .admin-analytics-tab {
+            min-height: 32px;
+            border-radius: 999px;
+            padding: .45rem .85rem;
+            color: #475569;
+            font-size: .75rem;
+            font-weight: 900;
+            transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+        }
+        .admin-analytics-tab:hover { color: #312e81; background: rgba(99,102,241,.10); }
+        .admin-analytics-tab.is-active { color: #fff; background: linear-gradient(135deg, #4f46e5, #06b6d4); box-shadow: 0 8px 18px rgba(79,70,229,.22); }
+        .admin-mini-bar { height: .5rem; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+        .admin-mini-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4f46e5, #06b6d4); min-width: 4px; }
         .admin-subtabs {
             display: flex;
             flex-wrap: wrap;
@@ -2404,14 +2455,19 @@
         .admin-listing-action--delete { width: 38px; padding-inline: 0; color: #fff; background: #dc2626; }
         .admin-listing-management-card__hero-btn { min-width: 0; }
 
+        @media (min-width: 768px) {
+            .admin-dashboard-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
         @media (min-width: 1024px) {
-            .admin-dashboard-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .admin-dashboard-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
             .admin-listing-filter-pills { flex-wrap: nowrap; }
         }
         @media (max-width: 768px) {
-            .admin-dashboard-stats { gap: .75rem; }
-            .admin-stat-card { min-height: 108px; padding: .875rem !important; }
-            .admin-stat-card__icon { width: 2.625rem; height: 2.625rem; flex-basis: 2.625rem; font-size: .875rem; }
+            .admin-dashboard-stats { gap: .6rem; }
+            .admin-stat-card { min-height: 82px; padding: .75rem !important; }
+            .admin-stat-card__icon { width: 1.85rem; height: 1.85rem; flex-basis: 1.85rem; font-size: .8rem; }
+            .admin-analytics-tabs { width: 100%; border-radius: 1rem; }
+            .admin-analytics-tab { flex: 1 1 calc(50% - .35rem); }
         }
         @media (max-width: 639px) {
             .admin-subtabs { gap: .4rem; padding: .45rem; }
@@ -6286,6 +6342,7 @@
         html[data-theme="dark"] .admin-subtabs,
         html[data-theme="dark"] .admin-dashboard-shell,
         html[data-theme="dark"] .admin-stat-card,
+        html[data-theme="dark"] .admin-analytics-card,
         html[data-theme="dark"] .admin-project-card,
         html[data-theme="dark"] .admin-ad-card,
         html[data-theme="dark"] .admin-listing-card,
@@ -6297,6 +6354,16 @@
             color: var(--dark-text) !important;
             border-color: var(--dark-border) !important;
         }
+        html[data-theme="dark"] .admin-mini-bar { background: rgba(148,163,184,.20); }
+        html[data-theme="dark"] .admin-analytics-tabs { background: rgba(2,6,23,.78); border-color: var(--dark-border); }
+        html[data-theme="dark"] .admin-analytics-tab { color: #cbd5e1; }
+        html[data-theme="dark"] .admin-analytics-tab:hover { color: #fff; background: rgba(124,108,255,.18); }
+        html[data-theme="dark"] .admin-stat-card__icon { color: #a5b4fc; background: rgba(99,102,241,.18); border-color: rgba(165,180,252,.22); }
+        html[data-theme="dark"] .admin-stat-card .text-slate-950,
+        html[data-theme="dark"] .admin-analytics-card .text-slate-950,
+        html[data-theme="dark"] .admin-analytics-card .text-slate-700 { color: #f8fafc !important; }
+        html[data-theme="dark"] .admin-stat-card .text-slate-500,
+        html[data-theme="dark"] .admin-analytics-card .text-slate-500 { color: #cbd5e1 !important; }
         html[data-theme="dark"] #admin-subtabs-container button,
         html[data-theme="dark"] .admin-subtab-button,
         html[data-theme="dark"] #admin-subtabs-container .admin-subtab-button {
@@ -19797,7 +19864,100 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
-        function renderDashboardSkeletonCards(count = 16) {
+
+        let currentAdminAnalyticsTab = 'listings';
+
+        function setAdminAnalyticsTab(tab = 'listings') {
+            currentAdminAnalyticsTab = ['listings', 'ads', 'projects', 'career'].includes(tab) ? tab : 'listings';
+            renderDashboardCards();
+        }
+
+        function dashboardNumber(value) {
+            return Number(value || 0).toLocaleString('az-AZ');
+        }
+
+        function renderAdminKpiCard({ label, value, icon }) {
+            return `
+                <div class="admin-stat-card">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span>
+                        <span class="h-1 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 opacity-80"></span>
+                    </div>
+                    <div class="mt-3 text-xl md:text-2xl font-black leading-none text-slate-950 dark:text-white">${dashboardNumber(value)}</div>
+                    <div class="mt-1 text-[10px] font-black uppercase tracking-[.12em] text-slate-500 dark:text-slate-300">${label}</div>
+                </div>
+            `;
+        }
+
+        function renderAdminAnalyticsPanel(stats) {
+            const tabs = [
+                ['listings', 'Elanlar'],
+                ['ads', 'Reklam'],
+                ['projects', 'Layihələr'],
+                ['career', 'Karyera']
+            ];
+            const groups = {
+                listings: [
+                    ['Təsdiqlənmiş', stats.approvedListings, 'fa-check-circle'],
+                    ['Gözləyən', stats.pendingListings, 'fa-clock'],
+                    ['Rədd edilmiş', stats.rejectedListings, 'fa-ban'],
+                    ['Arxiv', stats.archivedListings, 'fa-box-archive'],
+                    ['Seçilmişlər', stats.totalFavorites, 'fa-heart']
+                ],
+                ads: [
+                    ['Reklamlar', stats.totalAds, 'fa-rectangle-ad'],
+                    ['Aktiv reklamlar', stats.activeAds, 'fa-toggle-on'],
+                    ['Reklam baxışları', stats.totalViews, 'fa-eye'],
+                    ['Reklam klikləri', stats.totalClicks, 'fa-computer-mouse']
+                ],
+                projects: [
+                    ['Layihə baxışları', stats.totalProjectViews, 'fa-eye'],
+                    ['PDF yükləmələri', stats.totalProjectClicks, 'fa-file-arrow-down'],
+                    ['Layihə maraqlanmaları', stats.totalProjectInquiries, 'fa-comments']
+                ],
+                career: [
+                    ['Vakansiyalar', stats.vacanciesCount, 'fa-briefcase'],
+                    ['CV müraciətləri', stats.applicationsCount, 'fa-file-lines']
+                ]
+            };
+            const rows = groups[currentAdminAnalyticsTab] || groups.listings;
+            const chartRows = [
+                ['Reklam baxışları', stats.totalViews],
+                ['Layihə baxışları', stats.totalProjectViews],
+                ['Reklam klikləri', stats.totalClicks],
+                ['PDF yükləmələri', stats.totalProjectClicks]
+            ];
+            const maxValue = Math.max(1, ...chartRows.map(([, value]) => Number(value || 0)));
+            return `
+                <section class="admin-analytics-card col-span-full mt-1 p-4 md:p-5">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-black uppercase tracking-[.18em] text-indigo-500 dark:text-indigo-300">Analitika</p>
+                            <h3 class="mt-1 text-lg font-black text-slate-950 dark:text-white">Qruplaşdırılmış göstəricilər</h3>
+                        </div>
+                        <div class="admin-analytics-tabs" role="tablist" aria-label="Admin analitika qrupları">
+                            ${tabs.map(([key, label]) => `<button type="button" class="admin-analytics-tab ${currentAdminAnalyticsTab === key ? 'is-active' : ''}" role="tab" aria-selected="${currentAdminAnalyticsTab === key}" onclick="setAdminAnalyticsTab('${key}')">${label}</button>`).join('')}
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
+                        ${rows.map(([label, value, icon]) => `
+                            <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 dark:border-white/10 dark:bg-white/5">
+                                <div class="flex items-center justify-between gap-2 text-slate-500 dark:text-slate-300"><span class="text-[11px] font-black">${label}</span><i class="fa-solid ${icon} text-indigo-500 dark:text-indigo-300"></i></div>
+                                <div class="mt-2 text-xl font-black text-slate-950 dark:text-white">${dashboardNumber(value)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-4 grid gap-3 lg:grid-cols-2">
+                        ${chartRows.map(([label, value]) => {
+                            const width = Math.max(4, Math.round((Number(value || 0) / maxValue) * 100));
+                            return `<div class="rounded-2xl border border-slate-200/80 bg-white/70 p-3 dark:border-white/10 dark:bg-black/20"><div class="mb-2 flex items-center justify-between gap-3 text-xs font-black text-slate-700 dark:text-slate-200"><span>${label}</span><span>${dashboardNumber(value)}</span></div><div class="admin-mini-bar"><span style="width:${width}%"></span></div></div>`;
+                        }).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderDashboardSkeletonCards(count = 6) {
             const container = document.getElementById('admin-dashboard-cards');
             if (!container) return;
             container.innerHTML = Array.from({ length: count }).map(() => `
@@ -19815,14 +19975,14 @@ Təşəkkür edirəm. 🙏`;
                 const mine = appData.listings.filter(item => String(item.authorId) === String(activeUser.id));
                 const stats = appData.dashboardStats || {};
                 const cards = [
-                    ['Elanlar', stats.totalListings ?? mine.length, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
-                    ['Təsdiqlənmiş elanlar', stats.approvedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'approved').length, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
-                    ['Gözləyən elanlar', stats.pendingListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'pending').length, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
-                    ['Rədd edilmiş elanlar', stats.rejectedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'rejected').length, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
-                    ['Baxışlar', stats.totalViews ?? stats.views ?? mine.reduce((sum, x) => sum + (x.viewCount || 0), 0), 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
-                    ['Seçilmişlər', stats.totalFavorites ?? stats.favorites ?? mine.reduce((sum, x) => sum + (x.favoritesCount || 0), 0), 'fa-heart', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
+                    { label: 'Elanlar', value: stats.totalListings ?? mine.length, icon: 'fa-building' },
+                    { label: 'Təsdiqlənmiş', value: stats.approvedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'approved').length, icon: 'fa-check-circle' },
+                    { label: 'Gözləyən', value: stats.pendingListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'pending').length, icon: 'fa-clock' },
+                    { label: 'Rədd edilmiş', value: stats.rejectedListings ?? mine.filter(x => normalizeListingStatus(x.status) === 'rejected').length, icon: 'fa-ban' },
+                    { label: 'Baxışlar', value: stats.totalViews ?? stats.views ?? mine.reduce((sum, x) => sum + (x.viewCount || 0), 0), icon: 'fa-eye' },
+                    { label: 'Seçilmişlər', value: stats.totalFavorites ?? stats.favorites ?? mine.reduce((sum, x) => sum + (x.favoritesCount || 0), 0), icon: 'fa-heart' },
                 ];
-                container.innerHTML = cards.map(([label, value, icon, classes]) => `<div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl"><div class="flex items-start justify-between gap-3"><span class="text-[11px] uppercase tracking-wide font-black text-slate-900 leading-snug">${label}</span><span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span></div><div class="mt-4 text-2xl md:text-3xl font-black text-slate-900 leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div></div>`).join('');
+                container.innerHTML = cards.map(card => renderAdminKpiCard(card)).join('');
                 return;
             }
             if (!appData.dashboardStats && !appData.dashboardStatsError) {
@@ -19831,40 +19991,19 @@ Təşəkkür edirəm. 🙏`;
             }
             if (appData.dashboardStatsLoading && !appData.dashboardStats) return renderDashboardSkeletonCards();
             if (appData.dashboardStatsError && !appData.dashboardStats) {
-                container.innerHTML = `<div class="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-black text-red-200">Statistika yüklənmədi</div>`;
+                container.innerHTML = `<div class="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm font-black text-red-700 dark:text-red-200">Statistika yüklənmədi</div>`;
                 return;
             }
             const stats = getDashboardStats();
-            const cards = [
-                ['İstifadəçilər', stats.totalUsers, 'fa-users', 'from-slate-500/20 to-slate-500/5 text-slate-300'],
-                ['Elanlar', stats.totalListings, 'fa-building', 'from-indigo-500/20 to-indigo-500/5 text-indigo-300'],
-                ['Təsdiqlənmiş elanlar', stats.approvedListings, 'fa-check-circle', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
-                ['Gözləyən elanlar', stats.pendingListings, 'fa-clock', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
-                ['Rədd edilmiş elanlar', stats.rejectedListings, 'fa-ban', 'from-red-500/20 to-red-500/5 text-red-300'],
-                ['Arxiv elanlar', stats.archivedListings, 'fa-box-archive', 'from-slate-500/20 to-slate-500/5 text-slate-300'],
-                ['Layihələr', stats.projectsCount, 'fa-diagram-project', 'from-blue-500/20 to-blue-500/5 text-blue-300'],
-                ['Qalereya', stats.galleryCount, 'fa-images', 'from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300'],
-                ['Seçilmişlər', stats.totalFavorites, 'fa-heart', 'from-rose-500/20 to-rose-500/5 text-rose-300'],
-                ['Reklamlar', stats.totalAds, 'fa-rectangle-ad', 'from-cyan-500/20 to-cyan-500/5 text-cyan-300'],
-                ['Aktiv reklamlar', stats.activeAds, 'fa-toggle-on', 'from-lime-500/20 to-lime-500/5 text-lime-300'],
-                ['Reklam baxışları', stats.totalViews, 'fa-eye', 'from-violet-500/20 to-violet-500/5 text-violet-300'],
-                ['Reklam klikləri', stats.totalClicks, 'fa-computer-mouse', 'from-orange-500/20 to-orange-500/5 text-orange-300'],
-                ['Vakansiyalar', stats.vacanciesCount, 'fa-briefcase', 'from-purple-500/20 to-purple-500/5 text-purple-300'],
-                ['CV müraciətləri', stats.applicationsCount, 'fa-file-lines', 'from-pink-500/20 to-pink-500/5 text-pink-300'],
-                ['Layihə baxışları', stats.totalProjectViews, 'fa-eye', 'from-sky-500/20 to-sky-500/5 text-sky-300'],
-                ['Layihə klikləri', stats.totalProjectClicks, 'fa-computer-mouse', 'from-amber-500/20 to-amber-500/5 text-amber-300'],
-                ['Layihə maraqlanmaları', stats.totalProjectInquiries, 'fa-comments', 'from-emerald-500/20 to-emerald-500/5 text-emerald-300'],
-                ['Müraciət cəmi', stats.projectInquiriesTotal, 'fa-inbox', 'from-teal-500/20 to-teal-500/5 text-teal-300'],
+            const kpis = [
+                { label: 'Elanlar', value: stats.totalListings, icon: 'fa-building' },
+                { label: 'İstifadəçilər', value: stats.totalUsers, icon: 'fa-users' },
+                { label: 'Layihələr', value: stats.projectsCount, icon: 'fa-diagram-project' },
+                { label: 'Layihə Baxışları', value: stats.totalProjectViews, icon: 'fa-eye' },
+                { label: 'Reklam Baxışları', value: stats.totalViews, icon: 'fa-rectangle-ad' },
+                { label: 'Müraciətlər', value: stats.projectInquiriesTotal, icon: 'fa-inbox' }
             ];
-            container.innerHTML = cards.map(([label, value, icon, classes]) => `
-                <div class="admin-stat-card border border-white/10 bg-gradient-to-br ${classes} p-4 shadow-xl">
-                    <div class="flex items-start justify-between gap-3">
-                        <span class="text-[11px] uppercase tracking-wide font-black text-slate-900 leading-snug">${label}</span>
-                        <span class="admin-stat-card__icon"><i class="fa-solid ${icon}"></i></span>
-                    </div>
-                    <div class="mt-4 text-2xl md:text-3xl font-black text-slate-900 leading-none">${Number(value || 0).toLocaleString('az-AZ')}</div>
-                </div>
-            `).join('');
+            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminAnalyticsPanel(stats);
         }
 
         function syncAdminListingStatusFilters() {
