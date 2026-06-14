@@ -415,8 +415,18 @@
             image-rendering: auto;
         }
         .footer-premium {
-            background: linear-gradient(180deg, #ffffff 0%, #eef2ff 100%) !important;
+            background: #ffffff !important;
+            opacity: 1 !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             border-top: 1px solid rgba(127, 127, 255, .15) !important;
+        }
+        .footer-premium .theme-logo-wrap,
+        .footer-premium .site-footer-logo-wrap {
+            background: #ffffff !important;
+            opacity: 1 !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         .footer-stat-card {
             transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
@@ -6318,6 +6328,9 @@
         html[data-theme="dark"] .footer,
         html[data-theme="dark"] .footer-premium {
             background: #000000 !important;
+            opacity: 1 !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             color: var(--dark-text-2) !important;
             border-top-color: var(--dark-border) !important;
         }
@@ -6531,6 +6544,13 @@
         html[data-theme="dark"] .theme-logo-wrap,
         html[data-theme="dark"] .site-footer-logo-wrap {
             background: transparent;
+        }
+        html[data-theme="dark"] .footer-premium .theme-logo-wrap,
+        html[data-theme="dark"] .footer-premium .site-footer-logo-wrap {
+            background: #000000 !important;
+            opacity: 1 !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         .site-logo,
         .site-footer-logo,
@@ -8302,28 +8322,28 @@ Title: CASPIAN DREAM LINER
                 <div>
                     <h3 class="text-gray-900 font-extrabold mb-4">Sosial Şəbəkələr</h3>
                     <div class="grid grid-cols-2 gap-3 text-sm font-bold">
-                        <a href="https://www.instagram.com/best_home_estate?igsh=NGR3b3JobGwzZmpu" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-instagram mr-2"></i>Instagram</a>
-                        <a href="https://www.tiktok.com/@sunay_asadov?is_from_webapp=1&sender_device=pc" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-black hover:border-transparent transition duration-300"><i class="fa-brands fa-tiktok mr-2"></i>TikTok</a>
-                        <a href="https://www.facebook.com/share/18u6Thh53S/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-brand-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-facebook-f mr-2"></i>Facebook</a>
-                        <a href="https://www.youtube.com/@besthome.az_" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white/70 px-4 py-3 text-gray-700 hover:text-white hover:bg-red-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-youtube mr-2"></i>YouTube</a>
+                        <a href="https://www.instagram.com/best_home_estate?igsh=NGR3b3JobGwzZmpu" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white px-4 py-3 text-gray-700 hover:text-white hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-instagram mr-2"></i>Instagram</a>
+                        <a href="https://www.tiktok.com/@sunay_asadov?is_from_webapp=1&sender_device=pc" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white px-4 py-3 text-gray-700 hover:text-white hover:bg-black hover:border-transparent transition duration-300"><i class="fa-brands fa-tiktok mr-2"></i>TikTok</a>
+                        <a href="https://www.facebook.com/share/18u6Thh53S/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white px-4 py-3 text-gray-700 hover:text-white hover:bg-brand-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-facebook-f mr-2"></i>Facebook</a>
+                        <a href="https://www.youtube.com/@besthome.az_" target="_blank" rel="noopener noreferrer" class="rounded-2xl border border-brand-200/80 bg-white px-4 py-3 text-gray-700 hover:text-white hover:bg-red-600 hover:border-transparent transition duration-300"><i class="fa-brands fa-youtube mr-2"></i>YouTube</a>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                <div class="footer-stat-card rounded-3xl bg-white border border-brand-200/70 p-5 text-center shadow-sm">
                     <strong class="block text-2xl sm:text-3xl font-black text-brand-600">5000+</strong>
                     <span class="text-xs sm:text-sm font-bold text-gray-600">Müştəri</span>
                 </div>
-                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                <div class="footer-stat-card rounded-3xl bg-white border border-brand-200/70 p-5 text-center shadow-sm">
                     <strong class="block text-2xl sm:text-3xl font-black text-brand-600">1000+</strong>
                     <span class="text-xs sm:text-sm font-bold text-gray-600">Satılmış Mənzil</span>
                 </div>
-                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                <div class="footer-stat-card rounded-3xl bg-white border border-brand-200/70 p-5 text-center shadow-sm">
                     <strong class="block text-2xl sm:text-3xl font-black text-brand-600">20+</strong>
                     <span class="text-xs sm:text-sm font-bold text-gray-600">Layihə</span>
                 </div>
-                <div class="footer-stat-card rounded-3xl bg-white/80 border border-brand-200/70 p-5 text-center shadow-sm">
+                <div class="footer-stat-card rounded-3xl bg-white border border-brand-200/70 p-5 text-center shadow-sm">
                     <strong class="block text-2xl sm:text-3xl font-black text-brand-600">8+</strong>
                     <span class="text-xs sm:text-sm font-bold text-gray-600">İl Təcrübə</span>
                 </div>
