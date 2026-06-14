@@ -153,57 +153,60 @@
             .project-modal-actions .project-cta-text { display: none; }
         }
         @media (min-width: 768px) {
-            .site-music-controls { right: 24px; }
+            .site-music-controls {
+                right: 24px;
+                bottom: clamp(90px, 12vh, 150px);
+            }
         }
         @media (min-width: 1024px) {
+            .site-music-controls,
             .site-header-inner > .site-music-controls {
-                position: static;
-                inset: auto;
-                flex: 0 1 300px;
-                width: min(300px, 22vw);
-                max-width: 320px;
-                height: 42px;
-                min-height: 42px;
-                margin: 0 8px 0 0;
-                padding: .42rem .55rem .42rem .78rem;
-                gap: .56rem;
-                align-self: center;
+                position: fixed;
+                inset: auto 24px clamp(90px, 12vh, 150px) auto;
+                width: auto;
+                max-width: min(360px, calc(100vw - 48px));
+                height: auto;
+                min-height: 44px;
+                margin: 0;
+                padding: .45rem .55rem .45rem .7rem;
+                gap: .45rem;
+                flex: 0 0 auto;
+                align-self: auto;
                 overflow: hidden;
-                border-radius: 16px;
-                box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
-                transform: none;
-                transition: width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+                border-radius: 999px;
+                box-shadow: 0 16px 42px rgba(15, 23, 42, .18);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                transform-origin: right center;
+                transition: transform 180ms ease, width 220ms ease, max-width 220ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
             }
+            .site-music-controls:hover,
             .site-header-inner > .site-music-controls:hover {
-                transform: none;
-                box-shadow: 0 14px 30px rgba(15, 23, 42, .13);
+                transform: translateY(-1px);
+                box-shadow: 0 20px 48px rgba(15, 23, 42, .22);
             }
+            .site-music-controls.is-collapsed,
             .site-header-inner > .site-music-controls.is-collapsed,
             .site-header-inner > .site-music-controls.is-space-constrained {
-                flex-basis: 42px;
-                width: 42px;
-                max-width: 42px;
-                height: 42px;
-                min-height: 42px;
+                width: 44px;
+                max-width: 44px;
+                height: 44px;
+                min-height: 44px;
                 padding: 0;
                 gap: 0;
-                border-radius: 13px;
+                border-radius: 999px;
             }
             .site-header-inner > .site-music-controls.is-space-constrained .site-music-title,
             .site-header-inner > .site-music-controls.is-space-constrained .site-music-control-btn:not(.site-music-expand-btn) { display: none; }
             .site-header-inner > .site-music-controls.is-space-constrained .site-music-expand-btn { display: inline-flex; }
             .site-header-inner > .site-music-controls .site-music-title {
-                flex: 1 1 auto;
-                max-width: 136px;
-                padding-right: .1rem;
-                font-size: .75rem;
+                flex: 0 1 auto;
+                max-width: 132px;
+                padding-right: 0;
+                font-size: .82rem;
                 line-height: 1.1;
             }
-            .site-header-inner > .site-music-controls .site-music-control-btn { width: 30px; height: 30px; }
-        }
-        @media (min-width: 1024px) and (max-width: 1279px) {
-            .site-header-inner > .site-music-controls:not(.is-collapsed) { flex-basis: 260px; width: 260px; }
-            .site-header-inner > .site-music-controls .site-music-title { max-width: 92px; }
+            .site-header-inner > .site-music-controls .site-music-control-btn { width: 34px; height: 34px; }
         }
 
         .login-submit-btn,
@@ -9105,13 +9108,7 @@ Title: CASPIAN DREAM LINER
 
         function shouldConstrainSiteMusicPlayer(controls) {
             if (!controls || window.innerWidth < 1024) return false;
-            const headerInner = controls.closest('.site-header-inner');
-            if (!headerInner) return window.innerWidth < 1280;
-            const wasConstrained = controls.classList.contains('is-space-constrained');
-            controls.classList.remove('is-space-constrained');
-            const constrained = window.innerWidth < 1200 || headerInner.scrollWidth > headerInner.clientWidth + 2;
-            if (wasConstrained) controls.classList.add('is-space-constrained');
-            return constrained;
+            return false;
         }
 
         function updateSiteMusicButton() {
