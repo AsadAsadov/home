@@ -6958,6 +6958,16 @@
 
         </section>
 
+        <!-- SEA BREEZE PUBLIC INFO PAGE -->
+        <section id="tab-seabreeze-info" class="tab-content hidden sea-breeze-page">
+            <div id="seabreeze-info-root">
+                <div id="seaBreezeHero"></div>
+                <div id="seaBreezeSections"></div>
+                <div id="seaBreezeGallery"></div>
+            </div>
+        </section>
+
+
         <!-- 2. LISTINGS SECTION -->
         <section id="tab-listings" class="tab-content hidden">
 
@@ -21865,19 +21875,74 @@ Təşəkkür edirəm. 🙏`;
         ];
         const SEABREEZE_STATS = [['750+','ha'],['11M+','ağac və kol'],['50+','restoran və bar'],['7500+','işçi'],['3.5M+','m² yaşayış və kommersiya'],['7km+','çimərlik'],['60+','hovuz'],['50,000+','sakin'],['50+','layihə']];
         const sbMedia = (item, cls='') => item?.video_url || item?.videoUrl ? `<video class="${cls}" src="${escapeHtml(item.video_url || item.videoUrl)}" autoplay muted loop playsinline></video>` : `<img class="${cls}" src="${escapeHtml(item?.image_url || item?.imageUrl || '/uploads/siteimage/logo/besthomelight.png?v=2')}" alt="${escapeHtml(item?.title || 'Sea Breeze')}" loading="lazy">`;
-        async function renderSeaBreezeInfoPage() {
-            const root = document.getElementById('seabreeze-info-root'); if (!root) return;
-            root.innerHTML = '<div class="seabreeze-loading">Sea Breeze məlumatları yüklənir…</div>';
-            let hero = [], sections = [], gallery = [];
-            try { [hero, sections, gallery] = await Promise.all([apiRequest('/api/seabreeze/hero-slides'), apiRequest('/api/seabreeze/sections'), apiRequest('/api/seabreeze/gallery')]); } catch (e) { console.warn('Sea Breeze info load failed', e.message); }
-            if (!hero.length) hero = [{ title:'Sea Breeze', subtitle:'Xəzər sahilində premium kurort şəhərciyi', image_url:'/uploads/siteimage/logo/besthomelight.png?v=2', cta_text:'Layihələrə bax', cta_link:'/projects' }];
-            const byKey = new Map((sections || []).map(s => [String(s.section_key || s.sectionKey || s.title).toLowerCase(), s]));
+        function normalizeSeaBreezeList(data) {
+            if (Array.isArray(data)) return data;
+            if (Array.isArray(data?.data)) return data.data;
+            if (Array.isArray(data?.items)) return data.items;
+            return [];
+        }
+        async function fetchSeaBreezeList(endpoint, label) {
+            try {
+                return normalizeSeaBreezeList(await apiRequest(endpoint));
+            } catch (error) {
+                console.warn(`[seabreeze] ${label} load failed`, error);
+                return [];
+            }
+        }
+        function ensureSeaBreezeContainers() {
+            let root = document.getElementById('seabreeze-info-root');
+            if (!root) {
+                const tab = document.getElementById('tab-seabreeze-info');
+                tab?.insertAdjacentHTML('beforeend', '<div id="seabreeze-info-root"></div>');
+                root = document.getElementById('seabreeze-info-root');
+            }
+            if (!root) return null;
+            if (!document.getElementById('seaBreezeHero')) root.insertAdjacentHTML('beforeend', '<div id="seaBreezeHero"></div>');
+            if (!document.getElementById('seaBreezeSections')) root.insertAdjacentHTML('beforeend', '<div id="seaBreezeSections"></div>');
+            if (!document.getElementById('seaBreezeGallery')) root.insertAdjacentHTML('beforeend', '<div id="seaBreezeGallery"></div>');
+            return root;
+        }
+        function renderSeaBreezePublicHero(heroData = []) {
+            const heroContainer = document.getElementById('seaBreezeHero');
+            if (!heroContainer) return;
+            const hero = normalizeSeaBreezeList(heroData);
+            const slides = hero.length ? hero : [{ title:'Sea Breeze', subtitle:'Xəzər sahilində premium kurort şəhərciyi', image_url:'/uploads/siteimage/logo/besthomelight.png?v=2', cta_text:'Layihələrə bax', cta_link:'/projects' }];
+            heroContainer.innerHTML = `<div class="sb-hero-slider">${slides.map((h,i)=>`<article class="sb-hero-slide ${i?'':'is-active'}">${sbMedia(h,'sb-hero-media')}<div class="sb-hero-copy"><span>BestHome.az Premium</span><h1>${escapeHtml(h.title || 'Sea Breeze')}</h1><p>${escapeHtml(h.subtitle || h.description || '')}</p><button onclick="switchTab('${String(h.cta_link || h.ctaLink || '').includes('elan')?'listings':'seabreeze'}')">${escapeHtml(h.cta_text || h.ctaText || 'Layihələrə bax')}</button></div></article>`).join('')}</div>`;
+            if (heroContainer.dataset.sliderStarted === '1') return;
+            heroContainer.dataset.sliderStarted = '1';
+            let idx = 0; setInterval(()=>{ const slides=heroContainer.querySelectorAll('.sb-hero-slide'); if(slides.length<2) return; slides[idx]?.classList.remove('is-active'); idx=(idx+1)%slides.length; slides[idx]?.classList.add('is-active'); }, 6000);
+        }
+        function renderSeaBreezePublicSections(sectionsData = []) {
+            const sectionsContainer = document.getElementById('seaBreezeSections');
+            if (!sectionsContainer) return;
+            const sections = normalizeSeaBreezeList(sectionsData);
+            const byKey = new Map(sections.map(s => [String(s.section_key || s.sectionKey || s.title || '').toLowerCase(), s]));
             const seededRows = SEABREEZE_SECTION_FALLBACKS.map(([key,title,content,facts], i) => ({ section_key:key, title, content, facts, sort_order:i, ...(byKey.get(key) || {}) }));
             const ctaSection = seededRows.find(sec => String(sec.section_key || sec.sectionKey).toLowerCase() === 'cta');
             const sectionRows = seededRows.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
-            root.innerHTML = `<div class="sb-hero-slider">${hero.map((h,i)=>`<article class="sb-hero-slide ${i?'':'is-active'}">${sbMedia(h,'sb-hero-media')}<div class="sb-hero-copy"><span>BestHome.az Premium</span><h1>${escapeHtml(h.title)}</h1><p>${escapeHtml(h.subtitle||'')}</p><button onclick="switchTab('${String(h.cta_link||'').includes('elan')?'listings':'seabreeze'}')">${escapeHtml(h.cta_text||'Layihələrə bax')}</button></div></article>`).join('')}</div><section class="sb-stats">${SEABREEZE_STATS.map(([n,l])=>`<div><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>`<section class="sb-info-section ${i%2?'is-reverse':''}"><div class="sb-info-media">${sbMedia(sec)}</div><div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title)}</h2>${sec.content ? `<p>${escapeHtml(sec.content).replace(/\n/g,'<br>')}</p>` : ''}${Array.isArray(sec.facts)&&sec.facts.length?`<ul class="sb-fact-cards">${sec.facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}</div></section>`).join('')}<section class="sb-gallery"><h2>Sea Breeze Gallery</h2><div>${(gallery||[]).map(g=>`<figure>${g.media_type==='video'?`<video src="${escapeHtml(g.media_url)}" controls muted></video>`:`<img src="${escapeHtml(g.media_url)}" alt="${escapeHtml(g.title||'Sea Breeze')}">`}<figcaption>${escapeHtml(g.category||g.title||'Sea Breeze')}</figcaption></figure>`).join('')}</div></section><section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
-            let idx = 0; setInterval(()=>{ const slides=root.querySelectorAll('.sb-hero-slide'); if(slides.length<2) return; slides[idx]?.classList.remove('is-active'); idx=(idx+1)%slides.length; slides[idx]?.classList.add('is-active'); }, 6000);
+            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l])=>`<div><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>`<section class="sb-info-section ${i%2?'is-reverse':''}"><div class="sb-info-media">${sbMedia(sec)}</div><div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze')}</h2>${sec.content ? `<p>${escapeHtml(sec.content).replace(/\n/g,'<br>')}</p>` : ''}${Array.isArray(sec.facts)&&sec.facts.length?`<ul class="sb-fact-cards">${sec.facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}</div></section>`).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
         }
+        function renderSeaBreezePublicGallery(galleryData = []) {
+            const galleryContainer = document.getElementById('seaBreezeGallery');
+            if (!galleryContainer) return;
+            const gallery = normalizeSeaBreezeList(galleryData);
+            galleryContainer.innerHTML = gallery.length ? `<section class="sb-gallery"><h2>Sea Breeze Gallery</h2><div>${gallery.map(g=>`<figure>${(g.media_type || g.mediaType)==='video'?`<video src="${escapeHtml(g.media_url || g.mediaUrl || '')}" controls muted></video>`:`<img src="${escapeHtml(g.media_url || g.mediaUrl || '')}" alt="${escapeHtml(g.title||'Sea Breeze')}">`}<figcaption>${escapeHtml(g.category||g.title||'Sea Breeze')}</figcaption></figure>`).join('')}</div></section>` : '';
+        }
+        async function loadSeaBreezePage() {
+            const root = ensureSeaBreezeContainers(); if (!root) return;
+            root.classList.add('is-loading');
+            const hero = await fetchSeaBreezeList('/api/seabreeze/hero-slides', 'hero');
+            console.log('hero', hero);
+            renderSeaBreezePublicHero(hero);
+            const sections = await fetchSeaBreezeList('/api/seabreeze/sections', 'sections');
+            console.log('sections', sections);
+            renderSeaBreezePublicSections(sections);
+            const gallery = await fetchSeaBreezeList('/api/seabreeze/gallery', 'gallery');
+            console.log('gallery', gallery);
+            renderSeaBreezePublicGallery(gallery);
+            root.classList.remove('is-loading');
+        }
+        async function renderSeaBreezeInfoPage() { return loadSeaBreezePage(); }
         async function loadSeaBreezeAdmin() {
             if (!isAdminRole(activeUser?.role)) return;
             const [heroes, sections, gallery] = await Promise.all([apiRequest('/api/seabreeze/hero-slides?admin=1'), apiRequest('/api/seabreeze/sections?admin=1'), apiRequest('/api/seabreeze/gallery?admin=1')]).catch((error)=>{ console.error('[seabreeze-admin] load failed', error); return [[],[],[]]; });
