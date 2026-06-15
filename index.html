@@ -16160,10 +16160,15 @@ ${profileMenuItemsHtml()}
         function switchTab(tabId, options = {}) {
             closeMobileProfileMenu();
             activeTabId = tabId;
+            if (tabId === 'seabreeze-info') console.log('[seabreeze] switchTab called');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             const targetId = tabId === 'favorites' ? 'tab-my-listings' : 'tab-' + tabId;
             const target = document.getElementById(targetId);
             if (target) target.classList.remove('hidden');
+            if (tabId === 'seabreeze-info') {
+                document.getElementById('seabreeze-info-tab')?.classList.remove('hidden');
+                document.getElementById('tab-seabreeze-info')?.classList.remove('hidden');
+            }
 
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('text-brand-500', 'border-b-2', 'border-brand-500');
@@ -21929,7 +21934,9 @@ Təşəkkür edirəm. 🙏`;
             galleryContainer.innerHTML = gallery.length ? `<section class="sb-gallery"><h2>Sea Breeze Gallery</h2><div>${gallery.map(g=>`<figure>${(g.media_type || g.mediaType)==='video'?`<video src="${escapeHtml(g.media_url || g.mediaUrl || '')}" controls muted></video>`:`<img src="${escapeHtml(g.media_url || g.mediaUrl || '')}" alt="${escapeHtml(g.title||'Sea Breeze')}">`}<figcaption>${escapeHtml(g.category||g.title||'Sea Breeze')}</figcaption></figure>`).join('')}</div></section>` : '';
         }
         async function loadSeaBreezePage() {
+            console.log('[seabreeze] loadSeaBreezePage called');
             const root = ensureSeaBreezeContainers(); if (!root) return;
+            console.log('[seabreeze] sections container', document.getElementById('seaBreezeSections'));
             root.classList.add('is-loading');
             const hero = await fetchSeaBreezeList('/api/seabreeze/hero-slides', 'hero');
             console.log('hero', hero);
@@ -22081,6 +22088,7 @@ Təşəkkür edirəm. 🙏`;
 
         async function routeToCurrentPath({ replace = false } = {}) {
             const path = window.location.pathname;
+            console.log('[route] pathname', path);
             if (ADMIN_ROUTE_SUBTABS[path]) {
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
                 routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
@@ -22130,8 +22138,9 @@ Təşəkkür edirəm. 🙏`;
                 updateSeo({ title: STATIC_SEO['/elanlar'].title, description: STATIC_SEO['/elanlar'].description, path: `${path}${window.location.search}` });
                 return;
             }
-            if (path === '/sea-breeze' || path === '/seabreeze') {
+            if (path === '/sea-breeze' || path === '/seabreeze' || path === '/seabreeze-info') {
                 switchTab('seabreeze-info', { skipPush: true });
+                loadSeaBreezePage();
                 return;
             }
             if (path === '/projects') {
