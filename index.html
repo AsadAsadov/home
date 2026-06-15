@@ -7555,11 +7555,11 @@
 
 
             <div id="admin-subtab-seabreeze-hero" class="admin-subtab-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Hero</h3><form onsubmit="saveSeaBreezeAdmin(event, 'hero-slides')" class="space-y-3"><input type="hidden" id="sb-hero-id"><input id="sb-hero-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-hero-subtitle" placeholder="Alt başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-hero-cta" placeholder="CTA mətni" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-link" placeholder="CTA link" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-image" type="file" accept="image/*" class="w-full text-xs text-gray-300"><input id="sb-hero-video" type="file" accept="video/*" class="w-full text-xs text-gray-300"><button class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
+                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Hero</h3><form onsubmit="saveSeaBreezeAdmin(event, 'hero-slides')" class="space-y-3"><input type="hidden" id="sb-hero-id"><input id="sb-hero-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-hero-subtitle" placeholder="Alt başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-hero-cta" placeholder="CTA mətni" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-link" placeholder="CTA link" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-image" type="file" accept="image/*" class="w-full text-xs text-gray-300"><input id="sb-hero-video" type="file" accept="video/*" class="w-full text-xs text-gray-300"><button type="submit" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
                 <div id="sb-hero-admin-list" class="space-y-3"></div>
             </div>
             <div id="admin-subtab-seabreeze-info-admin" class="admin-subtab-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Məlumatları</h3><form onsubmit="saveSeaBreezeAdmin(event, 'sections')" class="space-y-3"><input type="hidden" id="sb-sections-id"><input id="sb-sections-key" placeholder="Section key" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-sections-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-sections-content" placeholder="Mətn" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><textarea id="sb-sections-facts" placeholder="Faktlar (hər sətirdə bir)" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-sections-image" type="file" accept="image/*" class="w-full text-xs text-gray-300"><input id="sb-sections-video" type="file" accept="video/*" class="w-full text-xs text-gray-300"><button class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
+                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Məlumatları</h3><form onsubmit="saveSeaBreezeAdmin(event, 'sections')" class="space-y-3"><input type="hidden" id="sb-sections-id"><input id="sb-sections-key" placeholder="Section key" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-sections-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-sections-content" placeholder="Mətn" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><textarea id="sb-sections-facts" placeholder="Faktlar (hər sətirdə bir)" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-sections-image" type="file" accept="image/*" class="w-full text-xs text-gray-300"><input id="sb-sections-video" type="file" accept="video/*" class="w-full text-xs text-gray-300"><input id="sb-sections-sortOrder" type="number" placeholder="Sıra" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><label class="flex items-center gap-2 text-sm text-gray-300"><input id="sb-sections-isActive" type="checkbox" checked> Aktiv</label><button type="submit" id="sb-sections-save-btn" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
                 <div><div id="sb-sections-admin-list" class="space-y-3"></div><div class="glass-card p-4 rounded-2xl mt-4"><h4 class="text-white font-bold mb-2">Sea Breeze Gallery</h4><form onsubmit="saveSeaBreezeAdmin(event, 'gallery')" class="space-y-2"><input id="sb-gallery-title" placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-category" placeholder="Kateqoriya" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-media" type="file" accept="image/*,video/*" class="w-full text-xs text-gray-300"><button class="bg-brand-500 text-white font-bold px-4 py-2 rounded-xl">Media əlavə et</button></form><div id="sb-gallery-admin-list" class="mt-3 grid grid-cols-2 gap-2"></div></div></div>
             </div>
 
@@ -21880,13 +21880,64 @@ Təşəkkür edirəm. 🙏`;
         }
         async function loadSeaBreezeAdmin() {
             if (!isAdminRole(activeUser?.role)) return;
-            const [heroes, sections, gallery] = await Promise.all([apiRequest('/api/seabreeze/hero-slides?admin=1'), apiRequest('/api/seabreeze/sections?admin=1'), apiRequest('/api/seabreeze/gallery?admin=1')]).catch(()=>[[],[],[]]);
-            const card = (x,type) => `<div class="glass-card rounded-2xl p-4 text-white flex justify-between gap-3"><div><b>${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p></div><div class="flex gap-2"><button onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
+            const [heroes, sections, gallery] = await Promise.all([apiRequest('/api/seabreeze/hero-slides?admin=1'), apiRequest('/api/seabreeze/sections?admin=1'), apiRequest('/api/seabreeze/gallery?admin=1')]).catch((error)=>{ console.error('[seabreeze-admin] load failed', error); return [[],[],[]]; });
+            window.__seaBreezeAdminSections = sections || [];
+            const card = (x,type) => `<div class="glass-card rounded-2xl p-4 text-white flex justify-between gap-3"><div><b>${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • ${escapeHtml(x.slug || x.section_key || '')} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p></div><div class="flex flex-wrap gap-2"><button onclick="editSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button onclick="moveSeaBreezeSection(${x.id},-1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Yuxarı</button><button onclick="moveSeaBreezeSection(${x.id},1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Aşağı</button><button onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
             const h=document.getElementById('sb-hero-admin-list'); if(h) h.innerHTML=heroes.map(x=>card(x,'hero-slides')).join('')||'<p class="text-gray-400">Hero yoxdur.</p>';
             const se=document.getElementById('sb-sections-admin-list'); if(se) se.innerHTML=sections.map(x=>card(x,'sections')).join('')||'<p class="text-gray-400">Bölmə yoxdur.</p>';
             const ga=document.getElementById('sb-gallery-admin-list'); if(ga) ga.innerHTML=gallery.map(x=>`<div class="rounded-xl overflow-hidden bg-white/5 text-white text-xs">${x.media_type==='video'?'<div class="p-4">Video</div>':`<img src="${escapeHtml(x.media_url)}" class="h-24 w-full object-cover">`}<button onclick="deleteSeaBreezeAdmin('gallery',${x.id})" class="w-full bg-red-600 py-1">Sil</button></div>`).join('');
         }
-        async function saveSeaBreezeAdmin(event, type) { event.preventDefault(); const fd=new FormData(); const p= type==='hero-slides'?'sb-hero':type==='sections'?'sb-sections':'sb-gallery'; ['title','subtitle','content','key','facts','category','cta','link'].forEach(k=>{const el=document.getElementById(`${p}-${k}`); if(el) fd.append(k==='key'?'section_key':k==='cta'?'cta_text':k==='link'?'cta_link':k, el.value)}); ['image','video','media'].forEach(k=>{const el=document.getElementById(`${p}-${k}`); if(el?.files?.[0]) fd.append(k, el.files[0])}); await apiRequest(`/api/seabreeze/${type}`, { method:'POST', body: fd }); event.target.reset(); loadSeaBreezeAdmin(); showToast('Saxlanıldı.'); }
+        function editSeaBreezeAdmin(type, id) {
+            if (type !== 'sections') return;
+            const x = (window.__seaBreezeAdminSections || []).find(item => Number(item.id) === Number(id));
+            if (!x) return;
+            document.getElementById('sb-sections-id').value = x.id;
+            document.getElementById('sb-sections-key').value = x.slug || x.section_key || '';
+            document.getElementById('sb-sections-title').value = x.title || '';
+            document.getElementById('sb-sections-content').value = x.content || '';
+            document.getElementById('sb-sections-facts').value = Array.isArray(x.facts) ? x.facts.join('\n') : '';
+            const sort = document.getElementById('sb-sections-sortOrder'); if (sort) sort.value = x.sort_order ?? x.sortOrder ?? 0;
+            const active = document.getElementById('sb-sections-isActive'); if (active) active.checked = x.is_active !== false;
+        }
+        async function saveSeaBreezeAdmin(event, type) {
+            event.preventDefault();
+            const form = event.target;
+            const button = form.querySelector('button[type="submit"], button:not([type])');
+            const oldText = button?.textContent;
+            if (button) { button.disabled = true; button.textContent = 'Saxlanılır...'; }
+            try {
+                const fd=new FormData(); const p= type==='hero-slides'?'sb-hero':type==='sections'?'sb-sections':'sb-gallery';
+                if (type === 'sections') {
+                    fd.append('slug', document.getElementById(`${p}-key`)?.value || '');
+                    ['title','content','facts','sortOrder'].forEach(k=>{ const el=document.getElementById(`${p}-${k}`); if(el) fd.append(k, el.value); });
+                    fd.append('isActive', document.getElementById(`${p}-isActive`)?.checked ? 'true' : 'false');
+                } else {
+                    ['title','subtitle','content','key','facts','category','cta','link'].forEach(k=>{const el=document.getElementById(`${p}-${k}`); if(el) fd.append(k==='key'?'section_key':k==='cta'?'cta_text':k==='link'?'cta_link':k, el.value)});
+                }
+                ['image','video','media'].forEach(k=>{const el=document.getElementById(`${p}-${k}`); if(el?.files?.[0]) fd.append(k, el.files[0])});
+                const id = document.getElementById(`${p}-id`)?.value;
+                const url = id ? `/api/seabreeze/${type}/${id}` : `/api/seabreeze/${type}`;
+                await apiRequest(url, { method: id ? 'PUT' : 'POST', body: fd });
+                await loadSeaBreezeAdmin();
+                form.reset();
+                const active = document.getElementById('sb-sections-isActive'); if (active) active.checked = true;
+                showToast(type === 'sections' ? 'Sea Breeze bölməsi saxlanıldı' : 'Saxlanıldı.');
+            } catch (error) {
+                console.error('[seabreeze-admin] save failed', error);
+                showToast(error.message || 'Sea Breeze bölməsi saxlanılmadı', 'error');
+            } finally {
+                if (button) { button.disabled = false; button.textContent = oldText || 'Saxla'; }
+            }
+        }
+        async function moveSeaBreezeSection(id, dir) {
+            const items = [...(window.__seaBreezeAdminSections || [])];
+            const i = items.findIndex(x => Number(x.id) === Number(id));
+            const j = i + dir;
+            if (i < 0 || j < 0 || j >= items.length) return;
+            [items[i], items[j]] = [items[j], items[i]];
+            await apiRequest('/api/seabreeze/sections/reorder', {method:'PUT', body:JSON.stringify({order:items.map(x=>({id:x.id}))})});
+            loadSeaBreezeAdmin();
+        }
         async function toggleSeaBreezeAdmin(type,id,active){ await apiRequest(`/api/seabreeze/${type}/${id}/toggle`, {method:'PATCH', body:JSON.stringify({is_active:!active})}); loadSeaBreezeAdmin(); }
         async function deleteSeaBreezeAdmin(type,id){ if(!confirm('Silinsin?')) return; await apiRequest(`/api/seabreeze/${type}/${id}`, {method:'DELETE'}); loadSeaBreezeAdmin(); }
 
