@@ -6840,6 +6840,9 @@
         }
 
 
+
+        .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -6858,7 +6861,7 @@
                 <div class="hidden lg:flex items-center whitespace-nowrap desktop-header-cluster">
                     <div class="nav-links-wrapper">
                         <button onclick="switchTab('seabreeze')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze">Layihələr</button>
-                        <button onclick="switchTab('seabreeze-info')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze-info">Sea Breeze</button>
+                        <button onclick="switchTab('seabreeze-info')" class="nav-link text-gray-300 hover:text-brand-500 font-semibold transition duration-200" id="nav-seabreeze-info">Sea Breeze Haqqında</button>
                         <button onclick="switchTab('listings')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-listings">Elanlar</button>
                         <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya</button>
                         <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka</button>
@@ -6881,7 +6884,7 @@
 
         <!-- Mobile Dropdown Menu -->
         <div class="hidden lg:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
-            <button onclick="switchTab('seabreeze-info'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Sea Breeze</button>
+            <button onclick="switchTab('seabreeze-info'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Sea Breeze Haqqında</button>
             <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Qalereya</button>
             <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Vakansiya</button>
             <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Haqqımızda</button>
@@ -7596,12 +7599,12 @@
 
 
             <div id="admin-subtab-seabreeze-hero" class="admin-subtab-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Hero</h3><form onsubmit="saveSeaBreezeAdmin(event, 'hero-slides')" class="space-y-3"><input type="hidden" id="sb-hero-id"><input id="sb-hero-title" placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-hero-subtitle" placeholder="Alt başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-hero-cta" placeholder="CTA mətni" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-link" placeholder="CTA link" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-durationSeconds" type="number" min="2" max="30" value="6" placeholder="Müddət (saniyə)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><select id="sb-hero-mediaType" onchange="updateSeaBreezeMediaInputs('sb-hero')" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-white"><option value="image">Şəkil</option><option value="video">Video</option><option value="image_video">Şəkil + video</option></select><p class="text-xs text-gray-400">Şəkil poster kimi, video əsas media kimi istifadə oluna bilər.</p><div id="sb-hero-image-field" class="sb-admin-media-field"><label for="sb-hero-image" class="sb-admin-upload-label"><i class="fa-solid fa-image"></i> Şəkil yüklə</label><input id="sb-hero-image" type="file" accept="image/*" class="sb-admin-upload-input"></div><div id="sb-hero-video-field" class="sb-admin-media-field" hidden><label for="sb-hero-video" class="sb-admin-upload-label"><i class="fa-solid fa-video"></i> Video yüklə</label><input id="sb-hero-video" type="file" accept="video/*" class="sb-admin-upload-input"></div><button type="submit" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
+                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Haqqında Hero</h3><form onsubmit="saveSeaBreezeAdmin(event, 'hero-slides')" class="space-y-3"><input type="hidden" id="sb-hero-id"><input id="sb-hero-title" placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-hero-subtitle" placeholder="Alt başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><input id="sb-hero-cta" placeholder="CTA mətni" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-link" placeholder="CTA link" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-hero-durationSeconds" type="number" min="2" max="30" value="6" placeholder="Müddət (saniyə)" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><select id="sb-hero-mediaType" onchange="updateSeaBreezeMediaInputs('sb-hero')" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-white"><option value="image">Şəkil</option><option value="video">Video</option><option value="image_video">Şəkil + video</option></select><p class="text-xs text-gray-400">Şəkil poster kimi, video əsas media kimi istifadə oluna bilər.</p><div id="sb-hero-image-field" class="sb-admin-media-field"><label for="sb-hero-image" class="sb-admin-upload-label"><i class="fa-solid fa-image"></i> Şəkil yüklə</label><input id="sb-hero-image" type="file" accept="image/*" onchange="renderSeaBreezePreview('sb-hero')" class="sb-admin-upload-input"></div><div id="sb-hero-video-field" class="sb-admin-media-field" hidden><label for="sb-hero-video" class="sb-admin-upload-label"><i class="fa-solid fa-video"></i> Video yüklə</label><input id="sb-hero-video" type="file" accept="video/*" onchange="renderSeaBreezePreview('sb-hero')" class="sb-admin-upload-input"></div><button type="submit" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
                 <div id="sb-hero-admin-list" class="space-y-3"></div>
             </div>
             <div id="admin-subtab-seabreeze-info-admin" class="admin-subtab-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Məlumatları</h3><form onsubmit="saveSeaBreezeAdmin(event, 'sections')" class="space-y-3"><input type="hidden" id="sb-sections-id"><input id="sb-sections-key" placeholder="Section key" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-sections-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-sections-content" placeholder="Mətn" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><textarea id="sb-sections-facts" placeholder="Faktlar (hər sətirdə bir)" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><select id="sb-sections-mediaType" onchange="updateSeaBreezeMediaInputs('sb-sections')" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-white"><option value="none">Media yoxdur</option><option value="image">Şəkil</option><option value="video">Video</option><option value="image_video">Şəkil + video</option></select><p class="text-xs text-gray-400">Şəkil poster kimi, video əsas media kimi istifadə oluna bilər.</p><div id="sb-sections-image-field" class="sb-admin-media-field" hidden><label for="sb-sections-image" class="sb-admin-upload-label"><i class="fa-solid fa-image"></i> Şəkil yüklə</label><input id="sb-sections-image" type="file" accept="image/*" class="sb-admin-upload-input"></div><div id="sb-sections-video-field" class="sb-admin-media-field" hidden><label for="sb-sections-video" class="sb-admin-upload-label"><i class="fa-solid fa-video"></i> Video yüklə</label><input id="sb-sections-video" type="file" accept="video/*" class="sb-admin-upload-input"></div><input id="sb-sections-sortOrder" type="number" placeholder="Sıra" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><label class="flex items-center gap-2 text-sm text-gray-300"><input id="sb-sections-isActive" type="checkbox" checked> Aktiv</label><button type="submit" id="sb-sections-save-btn" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div>
-                <div><div id="sb-sections-admin-list" class="space-y-3"></div><div class="glass-card p-4 rounded-2xl mt-4"><h4 class="text-white font-bold mb-2">Sea Breeze Gallery</h4><form onsubmit="saveSeaBreezeAdmin(event, 'gallery')" class="space-y-2"><input id="sb-gallery-title" placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-category" placeholder="Kateqoriya" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-media" type="file" accept="image/*,video/*" class="w-full text-xs text-gray-300"><button class="bg-brand-500 text-white font-bold px-4 py-2 rounded-xl">Media əlavə et</button></form><div id="sb-gallery-admin-list" class="mt-3 grid grid-cols-2 gap-2"></div></div></div>
+                <div class="glass-card p-6 rounded-2xl space-y-4"><h3 class="text-lg font-bold text-white">⭐ Sea Breeze Haqqında Məlumatları</h3><form onsubmit="saveSeaBreezeAdmin(event, 'sections')" class="space-y-3"><input type="hidden" id="sb-sections-id"><input id="sb-sections-key" placeholder="Section key" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-sections-title" required placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><textarea id="sb-sections-content" placeholder="Mətn" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><textarea id="sb-sections-facts" placeholder="Faktlar (hər sətirdə bir)" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea><select id="sb-sections-mediaType" onchange="updateSeaBreezeMediaInputs('sb-sections')" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-white"><option value="none">Media yoxdur</option><option value="image">Şəkil</option><option value="video">Video</option><option value="image_video">Şəkil + video</option></select><p class="text-xs text-gray-400">Şəkil poster kimi, video əsas media kimi istifadə oluna bilər.</p><div id="sb-sections-image-field" class="sb-admin-media-field" hidden><label for="sb-sections-image" class="sb-admin-upload-label"><i class="fa-solid fa-image"></i> Şəkil yüklə</label><input id="sb-sections-image" type="file" accept="image/*" onchange="renderSeaBreezePreview('sb-sections')" class="sb-admin-upload-input"></div><div id="sb-sections-video-field" class="sb-admin-media-field" hidden><label for="sb-sections-video" class="sb-admin-upload-label"><i class="fa-solid fa-video"></i> Video yüklə</label><input id="sb-sections-video" type="file" accept="video/*" onchange="renderSeaBreezePreview('sb-sections')" class="sb-admin-upload-input"></div><input id="sb-sections-sortOrder" type="number" placeholder="Sıra" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><label class="flex items-center gap-2 text-sm text-gray-300"><input id="sb-sections-isActive" type="checkbox" checked> Aktiv</label><button type="submit" id="sb-sections-save-btn" class="bg-brand-500 text-white font-bold px-5 py-3 rounded-xl">Saxla</button></form></div><div class="glass-card p-4 rounded-2xl mt-4"><h4 class="text-white font-bold mb-2">Sea Breeze Haqqında Qalereya</h4><form onsubmit="saveSeaBreezeAdmin(event, 'gallery')" class="space-y-2"><input id="sb-gallery-title" placeholder="Başlıq" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-category" placeholder="Kateqoriya" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"><input id="sb-gallery-media" type="file" accept="image/*,video/*" class="w-full text-xs text-gray-300"><button class="bg-brand-500 text-white font-bold px-4 py-2 rounded-xl">Media əlavə et</button></form></div></div>
+                <div><div id="sb-sections-admin-list" class="space-y-3"></div><div class="glass-card p-4 rounded-2xl mt-4"><h4 class="text-white font-bold mb-2">Sea Breeze Haqqında Qalereya siyahısı</h4><div id="sb-gallery-admin-list" class="mt-3 grid grid-cols-2 gap-2"></div></div></div>
             </div>
 
             <!-- SUBTAB: SITE SETTINGS (Admin only) -->
@@ -9212,7 +9215,7 @@ Title: CASPIAN DREAM LINER
             '/': { title: HOME_SEO_TITLE, description: DEFAULT_SEO_DESCRIPTION },
             '/elanlar': { title: 'Elanlar - Satılıq və Kirayə Əmlak | BestHome.az', description: 'Satılıq və kirayə mənzil, villa, həyət evi və kommersiya obyektlərini BestHome.az-da axtarın.' },
             '/projects': { title: 'Sea Breeze Layihələri | BestHome.az', description: 'Sea Breeze layihələri, premium yaşayış kompleksləri, mənzil sahələri və təhvil tarixləri haqqında məlumat.' },
-            '/sea-breeze': { title: 'Sea Breeze | BestHome.az', description: 'Sea Breeze premium yaşayış, investisiya, çimərlik və infrastruktur məlumatları.' },
+            '/sea-breeze-haqqinda': { title: 'Sea Breeze Haqqında | BestHome.az', description: 'Sea Breeze premium yaşayış, investisiya, çimərlik və infrastruktur məlumatları.' },
             '/gallery': { title: 'Qalereya - BestHome.az', description: 'BestHome.az qalereyasında layihə görüntüləri, videolar və media materiallarına baxın.' },
             '/ipoteka-kalkulyatoru': { title: 'İpoteka Kalkulyatoru | BestHome.az', description: 'İpoteka ödənişlərini hesablayın. İlkin ödəniş, kredit müddəti və aylıq ödənişləri rahat şəkildə öyrənin.' },
         };
@@ -9359,8 +9362,8 @@ Title: CASPIAN DREAM LINER
             { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Arxiv', adminOnly: true },
             { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Layihə Müraciətləri', adminOnly: true },
             { id: 'subtab-btn-hero', subtab: 'hero-sections', label: '⭐ Layihə Hero', adminOnly: true },
-            { id: 'subtab-btn-seabreeze-hero', subtab: 'seabreeze-hero', label: '⭐ Sea Breeze Hero', adminOnly: true },
-            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: '⭐ Sea Breeze Məlumatları', adminOnly: true },
+            { id: 'subtab-btn-seabreeze-hero', subtab: 'seabreeze-hero', label: '⭐ Sea Breeze Haqqında Hero', adminOnly: true },
+            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: '⭐ Sea Breeze Haqqında Məlumatları', adminOnly: true },
             { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: '⭐ Elan Hero', adminOnly: true },
             { id: 'subtab-btn-cvs', subtab: 'cvs', label: 'Namizəd CV-ləri', adminOnly: true },
             { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', adminOnly: true },
@@ -9393,6 +9396,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function setAuthSession(token, user) {
+            refreshAuthLastActiveAt();
             if (token) {
                 localStorage.setItem('token', token);
                 localStorage.setItem('besthome_auth_token', token);
@@ -9416,7 +9420,7 @@ Title: CASPIAN DREAM LINER
         }
 
         function clearAuthSession() {
-            ['token', 'besthome_auth_token', 'besthome_logged_in_role', 'besthome_agent_data', 'besthome_user_data'].forEach(key => {
+            ['token', 'besthome_auth_token', 'besthome_logged_in_role', 'besthome_agent_data', 'besthome_user_data', 'authLastActiveAt'].forEach(key => {
                 sessionStorage.removeItem(key);
                 localStorage.removeItem(key);
             });
@@ -9425,9 +9429,34 @@ Title: CASPIAN DREAM LINER
 
         let authHeartbeatTimer = null;
         let adminUsersRefreshTimer = null;
+        const SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+
+        function refreshAuthLastActiveAt() {
+            if (!getAuthToken()) return;
+            localStorage.setItem('authLastActiveAt', String(Date.now()));
+        }
+
+        function isAuthSessionExpired() {
+            const lastActiveAt = Number(localStorage.getItem('authLastActiveAt') || 0);
+            return Boolean(getAuthToken() && lastActiveAt && Date.now() - lastActiveAt > SESSION_TIMEOUT_MS);
+        }
+
+        function enforceAuthSessionTimeout() {
+            if (isAuthSessionExpired()) {
+                redirectToLoginOnAuthFailure();
+                return true;
+            }
+            return false;
+        }
 
         function sendAuthOfflineBeacon() {
             const token = getAuthToken();
+            if (token && isAuthSessionExpired()) {
+                clearAuthSession();
+                activeUser = null;
+                updateHeaderUI();
+                return;
+            }
             if (!token) return;
             const url = `${API_BASE}/api/auth/offline`;
             const payload = JSON.stringify({ token });
@@ -9442,7 +9471,8 @@ Title: CASPIAN DREAM LINER
 
         function sendAuthHeartbeat() {
             if (!getAuthToken()) return;
-            apiRequest('/api/auth/heartbeat', { method: 'POST', authRedirect: false }).catch(() => {});
+            if (enforceAuthSessionTimeout()) return;
+            apiRequest('/api/auth/heartbeat', { method: 'POST', authRedirect: false }).then(refreshAuthLastActiveAt).catch(() => {});
         }
 
         function startAuthHeartbeat() {
@@ -9505,6 +9535,7 @@ Title: CASPIAN DREAM LINER
                 body,
                 headers
             });
+            if (token && response.ok) refreshAuthLastActiveAt();
 
             if (response.status === 401) {
                 const errorBody = await response.json().catch(() => ({}));
@@ -16312,8 +16343,8 @@ ${profileMenuItemsHtml()}
                 if (isAdminRole(activeUser?.role)) { loadAdminListings({ force: true }).catch(() => {}); loadSeaBreezeAdmin().catch(() => {}); }
             }
 
-            const routePaths = { 'seabreeze-info': '/sea-breeze', mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
-            const routeTitles = { 'seabreeze-info': 'Sea Breeze', mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
+            const routePaths = { 'seabreeze-info': '/sea-breeze-haqqinda', mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
+            const routeTitles = { 'seabreeze-info': 'Sea Breeze Haqqında', mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
             const routePath = routePaths[tabId] || '/';
             const staticSeo = STATIC_SEO[routePath];
             updateSeo({ title: staticSeo?.title || routeTitles[tabId] || SITE_NAME, description: staticSeo?.description || DEFAULT_SEO_DESCRIPTION, path: routePath });
@@ -22043,14 +22074,34 @@ Təşəkkür edirəm. 🙏`;
             const seededRows = SEABREEZE_SECTION_FALLBACKS.map(([key,title,content,facts], i) => ({ section_key:key, title, content, facts, sort_order:i, ...(byKey.get(key) || {}) }));
             const ctaSection = seededRows.find(sec => String(sec.section_key || sec.sectionKey).toLowerCase() === 'cta');
             const sectionRows = seededRows.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
-            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l],idx)=>`<div class="sb-stat-card"><i class="sb-stat-icon fa-solid ${['fa-seedling','fa-tree','fa-utensils','fa-user-tie','fa-building','fa-umbrella-beach','fa-water-ladder','fa-people-roof','fa-diagram-project'][idx] || 'fa-star'}"></i><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>{ const media = sbMedia(sec); return `<section class="sb-info-section ${media ? (i%2?'is-reverse':'') : 'is-text-only'}">${media ? `<div class="sb-info-media">${media}</div>` : ''}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze')}</h2>${sec.content ? `<p>${escapeHtml(sec.content).replace(/\n/g,'<br>')}</p>` : ''}${Array.isArray(sec.facts)&&sec.facts.length?`<ul class="sb-fact-cards">${sec.facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}</div></section>`; }).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
+            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l],idx)=>`<div class="sb-stat-card"><i class="sb-stat-icon fa-solid ${['fa-seedling','fa-tree','fa-utensils','fa-user-tie','fa-building','fa-umbrella-beach','fa-water-ladder','fa-people-roof','fa-diagram-project'][idx] || 'fa-star'}"></i><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>{ const media = sbMedia(sec); const imageUrl = sec.image_url || sec.imageUrl || ''; return `<section class="sb-info-section ${media ? (i%2?'is-reverse':'') : 'is-text-only'}">${media ? `<div class="sb-info-media ${imageUrl ? 'cursor-pointer' : ''}" ${imageUrl ? `onclick="openSeaBreezeMediaModal('${escapeHtml(imageUrl)}','image','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')"` : ''}>${media}</div>` : ''}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${sec.content ? `<p>${escapeHtml(sec.content).replace(/\n/g,'<br>')}</p>` : ''}${Array.isArray(sec.facts)&&sec.facts.length?`<ul class="sb-fact-cards">${sec.facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}</div></section>`; }).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
         }
         function renderSeaBreezePublicGallery(galleryData = []) {
             const galleryContainer = document.getElementById('seaBreezeGallery');
             if (!galleryContainer) return;
             const gallery = normalizeSeaBreezeList(galleryData).filter(g => g?.media_url || g?.mediaUrl);
-            galleryContainer.innerHTML = gallery.length ? `<section class="sb-gallery"><h2>Sea Breeze Gallery</h2><div>${gallery.map(g=>`<figure>${(g.media_type || g.mediaType)==='video'?`<video src="${escapeHtml(g.media_url || g.mediaUrl)}" controls muted></video>`:`<img src="${escapeHtml(g.media_url || g.mediaUrl)}" alt="${escapeHtml(g.title||'Sea Breeze')}">`}<figcaption>${escapeHtml(g.category||g.title||'Sea Breeze')}</figcaption></figure>`).join('')}</div></section>` : '';
+            galleryContainer.innerHTML = gallery.length ? `<section class="sb-gallery"><h2>Sea Breeze Haqqında Qalereya</h2><div>${gallery.map(g=>`<figure>${(g.media_type || g.mediaType)==='video'?`<video src="${escapeHtml(g.media_url || g.mediaUrl)}" controls muted></video>`:`<img src="${escapeHtml(g.media_url || g.mediaUrl)}" alt="${escapeHtml(g.title||'Sea Breeze')}">`}<figcaption>${escapeHtml(g.category||g.title||'Sea Breeze')}</figcaption></figure>`).join('')}</div></section>` : '';
         }
+        function openSeaBreezeMediaModal(url, type = 'image', title = 'Sea Breeze Haqqında') {
+            let modal = document.getElementById('sea-breeze-media-modal');
+            if (!modal) {
+                document.body.insertAdjacentHTML('beforeend', '<div id="sea-breeze-media-modal" class="sb-media-modal hidden" onclick="if(event.target===this)closeSeaBreezeMediaModal()"><div class="sb-media-modal__dialog"><button type="button" class="sb-media-modal__close" onclick="closeSeaBreezeMediaModal()" aria-label="Bağla">×</button><div id="sea-breeze-media-modal-content"></div><button type="button" class="sb-media-modal__button" onclick="closeSeaBreezeMediaModal()">Bağla</button></div></div>');
+                modal = document.getElementById('sea-breeze-media-modal');
+            }
+            document.getElementById('sea-breeze-media-modal-content').innerHTML = type === 'video'
+                ? `<video src="${escapeHtml(url)}" controls autoplay muted playsinline></video>`
+                : `<img src="${escapeHtml(url)}" alt="${escapeHtml(title)}">`;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSeaBreezeMediaModal() {
+            const modal = document.getElementById('sea-breeze-media-modal');
+            if (modal) modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        window.openSeaBreezeMediaModal = openSeaBreezeMediaModal;
+        window.closeSeaBreezeMediaModal = closeSeaBreezeMediaModal;
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSeaBreezeMediaModal(); });
         async function loadSeaBreezePage({ force = false } = {}) {
             const root = ensureSeaBreezeContainers(); if (!root) return;
             const cachedHero = getCachedData('seaBreezeHero') || [];
@@ -22084,10 +22135,34 @@ Təşəkkür edirəm. 🙏`;
             window.__seaBreezeAdminSections = sections || [];
             updateSeaBreezeMediaInputs('sb-hero');
             updateSeaBreezeMediaInputs('sb-sections');
-            const card = (x,type) => `<div class="glass-card rounded-2xl p-4 text-white flex justify-between gap-3"><div><b>${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • ${escapeHtml(x.slug || x.section_key || '')} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p></div><div class="flex flex-wrap gap-2"><button onclick="editSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button onclick="moveSeaBreezeSection(${x.id},-1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Yuxarı</button><button onclick="moveSeaBreezeSection(${x.id},1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Aşağı</button><button onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
+            const card = (x,type) => `<div class="sb-admin-card glass-card rounded-2xl p-4 text-white"><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • ${escapeHtml(x.slug || x.section_key || '')} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.subtitle || x.cta_text || x.ctaText || x.content || '')}</p></div><div class="sb-admin-actions"><button onclick="editSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button onclick="moveSeaBreezeSection(${x.id},-1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Yuxarı</button><button onclick="moveSeaBreezeSection(${x.id},1)" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Aşağı</button><button onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
             const h=document.getElementById('sb-hero-admin-list'); if(h) h.innerHTML=heroes.map(x=>card(x,'hero-slides')).join('')||'<p class="text-gray-400">Hero yoxdur.</p>';
             const se=document.getElementById('sb-sections-admin-list'); if(se) se.innerHTML=sections.map(x=>card(x,'sections')).join('')||'<p class="text-gray-400">Bölmə yoxdur.</p>';
             const ga=document.getElementById('sb-gallery-admin-list'); if(ga) ga.innerHTML=gallery.map(x=>`<div class="rounded-xl overflow-hidden bg-white/5 text-white text-xs">${x.media_type==='video'?'<div class="p-4">Video</div>':`<img src="${escapeHtml(x.media_url)}" class="h-24 w-full object-cover">`}<button onclick="deleteSeaBreezeAdmin('gallery',${x.id})" class="w-full bg-red-600 py-1">Sil</button></div>`).join('');
+        }
+        function seaBreezeAdminThumb(x = {}) {
+            const image = x.image_url || x.imageUrl || x.media_url || x.mediaUrl || '';
+            const video = x.video_url || x.videoUrl || (((x.media_type || x.mediaType) === 'video') ? image : '');
+            if (image && !String(image).match(/\.(mp4|webm|mov)(\?|$)/i)) return `<img src="${escapeHtml(image)}" alt="" loading="lazy"><span class="${video ? 'sb-video-badge' : 'hidden'}">Video</span>`;
+            if (video) return `<video src="${escapeHtml(video)}" muted playsinline preload="metadata"></video>`;
+            return '<div class="sb-thumb-placeholder"><i class="fa-solid fa-image"></i></div>';
+        }
+        function ensureSeaBreezePreview(prefix) {
+            ['image','video'].forEach(kind => {
+                const field = document.getElementById(`${prefix}-${kind}-field`);
+                if (field && !document.getElementById(`${prefix}-${kind}-preview`)) field.insertAdjacentHTML('beforeend', `<div id="${prefix}-${kind}-preview" class="sb-admin-preview"></div>`);
+            });
+        }
+        function renderSeaBreezePreview(prefix, existing = {}) {
+            ensureSeaBreezePreview(prefix);
+            ['image','video'].forEach(kind => {
+                const box = document.getElementById(`${prefix}-${kind}-preview`);
+                if (!box) return;
+                const file = document.getElementById(`${prefix}-${kind}`)?.files?.[0];
+                const existingUrl = existing[`${kind}_url`] || existing[kind + 'Url'] || '';
+                const url = file ? URL.createObjectURL(file) : existingUrl;
+                box.innerHTML = url ? `<span>${kind === 'image' ? 'Şəkil / poster' : 'Video'}</span>${kind === 'image' ? `<img src="${escapeHtml(url)}" alt="Önizləmə">` : `<video src="${escapeHtml(url)}" controls muted playsinline></video>`}` : '';
+            });
         }
         function updateSeaBreezeMediaInputs(prefix) {
             const type = document.getElementById(`${prefix}-mediaType`)?.value || 'none';
@@ -22097,6 +22172,7 @@ Təşəkkür edirəm. 🙏`;
             const videoField = document.getElementById(`${prefix}-video-field`);
             if (imageField) imageField.hidden = !showImage;
             if (videoField) videoField.hidden = !showVideo;
+            renderSeaBreezePreview(prefix);
         }
         window.updateSeaBreezeMediaInputs = updateSeaBreezeMediaInputs;
         function seaBreezeMediaTypeFromItem(x, allowNone = false) {
@@ -22120,6 +22196,7 @@ Təşəkkür edirəm. 🙏`;
                 document.getElementById('sb-hero-durationSeconds').value = x.durationSeconds ?? x.duration_seconds ?? 6;
                 document.getElementById('sb-hero-mediaType').value = seaBreezeMediaTypeFromItem(x);
                 updateSeaBreezeMediaInputs('sb-hero');
+                renderSeaBreezePreview('sb-hero', x);
                 return;
             }
             document.getElementById('sb-sections-id').value = x.id;
@@ -22130,6 +22207,7 @@ Təşəkkür edirəm. 🙏`;
             const sort = document.getElementById('sb-sections-sortOrder'); if (sort) sort.value = x.sort_order ?? x.sortOrder ?? 0;
             const mediaType = document.getElementById('sb-sections-mediaType'); if (mediaType) mediaType.value = seaBreezeMediaTypeFromItem(x, true);
             updateSeaBreezeMediaInputs('sb-sections');
+            renderSeaBreezePreview('sb-sections', x);
             const active = document.getElementById('sb-sections-isActive'); if (active) active.checked = x.is_active !== false;
         }
         async function saveSeaBreezeAdmin(event, type) {
@@ -22162,7 +22240,7 @@ Təşəkkür edirəm. 🙏`;
                 const heroDuration = document.getElementById('sb-hero-durationSeconds'); if (heroDuration) heroDuration.value = 6;
                 const heroMediaType = document.getElementById('sb-hero-mediaType'); if (heroMediaType) heroMediaType.value = 'image';
                 const sectionMediaType = document.getElementById('sb-sections-mediaType'); if (sectionMediaType) sectionMediaType.value = 'none';
-                updateSeaBreezeMediaInputs('sb-hero'); updateSeaBreezeMediaInputs('sb-sections');
+                updateSeaBreezeMediaInputs('sb-hero'); updateSeaBreezeMediaInputs('sb-sections'); renderSeaBreezePreview('sb-hero'); renderSeaBreezePreview('sb-sections');
                 showToast(type === 'sections' ? 'Sea Breeze bölməsi saxlanıldı' : 'Saxlanıldı.');
             } catch (error) {
                 console.error('[seabreeze-admin] save failed', error);
@@ -22310,7 +22388,12 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (path === '/sea-breeze' || path === '/seabreeze' || path === '/seabreeze-info') {
+                history.replaceState({ path: '/sea-breeze-haqqinda' }, '', '/sea-breeze-haqqinda');
+                path = '/sea-breeze-haqqinda';
+            }
+            if (path === '/sea-breeze-haqqinda') {
                 switchTab('seabreeze-info', { skipPush: true });
+                updateSeo({ title: STATIC_SEO['/sea-breeze-haqqinda'].title, description: STATIC_SEO['/sea-breeze-haqqinda'].description, path });
                 loadSeaBreezePage();
                 return;
             }
