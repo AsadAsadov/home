@@ -958,9 +958,13 @@
         .sb-admin-media-field[hidden] { display: none !important; }
         .sb-info-text { width: 100%; max-width: 520px; min-width: 0; border-radius: 1.5rem; padding: clamp(1rem,2vw,1.5rem); background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); }
         .sb-info-section.is-text-only .sb-info-text { max-width: 860px; }
-        .sb-info-copy.is-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+        .sb-info-copy.is-collapsed, .sb-info-collapsible.is-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; max-height: 450px; }
+        .sb-info-collapsible { display: grid; gap: .85rem; }
         .sb-info-toggle, .sb-next-section-btn { margin-top: 1rem; display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .62rem 1rem; font-weight: 950; color: #0f172a; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 16px 40px rgba(200,169,106,.18); }
-        .sb-next-section-btn { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.14); }
+        .sb-next-section-btn { background: #ffffff; color: #111827; border: 1px solid #d1d5db; box-shadow: 0 10px 24px rgba(15,23,42,.10); }
+        .sb-next-section-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: #f8fafc; }
+        html[data-theme="dark"] .sb-next-section-btn { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.25); box-shadow: 0 16px 40px rgba(0,0,0,.24); }
+        html[data-theme="dark"] .sb-next-section-btn:hover { border-color: rgba(200,169,106,.7); color: #fff; background: rgba(127,127,255,.20); }
         .sb-info-copy { display: grid; gap: .85rem; }
         .sb-info-copy p { margin: 0; }
         .sb-info-list { display: grid; gap: .65rem; margin: .15rem 0; }
@@ -3834,6 +3838,30 @@
         .listing-info-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .55rem; color: #334155; font-size: 12px; font-weight: 800; }
         .listing-info-row__item { display: inline-flex; align-items: center; gap: .28rem; white-space: nowrap; }
         .listing-info-row__divider { color: #cbd5e1; }
+
+        html[data-theme="dark"] .sea-breeze-listing-card .listing-location-lines,
+        html[data-theme="dark"] .sea-breeze-listing-card__meta { color: #e5e7eb !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card__title,
+        html[data-theme="dark"] .sea-breeze-listing-card__price,
+        html[data-theme="dark"] .sea-breeze-listing-card strong { color: #f8fafc !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card__description,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-period,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-per-m2,
+        html[data-theme="dark"] .sea-breeze-listing-card__stats span,
+        html[data-theme="dark"] .listing-info-row { color: #cbd5e1 !important; }
+        html[data-theme="dark"] .listing-info-row__divider,
+        html[data-theme="dark"] .sea-breeze-listing-card .text-gray-500 { color: #94a3b8 !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card .text-brand-700 { color: #c4b5fd !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-emerald-600\/90,
+        html[data-theme="dark"] .listing-card-badge-row .bg-emerald-600\/95 { background-color: #16a34a !important; color: #ffffff !important; border: 1px solid rgba(187,247,208,.28) !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-red-600\/95 { background-color: #dc2626 !important; color: #ffffff !important; border: 1px solid rgba(254,202,202,.28) !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-amber-500\/95,
+        html[data-theme="dark"] .listing-card-badge-row .bg-amber-500\/90 { background-color: #f59e0b !important; color: #111827 !important; border: 1px solid rgba(253,230,138,.36) !important; text-shadow: none !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-blue-600\/95,
+        html[data-theme="dark"] .listing-card-badge-row .bg-sky-600\/90 { color: #ffffff !important; }
+        .sb-media-modal__close, .sb-media-modal__button { background:#ffffff; color:#111827; border:1px solid #d1d5db; }
+        html[data-theme="dark"] .sb-media-modal__close,
+        html[data-theme="dark"] .sb-media-modal__button { background:rgba(255,255,255,.12); color:#ffffff; border:1px solid rgba(255,255,255,.25); }
         .media-card { border-radius: 1rem; overflow: hidden; border: 1px solid rgba(226,232,240,.9); background: #fff; box-shadow: 0 14px 32px rgba(15,23,42,.08); transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
         .media-card:hover { transform: translateY(-4px); border-color: rgba(127,127,255,.34); box-shadow: 0 24px 48px rgba(15,23,42,.14); }
         .gallery-card-media { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: 14px; background: transparent; }
@@ -6858,6 +6886,32 @@
 
 
         .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-drag-handle{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);cursor:grab;color:#cbd5e1}.sb-admin-card.is-dragging{opacity:.55;transform:scale(.99)}.sb-admin-card.is-drag-over{outline:2px solid rgba(200,169,106,.8)}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
+
+
+        /* Final contrast overrides for Sea Breeze read-more controls, media modal, and listing cards. */
+        html[data-theme="dark"] .sea-breeze-listing-card .listing-location-lines,
+        html[data-theme="dark"] .sea-breeze-listing-card__meta { color: #e5e7eb !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card__title,
+        html[data-theme="dark"] .sea-breeze-listing-card__price,
+        html[data-theme="dark"] .sea-breeze-listing-card strong { color: #f8fafc !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card__description,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-period,
+        html[data-theme="dark"] .sea-breeze-listing-card__price-per-m2,
+        html[data-theme="dark"] .sea-breeze-listing-card__stats span,
+        html[data-theme="dark"] .listing-info-row { color: #cbd5e1 !important; }
+        html[data-theme="dark"] .listing-info-row__divider,
+        html[data-theme="dark"] .sea-breeze-listing-card .text-gray-500 { color: #94a3b8 !important; }
+        html[data-theme="dark"] .sea-breeze-listing-card .text-brand-700 { color: #c4b5fd !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-emerald-600\/90,
+        html[data-theme="dark"] .listing-card-badge-row .bg-emerald-600\/95 { background-color: #16a34a !important; color: #ffffff !important; border: 1px solid rgba(187,247,208,.28) !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-red-600\/95 { background-color: #dc2626 !important; color: #ffffff !important; border: 1px solid rgba(254,202,202,.28) !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-amber-500\/95,
+        html[data-theme="dark"] .listing-card-badge-row .bg-amber-500\/90 { background-color: #f59e0b !important; color: #111827 !important; border: 1px solid rgba(253,230,138,.36) !important; text-shadow: none !important; }
+        html[data-theme="dark"] .listing-card-badge-row .bg-blue-600\/95,
+        html[data-theme="dark"] .listing-card-badge-row .bg-sky-600\/90 { color: #ffffff !important; }
+        .sb-media-modal__close, .sb-media-modal__button { background:#ffffff !important; color:#111827 !important; border:1px solid #d1d5db !important; }
+        html[data-theme="dark"] .sb-media-modal__close,
+        html[data-theme="dark"] .sb-media-modal__button { background:rgba(255,255,255,.12) !important; color:#ffffff !important; border:1px solid rgba(255,255,255,.25) !important; }
 
     </style>
 </head>
@@ -22102,9 +22156,9 @@ Təşəkkür edirəm. 🙏`;
             return `<div class="sb-info-copy">${chunks.join('')}</div>`;
         }
         function toggleSeaBreezeLongContent(button) {
-            const copy = button?.closest('.sb-info-text')?.querySelector('.sb-info-copy');
-            if (!copy) return;
-            const collapsed = copy.classList.toggle('is-collapsed');
+            const collapsible = button?.closest('.sb-info-text')?.querySelector('.sb-info-collapsible, .sb-info-copy');
+            if (!collapsible) return;
+            const collapsed = collapsible.classList.toggle('is-collapsed');
             button.innerHTML = collapsed ? 'Daha çox göstər <i class="fa-solid fa-chevron-down"></i>' : 'Daha az göstər <i class="fa-solid fa-chevron-up"></i>';
         }
         function scrollToSeaBreezeSection(index) {
@@ -22118,7 +22172,9 @@ Təşəkkür edirəm. 🙏`;
             const media = sbMedia(sec);
             const imageUrl = sec.image_url || sec.imageUrl || '';
             const videoUrl = sec.video_url || sec.videoUrl || '';
-            const isLong = content.length > 560 || facts.length > 8;
+            const sectionKey = String(sec.section_key || sec.sectionKey || '').toLowerCase();
+            const isInvestorBenefits = sectionKey === 'investor-benefits';
+            const isLong = content.length > 450 || facts.length > 6 || isInvestorBenefits;
             const classes = ['sb-info-section'];
             if (i % 2) classes.push('is-reverse');
             if (!media) classes.push('is-text-only');
@@ -22128,7 +22184,8 @@ Təşəkkür edirəm. 🙏`;
             const mediaHtml = media ? `<div class="sb-info-media" onclick="openSeaBreezeMediaModal('${escapeHtml(mediaUrl)}','${mediaType}','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')">${media}</div>` : '';
             const toggleHtml = isLong ? `<button type="button" class="sb-info-toggle" onclick="toggleSeaBreezeLongContent(this)">Daha çox göstər <i class="fa-solid fa-chevron-down"></i></button>` : '';
             const nextHtml = total > 1 ? `<div><button type="button" class="sb-next-section-btn" onclick="scrollToSeaBreezeSection(${Math.min(i + 1, total - 1)})">${i >= total - 1 ? 'İlk bölməyə qayıt' : 'Növbəti bölmə'} <i class="fa-solid fa-arrow-${i >= total - 1 ? 'up' : 'down'}"></i></button></div>` : '';
-            return `<section id="sb-info-section-${i}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${content ? renderSeaBreezeContent(content).replace('sb-info-copy', `sb-info-copy${isLong ? ' is-collapsed' : ''}`) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}${toggleHtml}${nextHtml}</div></section>`;
+            const bodyHtml = `${content ? renderSeaBreezeContent(content) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}`;
+            return `<section id="sb-info-section-${i}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${bodyHtml ? `<div class="sb-info-collapsible${isLong ? ' is-collapsed' : ''}">${bodyHtml}</div>` : ''}${toggleHtml}${nextHtml}</div></section>`;
         }
         function renderSeaBreezePublicSections(sectionsData = []) {
             const sectionsContainer = document.getElementById('seaBreezeSections');
