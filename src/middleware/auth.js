@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
+const SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000;
 
 function jwtSecret() {
   if (!process.env.JWT_SECRET) {
@@ -42,6 +43,7 @@ async function isSessionValid(token, auth) {
   try {
     const session = await prisma.userSession.findUnique({ where: { token } });
     if (!session || session.expiresAt <= new Date()) return false;
+    if (session.lastActiveAt && Date.now() - new Date(session.lastActiveAt).getTime() > SESSION_TIMEOUT_MS) return false;
     if (String(session.userId) !== String(auth.id)) return false;
     await prisma.userSession.update({ where: { id: session.id }, data: { lastActiveAt: new Date() } });
     return true;
