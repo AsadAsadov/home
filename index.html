@@ -940,11 +940,14 @@
         .sb-stat-icon { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: .85rem; color: #0f172a; background: linear-gradient(135deg,#fff,#c8a96a); margin-bottom: .65rem; box-shadow: 0 12px 30px rgba(200,169,106,.18); }
         .sb-stat-card strong { display: block; color: #fff; font-size: clamp(1.875rem, 2.7vw, 2.125rem); line-height: 1; letter-spacing: -.045em; }
         .sb-stat-card span { display: block; color: rgba(255,255,255,.72); font-weight: 800; font-size: .84rem; margin-top: .38rem; line-height: 1.35; }
-        .sb-info-section { display: grid; grid-template-columns: minmax(300px, 380px) minmax(360px, 520px); gap: 48px; align-items: start; justify-content: center; max-width: 1080px; margin: 0 auto; padding: clamp(1.75rem,4vw,3rem) clamp(1rem,3vw,2rem); }
-        .sb-info-section.is-reverse { grid-template-columns: minmax(360px, 520px) minmax(300px, 380px); }
+        .sb-section-nav { position: sticky; top: 86px; z-index: 20; display: flex; justify-content: center; gap: .45rem; max-width: 1080px; margin: 1rem auto 0; padding: .35rem; width: max-content; border-radius: 999px; background: rgba(15,23,42,.58); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(14px); }
+        .sb-section-nav button { width: 2rem; height: 2rem; border-radius: 999px; color: rgba(255,255,255,.75); font-size: .78rem; font-weight: 950; background: rgba(255,255,255,.08); transition: transform .2s ease, background .2s ease; }
+        .sb-section-nav button:hover { transform: translateY(-1px); background: linear-gradient(135deg,#fff,#c8a96a); color: #0f172a; }
+        .sb-info-section { display: grid; grid-template-columns: 420px minmax(0, 560px); gap: 48px; align-items: center; justify-content: center; max-width: 1080px; margin: 0 auto; padding: clamp(1.75rem,4vw,3rem) 0; scroll-margin-top: 110px; }
+        .sb-info-section.is-reverse { grid-template-columns: minmax(0, 560px) 420px; }
         .sb-info-section.is-reverse .sb-info-media { order: 2; }
-        .sb-info-section.is-text-only { grid-template-columns: minmax(360px, 860px); justify-content: center; }
-        .sb-info-media { width: 100%; max-width: 380px; min-height: 230px; aspect-ratio: 4/3; border-radius: 1.5rem; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.12); background: #111827; justify-self: center; }
+        .sb-info-section.is-text-only { grid-template-columns: minmax(0, 860px); justify-content: center; padding-left: clamp(1rem,3vw,2rem); padding-right: clamp(1rem,3vw,2rem); }
+        .sb-info-media { width: 420px; height: 420px; aspect-ratio: 1/1; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.12); background: #111827; justify-self: center; cursor: zoom-in; }
         .sb-info-media img, .sb-info-media video { width: 100%; height: 100%; object-fit: cover; }
         .sb-hero-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; }
         .sb-hero-nav.hero-nav-arrow--prev { left: 1rem; }
@@ -955,17 +958,15 @@
         .sb-admin-media-field[hidden] { display: none !important; }
         .sb-info-text { width: 100%; max-width: 520px; min-width: 0; border-radius: 1.5rem; padding: clamp(1rem,2vw,1.5rem); background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); }
         .sb-info-section.is-text-only .sb-info-text { max-width: 860px; }
-        .sb-info-section.is-long-content { display: flex; flex-direction: column; align-items: center; gap: 1rem; max-width: 1080px; }
-        .sb-info-section.is-long-content .sb-info-media { order: 0; max-width: 920px; width: min(100%, 920px); min-height: 0; height: min(36vw, 360px); aspect-ratio: 16/6.5; border-radius: 1.65rem; }
-        .sb-info-section.is-long-content .sb-info-media img, .sb-info-section.is-long-content .sb-info-media video { max-height: 360px; object-fit: cover; }
-        .sb-info-section.is-long-content .sb-info-text { order: 1; max-width: 820px; margin: 0 auto; padding: clamp(1.25rem, 3vw, 2rem); background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.035)); box-shadow: 0 24px 70px rgba(0,0,0,.2); }
-        .sb-info-section.is-long-content .sb-info-text h2 { max-width: 760px; }
+        .sb-info-copy.is-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+        .sb-info-toggle, .sb-next-section-btn { margin-top: 1rem; display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .62rem 1rem; font-weight: 950; color: #0f172a; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 16px 40px rgba(200,169,106,.18); }
+        .sb-next-section-btn { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.14); }
         .sb-info-copy { display: grid; gap: .85rem; }
         .sb-info-copy p { margin: 0; }
         .sb-info-list { display: grid; gap: .65rem; margin: .15rem 0; }
         .sb-info-list li { position: relative; padding: .78rem .9rem .78rem 2.2rem; border-radius: 1rem; color: rgba(255,255,255,.82); background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.1); font-size: .96rem; line-height: 1.65; font-weight: 650; }
         .sb-info-list li::before { content: ''; position: absolute; left: .9rem; top: 1.2rem; width: .48rem; height: .48rem; border-radius: 999px; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 0 0 4px rgba(200,169,106,.12); }
-        .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { color: #fff; font-size: clamp(2.125rem,3.4vw,2.375rem); line-height: 1.1; font-weight: 950; letter-spacing: -.04em; margin: .55rem 0 .85rem; }
+        .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { color: #fff; font-size: clamp(1.875rem,3vw,2.25rem); line-height: 1.1; font-weight: 950; letter-spacing: -.04em; margin: .55rem 0 .85rem; }
         .sb-info-text p { color: rgba(255,255,255,.74); font-size: 1rem; line-height: 1.7; }
         .sb-info-section.is-long-content .sb-info-text p { font-size: clamp(.95rem, 1.2vw, 1rem); line-height: 1.75; }
         .sb-fact-cards { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
@@ -992,8 +993,8 @@
         html[data-theme="light"] .sb-admin-upload-label { background: #ffffff; border-color: #d1d5db; color: #111827; box-shadow: 0 8px 24px rgba(15,23,42,.06); }
         html[data-theme="light"] .sb-admin-upload-label:hover { background: #f8fafc; border-color: #7F7FFF; color: #5656E8; }
         @media (max-width: 1100px) { .seabreeze-premium-root { width: min(100%, calc(100vw - 2rem)); } .sb-stats { grid-template-columns: repeat(3,minmax(0,1fr)); } .sb-hero-slider { max-height: var(--site-hero-max-height-desktop); } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 2.125rem; } }
-        @media (max-width: 900px) { .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: min(54vw, var(--site-hero-max-height-tablet)); max-height: var(--site-hero-max-height-tablet); min-height: 280px; } .sb-info-section, .sb-info-section.is-reverse { grid-template-columns: minmax(0, 1fr); gap: 24px; } .sb-info-section.is-reverse .sb-info-media { order: 0; } .sb-info-media { max-width: 380px; } .sb-info-text { max-width: 620px; justify-self: center; } .sb-gallery > div { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { min-height: 210px; border-radius: 1.15rem; } .sb-info-section.is-long-content .sb-info-media { height: 260px; max-height: 260px; aspect-ratio: auto; } .sb-info-section.is-long-content .sb-info-media img, .sb-info-section.is-long-content .sb-info-media video { max-height: 260px; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 1.75rem; line-height: 1.12; } .sb-info-text p { font-size: .9375rem; line-height: 1.7; } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
+        @media (max-width: 900px) { .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: min(54vw, var(--site-hero-max-height-tablet)); max-height: var(--site-hero-max-height-tablet); min-height: 280px; } .sb-section-nav { top: 72px; max-width: calc(100vw - 1.5rem); overflow-x: auto; } .sb-info-section, .sb-info-section.is-reverse { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-left: 1rem; padding-right: 1rem; } .sb-info-section.is-reverse .sb-info-media { order: 0; } .sb-info-media { width: 100%; max-width: 620px; height: auto; max-height: 320px; aspect-ratio: 1/1; } .sb-info-text { max-width: 620px; justify-self: center; } .sb-gallery > div { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; overflow-x: hidden; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { border-radius: 1.15rem; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: clamp(1.5rem,7vw,1.75rem); line-height: 1.12; } .sb-info-text p { font-size: .9375rem; line-height: 1.7; } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
         @media (prefers-reduced-motion: reduce) { .sb-info-section, .sb-stat-card, .sb-gallery figure, .sb-final-cta { animation: none; } }
 
         @keyframes homepageSkeletonPulse {
@@ -6856,7 +6857,7 @@
 
 
 
-        .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
+        .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-drag-handle{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);cursor:grab;color:#cbd5e1}.sb-admin-card.is-dragging{opacity:.55;transform:scale(.99)}.sb-admin-card.is-drag-over{outline:2px solid rgba(200,169,106,.8)}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
 
     </style>
 </head>
@@ -22001,24 +22002,6 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
-        const SEABREEZE_SECTION_FALLBACKS = [
-            ['location','Sea Breeze harada yerləşir?','Sea Breeze Xəzər dənizinin sahilində yerləşən premium kurort şəhərciyidir.\n\nBöyükşor–Pirşağı avtomobil yolunun istifadəyə verilməsi nəticəsində hava limanından Sea Breeze-ə yol təxminən 22 dəqiqəyə qədər qısalmışdır.\n\nAtəşgah məbədi 25 km, Heydər Əliyev Mərkəzi isə 42 km məsafədə yerləşir.',[]],
-            ['today','Sea Breeze bu gün','Sea Breeze 2006-cı ildə təsis olunub.\n\nBu gün ərazi 750 hektardan çox sahəni əhatə edir və burada 50 mindən çox sakin yaşayır.\n\nKurort şəhərciyi yaşayış, kommersiya, istirahət və əyləncə infrastrukturlarını özündə birləşdirir.',['750 ha ərazi','50000+ sakin','3.5 mln m² yaşayış və kommersiya sahəsi','300 ha yaşıllıq']],
-            ['stats','Sea Breeze rəqəmlərlə','',['750 ha ərazi','11 mln+ ağac və kol','50+ restoran və bar','7500+ işçi','7 km çimərlik','60+ hovuz','50000+ sakin','50+ daşınmaz əmlak layihəsi']],
-            ['kids','Uşaqlar üçün hər şey','Sea Breeze uşaqların rahatlığı və inkişafı üçün geniş imkanlar təqdim edir.\n\nƏyləncə zonaları, təhsil müəssisələri və ailə yönümlü infrastruktur burada həyat keyfiyyətini yüksəldir.',[]],
-            ['education','Təhsil imkanları','LANDAU School və LANDAU Kindergarten beynəlxalq standartlara uyğun təhsil imkanları təqdim edir.\n\nTədris əsasən ingilis dilində həyata keçirilir.',[]],
-            ['investment','Sea Breeze-ə yatırım','Sea Breeze həm yaşayış, həm də investisiya baxımından ölkənin ən perspektivli layihələrindən biridir.\n\nƏmlakın idarə olunması, kirayə koordinasiyası və servis xidmətləri təqdim olunur.',[]],
-            ['investor-benefits','İnvestorlar niyə Sea Breeze seçirlər?','',['15-35% orta illik dəyər artımı','8% passiv kirayə gəliri','40 m² - 1500 m² seçimlər','Azərbaycan bazarında unikal layihə','Turizm sektorunda mühüm rol','Xüsusi investor paketləri']],
-            ['growth','Satış dinamikası','Tikinti başlanğıcından etibarən layihələrin qiyməti orta hesabla ildə 15-35% artır.\n\nTəkrar bazarda qiymətlər ilkin qiymətlərdən 70-90% yüksək ola bilir.',[]],
-            ['beach-club','Dəniz sahilində unudulmaz tətil','Sea Breeze Beach Club sakinlər və qonaqlar üçün özəl çimərlik klubudur.\n\n7 km-dən çox sahil xətti boyunca hovuzlar, restoranlar, barlar və istirahət zonaları fəaliyyət göstərir.',[]],
-            ['nightlife','Çimərlik klubları və əyləncə','Nikki Beach, Maize Beach və Roberto Beach Club yay mövsümünün əsas əyləncə məkanlarıdır.',[]],
-            ['restaurants','Restaurants by Emin Agalarov','',['Park Cafe','Fish Box','Shore House','Beach Club','Bosfor']],
-            ['food-court','Food Court və Delivery','Sea Breeze Delivery xidməti restoran və kafelərdən sifarişlərin birbaşa sakinlərə çatdırılmasını təmin edir.',[]],
-            ['event-hall','Event Hall','1300 m² sahəyə malik Event Hall toylar, konfranslar və böyük tədbirlər üçün nəzərdə tutulub.',[]],
-            ['venetian-harbour','Venetian Harbour','Premium butiklər, restoranlar və panoramik müşahidə qülləsi ilə Sea Breeze-in əsas mərkəzlərindən biri olacaq.',[]],
-            ['nikki-beach','Nikki Beach','Dünyanın ən məşhur çimərlik klublarından biri olan Nikki Beach Sea Breeze ərazisində fəaliyyət göstərir.',[]],
-            ['cta','Sea Breeze-in bir hissəsinə çevrilin','Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.',[]]
-        ];
         const SEABREEZE_STATS = [['750+','ha'],['11M+','ağac və kol'],['50+','restoran və bar'],['7500+','işçi'],['3.5M+','m² yaşayış və kommersiya'],['7km+','çimərlik'],['60+','hovuz'],['50,000+','sakin'],['50+','layihə']];
         const hasSbImage = (item) => Boolean(item?.image_url || item?.imageUrl);
         const hasSbVideo = (item) => Boolean(item?.video_url || item?.videoUrl);
@@ -22118,31 +22101,43 @@ Təşəkkür edirəm. 🙏`;
             flushList();
             return `<div class="sb-info-copy">${chunks.join('')}</div>`;
         }
-        function renderSeaBreezeInfoSection(sec, i) {
+        function toggleSeaBreezeLongContent(button) {
+            const copy = button?.closest('.sb-info-text')?.querySelector('.sb-info-copy');
+            if (!copy) return;
+            const collapsed = copy.classList.toggle('is-collapsed');
+            button.innerHTML = collapsed ? 'Daha çox göstər <i class="fa-solid fa-chevron-down"></i>' : 'Daha az göstər <i class="fa-solid fa-chevron-up"></i>';
+        }
+        function scrollToSeaBreezeSection(index) {
+            document.getElementById(`sb-info-section-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        window.toggleSeaBreezeLongContent = toggleSeaBreezeLongContent;
+        window.scrollToSeaBreezeSection = scrollToSeaBreezeSection;
+        function renderSeaBreezeInfoSection(sec, i, total = 0) {
             const facts = Array.isArray(sec.facts) ? sec.facts.filter(Boolean) : [];
             const content = String(sec.content || '');
             const media = sbMedia(sec);
             const imageUrl = sec.image_url || sec.imageUrl || '';
-            const isLong = content.length > 650 || facts.length > 8;
+            const videoUrl = sec.video_url || sec.videoUrl || '';
+            const isLong = content.length > 560 || facts.length > 8;
             const classes = ['sb-info-section'];
-            if (isLong) classes.push('is-long-content');
-            else if (media && i % 2) classes.push('is-reverse');
+            if (i % 2) classes.push('is-reverse');
             if (!media) classes.push('is-text-only');
             const factClass = `sb-fact-cards${facts.length > 6 ? ' is-compact' : ''}`;
-            return `<section class="${classes.join(' ')}">${media ? `<div class="sb-info-media ${imageUrl ? 'cursor-pointer' : ''}" ${imageUrl ? `onclick="openSeaBreezeMediaModal('${escapeHtml(imageUrl)}','image','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')"` : ''}>${media}</div>` : ''}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${content ? renderSeaBreezeContent(content) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}</div></section>`;
+            const mediaType = videoUrl ? 'video' : 'image';
+            const mediaUrl = videoUrl || imageUrl;
+            const mediaHtml = media ? `<div class="sb-info-media" onclick="openSeaBreezeMediaModal('${escapeHtml(mediaUrl)}','${mediaType}','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')">${media}</div>` : '';
+            const toggleHtml = isLong ? `<button type="button" class="sb-info-toggle" onclick="toggleSeaBreezeLongContent(this)">Daha çox göstər <i class="fa-solid fa-chevron-down"></i></button>` : '';
+            const nextHtml = total > 1 ? `<div><button type="button" class="sb-next-section-btn" onclick="scrollToSeaBreezeSection(${Math.min(i + 1, total - 1)})">${i >= total - 1 ? 'İlk bölməyə qayıt' : 'Növbəti bölmə'} <i class="fa-solid fa-arrow-${i >= total - 1 ? 'up' : 'down'}"></i></button></div>` : '';
+            return `<section id="sb-info-section-${i}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${content ? renderSeaBreezeContent(content).replace('sb-info-copy', `sb-info-copy${isLong ? ' is-collapsed' : ''}`) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}${toggleHtml}${nextHtml}</div></section>`;
         }
         function renderSeaBreezePublicSections(sectionsData = []) {
             const sectionsContainer = document.getElementById('seaBreezeSections');
             if (!sectionsContainer) return;
-            const sections = normalizeSeaBreezeList(sectionsData);
-            const byKey = new Map(sections.map(s => [String(s.section_key || s.sectionKey || s.title || '').toLowerCase(), s]));
-            const fallbackKeys = new Set(SEABREEZE_SECTION_FALLBACKS.map(([key]) => key));
-            const seededRows = SEABREEZE_SECTION_FALLBACKS.map(([key,title,content,facts], i) => ({ section_key:key, title, content, facts, sort_order:i + 1, ...(byKey.get(key) || {}) }));
-            sections.forEach((sec) => { const key = String(sec.section_key || sec.sectionKey || '').toLowerCase(); if (!fallbackKeys.has(key)) seededRows.push(sec); });
-            seededRows.sort((a,b) => (Number(a.sort_order ?? a.sortOrder ?? 9999) - Number(b.sort_order ?? b.sortOrder ?? 9999)) || (Number(a.id || 0) - Number(b.id || 0)));
-            const ctaSection = seededRows.find(sec => String(sec.section_key || sec.sectionKey).toLowerCase() === 'cta');
-            const sectionRows = seededRows.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
-            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l],idx)=>`<div class="sb-stat-card"><i class="sb-stat-icon fa-solid ${['fa-seedling','fa-tree','fa-utensils','fa-user-tie','fa-building','fa-umbrella-beach','fa-water-ladder','fa-people-roof','fa-diagram-project'][idx] || 'fa-star'}"></i><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>renderSeaBreezeInfoSection(sec, i)).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
+            const sections = normalizeSeaBreezeList(sectionsData).sort((a,b) => (Number(a.sort_order ?? a.sortOrder ?? 9999) - Number(b.sort_order ?? b.sortOrder ?? 9999)) || (Number(a.id || 0) - Number(b.id || 0)));
+            const ctaSection = sections.find(sec => String(sec.section_key || sec.sectionKey).toLowerCase() === 'cta');
+            const sectionRows = sections.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
+            const nav = sectionRows.length > 1 ? `<nav class="sb-section-nav" aria-label="Sea Breeze bölmələri">${sectionRows.map((_, i) => `<button type="button" onclick="scrollToSeaBreezeSection(${i})" aria-label="${i + 1}-ci bölmə">${i + 1}</button>`).join('')}</nav>` : '';
+            sectionsContainer.innerHTML = `${nav}${sectionRows.map((sec,i)=>renderSeaBreezeInfoSection(sec, i, sectionRows.length)).join('')}${ctaSection ? `<section class="sb-final-cta"><h2>${escapeHtml(ctaSection.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection.content || '')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>` : ''}`;
         }
         function renderSeaBreezePublicGallery(galleryData = []) {
             const galleryContainer = document.getElementById('seaBreezeGallery');
@@ -22215,12 +22210,40 @@ Təşəkkür edirəm. 🙏`;
                 const isSection = type === 'sections';
                 const upDisabled = !isSection || idx === 0;
                 const downDisabled = !isSection || idx >= total - 1;
-                return `<div class="sb-admin-card glass-card rounded-2xl p-4 text-white" data-sb-row-id="${x.id}"><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • sıra ${escapeHtml(String(x.sort_order ?? x.sortOrder ?? '—'))} • ${escapeHtml(x.slug || x.section_key || '')} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.subtitle || x.cta_text || x.ctaText || x.content || '')}</p></div><div class="sb-admin-actions"><button type="button" onclick="editSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button>${isSection ? `<button type="button" onclick="moveSeaBreezeSection(${x.id},-1,this)" ${upDisabled ? 'disabled' : ''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="moveSeaBreezeSection(${x.id},1,this)" ${downDisabled ? 'disabled' : ''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button>` : ''}<button type="button" onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button type="button" onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
+                return `<div class="sb-admin-card glass-card rounded-2xl p-4 text-white" data-sb-row-id="${x.id}" ${isSection ? 'draggable="true"' : ''}><button type="button" class="sb-drag-handle" aria-label="Sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||x.category||'Media')}</b><p class="text-xs text-gray-400">#${x.id} • sıra ${escapeHtml(String(x.sort_order ?? x.sortOrder ?? '—'))} • ${escapeHtml(x.slug || x.section_key || '')} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.subtitle || x.cta_text || x.ctaText || x.content || '')}</p></div><div class="sb-admin-actions"><button type="button" onclick="editSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button>${isSection ? `<button type="button" onclick="moveSeaBreezeSection(${x.id},-1,this)" ${upDisabled ? 'disabled' : ''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="moveSeaBreezeSection(${x.id},1,this)" ${downDisabled ? 'disabled' : ''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button>` : ''}<button type="button" onclick="toggleSeaBreezeAdmin('${type}',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button type="button" onclick="deleteSeaBreezeAdmin('${type}',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`;
             };
             const h=document.getElementById('sb-hero-admin-list'); if(h) h.innerHTML=window.__seaBreezeAdminHeroes.map((x,i,a)=>card(x,'hero-slides',i,a.length)).join('')||'<p class="text-gray-400">Hero yoxdur.</p>';
-            const se=document.getElementById('sb-sections-admin-list'); if(se) se.innerHTML=window.__seaBreezeAdminSections.map((x,i,a)=>card(x,'sections',i,a.length)).join('')||'<p class="text-gray-400">Bölmə yoxdur.</p>';
+            const se=document.getElementById('sb-sections-admin-list'); if(se) { se.innerHTML=window.__seaBreezeAdminSections.map((x,i,a)=>card(x,'sections',i,a.length)).join('')||'<p class="text-gray-400">Bölmə yoxdur.</p>'; initSeaBreezeSectionDrag(); }
             const ga=document.getElementById('sb-gallery-admin-list'); if(ga) ga.innerHTML=orderList(gallery || []).map(x=>`<div class="rounded-xl overflow-hidden bg-white/5 text-white text-xs">${(x.media_type || x.mediaType)==='video'?'<div class="p-4">Video</div>':`<img src="${escapeHtml(x.media_url || x.mediaUrl || '')}" class="h-24 w-full object-cover">`}<button type="button" onclick="deleteSeaBreezeAdmin('gallery',${x.id})" class="w-full bg-red-600 py-1">Sil</button></div>`).join('');
         }
+
+        function initSeaBreezeSectionDrag() {
+            const list = document.getElementById('sb-sections-admin-list');
+            if (!list) return;
+            let draggedId = null;
+            list.querySelectorAll('.sb-admin-card[draggable="true"]').forEach((row) => {
+                row.addEventListener('dragstart', (event) => { draggedId = row.dataset.sbRowId; row.classList.add('is-dragging'); event.dataTransfer.effectAllowed = 'move'; });
+                row.addEventListener('dragend', () => { row.classList.remove('is-dragging'); list.querySelectorAll('.is-drag-over').forEach(el => el.classList.remove('is-drag-over')); });
+                row.addEventListener('dragover', (event) => { event.preventDefault(); if (row.dataset.sbRowId !== draggedId) row.classList.add('is-drag-over'); });
+                row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
+                row.addEventListener('drop', async (event) => {
+                    event.preventDefault(); row.classList.remove('is-drag-over');
+                    if (!draggedId || draggedId === row.dataset.sbRowId) return;
+                    const items = [...(window.__seaBreezeAdminSections || [])];
+                    const from = items.findIndex(x => String(x.id) === String(draggedId));
+                    const to = items.findIndex(x => String(x.id) === String(row.dataset.sbRowId));
+                    if (from < 0 || to < 0) return;
+                    const [moved] = items.splice(from, 1); items.splice(to, 0, moved);
+                    items.forEach((item, index) => { item.sort_order = index + 1; item.sortOrder = index + 1; });
+                    window.__seaBreezeAdminSections = items;
+                    list.innerHTML = items.map((x,i,a)=>`<div class="sb-admin-card glass-card rounded-2xl p-4 text-white" data-sb-row-id="${x.id}" draggable="true"><button type="button" class="sb-drag-handle" aria-label="Sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||'Bölmə')}</b><p class="text-xs text-gray-400">#${x.id} • sıra ${i + 1} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.content || '')}</p></div><div class="sb-admin-actions"><button type="button" onclick="editSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button type="button" onclick="moveSeaBreezeSection(${x.id},-1,this)" ${i===0?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="moveSeaBreezeSection(${x.id},1,this)" ${i>=a.length-1?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button><button type="button" onclick="toggleSeaBreezeAdmin('sections',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button type="button" onclick="deleteSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`).join('');
+                    initSeaBreezeSectionDrag();
+                    try { await apiRequest('/api/seabreeze/sections/reorder', {method:'PUT', body:JSON.stringify({order:items.map(x=>({id:x.id}))})}); invalidateSeaBreezePublicCaches('seaBreezeSections'); await loadSeaBreezeAdmin(); showToast('Sıralama yeniləndi.'); }
+                    catch (error) { showToast(error.message || 'Sıralama yenilənmədi', 'error'); await loadSeaBreezeAdmin(); }
+                });
+            });
+        }
+        window.initSeaBreezeSectionDrag = initSeaBreezeSectionDrag;
         function seaBreezeAdminThumb(x = {}) {
             const image = x.image_url || x.imageUrl || x.media_url || x.mediaUrl || '';
             const video = x.video_url || x.videoUrl || (((x.media_type || x.mediaType) === 'video') ? image : '');
@@ -22241,8 +22264,10 @@ Təşəkkür edirəm. 🙏`;
                 if (!box) return;
                 const file = document.getElementById(`${prefix}-${kind}`)?.files?.[0];
                 const existingUrl = existing[`${kind}_url`] || existing[kind + 'Url'] || '';
-                const url = file ? URL.createObjectURL(file) : existingUrl;
-                box.innerHTML = url ? `<span>${kind === 'image' ? 'Şəkil / poster' : 'Video'}</span>${kind === 'image' ? `<img src="${escapeHtml(url)}" alt="Önizləmə">` : `<video src="${escapeHtml(url)}" controls muted playsinline></video>`}` : '';
+                const removed = window.__seaBreezeRemovedMedia?.[prefix]?.[kind];
+                const url = removed ? '' : (file ? URL.createObjectURL(file) : existingUrl);
+                const deleteBtn = existingUrl && prefix === 'sb-sections' && !file && !removed ? `<button type="button" class="mt-2 px-3 py-2 rounded-lg bg-red-600 text-white text-xs font-bold" onclick="removeSeaBreezeSectionMedia('${kind}')">${kind === 'image' ? 'Şəkili sil' : 'Videonu sil'}</button>` : '';
+                box.innerHTML = url ? `<span>${kind === 'image' ? 'Şəkil / poster' : 'Video'}</span>${kind === 'image' ? `<img src="${escapeHtml(url)}" alt="Önizləmə">` : `<video src="${escapeHtml(url)}" controls muted playsinline></video>`}${deleteBtn}` : (removed ? `<div class="text-xs font-bold text-red-500">${kind === 'image' ? 'Şəkil silinəcək' : 'Video silinəcək'}</div>` : '');
             });
         }
         function updateSeaBreezeMediaInputs(prefix) {
@@ -22255,6 +22280,14 @@ Təşəkkür edirəm. 🙏`;
             if (videoField) videoField.hidden = !showVideo;
             renderSeaBreezePreview(prefix);
         }
+        function removeSeaBreezeSectionMedia(kind) {
+            window.__seaBreezeRemovedMedia = window.__seaBreezeRemovedMedia || {};
+            window.__seaBreezeRemovedMedia['sb-sections'] = window.__seaBreezeRemovedMedia['sb-sections'] || {};
+            window.__seaBreezeRemovedMedia['sb-sections'][kind] = true;
+            const input = document.getElementById(`sb-sections-${kind}`); if (input) input.value = '';
+            renderSeaBreezePreview('sb-sections', window.__seaBreezeEditingSection || {});
+        }
+        window.removeSeaBreezeSectionMedia = removeSeaBreezeSectionMedia;
         window.updateSeaBreezeMediaInputs = updateSeaBreezeMediaInputs;
         function seaBreezeMediaTypeFromItem(x, allowNone = false) {
             const existing = x.media_type || x.mediaType;
@@ -22271,6 +22304,7 @@ Təşəkkür edirəm. 🙏`;
             ['sb-sections-image','sb-sections-video'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             const active = document.getElementById('sb-sections-isActive'); if (active) active.checked = true;
             const mediaType = document.getElementById('sb-sections-mediaType'); if (mediaType) mediaType.value = 'none';
+            window.__seaBreezeEditingSection = null; window.__seaBreezeRemovedMedia = window.__seaBreezeRemovedMedia || {}; window.__seaBreezeRemovedMedia['sb-sections'] = {};
             const btn = document.getElementById('sb-sections-save-btn'); if (btn) btn.textContent = 'Saxla';
             const label = document.getElementById('sb-sections-edit-label'); if (label) { label.textContent = ''; label.classList.add('hidden'); }
             updateSeaBreezeMediaInputs('sb-sections');
@@ -22308,6 +22342,7 @@ Təşəkkür edirəm. 🙏`;
             const sort = document.getElementById('sb-sections-sortOrder'); if (sort) sort.value = x.sort_order ?? x.sortOrder ?? 0;
             const mediaType = document.getElementById('sb-sections-mediaType'); if (mediaType) mediaType.value = seaBreezeMediaTypeFromItem(x, true);
             updateSeaBreezeMediaInputs('sb-sections');
+            window.__seaBreezeEditingSection = x; window.__seaBreezeRemovedMedia = window.__seaBreezeRemovedMedia || {}; window.__seaBreezeRemovedMedia['sb-sections'] = {};
             renderSeaBreezePreview('sb-sections', x);
             const active = document.getElementById('sb-sections-isActive'); if (active) active.checked = x.is_active !== false;
             const saveBtn = document.getElementById('sb-sections-save-btn'); if (saveBtn) saveBtn.textContent = 'Yenilə';
@@ -22326,6 +22361,9 @@ Təşəkkür edirəm. 🙏`;
             try {
                 const fd=new FormData(); const p= type==='hero-slides'?'sb-hero':type==='sections'?'sb-sections':'sb-gallery';
                 if (type === 'sections') {
+                    const removed = window.__seaBreezeRemovedMedia?.[p] || {};
+                    if (removed.image) fd.append('removeImage', 'true');
+                    if (removed.video) fd.append('removeVideo', 'true');
                     fd.append('slug', document.getElementById(`${p}-key`)?.value || '');
                     ['title','content','facts','sortOrder'].forEach(k=>{ const el=document.getElementById(`${p}-${k}`); if(el) fd.append(k, el.value); });
                     fd.append('isActive', document.getElementById(`${p}-isActive`)?.checked ? 'true' : 'false');
@@ -22372,7 +22410,7 @@ Təşəkkür edirəm. 🙏`;
             window.__seaBreezeAdminSections = items;
             const se = document.getElementById('sb-sections-admin-list');
             if (se) {
-                const quickRows = items.map((x, idx, arr) => `<div class="sb-admin-card glass-card rounded-2xl p-4 text-white" data-sb-row-id="${x.id}"><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||'Bölmə')}</b><p class="text-xs text-gray-400">#${x.id} • sıra ${idx + 1} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.content || '')}</p></div><div class="sb-admin-actions"><button type="button" onclick="editSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button type="button" onclick="moveSeaBreezeSection(${x.id},-1,this)" ${idx===0?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="moveSeaBreezeSection(${x.id},1,this)" ${idx>=arr.length-1?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button><button type="button" onclick="toggleSeaBreezeAdmin('sections',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button type="button" onclick="deleteSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`).join('');
+                const quickRows = items.map((x, idx, arr) => `<div class="sb-admin-card glass-card rounded-2xl p-4 text-white" data-sb-row-id="${x.id}" ${isSection ? 'draggable="true"' : ''}><button type="button" class="sb-drag-handle" aria-label="Sıranı dəyiş"><i class="fa-solid fa-grip-vertical"></i></button><div class="sb-admin-thumb">${seaBreezeAdminThumb(x)}</div><div class="min-w-0 flex-1"><b class="block truncate">${escapeHtml(x.title||'Bölmə')}</b><p class="text-xs text-gray-400">#${x.id} • sıra ${idx + 1} • ${x.is_active===false?'Deaktiv':'Aktiv'}</p><p class="text-xs text-gray-400 truncate">${escapeHtml(x.content || '')}</p></div><div class="sb-admin-actions"><button type="button" onclick="editSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">Edit</button><button type="button" onclick="moveSeaBreezeSection(${x.id},-1,this)" ${idx===0?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Yuxarı"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="moveSeaBreezeSection(${x.id},1,this)" ${idx>=arr.length-1?'disabled':''} class="px-3 py-1 rounded-lg bg-white/10 text-xs disabled:opacity-40" aria-label="Aşağı"><i class="fa-solid fa-arrow-down"></i></button><button type="button" onclick="toggleSeaBreezeAdmin('sections',${x.id},${x.is_active!==false})" class="px-3 py-1 rounded-lg bg-white/10 text-xs">${x.is_active===false?'Aktiv et':'Deaktiv et'}</button><button type="button" onclick="deleteSeaBreezeAdmin('sections',${x.id})" class="px-3 py-1 rounded-lg bg-red-600 text-xs">Sil</button></div></div>`).join('');
                 se.innerHTML = quickRows;
             }
             try {
