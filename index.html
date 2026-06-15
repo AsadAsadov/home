@@ -940,7 +940,7 @@
         .sb-stat-icon { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: .85rem; color: #0f172a; background: linear-gradient(135deg,#fff,#c8a96a); margin-bottom: .65rem; box-shadow: 0 12px 30px rgba(200,169,106,.18); }
         .sb-stat-card strong { display: block; color: #fff; font-size: clamp(1.875rem, 2.7vw, 2.125rem); line-height: 1; letter-spacing: -.045em; }
         .sb-stat-card span { display: block; color: rgba(255,255,255,.72); font-weight: 800; font-size: .84rem; margin-top: .38rem; line-height: 1.35; }
-        .sb-info-section { display: grid; grid-template-columns: minmax(300px, 380px) minmax(360px, 520px); gap: 48px; align-items: center; justify-content: center; max-width: 1080px; margin: 0 auto; padding: clamp(1.75rem,4vw,3rem) clamp(1rem,3vw,2rem); }
+        .sb-info-section { display: grid; grid-template-columns: minmax(300px, 380px) minmax(360px, 520px); gap: 48px; align-items: start; justify-content: center; max-width: 1080px; margin: 0 auto; padding: clamp(1.75rem,4vw,3rem) clamp(1rem,3vw,2rem); }
         .sb-info-section.is-reverse { grid-template-columns: minmax(360px, 520px) minmax(300px, 380px); }
         .sb-info-section.is-reverse .sb-info-media { order: 2; }
         .sb-info-section.is-text-only { grid-template-columns: minmax(360px, 860px); justify-content: center; }
@@ -955,10 +955,23 @@
         .sb-admin-media-field[hidden] { display: none !important; }
         .sb-info-text { width: 100%; max-width: 520px; min-width: 0; border-radius: 1.5rem; padding: clamp(1rem,2vw,1.5rem); background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); }
         .sb-info-section.is-text-only .sb-info-text { max-width: 860px; }
+        .sb-info-section.is-long-content { display: flex; flex-direction: column; align-items: center; gap: 1rem; max-width: 1080px; }
+        .sb-info-section.is-long-content .sb-info-media { order: 0; max-width: 920px; width: min(100%, 920px); min-height: 0; height: min(36vw, 360px); aspect-ratio: 16/6.5; border-radius: 1.65rem; }
+        .sb-info-section.is-long-content .sb-info-media img, .sb-info-section.is-long-content .sb-info-media video { max-height: 360px; object-fit: cover; }
+        .sb-info-section.is-long-content .sb-info-text { order: 1; max-width: 820px; margin: 0 auto; padding: clamp(1.25rem, 3vw, 2rem); background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.035)); box-shadow: 0 24px 70px rgba(0,0,0,.2); }
+        .sb-info-section.is-long-content .sb-info-text h2 { max-width: 760px; }
+        .sb-info-copy { display: grid; gap: .85rem; }
+        .sb-info-copy p { margin: 0; }
+        .sb-info-list { display: grid; gap: .65rem; margin: .15rem 0; }
+        .sb-info-list li { position: relative; padding: .78rem .9rem .78rem 2.2rem; border-radius: 1rem; color: rgba(255,255,255,.82); background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.1); font-size: .96rem; line-height: 1.65; font-weight: 650; }
+        .sb-info-list li::before { content: ''; position: absolute; left: .9rem; top: 1.2rem; width: .48rem; height: .48rem; border-radius: 999px; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 0 0 4px rgba(200,169,106,.12); }
         .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { color: #fff; font-size: clamp(2.125rem,3.4vw,2.375rem); line-height: 1.1; font-weight: 950; letter-spacing: -.04em; margin: .55rem 0 .85rem; }
         .sb-info-text p { color: rgba(255,255,255,.74); font-size: 1rem; line-height: 1.7; }
+        .sb-info-section.is-long-content .sb-info-text p { font-size: clamp(.95rem, 1.2vw, 1rem); line-height: 1.75; }
         .sb-fact-cards { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
         .sb-fact-cards li { color: #f8fafc; padding: .58rem .78rem; border-radius: 999px; background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.12); font-size: .84rem; font-weight: 900; box-shadow: 0 12px 32px rgba(0,0,0,.14); }
+        .sb-fact-cards.is-compact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+        .sb-fact-cards.is-compact li { border-radius: .95rem; padding: .62rem .72rem; font-size: .8rem; line-height: 1.35; box-shadow: none; }
         .sb-info-section, .sb-stat-card, .sb-gallery figure, .sb-final-cta { animation: sbFadeUp .75s ease both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
         @keyframes sbFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .sb-gallery { max-width: 1080px; margin: 0 auto; padding: clamp(1.75rem,4vw,3rem) clamp(1rem,3vw,2rem); }
@@ -974,11 +987,13 @@
         html[data-theme="light"] .sb-stat-card, html[data-theme="light"] .sb-info-text { background: rgba(255,255,255,.9); border-color: rgba(15,23,42,.08); box-shadow: 0 18px 55px rgba(15,23,42,.08); }
         html[data-theme="light"] .sb-info-text p, html[data-theme="light"] .sb-stat-card span, html[data-theme="light"] .sb-final-cta p { color: rgba(17,24,39,.72); }
         html[data-theme="light"] .sb-fact-cards li { color: #111827; background: rgba(255,255,255,.9); border-color: rgba(15,23,42,.08); }
+        html[data-theme="light"] .sb-info-section.is-long-content .sb-info-text { background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(248,250,252,.92)); border-color: rgba(15,23,42,.08); box-shadow: 0 24px 70px rgba(15,23,42,.1); }
+        html[data-theme="light"] .sb-info-list li { color: rgba(17,24,39,.78); background: rgba(248,250,252,.9); border-color: rgba(15,23,42,.08); }
         html[data-theme="light"] .sb-admin-upload-label { background: #ffffff; border-color: #d1d5db; color: #111827; box-shadow: 0 8px 24px rgba(15,23,42,.06); }
         html[data-theme="light"] .sb-admin-upload-label:hover { background: #f8fafc; border-color: #7F7FFF; color: #5656E8; }
         @media (max-width: 1100px) { .seabreeze-premium-root { width: min(100%, calc(100vw - 2rem)); } .sb-stats { grid-template-columns: repeat(3,minmax(0,1fr)); } .sb-hero-slider { max-height: var(--site-hero-max-height-desktop); } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 2.125rem; } }
         @media (max-width: 900px) { .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: min(54vw, var(--site-hero-max-height-tablet)); max-height: var(--site-hero-max-height-tablet); min-height: 280px; } .sb-info-section, .sb-info-section.is-reverse { grid-template-columns: minmax(0, 1fr); gap: 24px; } .sb-info-section.is-reverse .sb-info-media { order: 0; } .sb-info-media { max-width: 380px; } .sb-info-text { max-width: 620px; justify-self: center; } .sb-gallery > div { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { min-height: 210px; border-radius: 1.15rem; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 1.75rem; line-height: 1.12; } .sb-info-text p { font-size: .9375rem; line-height: 1.7; } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
+        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { min-height: 210px; border-radius: 1.15rem; } .sb-info-section.is-long-content .sb-info-media { height: 260px; max-height: 260px; aspect-ratio: auto; } .sb-info-section.is-long-content .sb-info-media img, .sb-info-section.is-long-content .sb-info-media video { max-height: 260px; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 1.75rem; line-height: 1.12; } .sb-info-text p { font-size: .9375rem; line-height: 1.7; } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
         @media (prefers-reduced-motion: reduce) { .sb-info-section, .sb-stat-card, .sb-gallery figure, .sb-final-cta { animation: none; } }
 
         @keyframes homepageSkeletonPulse {
@@ -22081,6 +22096,41 @@ Təşəkkür edirəm. 🙏`;
             });
             startSeaBreezePublicHeroTimer();
         }
+        function renderSeaBreezeContent(content = '') {
+            const lines = String(content || '').split(/\n+/).map(line => line.trim()).filter(Boolean);
+            if (!lines.length) return '';
+            const chunks = [];
+            let list = [];
+            const flushList = () => {
+                if (list.length) {
+                    chunks.push(`<ul class="sb-info-list">${list.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`);
+                    list = [];
+                }
+            };
+            lines.forEach((line) => {
+                if (/^[—–-]\s+/.test(line)) {
+                    list.push(line.replace(/^[—–-]\s+/, ''));
+                } else {
+                    flushList();
+                    chunks.push(`<p>${escapeHtml(line)}</p>`);
+                }
+            });
+            flushList();
+            return `<div class="sb-info-copy">${chunks.join('')}</div>`;
+        }
+        function renderSeaBreezeInfoSection(sec, i) {
+            const facts = Array.isArray(sec.facts) ? sec.facts.filter(Boolean) : [];
+            const content = String(sec.content || '');
+            const media = sbMedia(sec);
+            const imageUrl = sec.image_url || sec.imageUrl || '';
+            const isLong = content.length > 650 || facts.length > 8;
+            const classes = ['sb-info-section'];
+            if (isLong) classes.push('is-long-content');
+            else if (media && i % 2) classes.push('is-reverse');
+            if (!media) classes.push('is-text-only');
+            const factClass = `sb-fact-cards${facts.length > 6 ? ' is-compact' : ''}`;
+            return `<section class="${classes.join(' ')}">${media ? `<div class="sb-info-media ${imageUrl ? 'cursor-pointer' : ''}" ${imageUrl ? `onclick="openSeaBreezeMediaModal('${escapeHtml(imageUrl)}','image','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')"` : ''}>${media}</div>` : ''}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${content ? renderSeaBreezeContent(content) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}</div></section>`;
+        }
         function renderSeaBreezePublicSections(sectionsData = []) {
             const sectionsContainer = document.getElementById('seaBreezeSections');
             if (!sectionsContainer) return;
@@ -22092,7 +22142,7 @@ Təşəkkür edirəm. 🙏`;
             seededRows.sort((a,b) => (Number(a.sort_order ?? a.sortOrder ?? 9999) - Number(b.sort_order ?? b.sortOrder ?? 9999)) || (Number(a.id || 0) - Number(b.id || 0)));
             const ctaSection = seededRows.find(sec => String(sec.section_key || sec.sectionKey).toLowerCase() === 'cta');
             const sectionRows = seededRows.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
-            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l],idx)=>`<div class="sb-stat-card"><i class="sb-stat-icon fa-solid ${['fa-seedling','fa-tree','fa-utensils','fa-user-tie','fa-building','fa-umbrella-beach','fa-water-ladder','fa-people-roof','fa-diagram-project'][idx] || 'fa-star'}"></i><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>{ const media = sbMedia(sec); const imageUrl = sec.image_url || sec.imageUrl || ''; return `<section class="sb-info-section ${media ? (i%2?'is-reverse':'') : 'is-text-only'}">${media ? `<div class="sb-info-media ${imageUrl ? 'cursor-pointer' : ''}" ${imageUrl ? `onclick="openSeaBreezeMediaModal('${escapeHtml(imageUrl)}','image','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')"` : ''}>${media}</div>` : ''}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${sec.content ? `<p>${escapeHtml(sec.content).replace(/\n/g,'<br>')}</p>` : ''}${Array.isArray(sec.facts)&&sec.facts.length?`<ul class="sb-fact-cards">${sec.facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}</div></section>`; }).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
+            sectionsContainer.innerHTML = `<section class="sb-stats">${SEABREEZE_STATS.map(([n,l],idx)=>`<div class="sb-stat-card"><i class="sb-stat-icon fa-solid ${['fa-seedling','fa-tree','fa-utensils','fa-user-tie','fa-building','fa-umbrella-beach','fa-water-ladder','fa-people-roof','fa-diagram-project'][idx] || 'fa-star'}"></i><strong data-count="${escapeHtml(n)}">${escapeHtml(n)}</strong><span>${escapeHtml(l)}</span></div>`).join('')}</section>${sectionRows.map((sec,i)=>renderSeaBreezeInfoSection(sec, i)).join('')}<section class="sb-final-cta"><h2>${escapeHtml(ctaSection?.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection?.content || 'Premium yaşayış, investisiya və istirahət imkanlarını bir arada kəşf edin.')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>`;
         }
         function renderSeaBreezePublicGallery(galleryData = []) {
             const galleryContainer = document.getElementById('seaBreezeGallery');
