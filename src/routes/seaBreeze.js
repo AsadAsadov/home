@@ -22,6 +22,25 @@ function file(req, name) { return Array.isArray(req.files?.[name]) ? req.files[n
 function listFile(req) { return file(req, 'media') || file(req, 'video') || file(req, 'image') || null; }
 function orderBy() { return [{ sortOrder: 'asc' }, { id: 'asc' }]; }
 
+async function nextSortOrder(model) {
+  const last = await model.findFirst({ orderBy: [{ sortOrder: 'desc' }, { id: 'desc' }], select: { sortOrder: true } });
+  return Math.max(0, Number(last?.sortOrder || 0)) + 1;
+}
+
+async function normalizeSortOrder(model, where = undefined) {
+  const rows = await model.findMany({ where, orderBy: orderBy(), select: { id: true } });
+  await prisma.$transaction(rows.map((row, index) => model.update({ where: { id: row.id }, data: { sortOrder: index + 1 } })));
+}
+
+async function applySequentialOrder(model, orderedItems = []) {
+  const requestedIds = orderedItems.map((item) => int(item.id)).filter(Boolean);
+  const requested = await model.findMany({ where: { id: { in: requestedIds } }, orderBy: orderBy(), select: { id: true } });
+  const requestedSet = new Set(requested.map((row) => row.id));
+  const remainder = await model.findMany({ where: { id: { notIn: [...requestedSet] } }, orderBy: orderBy(), select: { id: true } });
+  const sortedIds = requestedIds.filter((id) => requestedSet.has(id)).concat(remainder.map((row) => row.id));
+  await prisma.$transaction(sortedIds.map((id, index) => model.update({ where: { id }, data: { sortOrder: index + 1 } })));
+}
+
 function missingDelegateResponse(res, delegateName) {
   console.error(`[seabreeze] Prisma delegate missing: ${delegateName}. Run npx prisma generate after migration.`);
   return res.status(500).json({
@@ -145,17 +164,18 @@ router.post('/sections', adminOnly, mediaFields, asyncHandler(async (req, res) =
       imageUrl: await up(file(req, 'image')) || str(req.body.image_url || req.body.imageUrl),
       videoUrl: await up(file(req, 'video')) || str(req.body.video_url || req.body.videoUrl),
       facts: factsFromBody(req.body.facts, []),
-      sortOrder: int(req.body.sort_order || req.body.sortOrder),
+      sortOrder: int(req.body.sort_order || req.body.sortOrder, await nextSortOrder(prisma.seaBreezeSection)),
       isActive: bool(req.body.is_active ?? req.body.isActive),
     },
   });
+  await normalizeSortOrder(prisma.seaBreezeSection);
   res.status(201).json(sectionJson(row));
 }));
 router.put('/sections/reorder', adminOnly, asyncHandler(async (req, res) => {
   const missingDelegate = ensureSeaBreezeSectionDelegate(res);
   if (missingDelegate) return missingDelegate;
   const items = Array.isArray(req.body.order) ? req.body.order : [];
-  await prisma.$transaction(items.map((it, i) => prisma.seaBreezeSection.update({ where: { id: int(it.id) }, data: { sortOrder: i + 1 } })));
+  await applySequentialOrder(prisma.seaBreezeSection, items);
   res.json({ success: true });
 }));
 router.put('/sections/:id', adminOnly, mediaFields, asyncHandler(async (req, res) => {
@@ -179,10 +199,11 @@ router.put('/sections/:id', adminOnly, mediaFields, asyncHandler(async (req, res
       isActive: bool(req.body.is_active ?? req.body.isActive, old.isActive),
     },
   });
+  await normalizeSortOrder(prisma.seaBreezeSection);
   res.json(sectionJson(row));
 }));
-router.patch('/sections/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(sectionJson(row)); }));
-router.delete('/sections/:id', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; await prisma.seaBreezeSection.delete({ where: { id: int(req.params.id) } }); res.json({ success: true }); }));
+router.patch('/sections/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); if (!old) return res.status(404).json({ message: 'Not found' }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); await normalizeSortOrder(prisma.seaBreezeSection); res.json(sectionJson(row)); }));
+router.delete('/sections/:id', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; await prisma.seaBreezeSection.delete({ where: { id: int(req.params.id) } }); await normalizeSortOrder(prisma.seaBreezeSection); res.json({ success: true }); }));
 
 router.get('/gallery', asyncHandler(async (req, res) => { const admin = req.query.admin === '1' || req.query.admin === 'true'; const rows = await prisma.seaBreezeGallery.findMany({ where: admin ? undefined : { isActive: true }, orderBy: orderBy() }); res.json(rows.map(galleryJson)); }));
 router.post('/gallery', adminOnly, mediaFields, asyncHandler(async (req, res) => { const mediaFile = listFile(req); const thumbnailFile = file(req, 'thumbnail') || (file(req, 'image') && file(req, 'video') ? file(req, 'image') : null); const mediaUrl = await up(mediaFile) || str(req.body.media_url || req.body.mediaUrl); const thumbnailUrl = await up(thumbnailFile) || str(req.body.thumbnail_url || req.body.thumbnailUrl); const row = await prisma.seaBreezeGallery.create({ data: { title: str(req.body.title), category: str(req.body.category), mediaType: str(req.body.media_type || req.body.mediaType, isVideo(mediaUrl, mediaFile) ? 'video' : 'image'), mediaUrl, thumbnailUrl, sortOrder: int(req.body.sort_order || req.body.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive) } }); res.status(201).json(galleryJson(row)); }));
