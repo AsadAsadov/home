@@ -27,12 +27,6 @@ const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 const { initRealtime } = require('./utils/realtime');
 const { startAutoApproveExpiredListingsJob } = require('./utils/autoApproveListings');
 
-console.log('[seabreeze] prisma delegates', {
-  hero: !!prisma.seaBreezeHeroSlide,
-  section: !!prisma.seaBreezeSection,
-  gallery: !!prisma.seaBreezeGallery,
-});
-
 const app = express();
 app.set('trust proxy', 1);
 app.set('json replacer', (_key, value) => {
