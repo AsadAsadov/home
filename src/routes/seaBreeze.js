@@ -13,6 +13,8 @@ const mediaFields = upload.fields([{ name: 'image', maxCount: 1 }, { name: 'vide
 
 const bool = (v, fb = true) => (v === undefined || v === null || v === '' ? fb : ['true', '1', 'yes', 'on'].includes(String(v).toLowerCase()));
 const int = (v, fb = 0) => (Number.isFinite(Number(v)) ? Number(v) : fb);
+const clampInt = (v, fb, min, max) => Math.min(max, Math.max(min, int(v, fb)));
+const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
 const str = (v, fb = '') => String(v ?? fb).trim();
 const isVideo = (url = '', file) => file?.mimetype?.startsWith('video/') || /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url));
 async function up(file) { return file ? uploadToGalleryBucket(file) : null; }
@@ -68,7 +70,28 @@ async function seedDefaultSectionsIfEmpty() {
   });
 }
 
-function heroJson(x) { return { ...x, media_type: x.mediaType, image_url: x.imageUrl, video_url: x.videoUrl, cta_text: x.ctaText, cta_link: x.ctaLink, sort_order: x.sortOrder, is_active: x.isActive }; }
+function heroJson(x) { return { ...x, media_type: x.mediaType, image_url: x.imageUrl, video_url: x.videoUrl, ctaText: x.ctaText || x.buttonText || '', ctaLink: x.ctaLink || x.buttonLink || '', cta_text: x.ctaText || x.buttonText || '', cta_link: x.ctaLink || x.buttonLink || '', durationSeconds: x.durationSeconds ?? 6, duration_seconds: x.durationSeconds ?? 6, sort_order: x.sortOrder, is_active: x.isActive }; }
+function heroPayload(req, old = {}) {
+  const imageFile = file(req, 'image');
+  const videoFile = file(req, 'video');
+  return Promise.all([up(imageFile), up(videoFile)]).then(([uploadedImage, uploadedVideo]) => {
+    const imageUrl = uploadedImage || str(firstDefined(req.body.image_url, req.body.imageUrl), old.imageUrl || '');
+    const videoUrl = uploadedVideo || str(firstDefined(req.body.video_url, req.body.videoUrl), old.videoUrl || '');
+    const mediaType = str(firstDefined(req.body.media_type, req.body.mediaType), videoUrl && imageUrl ? 'image_video' : (videoUrl ? 'video' : (imageUrl ? 'image' : old.mediaType || 'image')));
+    return {
+      title: str(req.body.title, old.title || ''),
+      subtitle: str(req.body.subtitle, old.subtitle || ''),
+      mediaType,
+      imageUrl,
+      videoUrl,
+      ctaText: str(firstDefined(req.body.cta_text, req.body.ctaText, req.body.button_text, req.body.buttonText), old.ctaText || ''),
+      ctaLink: str(firstDefined(req.body.cta_link, req.body.ctaLink, req.body.button_link, req.body.buttonLink), old.ctaLink || ''),
+      durationSeconds: clampInt(firstDefined(req.body.duration_seconds, req.body.durationSeconds), old.durationSeconds ?? 6, 2, 30),
+      sortOrder: int(firstDefined(req.body.sort_order, req.body.sortOrder), old.sortOrder || 0),
+      isActive: bool(req.body.is_active ?? req.body.isActive, old.isActive ?? true),
+    };
+  });
+}
 function sectionJson(x) { return { ...x, slug: x.sectionKey, image_url: x.imageUrl, video_url: x.videoUrl, section_key: x.sectionKey, facts: x.facts || [], sort_order: x.sortOrder, is_active: x.isActive }; }
 function factsFromBody(value, fallback = []) {
   if (value === undefined) return fallback;
@@ -88,16 +111,12 @@ router.get('/hero-slides', asyncHandler(async (req, res) => {
   res.json(rows.map(heroJson));
 }));
 router.post('/hero-slides', adminOnly, mediaFields, asyncHandler(async (req, res) => {
-  const imageUrl = await up(file(req, 'image')) || str(req.body.image_url || req.body.imageUrl);
-  const videoUrl = await up(file(req, 'video')) || str(req.body.video_url || req.body.videoUrl);
-  const created = await prisma.seaBreezeHeroSlide.create({ data: { title: str(req.body.title), subtitle: str(req.body.subtitle), mediaType: str(req.body.media_type || req.body.mediaType, videoUrl ? 'video' : 'image'), imageUrl, videoUrl, ctaText: str(req.body.cta_text || req.body.ctaText, 'Layihələrə bax'), ctaLink: str(req.body.cta_link || req.body.ctaLink, '/projects'), sortOrder: int(req.body.sort_order || req.body.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive) } });
+  const created = await prisma.seaBreezeHeroSlide.create({ data: await heroPayload(req, { ctaText: 'Layihələrə bax', ctaLink: '/projects' }) });
   res.status(201).json(heroJson(created));
 }));
 router.put('/hero-slides/:id', adminOnly, mediaFields, asyncHandler(async (req, res) => {
   const old = await prisma.seaBreezeHeroSlide.findUnique({ where: { id: int(req.params.id) } }); if (!old) return res.status(404).json({ message: 'Not found' });
-  const imageUrl = await up(file(req, 'image')) || str(req.body.image_url || req.body.imageUrl, old.imageUrl || '');
-  const videoUrl = await up(file(req, 'video')) || str(req.body.video_url || req.body.videoUrl, old.videoUrl || '');
-  const row = await prisma.seaBreezeHeroSlide.update({ where: { id: old.id }, data: { title: str(req.body.title, old.title), subtitle: str(req.body.subtitle, old.subtitle || ''), mediaType: str(req.body.media_type || req.body.mediaType, videoUrl ? 'video' : (imageUrl ? 'image' : old.mediaType)), imageUrl, videoUrl, ctaText: str(req.body.cta_text || req.body.ctaText, old.ctaText || ''), ctaLink: str(req.body.cta_link || req.body.ctaLink, old.ctaLink || ''), sortOrder: int(req.body.sort_order || req.body.sortOrder, old.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive, old.isActive) } });
+  const row = await prisma.seaBreezeHeroSlide.update({ where: { id: old.id }, data: await heroPayload(req, old) });
   res.json(heroJson(row));
 }));
 router.patch('/hero-slides/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const old = await prisma.seaBreezeHeroSlide.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeHeroSlide.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(heroJson(row)); }));
