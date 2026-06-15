@@ -20,6 +20,21 @@ function file(req, name) { return Array.isArray(req.files?.[name]) ? req.files[n
 function listFile(req) { return Object.values(req.files || {}).flat()[0] || null; }
 function orderBy() { return [{ sortOrder: 'asc' }, { id: 'asc' }]; }
 
+function missingDelegateResponse(res, delegateName) {
+  console.error(`[seabreeze] Prisma delegate missing: ${delegateName}. Run npx prisma generate after migration.`);
+  return res.status(500).json({
+    success: false,
+    message: 'Sea Breeze Prisma model is not available. Run npx prisma generate.',
+  });
+}
+
+function ensureSeaBreezeSectionDelegate(res) {
+  if (!prisma.seaBreezeSection) {
+    return missingDelegateResponse(res, 'seaBreezeSection');
+  }
+  return null;
+}
+
 async function seedDefaultSectionsIfEmpty() {
   let seededCount = 0;
   await prisma.$transaction(async (tx) => {
@@ -32,23 +47,24 @@ async function seedDefaultSectionsIfEmpty() {
     const existingCount = await tx.seaBreezeSection.count();
     if (existingCount > 0) return;
 
-    for (const section of seabreezeDefaultContent) {
-      const slug = str(section.slug || section.sectionKey);
-      if (!slug) continue;
-      const duplicate = await tx.seaBreezeSection.findFirst({ where: { sectionKey: slug } });
-      if (duplicate) continue;
-      await tx.seaBreezeSection.create({
-        data: {
-          sectionKey: slug,
-          title: section.title,
-          content: section.content || '',
-          facts: section.facts || [],
-          sortOrder: section.sortOrder,
-          isActive: section.isActive !== false,
-        },
-      });
-      seededCount += 1;
-    }
+    const defaultSections = seabreezeDefaultContent
+      .map((section) => ({
+        sectionKey: str(section.slug || section.sectionKey),
+        title: section.title,
+        content: section.content || '',
+        facts: section.facts || [],
+        sortOrder: section.sortOrder,
+        isActive: section.isActive !== false,
+      }))
+      .filter((section) => section.sectionKey && section.title);
+
+    if (defaultSections.length === 0) return;
+
+    const result = await tx.seaBreezeSection.createMany({
+      data: defaultSections,
+      skipDuplicates: true,
+    });
+    seededCount = result.count;
   });
   if (seededCount > 0) console.log('[seabreeze] default sections seeded:', seededCount);
 }
@@ -89,12 +105,16 @@ router.patch('/hero-slides/:id/toggle', adminOnly, asyncHandler(async (req, res)
 router.delete('/hero-slides/:id', adminOnly, asyncHandler(async (req, res) => { await prisma.seaBreezeHeroSlide.delete({ where: { id: int(req.params.id) } }); res.json({ success: true }); }));
 
 router.get('/sections', asyncHandler(async (req, res) => {
+  const missingDelegate = ensureSeaBreezeSectionDelegate(res);
+  if (missingDelegate) return missingDelegate;
   await seedDefaultSectionsIfEmpty();
   const admin = req.query.admin === '1' || req.query.admin === 'true';
   const rows = await prisma.seaBreezeSection.findMany({ where: admin ? undefined : { isActive: true }, orderBy: orderBy() });
   res.json(rows.map(sectionJson));
 }));
 router.post('/sections', adminOnly, mediaFields, asyncHandler(async (req, res) => {
+  const missingDelegate = ensureSeaBreezeSectionDelegate(res);
+  if (missingDelegate) return missingDelegate;
   const slug = sectionSlug(req);
   if (!slug) return res.status(400).json({ message: 'slug tələb olunur' });
   const existing = await prisma.seaBreezeSection.findFirst({ where: { sectionKey: slug } });
@@ -114,11 +134,15 @@ router.post('/sections', adminOnly, mediaFields, asyncHandler(async (req, res) =
   res.status(201).json(sectionJson(row));
 }));
 router.put('/sections/reorder', adminOnly, asyncHandler(async (req, res) => {
+  const missingDelegate = ensureSeaBreezeSectionDelegate(res);
+  if (missingDelegate) return missingDelegate;
   const items = Array.isArray(req.body.order) ? req.body.order : [];
   await prisma.$transaction(items.map((it, i) => prisma.seaBreezeSection.update({ where: { id: int(it.id) }, data: { sortOrder: i + 1 } })));
   res.json({ success: true });
 }));
 router.put('/sections/:id', adminOnly, mediaFields, asyncHandler(async (req, res) => {
+  const missingDelegate = ensureSeaBreezeSectionDelegate(res);
+  if (missingDelegate) return missingDelegate;
   const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } });
   if (!old) return res.status(404).json({ message: 'Not found' });
   const slug = sectionSlug(req, old.sectionKey || '');
@@ -139,8 +163,8 @@ router.put('/sections/:id', adminOnly, mediaFields, asyncHandler(async (req, res
   });
   res.json(sectionJson(row));
 }));
-router.patch('/sections/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(sectionJson(row)); }));
-router.delete('/sections/:id', adminOnly, asyncHandler(async (req, res) => { await prisma.seaBreezeSection.delete({ where: { id: int(req.params.id) } }); res.json({ success: true }); }));
+router.patch('/sections/:id/toggle', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; const old = await prisma.seaBreezeSection.findUnique({ where: { id: int(req.params.id) } }); const row = await prisma.seaBreezeSection.update({ where: { id: old.id }, data: { isActive: bool(req.body.is_active ?? req.body.isActive, !old.isActive) } }); res.json(sectionJson(row)); }));
+router.delete('/sections/:id', adminOnly, asyncHandler(async (req, res) => { const missingDelegate = ensureSeaBreezeSectionDelegate(res); if (missingDelegate) return missingDelegate; await prisma.seaBreezeSection.delete({ where: { id: int(req.params.id) } }); res.json({ success: true }); }));
 
 router.get('/gallery', asyncHandler(async (req, res) => { const admin = req.query.admin === '1' || req.query.admin === 'true'; const rows = await prisma.seaBreezeGallery.findMany({ where: admin ? undefined : { isActive: true }, orderBy: orderBy() }); res.json(rows.map(galleryJson)); }));
 router.post('/gallery', adminOnly, mediaFields, asyncHandler(async (req, res) => { const f = listFile(req); const mediaUrl = await up(f) || str(req.body.media_url || req.body.mediaUrl); const row = await prisma.seaBreezeGallery.create({ data: { title: str(req.body.title), category: str(req.body.category), mediaType: str(req.body.media_type || req.body.mediaType, isVideo(mediaUrl, f) ? 'video' : 'image'), mediaUrl, thumbnailUrl: str(req.body.thumbnail_url || req.body.thumbnailUrl), sortOrder: int(req.body.sort_order || req.body.sortOrder), isActive: bool(req.body.is_active ?? req.body.isActive) } }); res.status(201).json(galleryJson(row)); }));
