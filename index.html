@@ -958,9 +958,10 @@
         .sb-admin-media-field[hidden] { display: none !important; }
         .sb-info-text { width: 100%; max-width: 520px; min-width: 0; border-radius: 1.5rem; padding: clamp(1rem,2vw,1.5rem); background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.08); }
         .sb-info-section.is-text-only .sb-info-text { max-width: 860px; }
-        .sb-info-copy.is-collapsed, .sb-info-collapsible.is-collapsed { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; max-height: 450px; }
-        .sb-info-collapsible { display: grid; gap: .85rem; }
+        .sb-info-collapsible { display: grid; gap: .85rem; overflow: visible; transition: max-height .28s ease; }
+        .sb-info-collapsible.is-collapsed { max-height: calc(15px * 1.65 * 4); overflow: hidden; }
         .sb-info-toggle, .sb-next-section-btn { margin-top: 1rem; display: inline-flex; align-items: center; gap: .45rem; border-radius: 999px; padding: .62rem 1rem; font-weight: 950; color: #0f172a; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 16px 40px rgba(200,169,106,.18); }
+        .sb-info-toggle[hidden] { display: none !important; }
         .sb-next-section-btn { background: #ffffff; color: #111827; border: 1px solid #d1d5db; box-shadow: 0 10px 24px rgba(15,23,42,.10); }
         .sb-next-section-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: #f8fafc; }
         html[data-theme="dark"] .sb-next-section-btn { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.25); box-shadow: 0 16px 40px rgba(0,0,0,.24); }
@@ -970,9 +971,9 @@
         .sb-info-list { display: grid; gap: .65rem; margin: .15rem 0; }
         .sb-info-list li { position: relative; padding: .78rem .9rem .78rem 2.2rem; border-radius: 1rem; color: rgba(255,255,255,.82); background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.1); font-size: .96rem; line-height: 1.65; font-weight: 650; }
         .sb-info-list li::before { content: ''; position: absolute; left: .9rem; top: 1.2rem; width: .48rem; height: .48rem; border-radius: 999px; background: linear-gradient(135deg,#fff,#c8a96a); box-shadow: 0 0 0 4px rgba(200,169,106,.12); }
-        .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { color: #fff; font-size: clamp(1.875rem,3vw,2.25rem); line-height: 1.1; font-weight: 950; letter-spacing: -.04em; margin: .55rem 0 .85rem; }
-        .sb-info-text p { color: rgba(255,255,255,.74); font-size: 1rem; line-height: 1.7; }
-        .sb-info-section.is-long-content .sb-info-text p { font-size: clamp(.95rem, 1.2vw, 1rem); line-height: 1.75; }
+        .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { color: #fff; font-size: clamp(1.65rem,2.6vw,2.125rem); line-height: 1.12; font-weight: 950; letter-spacing: -.04em; margin: .55rem 0 .85rem; }
+        .sb-info-text p { color: rgba(255,255,255,.74); font-size: 15px; line-height: 1.65; }
+        .sb-info-section.is-long-content .sb-info-text p { font-size: 15px; line-height: 1.65; }
         .sb-fact-cards { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
         .sb-fact-cards li { color: #f8fafc; padding: .58rem .78rem; border-radius: 999px; background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.12); font-size: .84rem; font-weight: 900; box-shadow: 0 12px 32px rgba(0,0,0,.14); }
         .sb-fact-cards.is-compact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
@@ -998,7 +999,7 @@
         html[data-theme="light"] .sb-admin-upload-label:hover { background: #f8fafc; border-color: #7F7FFF; color: #5656E8; }
         @media (max-width: 1100px) { .seabreeze-premium-root { width: min(100%, calc(100vw - 2rem)); } .sb-stats { grid-template-columns: repeat(3,minmax(0,1fr)); } .sb-hero-slider { max-height: var(--site-hero-max-height-desktop); } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 2.125rem; } }
         @media (max-width: 900px) { .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: min(54vw, var(--site-hero-max-height-tablet)); max-height: var(--site-hero-max-height-tablet); min-height: 280px; } .sb-section-nav { top: 72px; max-width: calc(100vw - 1.5rem); overflow-x: auto; } .sb-info-section, .sb-info-section.is-reverse { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-left: 1rem; padding-right: 1rem; } .sb-info-section.is-reverse .sb-info-media { order: 0; } .sb-info-media { width: 100%; max-width: 620px; height: auto; max-height: 320px; aspect-ratio: 1/1; } .sb-info-text { max-width: 620px; justify-self: center; } .sb-gallery > div { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; overflow-x: hidden; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { border-radius: 1.15rem; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: clamp(1.5rem,7vw,1.75rem); line-height: 1.12; } .sb-info-text p { font-size: .9375rem; line-height: 1.7; } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
+        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; overflow-x: hidden; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { border-radius: 1.15rem; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: clamp(1.45rem,6.5vw,1.7rem); line-height: 1.12; } .sb-info-text p { font-size: 14px; line-height: 1.65; } .sb-info-collapsible.is-collapsed { max-height: calc(14px * 1.65 * 5); } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
         @media (prefers-reduced-motion: reduce) { .sb-info-section, .sb-stat-card, .sb-gallery figure, .sb-final-cta { animation: none; } }
 
         @keyframes homepageSkeletonPulse {
@@ -22155,37 +22156,66 @@ Təşəkkür edirəm. 🙏`;
             flushList();
             return `<div class="sb-info-copy">${chunks.join('')}</div>`;
         }
+        const seaBreezeSectionExpanded = {};
+        function getSeaBreezeSectionKey(sec = {}, index = 0) {
+            return String(sec.section_key || sec.sectionKey || sec.id || `section-${index}`).toLowerCase();
+        }
+        function setSeaBreezeToggleLabel(button, expanded) {
+            if (!button) return;
+            button.innerHTML = expanded ? 'Daha az göstər <i class="fa-solid fa-chevron-up"></i>' : 'Daha çox göstər <i class="fa-solid fa-chevron-down"></i>';
+        }
         function toggleSeaBreezeLongContent(button) {
-            const collapsible = button?.closest('.sb-info-text')?.querySelector('.sb-info-collapsible, .sb-info-copy');
-            if (!collapsible) return;
-            const collapsed = collapsible.classList.toggle('is-collapsed');
-            button.innerHTML = collapsed ? 'Daha çox göstər <i class="fa-solid fa-chevron-down"></i>' : 'Daha az göstər <i class="fa-solid fa-chevron-up"></i>';
+            const section = button?.closest('.sb-info-section');
+            const collapsible = section?.querySelector('.sb-info-collapsible');
+            if (!section || !collapsible) return;
+            const sectionKey = section.dataset.sectionKey || section.id;
+            const expanded = collapsible.classList.toggle('is-collapsed') === false;
+            seaBreezeSectionExpanded[sectionKey] = expanded;
+            setSeaBreezeToggleLabel(button, expanded);
+        }
+        function refreshSeaBreezeReadMoreControls() {
+            document.querySelectorAll('#seaBreezeSections .sb-info-section').forEach((section) => {
+                const collapsible = section.querySelector('.sb-info-collapsible');
+                const button = section.querySelector('.sb-info-toggle');
+                if (!collapsible || !button) return;
+                const sectionKey = section.dataset.sectionKey || section.id;
+                const expanded = seaBreezeSectionExpanded[sectionKey] === true;
+                collapsible.classList.add('is-collapsed');
+                const collapsedHeight = collapsible.clientHeight;
+                collapsible.classList.remove('is-collapsed');
+                const fullHeight = collapsible.scrollHeight;
+                const hasOverflow = fullHeight > collapsedHeight + 2;
+                button.hidden = !hasOverflow;
+                collapsible.classList.toggle('is-collapsed', hasOverflow && !expanded);
+                setSeaBreezeToggleLabel(button, expanded && hasOverflow);
+            });
         }
         function scrollToSeaBreezeSection(index) {
             document.getElementById(`sb-info-section-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         window.toggleSeaBreezeLongContent = toggleSeaBreezeLongContent;
         window.scrollToSeaBreezeSection = scrollToSeaBreezeSection;
+        window.addEventListener('resize', () => requestAnimationFrame(refreshSeaBreezeReadMoreControls));
         function renderSeaBreezeInfoSection(sec, i, total = 0) {
             const facts = Array.isArray(sec.facts) ? sec.facts.filter(Boolean) : [];
             const content = String(sec.content || '');
             const media = sbMedia(sec);
             const imageUrl = sec.image_url || sec.imageUrl || '';
             const videoUrl = sec.video_url || sec.videoUrl || '';
-            const sectionKey = String(sec.section_key || sec.sectionKey || '').toLowerCase();
-            const isInvestorBenefits = sectionKey === 'investor-benefits';
-            const isLong = content.length > 450 || facts.length > 6 || isInvestorBenefits;
+            const sectionKey = getSeaBreezeSectionKey(sec, i);
+            const isExpanded = seaBreezeSectionExpanded[sectionKey] === true;
             const classes = ['sb-info-section'];
             if (i % 2) classes.push('is-reverse');
             if (!media) classes.push('is-text-only');
+            if (content || facts.length) classes.push('is-long-content');
             const factClass = `sb-fact-cards${facts.length > 6 ? ' is-compact' : ''}`;
             const mediaType = videoUrl ? 'video' : 'image';
             const mediaUrl = videoUrl || imageUrl;
             const mediaHtml = media ? `<div class="sb-info-media" onclick="openSeaBreezeMediaModal('${escapeHtml(mediaUrl)}','${mediaType}','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')">${media}</div>` : '';
-            const toggleHtml = isLong ? `<button type="button" class="sb-info-toggle" onclick="toggleSeaBreezeLongContent(this)">Daha çox göstər <i class="fa-solid fa-chevron-down"></i></button>` : '';
-            const nextHtml = total > 1 ? `<div><button type="button" class="sb-next-section-btn" onclick="scrollToSeaBreezeSection(${Math.min(i + 1, total - 1)})">${i >= total - 1 ? 'İlk bölməyə qayıt' : 'Növbəti bölmə'} <i class="fa-solid fa-arrow-${i >= total - 1 ? 'up' : 'down'}"></i></button></div>` : '';
             const bodyHtml = `${content ? renderSeaBreezeContent(content) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}`;
-            return `<section id="sb-info-section-${i}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${bodyHtml ? `<div class="sb-info-collapsible${isLong ? ' is-collapsed' : ''}">${bodyHtml}</div>` : ''}${toggleHtml}${nextHtml}</div></section>`;
+            const toggleHtml = bodyHtml ? `<button type="button" class="sb-info-toggle" onclick="toggleSeaBreezeLongContent(this)" hidden>Daha çox göstər <i class="fa-solid fa-chevron-down"></i></button>` : '';
+            const nextHtml = total > 1 ? `<div><button type="button" class="sb-next-section-btn" onclick="scrollToSeaBreezeSection(${Math.min(i + 1, total - 1)})">${i >= total - 1 ? 'İlk bölməyə qayıt' : 'Növbəti bölmə'} <i class="fa-solid fa-arrow-${i >= total - 1 ? 'up' : 'down'}"></i></button></div>` : '';
+            return `<section id="sb-info-section-${i}" data-section-key="${escapeHtml(sectionKey)}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${bodyHtml ? `<div class="sb-info-collapsible${isExpanded ? '' : ' is-collapsed'}">${bodyHtml}</div>` : ''}${toggleHtml}${nextHtml}</div></section>`;
         }
         function renderSeaBreezePublicSections(sectionsData = []) {
             const sectionsContainer = document.getElementById('seaBreezeSections');
@@ -22195,6 +22225,7 @@ Təşəkkür edirəm. 🙏`;
             const sectionRows = sections.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
             const nav = sectionRows.length > 1 ? `<nav class="sb-section-nav" aria-label="Sea Breeze bölmələri">${sectionRows.map((_, i) => `<button type="button" onclick="scrollToSeaBreezeSection(${i})" aria-label="${i + 1}-ci bölmə">${i + 1}</button>`).join('')}</nav>` : '';
             sectionsContainer.innerHTML = `${nav}${sectionRows.map((sec,i)=>renderSeaBreezeInfoSection(sec, i, sectionRows.length)).join('')}${ctaSection ? `<section class="sb-final-cta"><h2>${escapeHtml(ctaSection.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection.content || '')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>` : ''}`;
+            requestAnimationFrame(refreshSeaBreezeReadMoreControls);
         }
         function renderSeaBreezePublicGallery(galleryData = []) {
             const galleryContainer = document.getElementById('seaBreezeGallery');
