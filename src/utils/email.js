@@ -235,7 +235,8 @@ function escapeHtml(value) {
 }
 
 function listingUrl(listing = {}) {
-  return `${appBaseUrl()}/listing/${encodeURIComponent(String(listing.id || ''))}`;
+  const publicIdentifier = listing.listing_code || listing.listingCode || listing.id || '';
+  return `${appBaseUrl()}/listing/${encodeURIComponent(String(publicIdentifier))}`;
 }
 
 function myListingsUrl() {
@@ -255,10 +256,10 @@ function listingPrice(listing = {}) {
 }
 
 function listingCode(listing = {}) {
-  return listing.listingCode || listing.code || listing.id || '—';
+  return listing.listing_code || listing.listingCode || listing.code || listing.id || '—';
 }
 
-function bestHomeEmailTemplate({ title, introHtml, rows = [], buttonUrl, buttonText }) {
+function bestHomeEmailTemplate({ title, introHtml, rows = [], buttonUrl, buttonText, plainButtonUrl }) {
   const logoUrl = `${appBaseUrl()}/bestlogo.PNG`;
   const htmlRows = rows.map(([label, value]) => `
     <tr>
@@ -278,6 +279,7 @@ function bestHomeEmailTemplate({ title, introHtml, rows = [], buttonUrl, buttonT
           <p style="margin:26px 0;text-align:center;">
             <a href="${escapeHtml(buttonUrl)}" style="display:inline-block;background:#6d28d9;color:#ffffff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:800;">${escapeHtml(buttonText)}</a>
           </p>
+          ${plainButtonUrl ? `<p style="margin:-12px 0 24px;text-align:center;color:#6b7280;font-size:13px;word-break:break-all;"><a href="${escapeHtml(plainButtonUrl)}" style="color:#4c1d95;text-decoration:underline;">${escapeHtml(plainButtonUrl)}</a></p>` : ''}
           <p style="margin:24px 0 0;color:#6b7280;font-size:14px;">BestHome.az komandası</p>
         </div>
       </div>
@@ -337,7 +339,7 @@ async function sendListingApprovedEmail(listing = {}, user = listing.user || {})
       '',
       'Təbrik edirik!',
       '',
-      'Elanınız təsdiqlənərək BestHome.az saytında yayımlandı.',
+      'Elanınız təsdiqlənərək BestHome.az saytında yayımlandı və artıq istifadəçilər tərəfindən görünə bilər.',
       '',
       'Elan:',
       title,
@@ -353,10 +355,11 @@ async function sendListingApprovedEmail(listing = {}, user = listing.user || {})
     ].join('\n'),
     html: bestHomeEmailTemplate({
       title: 'Elanınız təsdiqləndi',
-      introHtml: `<p>Salam ${escapeHtml(name)},</p><p><strong>Təbrik edirik!</strong></p><p>Elanınız təsdiqlənərək BestHome.az saytında yayımlandı.</p>`,
+      introHtml: `<p>Salam ${escapeHtml(name)},</p><p><strong>Təbrik edirik!</strong></p><p>Elanınız təsdiqlənərək BestHome.az saytında yayımlandı və artıq istifadəçilər tərəfindən görünə bilər.</p>`,
       rows: [['Elan', title], ['Kod', code]],
       buttonUrl: url,
-      buttonText: 'Elana Bax',
+      buttonText: 'Elana bax',
+      plainButtonUrl: url,
     }),
   });
 }
