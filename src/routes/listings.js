@@ -14,7 +14,8 @@ const {
   isListingCodeCollision,
 } = require('../utils/listingCode');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
-const { sendNewListingNotification } = require('../utils/notifications');
+const { sendNewListingNotification, notificationErrorDetails } = require('../utils/notifications');
+const { sendListingPendingEmail, sendListingApprovedEmail } = require('../utils/email');
 const { createNotification, notifyAdmins } = require('../utils/inAppNotifications');
 
 const router = express.Router();
@@ -705,9 +706,12 @@ router.put('/reorder', authenticate, authorize('admin'), asyncHandler(async (req
 router.patch('/:id/approve', authenticate, authorize('admin'), asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid listing ID.' });
+  const existing = await prisma.listing.findUnique({ where: { id }, select: { status: true } });
+  if (!existing) return res.status(404).json({ message: 'Record not found.' });
+  const shouldSendApprovalEmail = existing.status !== 'approved';
   const updated = await prisma.listing.update({
     where: { id },
-    data: { status: 'approved', approvedAt: new Date(), approvedBy: toBigIntId(req.auth.id) },
+    data: { status: 'approved', approvedAt: existing.status === 'approved' ? undefined : new Date(), approvedBy: toBigIntId(req.auth.id) },
     include,
   });
   await attachListingUsers(updated);
@@ -719,6 +723,13 @@ router.patch('/:id/approve', authenticate, authorize('admin'), asyncHandler(asyn
       type: 'listing_approved',
       link: `/listing/${updated.listingCode || updated.id}`,
     });
+  }
+  if (shouldSendApprovalEmail && updated.status === 'approved') {
+    try {
+      await sendListingApprovedEmail(updated, updated.user);
+    } catch (error) {
+      console.error('[listing-approved-email] failed', { listingId: updated.id, error: notificationErrorDetails(error) });
+    }
   }
   decorateListingUi(updated);
   res.json(updated);
@@ -940,6 +951,11 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const responseListing = savedListing || listing;
     await attachListingUsers(responseListing);
     if (req.auth.role === 'user' && responseListing.status === 'pending') {
+      try {
+        await sendListingPendingEmail(responseListing, responseListing.user || req.auth);
+      } catch (error) {
+        console.error('[listing-pending-email] failed', { listingId: responseListing.id, error: notificationErrorDetails(error) });
+      }
       Promise.resolve(sendNewListingNotification(responseListing, responseListing.user || req.auth)).catch(() => {});
       Promise.resolve(notifyAdmins({
         title: 'Yeni elan təsdiq gözləyir',
@@ -1004,6 +1020,13 @@ router.put('/:id', authenticate, authorize('admin', 'user'), listingUpload.field
   });
   await logUserActivity(prisma, req.auth.id, 'edit_listing');
   await attachListingUsers(updated);
+  if (existing.status !== 'approved' && updated.status === 'approved') {
+    try {
+      await sendListingApprovedEmail(updated, updated.user);
+    } catch (error) {
+      console.error('[listing-approved-email] failed', { listingId: updated.id, error: notificationErrorDetails(error) });
+    }
+  }
   decorateListingUi(updated);
   res.json(updated);
 }));

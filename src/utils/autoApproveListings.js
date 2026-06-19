@@ -1,6 +1,7 @@
 const DEFAULT_APPROVAL_DELAY_MS = 10 * 60 * 1000;
 const DEFAULT_JOB_INTERVAL_MS = 60 * 1000;
 const JOB_STATE_KEY = Symbol.for('besthome.autoApproveExpiredListingsJob');
+const { sendListingApprovedEmail } = require('./email');
 
 function positiveInteger(value, fallback) {
   const parsed = Number.parseInt(value, 10);
@@ -26,19 +27,45 @@ async function autoApproveExpiredListings({
 } = {}) {
   const approvedAt = now instanceof Date ? now : new Date(now);
   const cutoff = new Date(approvedAt.getTime() - approvalDelayMs);
-
-  const result = await prismaClient.listing.updateMany({
+  const pendingListings = await prismaClient.listing.findMany({
     where: {
       status: 'pending',
       createdAt: { lte: cutoff },
     },
-    data: {
-      status: 'approved',
-      approvedAt,
-    },
   });
 
-  const count = result?.count || 0;
+  let count = 0;
+  for (const pendingListing of pendingListings) {
+    const updated = await prismaClient.listing.updateMany({
+      where: {
+        id: pendingListing.id,
+        status: 'pending',
+      },
+      data: {
+        status: 'approved',
+        approvedAt,
+      },
+    });
+    if (!updated?.count) continue;
+    count += updated.count;
+    const listing = await prismaClient.listing.findUnique({ where: { id: pendingListing.id } });
+    let user = null;
+    if (listing?.userId) {
+      user = await prismaClient.user.findUnique({
+        where: { id: Number(listing.userId) },
+        select: { id: true, fullname: true, email: true },
+      });
+    }
+    try {
+      await sendListingApprovedEmail({ ...listing, user }, user);
+    } catch (error) {
+      console.error('[listing-approved-email] failed', {
+        listingId: listing?.id || pendingListing.id,
+        error: { message: error?.message, code: error?.code, status: error?.status },
+      });
+    }
+  }
+
   console.log('Auto-approved pending listings:', count);
   return count;
 }
