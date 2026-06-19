@@ -7333,7 +7333,7 @@
                 <form onsubmit="handleUserRegister(event)" class="space-y-4 text-left">
                     <input type="text" id="register-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="tel" id="register-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="email" id="register-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <input type="email" id="register-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$" title="Email ünvanını düzgün daxil edin." placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                     <button type="submit" id="register-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">📧 Qeydiyyat</button>
                 </form>
@@ -18400,7 +18400,15 @@ Təşəkkür edirəm. 🙏`;
             setRegisterButtonLoading(true);
             const error = document.getElementById('register-error');
             try {
-                const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email: document.getElementById('register-email').value, password: document.getElementById('register-pass').value }) });
+                const emailInput = document.getElementById('register-email');
+                const email = (emailInput?.value || '').trim().toLowerCase();
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+                    if (emailInput) emailInput.setCustomValidity('Email ünvanını düzgün daxil edin.');
+                    if (emailInput?.reportValidity) emailInput.reportValidity();
+                    throw new Error('Email ünvanını düzgün daxil edin.');
+                }
+                if (emailInput) emailInput.setCustomValidity('');
+                const result = await apiRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ fullname: document.getElementById('register-fullname').value, phone: document.getElementById('register-phone').value, email, password: document.getElementById('register-pass').value }) });
                 error.classList.add('hidden');
                 const success = document.getElementById('register-success');
                 success.textContent = result.message || 'Qeydiyyat tamamlandı. Hesabınız aktivdir.';

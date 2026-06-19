@@ -133,6 +133,43 @@ function plainAddress(value) {
   return (match ? match[1] : value).trim();
 }
 
+function normalizeEmailAddress(value) {
+  const email = plainAddress(value).toLowerCase();
+  return email || null;
+}
+
+function isValidEmailAddress(value) {
+  const email = normalizeEmailAddress(value);
+  if (!email || email.length > 254) return false;
+  if (/\s/.test(email)) return false;
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || !domain || local.length > 64) return false;
+  if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false;
+  if (domain.startsWith('.') || domain.endsWith('.') || domain.includes('..')) return false;
+  if (!domain.includes('.')) return false;
+  return /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/.test(email)
+    && domain.split('.').every((label) => label && label.length <= 63 && !label.startsWith('-') && !label.endsWith('-'))
+    && domain.split('.').at(-1).length >= 2;
+}
+
+function listingEmailLogContext(listing = {}) {
+  return {
+    listingId: listing.id,
+    listingCode: listing.listing_code || listing.listingCode || listing.code,
+  };
+}
+
+function validListingRecipient(listing = {}, user = listing.user || {}) {
+  const recipient = normalizeEmailAddress(user.email || listing.user?.email);
+  if (!isValidEmailAddress(recipient)) {
+    console.warn('[email] skipped invalid recipient', listingEmailLogContext(listing));
+    return null;
+  }
+  return recipient;
+}
+
 function createSmtpTransporter(from) {
   const config = smtpConfig();
   console.log('[smtp] config', smtpLogConfig(from));
@@ -287,7 +324,7 @@ function bestHomeEmailTemplate({ title, introHtml, rows = [], buttonUrl, buttonT
 }
 
 async function sendListingPendingEmail(listing = {}, user = listing.user || {}) {
-  const to = user.email || listing.user?.email;
+  const to = validListingRecipient(listing, user);
   if (!to) return null;
   const name = userName(user, listing);
   const title = listing.title || 'Elan';
@@ -325,7 +362,7 @@ async function sendListingPendingEmail(listing = {}, user = listing.user || {}) 
 }
 
 async function sendListingApprovedEmail(listing = {}, user = listing.user || {}) {
-  const to = user.email || listing.user?.email;
+  const to = validListingRecipient(listing, user);
   if (!to) return null;
   const name = userName(user, listing);
   const title = listing.title || 'Elan';
@@ -385,6 +422,8 @@ module.exports = {
   sendEmail,
   sendListingPendingEmail,
   sendListingApprovedEmail,
+  normalizeEmailAddress,
+  isValidEmailAddress,
   isEmailProviderConfigured,
   verifySmtpTransporter,
 };

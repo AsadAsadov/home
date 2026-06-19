@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = require('../lib/prisma');
 const { authenticate, signToken, tokenExpiresAt, verifyToken } = require('../middleware/auth');
 const { logUserActivity } = require('../utils/activity');
-const { NODEMAILER_NOT_INSTALLED_MESSAGE, sendEmail } = require('../utils/email');
+const { NODEMAILER_NOT_INSTALLED_MESSAGE, isValidEmailAddress, normalizeEmailAddress, sendEmail } = require('../utils/email');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
 
 const router = express.Router();
@@ -364,11 +364,12 @@ function escapeHtml(value) {
 router.post('/register', authRoute(async (req, res) => {
   if (!(await verifyRecaptcha(req, res))) return;
   const fullname = clean(req.body.fullname ?? req.body.name);
-  const email = clean(req.body.email)?.toLowerCase();
+  const email = normalizeEmailAddress(req.body.email);
   const rawPhone = clean(req.body.phone);
   const phone = rawPhone ? normalizeAzerbaijanPhone(rawPhone) : undefined;
   const password = clean(req.body.password);
   if (!fullname || !email || !password) return res.status(400).json({ success: false, error: 'fullname, email and password are required.', message: 'fullname, email and password are required.' });
+  if (!isValidEmailAddress(email)) return res.status(400).json({ success: false, error: 'Invalid email address.', message: 'Email ünvanını düzgün daxil edin.' });
   if (rawPhone && !phone) return res.status(400).json({ success: false, error: 'Invalid phone number.', message: 'Telefon nömrəsi düzgün deyil.' });
   if (password.length < 6) return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.', message: 'Password must be at least 6 characters.' });
 
@@ -772,8 +773,9 @@ router.delete('/me/sessions', authenticate, authRoute(async (req, res) => {
 }));
 
 router.post('/me/email', authenticate, authRoute(async (req, res) => {
-  const newEmail = clean(req.body.email ?? req.body.newEmail ?? req.body.new_email)?.toLowerCase();
+  const newEmail = normalizeEmailAddress(req.body.email ?? req.body.newEmail ?? req.body.new_email);
   if (!newEmail) return res.status(400).json({ success: false, message: 'Yeni email tələb olunur.' });
+  if (!isValidEmailAddress(newEmail)) return res.status(400).json({ success: false, message: 'Email ünvanını düzgün daxil edin.' });
   const user = await prisma.user.findUnique({ where: { id: Number(req.auth.id) } });
   if (!user) return res.status(404).json({ success: false, error: 'User not found.', message: 'User not found.' });
   if (newEmail === user.email) return res.status(400).json({ success: false, message: 'Yeni email hazırkı email ilə eynidir.' });
