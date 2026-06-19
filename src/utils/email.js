@@ -221,6 +221,146 @@ async function sendMailgunEmail(message) {
   return { messageId: body.id, accepted: [message.to], rejected: [], response: body.message || response.statusText };
 }
 
+function appBaseUrl() {
+  return String(process.env.PUBLIC_APP_URL || process.env.FRONTEND_URL || process.env.APP_URL || 'https://besthome.az').replace(/\/+$/, '');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function listingUrl(listing = {}) {
+  return `${appBaseUrl()}/listing/${encodeURIComponent(String(listing.id || ''))}`;
+}
+
+function myListingsUrl() {
+  return `${appBaseUrl()}/profil/elanlarim`;
+}
+
+function userName(user = {}, listing = {}) {
+  return user.fullname || user.name || listing.user?.fullname || listing.user?.name || 'hörmətli istifadəçi';
+}
+
+function listingPrice(listing = {}) {
+  const price = listing.price ?? listing.priceValue;
+  if (price === undefined || price === null || price === '') return '—';
+  const numeric = Number(price);
+  const formatted = Number.isFinite(numeric) ? numeric.toLocaleString('az-AZ') : String(price);
+  return [formatted, listing.currency || 'AZN'].filter(Boolean).join(' ');
+}
+
+function listingCode(listing = {}) {
+  return listing.listingCode || listing.code || listing.id || '—';
+}
+
+function bestHomeEmailTemplate({ title, introHtml, rows = [], buttonUrl, buttonText }) {
+  const logoUrl = `${appBaseUrl()}/bestlogo.PNG`;
+  const htmlRows = rows.map(([label, value]) => `
+    <tr>
+      <td style="padding:10px 0;color:#6b7280;font-size:14px;">${escapeHtml(label)}</td>
+      <td style="padding:10px 0;color:#111827;font-size:14px;font-weight:700;text-align:right;">${escapeHtml(value)}</td>
+    </tr>`).join('');
+  return `
+    <div style="margin:0;padding:24px;background:#f6f3ff;font-family:Arial,sans-serif;color:#111827;">
+      <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #ede9fe;">
+        <div style="padding:24px 28px;text-align:center;background:#4c1d95;">
+          <img src="${escapeHtml(logoUrl)}" alt="BestHome.az" style="max-width:160px;height:auto;display:inline-block;">
+        </div>
+        <div style="padding:28px;line-height:1.6;">
+          <h1 style="margin:0 0 18px;color:#4c1d95;font-size:24px;line-height:1.25;">${escapeHtml(title)}</h1>
+          <div style="font-size:16px;color:#374151;">${introHtml}</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-top:1px solid #ede9fe;border-bottom:1px solid #ede9fe;border-collapse:collapse;">${htmlRows}</table>
+          <p style="margin:26px 0;text-align:center;">
+            <a href="${escapeHtml(buttonUrl)}" style="display:inline-block;background:#6d28d9;color:#ffffff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:800;">${escapeHtml(buttonText)}</a>
+          </p>
+          <p style="margin:24px 0 0;color:#6b7280;font-size:14px;">BestHome.az komandası</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function sendListingPendingEmail(listing = {}, user = listing.user || {}) {
+  const to = user.email || listing.user?.email;
+  if (!to) return null;
+  const name = userName(user, listing);
+  const title = listing.title || 'Elan';
+  const code = listingCode(listing);
+  const price = listingPrice(listing);
+  return sendEmail({
+    to,
+    subject: 'Elanınız təsdiq gözləyir – BestHome.az',
+    text: [
+      `Salam ${name},`,
+      '',
+      'Elanınız uğurla qəbul edildi və hazırda yoxlanış mərhələsindədir.',
+      '',
+      'Elan başlığı:',
+      title,
+      '',
+      'Kod:',
+      String(code),
+      '',
+      'Qiymət:',
+      price,
+      '',
+      'Elan təsdiqləndikdən sonra sizə əlavə bildiriş göndəriləcək.',
+      '',
+      'BestHome.az komandası',
+    ].join('\n'),
+    html: bestHomeEmailTemplate({
+      title: 'Elanınız təsdiq gözləyir',
+      introHtml: `<p>Salam ${escapeHtml(name)},</p><p>Elanınız uğurla qəbul edildi və hazırda yoxlanış mərhələsindədir.</p><p>Elan təsdiqləndikdən sonra sizə əlavə bildiriş göndəriləcək.</p>`,
+      rows: [['Elan başlığı', title], ['Kod', code], ['Qiymət', price]],
+      buttonUrl: myListingsUrl(),
+      buttonText: 'Elanlarım',
+    }),
+  });
+}
+
+async function sendListingApprovedEmail(listing = {}, user = listing.user || {}) {
+  const to = user.email || listing.user?.email;
+  if (!to) return null;
+  const name = userName(user, listing);
+  const title = listing.title || 'Elan';
+  const code = listingCode(listing);
+  const url = listingUrl(listing);
+  return sendEmail({
+    to,
+    subject: 'Elanınız təsdiqləndi – BestHome.az',
+    text: [
+      `Salam ${name},`,
+      '',
+      'Təbrik edirik!',
+      '',
+      'Elanınız təsdiqlənərək BestHome.az saytında yayımlandı.',
+      '',
+      'Elan:',
+      title,
+      '',
+      'Kod:',
+      String(code),
+      '',
+      'Elana bax:',
+      url,
+      '',
+      'Təşəkkür edirik,',
+      'BestHome.az komandası',
+    ].join('\n'),
+    html: bestHomeEmailTemplate({
+      title: 'Elanınız təsdiqləndi',
+      introHtml: `<p>Salam ${escapeHtml(name)},</p><p><strong>Təbrik edirik!</strong></p><p>Elanınız təsdiqlənərək BestHome.az saytında yayımlandı.</p>`,
+      rows: [['Elan', title], ['Kod', code]],
+      buttonUrl: url,
+      buttonText: 'Elana Bax',
+    }),
+  });
+}
+
 async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
   const message = { to, from, subject, text, html };
   const provider = getProvider();
@@ -240,6 +380,8 @@ async function sendEmail({ to, subject, text, html, from = fromAddress() }) {
 module.exports = {
   NODEMAILER_NOT_INSTALLED_MESSAGE,
   sendEmail,
+  sendListingPendingEmail,
+  sendListingApprovedEmail,
   isEmailProviderConfigured,
   verifySmtpTransporter,
 };
