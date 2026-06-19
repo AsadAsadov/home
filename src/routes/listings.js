@@ -951,11 +951,8 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     const responseListing = savedListing || listing;
     await attachListingUsers(responseListing);
     if (req.auth.role === 'user' && responseListing.status === 'pending') {
-      try {
-        await sendListingPendingEmail(responseListing, responseListing.user || req.auth);
-      } catch (error) {
-        console.error('[listing-pending-email] failed', { listingId: responseListing.id, error: notificationErrorDetails(error) });
-      }
+      Promise.resolve(sendListingPendingEmail(responseListing, responseListing.user || req.auth))
+        .catch((error) => console.error('[listing-pending-email] failed', { listingId: responseListing.id, error: notificationErrorDetails(error) }));
       Promise.resolve(sendNewListingNotification(responseListing, responseListing.user || req.auth)).catch(() => {});
       Promise.resolve(notifyAdmins({
         title: 'Yeni elan təsdiq gözləyir',

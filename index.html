@@ -12962,23 +12962,21 @@ Title: CASPIAN DREAM LINER
         }
 
         async function loadAdminBackground() {
-            if (homepageHydration.admin || !getAuthToken()) return;
+            if (homepageHydration.admin || !getAuthToken() || !isAdminRole(activeUser?.role)) return;
             homepageHydration.admin = true;
             try {
                 const [applications, users, dashboardStats] = await Promise.all([
-                    apiRequest('/api/applications', { authRedirect: false }).catch(() => []),
-                    apiRequest('/api/users', { authRedirect: false }).catch(() => []),
-                    isAdminRole(activeUser?.role) ? apiRequest('/api/admin/stats/overview', { authRedirect: false }).catch(() => null) : (activeUser?.role === 'user' ? apiRequest('/api/dashboard/me', { authRedirect: false }).catch(() => null) : Promise.resolve(null))
+                    apiRequest('/api/applications', { authRedirect: false }).catch(error => { console.warn('Admin müraciətləri yüklənmədi:', error.message); return []; }),
+                    apiRequest('/api/users', { authRedirect: false }).catch(error => { console.warn('Admin istifadəçiləri yüklənmədi:', error.message); return []; }),
+                    apiRequest('/api/admin/stats/overview', { authRedirect: false }).catch(error => { console.warn('Admin statistikası yüklənmədi:', error.message); return null; })
                 ]);
-                if (isAdminRole(activeUser?.role)) {
-                    const heroItems = await apiRequest('/api/listing-hero-items?admin=1', { authRedirect: false }).catch(() => appData.listingHeroItems || []);
-                    cacheData('listingHeroItems', normalizeListingHeroItems(heroItems));
-                }
+                const heroItems = await apiRequest('/api/listing-hero-items?admin=1', { authRedirect: false }).catch(error => { console.warn('Admin elan hero məlumatları yüklənmədi:', error.message); return appData.listingHeroItems || []; });
+                cacheData('listingHeroItems', normalizeListingHeroItems(heroItems));
                 cacheData('applications', applications.map(dbAppToUi));
                 if (users.length) cacheData('agents', users.map(userToUi));
                 appData.dashboardStats = dashboardStats;
-                appData.dashboardStatsError = dashboardStats ? '' : (isAdminRole(activeUser?.role) ? 'Statistika yüklənmədi' : '');
-                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false });
+                appData.dashboardStatsError = dashboardStats ? '' : 'Statistika yüklənmədi';
+                await loadAdminListings({ render: false }).catch(error => console.warn('Admin elanları yüklənmədi:', error.message));
                 if (isTabAktiv('admin-dashboard')) renderAdminDashboard();
             } catch (error) {
                 console.warn('Kabinet məlumatları oxunmadı:', error.message);
@@ -13012,7 +13010,7 @@ Title: CASPIAN DREAM LINER
             if (homepageHydration.observersReady) return;
             homepageHydration.observersReady = true;
             scheduleIdleTask(loadVacanciesBackground, 1200);
-            scheduleIdleTask(loadAdminBackground, 1600);
+            if (isAdminRole(activeUser?.role)) scheduleIdleTask(() => loadAdminBackground().catch(error => console.warn('Admin fon yüklənməsi alınmadı:', error.message)), 1600);
             runWhenSectionVisible('#agent-listings-area', loadListingsLazy, { rootMargin: '500px 0px' });
             runWhenSectionVisible('#tab-portfolio', loadGalleryBackground, { rootMargin: '500px 0px' });
             runWhenSectionVisible('#tab-career', loadVacanciesBackground, { rootMargin: '500px 0px' });
@@ -15038,7 +15036,7 @@ Title: CASPIAN DREAM LINER
                     ? `<button onclick="navigateToListingPreview('${escapeHtml(createdListingKey)}')" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📄 Elana bax</button>`
                     : `<button onclick="navigateToMyListings()" class="rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-3 font-black transition">📄 Elanı önizlə</button>`;
                 root.innerHTML = `<div class="public-form-card rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto">
-                    <div class="text-5xl mb-4">✅</div><h1 class="text-3xl md:text-4xl font-black text-slate-950">Elanınız qəbul edildi</h1>
+                    <div class="text-5xl mb-4">✅</div><h1 class="text-3xl md:text-4xl font-black text-slate-950">Elanınız qəbul edildi və təsdiq gözləyir</h1>
                     <p class="mt-3 text-slate-600 font-semibold">Moderator təsdiqindən sonra saytda görünəcək. Təsdiq gözləyən elan önizləmə rejimində açılacaq.</p>
                     <div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
                         <button onclick="switchTab('seabreeze')" class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 font-black transition">🏠 Layihələrə qayıt</button>
@@ -15093,6 +15091,7 @@ Title: CASPIAN DREAM LINER
                             <div class="map-frame"><button type="button" class="map-expand-btn" onclick="openFullscreenMap('public')">⛶ Xəritəni böyüt</button><div id="pl-location-map" class="public-location-map"></div><div id="pl-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div></div><p class="manual-pin-note">Xəritədə yeri dəqiq seçin, elan bu koordinata görə göstəriləcək.</p><p id="pl-manual-pin-note" class="manual-pin-note hidden">Pin xəritədə əl ilə seçildi</p>
                         </div>
                         <div class="public-section-box" id="pl-images-dropzone" ondragover="handleListingImagesDragOver(event)" ondragleave="handleListingImagesDragLeave(event)" ondrop="handlePublicListingImagesDrop(event)"><span class="public-form-label">Şəkillər</span><input id="pl-images" type="file" multiple accept="image/*" onchange="handlePublicListingImages(this.files)" class="block w-full rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-700"><p class="mt-3 text-xs font-bold leading-5 text-slate-500">Böyük telefon şəkilləri avtomatik WebP formatına sıxılır. İlk şəkil cover olacaq; sürüşdürərək və ya oxlarla sıranı dəyişin.</p><div id="pl-upload-progress" class="hidden mt-3 space-y-1"><div class="listing-upload-progress"><div class="listing-upload-progress__bar"></div></div><div class="listing-upload-progress__text text-[10px] text-slate-500 font-bold">0%</div></div><div id="pl-images-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3"></div></div>
+                        <div id="pl-submit-error" class="hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700" role="alert"></div>
                         <button id="pl-submit-btn" type="submit" class="async-submit-btn w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black py-4 transition"><span id="pl-submit-spinner" class="button-spinner hidden"></span><span id="pl-submit-text">Yerləşdir</span></button>
                     </form>
                 </div>`;
@@ -15235,11 +15234,19 @@ Title: CASPIAN DREAM LINER
         }
 
         async function handlePublicListingImages(files) {
-            const compressed = await compressListingImages(files, 'pl-upload-progress');
-            publicListingImageFiles.push(...compressed);
-            const input = document.getElementById('pl-images');
-            if (input) input.value = '';
-            renderPublicListingImagesPreview();
+            try {
+                setPublicListingError('');
+                const compressed = await compressListingImages(files, 'pl-upload-progress');
+                publicListingImageFiles.push(...compressed);
+                renderPublicListingImagesPreview();
+            } catch (error) {
+                console.error('Şəkil emalı alınmadı:', error);
+                setPublicListingError('Şəkil emalı alınmadı. Zəhmət olmasa başqa şəkil seçin və yenidən cəhd edin.');
+            } finally {
+                const input = document.getElementById('pl-images');
+                if (input) input.value = '';
+                resetListingUploadProgress('pl-upload-progress');
+            }
         }
 
         function renderPublicListingImagesPreview() {
@@ -15317,6 +15324,7 @@ Title: CASPIAN DREAM LINER
 
         async function handlePublicLocationSearchKeydown(event) { if(event.key==='Escape') { event.preventDefault(); closePublicAddressSuggestions(); return; } if(event.key!=='Enter') return; event.preventDefault(); if(!(window.__lastPublicLocationResults||[]).length) await searchPublicListingLocation(); await selectPublicLocationResult(0); }
 
+        function setPublicListingError(message = '') { const box=document.getElementById('pl-submit-error'); if(!box) return; box.textContent=message; box.classList.toggle('hidden', !message); }
         function setPublicSubmitLoading(loading) { const btn=document.getElementById('pl-submit-btn'); btn?.classList.toggle('is-loading',loading); if(btn) btn.disabled=loading; document.getElementById('pl-submit-spinner')?.classList.toggle('hidden',!loading); const text=document.getElementById('pl-submit-text'); if(text) text.textContent=loading?'Yerləşdirilir...':'Yerləşdir'; }
         function togglePublicLandField() {
             const category = document.getElementById('pl-category')?.value || '';
@@ -15347,9 +15355,10 @@ Title: CASPIAN DREAM LINER
         }
         async function submitPublicListing(event) {
             event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
-            publicListingSubmitting=true; setPublicSubmitLoading(true);
+            publicListingSubmitting=true; setPublicSubmitLoading(true); setPublicListingError('');
             try {
                 if (!(await ensureListingContactPhone())) return;
+                if (!publicListingImageFiles.length) throw new Error('Elan yerləşdirmək üçün ən azı 1 şəkil seçin.');
                 const regionType=document.getElementById('pl-region-type').value;
                 const city=document.getElementById('pl-city')?.value || '';
                 const selectedProject=document.getElementById('pl-project')?.value || document.getElementById('pl-district')?.value || '';
@@ -15364,10 +15373,19 @@ Title: CASPIAN DREAM LINER
                 const savedUi = dbListingToUi(savedListing);
                 cacheData('listings', [savedUi, ...(appData.listings || []).filter(x => String(x.id) !== String(savedUi.id))]);
                 if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
-                renderPublicListingForm(true, savedUi);
                 hideListingSubmissionOverlay();
-            } catch(error) { hideListingSubmissionOverlay(); alert('Elan göndərilmədi: '+error.message); }
-            finally { publicListingSubmitting=false; setPublicSubmitLoading(false); setListingFormDisabled('public-listing-form', false); }
+                renderPublicListingForm(true, savedUi);
+                setTimeout(() => navigateToMyListings(), 1200);
+            } catch(error) {
+                console.error('Elan göndərilmədi:', error);
+                setPublicListingError(error.message || 'Elan göndərilmədi. Zəhmət olmasa yenidən cəhd edin.');
+            } finally {
+                hideListingSubmissionOverlay();
+                publicListingSubmitting=false;
+                setPublicSubmitLoading(false);
+                setListingFormDisabled('public-listing-form', false);
+                resetListingUploadProgress('pl-upload-progress');
+            }
         }
 
         async function renderMyListingsPage() {
@@ -16421,8 +16439,11 @@ ${profileMenuItemsHtml()}
                 calculateMortgage();
             } else if (tabId === 'admin-dashboard') {
                 renderAdminDashboard();
-                loadAdminBackground();
-                if (isAdminRole(activeUser?.role)) { loadAdminListings({ force: true }).catch(() => {}); loadSeaBreezeAdmin().catch(() => {}); }
+                if (isAdminRole(activeUser?.role)) {
+                    loadAdminBackground().catch(error => console.warn('Admin fon yüklənməsi alınmadı:', error.message));
+                    loadAdminListings({ force: true }).catch(() => {});
+                    loadSeaBreezeAdmin().catch(() => {});
+                }
             }
 
             const routePaths = { 'seabreeze-info': '/sea-breeze-haqqinda', mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
@@ -19099,16 +19120,23 @@ Təşəkkür edirəm. 🙏`;
                 xhr.onload = () => {
                     let body = null;
                     try { body = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_error) { body = null; }
+                    const message = body?.message || body?.error || (xhr.responseText && xhr.responseText.slice(0, 240)) || 'API sorğusu uğursuz oldu';
                     if (xhr.status === 401) {
                         if (getAuthToken()) redirectToLoginOnAuthFailure();
-                        reject(new Error(body?.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.'));
+                        const error = new Error(body?.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
+                        error.status = 401;
+                        reject(error);
                     } else if (xhr.status >= 200 && xhr.status < 300) {
                         resolve(xhr.status === 204 ? null : body);
                     } else {
-                        reject(new Error(body?.message || 'API sorğusu uğursuz oldu'));
+                        const error = new Error(message);
+                        error.status = xhr.status;
+                        reject(error);
                     }
                 };
                 xhr.onerror = () => reject(new Error('Şəbəkə xətası baş verdi'));
+                xhr.ontimeout = () => reject(new Error('Şəkil yükləmə sorğusunun vaxtı bitdi. Zəhmət olmasa yenidən cəhd edin.'));
+                xhr.timeout = 120000;
                 xhr.send(formData);
             });
         }
