@@ -6999,6 +6999,142 @@
             opacity: 1 !important;
         }
 
+
+        .office-location-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(246,247,255,.92));
+            border: 1px solid rgba(127,127,255,.20);
+            box-shadow: 0 26px 70px rgba(31, 41, 55, .10), 0 12px 32px rgba(127, 127, 255, .10);
+        }
+        .office-location-card::before {
+            content: '';
+            position: absolute;
+            inset: -35% auto auto -12%;
+            width: 24rem;
+            height: 24rem;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(127,127,255,.18), transparent 66%);
+            pointer-events: none;
+        }
+        .office-map-card {
+            position: relative;
+            min-height: 360px;
+            overflow: hidden;
+            border-radius: 2rem;
+            border: 1px solid rgba(127,127,255,.20);
+            background: #eef2ff;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.70), 0 22px 50px rgba(15,23,42,.12);
+        }
+        .office-map-frame {
+            width: 100%;
+            height: 100%;
+            min-height: 360px;
+            border: 0;
+            filter: saturate(1.04) contrast(1.02);
+        }
+        .office-map-pin {
+            position: absolute;
+            left: 50%;
+            top: 47%;
+            transform: translate(-50%, -100%);
+            width: 3.25rem;
+            height: 3.25rem;
+            border-radius: 999px 999px 999px 0;
+            rotate: -45deg;
+            background: linear-gradient(135deg, #7F7FFF, #5b5bd6);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 18px 34px rgba(91,91,214,.38);
+            z-index: 2;
+        }
+        .office-map-pin i { rotate: 45deg; color: #fff; font-size: 1.15rem; }
+        .office-map-badge {
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+            border-radius: 1.5rem;
+            background: rgba(255,255,255,.92);
+            border: 1px solid rgba(127,127,255,.22);
+            box-shadow: 0 16px 38px rgba(15,23,42,.14);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .office-info-item {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(127,127,255,.18);
+            background: rgba(255,255,255,.76);
+            padding: .95rem 1rem;
+            color: #111827;
+            box-shadow: 0 10px 28px rgba(15,23,42,.05);
+        }
+        .office-nav-button {
+            min-height: 3.65rem;
+            border-radius: 1.15rem;
+            border: 1px solid rgba(127,127,255,.22);
+            background: #fff;
+            color: #111827;
+            box-shadow: 0 12px 28px rgba(15,23,42,.07);
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+        .office-nav-button:hover,
+        .office-nav-button:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(127,127,255,.55);
+            box-shadow: 0 18px 38px rgba(127,127,255,.18);
+            background: linear-gradient(135deg, #fff, #f7f7ff);
+        }
+        .office-nav-button--primary {
+            background: linear-gradient(135deg, #7F7FFF, #5b5bd6);
+            color: #fff;
+            border-color: rgba(255,255,255,.28);
+            box-shadow: 0 18px 38px rgba(91,91,214,.28);
+        }
+        .office-nav-button--primary:hover,
+        .office-nav-button--primary:focus-visible {
+            background: linear-gradient(135deg, #8b8bff, #6666e8);
+            color: #fff;
+        }
+        @media (max-width: 640px) {
+            .office-location-card { border-radius: 1.5rem; }
+            .office-map-card, .office-map-frame { min-height: 300px; }
+            .office-map-card { border-radius: 1.5rem; }
+            .office-nav-button { min-height: 3.75rem; padding-inline: .75rem; }
+        }
+        html[data-theme="dark"] .office-location-card {
+            background: radial-gradient(circle at top left, rgba(124,108,255,.18), transparent 38%), linear-gradient(135deg, #0B0B0B, #111111) !important;
+            border-color: rgba(255,255,255,.10) !important;
+            box-shadow: 0 26px 70px rgba(0,0,0,.44) !important;
+        }
+        html[data-theme="dark"] .office-map-card,
+        html[data-theme="dark"] .office-map-badge,
+        html[data-theme="dark"] .office-info-item,
+        html[data-theme="dark"] .office-nav-button {
+            background: #0E0E0E !important;
+            color: var(--dark-text) !important;
+            border-color: rgba(255,255,255,.12) !important;
+        }
+        html[data-theme="dark"] .office-map-badge p,
+        html[data-theme="dark"] .office-info-item span,
+        html[data-theme="dark"] .office-location-card p { color: var(--dark-text-2) !important; }
+        html[data-theme="dark"] .office-nav-button:hover,
+        html[data-theme="dark"] .office-nav-button:focus-visible {
+            background: rgba(124,108,255,.18) !important;
+            border-color: rgba(124,108,255,.55) !important;
+            color: #fff !important;
+        }
+        html[data-theme="dark"] .office-nav-button--primary,
+        html[data-theme="dark"] .office-nav-button--primary:hover,
+        html[data-theme="dark"] .office-nav-button--primary:focus-visible {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.20) !important;
+        }
+
         /* Mobile bottom nav and music button. */
         html[data-theme="dark"] .mobile-bottom-nav {
             background: #000000 !important;
@@ -7523,6 +7659,49 @@
                     </div>
                 </div>
             </div>
+
+            <section class="office-location-card rounded-[2rem] p-4 sm:p-6 md:p-8 lg:p-10" aria-labelledby="office-location-title">
+                <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch">
+                    <div class="lg:col-span-7">
+                        <div class="office-map-card h-full" aria-label="BestHome.az Baş Ofis xəritə önizləməsi">
+                            <iframe class="office-map-frame" title="BestHome.az Baş Ofis xəritəsi" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=49.8616745%2C40.3768683%2C49.8716745%2C40.3868683&amp;layer=mapnik&amp;marker=40.3818683%2C49.8666745"></iframe>
+                            <div class="office-map-pin" aria-hidden="true"><i class="fa-solid fa-building"></i></div>
+                            <div class="office-map-badge p-4 sm:p-5">
+                                <div class="flex items-start gap-3">
+                                    <span class="w-11 h-11 rounded-2xl bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-brand-500/25"><i class="fa-solid fa-location-dot"></i></span>
+                                    <div class="min-w-0">
+                                        <h3 class="text-gray-950 font-black text-base sm:text-lg">BestHome.az Baş Ofis</h3>
+                                        <p class="text-gray-600 text-xs sm:text-sm font-semibold leading-relaxed">14 Xocalı prospekti, Bakı 1142, Azərbaycan</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
+                        <div class="space-y-3">
+                            <span class="inline-flex items-center gap-2 bg-brand-500/10 text-brand-600 border border-brand-500/25 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest"><i class="fa-solid fa-route"></i> Baş Ofis</span>
+                            <div class="space-y-2">
+                                <h2 id="office-location-title" class="text-3xl md:text-4xl font-black text-gray-950 leading-tight">Bizim ünvanımız</h2>
+                                <p class="text-brand-600 font-extrabold text-sm md:text-base">BestHome.az ofisinə rahat marşrut qurun.</p>
+                                <p class="text-gray-600 text-sm md:text-base leading-relaxed">Ofisimizin konumunu seçdiyiniz xəritə tətbiqi ilə aça və bir toxunuşla marşrut qura bilərsiniz.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" aria-label="Ofis məlumatları">
+                            <div class="office-info-item"><span class="text-xl" aria-hidden="true">📍</span><strong class="text-sm sm:text-base font-extrabold">14 Xocalı prospekti, Bakı 1142</strong></div>
+                            <div class="office-info-item"><span class="text-xl" aria-hidden="true">📞</span><a href="tel:+994703152222" class="text-sm sm:text-base font-extrabold hover:text-brand-600 transition">070 315 22 22</a></div>
+                            <div class="office-info-item"><span class="text-xl" aria-hidden="true">🏢</span><strong class="text-sm sm:text-base font-extrabold">BestHome.az Baş Ofis</strong></div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3" aria-label="Xəritə tətbiqləri ilə marşrut qurun">
+                            <a class="office-nav-button office-nav-button--primary inline-flex items-center justify-center gap-2 px-3 text-sm font-black" href="https://www.google.com/maps?q=40.3818683,49.8666745" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-google"></i><span>Google Maps</span></a>
+                            <a class="office-nav-button inline-flex items-center justify-center gap-2 px-3 text-sm font-black" href="https://yandex.com/maps/?pt=49.8666745,40.3818683&amp;z=17" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-map-location-dot"></i><span>Yandex Maps</span></a>
+                            <a class="office-nav-button inline-flex items-center justify-center gap-2 px-3 text-sm font-black" href="https://waze.com/ul?ll=40.3818683,49.8666745&amp;navigate=yes" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-route"></i><span>Waze</span></a>
+                            <a class="office-nav-button inline-flex items-center justify-center gap-2 px-3 text-sm font-black" href="https://maps.apple.com/?ll=40.3818683,49.8666745" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-apple"></i><span>Apple Maps</span></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </section>
 
 
