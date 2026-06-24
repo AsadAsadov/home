@@ -119,8 +119,20 @@
             --color-muted-surface: #0E0E0E;
         }
 
-        html, body { max-width: 100%; overflow-x: clip; background: var(--color-background); }
+        html,
+        body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            background: var(--color-background);
+        }
         body { background: var(--color-background); color: var(--color-text-primary); transition: none !important; }
+        #app,
+        [x-data],
+        main {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
         html, body, main, .app, #app, .page, .content, .tab-content, .public-page, .page-shell {
             filter: none !important;
             opacity: 1;
@@ -132,6 +144,172 @@
         .desktop-ad-layout, main.flex-grow, .tab-content, #tab-seabreeze, #seabreeze-home-content, #sea-breeze-projects-list { background: transparent; }
         *, *::before, *::after { box-sizing: border-box; }
         img, video, iframe, canvas, svg { max-width: 100%; }
+
+
+        /* Emergency mobile overflow guardrails: keep every public/admin view within the viewport. */
+        .header-main,
+        .site-header.glass-nav,
+        .site-header-inner,
+        .desktop-ad-layout,
+        .tab-content,
+        #seabreeze-home-content,
+        section,
+        .glass-card,
+        .public-page,
+        .page-shell {
+            max-width: 100%;
+            min-width: 0;
+        }
+        @media (max-width: 1279px) {
+            .ad-rail,
+            .left-ad-rail,
+            .right-ad-rail,
+            .desktop-ad,
+            .side-ad,
+            .desktop-ad-rail {
+                display: none !important;
+            }
+            .ad-content-grid,
+            .ad-content-grid.has-ads,
+            .desktop-ad-layout {
+                display: block !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+        @media (max-width: 767.98px) {
+            html,
+            body,
+            #app,
+            [x-data],
+            main,
+            .desktop-ad-layout,
+            .tab-content,
+            #seabreeze-home-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+            .w-screen,
+            .min-w-screen {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+            }
+            main.flex-grow {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .site-header.glass-nav,
+            .header-main {
+                width: 100% !important;
+                max-width: 100% !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+            }
+            .site-header > .max-w-7xl {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .site-header-inner {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                gap: .5rem !important;
+            }
+            .header-logo-wrap {
+                min-width: 0 !important;
+                max-width: calc(100vw - 130px) !important;
+                overflow: hidden !important;
+            }
+            .site-logo,
+            .header-logo-wrap > img,
+            .site-header img[alt*="BestHome"] {
+                width: auto !important;
+                max-width: calc(100vw - 130px) !important;
+                height: auto !important;
+                max-height: 48px !important;
+                object-fit: contain !important;
+            }
+            .header-mobile-actions {
+                flex: 0 0 auto;
+                max-width: 124px;
+                min-width: 0;
+                justify-content: flex-end;
+            }
+            #sea-breeze-hero-slider.sea-breeze-hero.glass-card,
+            #listing-hero-slider.sea-breeze-hero.glass-card,
+            .site-main-hero,
+            .site-hero-frame,
+            .sb-hero-slider {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: min(620px, 86vw) !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: hidden !important;
+            }
+            #sea-breeze-hero-panel.hero-content,
+            #sea-breeze-hero-panel.hero-glass-panel {
+                left: 1rem !important;
+                right: 1rem !important;
+                width: auto !important;
+                max-width: calc(100% - 2rem) !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                transform: none !important;
+            }
+            #sea-breeze-hero-title {
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+                text-overflow: clip !important;
+                font-size: clamp(2.4rem, 12vw, 4rem) !important;
+                line-height: .98 !important;
+            }
+            #sea-breeze-hero-button.hero-luxury-link {
+                width: 100% !important;
+                max-width: 100% !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }
+            .benefit-strip,
+            .sb-stats {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                width: calc(100% - 2rem) !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .sb-info-section,
+            .sb-info-section.is-reverse,
+            .sb-gallery > div,
+            .sea-breeze-projects-shell,
+            .premium-filter-bar,
+            .project-filter-panel {
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+            .sb-info-media,
+            .sb-info-text,
+            .sea-breeze-project-card,
+            .listing-submission-card,
+            .public-form-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+        }
+
         .glass-card {
             background: rgba(255, 255, 255, 0.94);
             backdrop-filter: blur(12px);
@@ -5738,6 +5916,60 @@
                 min-height: 36px;
                 padding-inline: .48rem;
                 font-size: .7rem;
+            }
+        }
+
+        /* Final mobile overflow overrides after component-specific hero/header rules. */
+        @media (max-width: 767.98px) {
+            .site-header.glass-nav,
+            .header-main,
+            .site-header > .max-w-7xl,
+            .site-header-inner,
+            main.flex-grow,
+            .tab-content,
+            #seabreeze-home-content,
+            .sea-breeze-projects-shell {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+                transform: none !important;
+            }
+            #sea-breeze-hero-slider.sea-breeze-hero.glass-card,
+            #listing-hero-slider.sea-breeze-hero.glass-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: min(620px, 86vw) !important;
+                max-height: none !important;
+            }
+            #sea-breeze-hero-panel.hero-content,
+            #sea-breeze-hero-panel.hero-glass-panel {
+                left: 1rem !important;
+                right: 1rem !important;
+                width: auto !important;
+                max-width: calc(100% - 2rem) !important;
+                transform: none !important;
+            }
+            #sea-breeze-hero-title {
+                display: block !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                font-size: clamp(2.4rem, 12vw, 4rem) !important;
+                line-height: .98 !important;
+            }
+            .benefit-strip,
+            .sb-stats,
+            .sb-info-section,
+            .sb-info-section.is-reverse,
+            .sb-gallery > div,
+            .premium-filter-bar,
+            .project-filter-panel {
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
             }
         }
 
@@ -22854,6 +23086,18 @@ Təşəkkür edirəm. 🙏`;
             updateSeo({ title: STATIC_SEO[path]?.title || SITE_NAME, description: STATIC_SEO[path]?.description || DEFAULT_SEO_DESCRIPTION, path });
         }
 
+        function logHorizontalOverflow() {
+            if (!window.BESTHOME_DEBUG_OVERFLOW) return;
+            document.querySelectorAll('*').forEach((el) => {
+                if (el.scrollWidth > document.documentElement.clientWidth + 2) {
+                    console.warn('Overflow element:', el, {
+                        scrollWidth: el.scrollWidth,
+                        clientWidth: document.documentElement.clientWidth
+                    });
+                }
+            });
+        }
+
         // MAIN SETUP AND BOOTSTRAP
         window.addEventListener('resize', () => {
             renderDesktopAds();
@@ -22886,7 +23130,8 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             await routeToCurrentPath();
-            hydrateFromDatabase().catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
+            logHorizontalOverflow();
+            hydrateFromDatabase().then(() => logHorizontalOverflow()).catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
             scheduleIdleTask(() => loadSiteMusicBackground({ render: true }).catch(() => {}), 1000);
             setMobileBottomNavActive();
             populateMetroSelect();
