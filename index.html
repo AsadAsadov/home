@@ -7322,43 +7322,122 @@
             display: flex !important;
         }
 
+        .bh-mobile-menu-backdrop {
+            position: fixed !important;
+            inset: 80px 0 0 0 !important;
+            z-index: 999998 !important;
+            pointer-events: auto !important;
+            background: linear-gradient(180deg, rgba(15,23,42,.22), rgba(15,23,42,.08)) !important;
+            backdrop-filter: blur(5px) !important;
+            -webkit-backdrop-filter: blur(5px) !important;
+        }
+
+        .bh-mobile-menu-backdrop.hidden {
+            display: none !important;
+        }
+
         .bh-mobile-menu {
             position: fixed !important;
-            top: 88px !important;
-            left: 12px !important;
-            right: 12px !important;
+            top: 92px !important;
+            left: 16px !important;
+            right: 16px !important;
             z-index: 999999 !important;
             flex-direction: column !important;
             gap: 8px !important;
-            padding: 10px !important;
-            border-radius: 18px !important;
-            background: #ffffff !important;
+            padding: 12px !important;
+            border-radius: 22px !important;
+            background: rgba(255,255,255,.96) !important;
             color: #111827 !important;
-            border: 1px solid rgba(17,24,39,.12) !important;
-            box-shadow: 0 18px 45px rgba(0,0,0,.18) !important;
+            border: 1px solid rgba(109,93,252,.16) !important;
+            box-shadow: 0 24px 70px rgba(0,0,0,.22) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            max-height: min(72vh, 430px) !important;
+            overflow-y: auto !important;
         }
 
         body.dark .bh-mobile-menu,
         .dark .bh-mobile-menu,
         [data-theme="dark"] .bh-mobile-menu {
-            background: #08080c !important;
+            background: rgba(8,8,12,.96) !important;
             color: #ffffff !important;
             border: 1px solid rgba(255,255,255,.14) !important;
+            box-shadow: 0 24px 70px rgba(0,0,0,.48) !important;
         }
 
-        .bh-mobile-menu a {
-            padding: 13px 14px !important;
-            border-radius: 14px !important;
+        .bh-mobile-menu__header {
+            padding: 6px 6px 10px !important;
+            border-bottom: 1px solid rgba(109,93,252,.14) !important;
+            margin-bottom: 4px !important;
+        }
+
+        .bh-mobile-menu__title {
+            display: block !important;
+            font-size: 18px !important;
+            line-height: 1.2 !important;
+            font-weight: 950 !important;
+            letter-spacing: -.02em !important;
+        }
+
+        .bh-mobile-menu__current {
+            display: block !important;
+            margin-top: 3px !important;
+            font-size: 12px !important;
             font-weight: 800 !important;
-            color: inherit !important;
+            color: #6b7280 !important;
+        }
+
+        body.dark .bh-mobile-menu__current,
+        .dark .bh-mobile-menu__current,
+        [data-theme="dark"] .bh-mobile-menu__current { color: #cbd5e1 !important; }
+
+        .bh-mobile-menu-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 12px !important;
+            padding: 14px 14px !important;
+            border-radius: 16px !important;
+            font-weight: 900 !important;
+            color: #111827 !important;
             text-decoration: none !important;
             background: rgba(17,24,39,.045) !important;
+            border: 1px solid rgba(17,24,39,.06) !important;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease !important;
         }
 
-        body.dark .bh-mobile-menu a,
-        .dark .bh-mobile-menu a,
-        [data-theme="dark"] .bh-mobile-menu a {
+        .bh-mobile-menu-link:hover { transform: translateY(-1px) !important; }
+
+        body.dark .bh-mobile-menu-link,
+        .dark .bh-mobile-menu-link,
+        [data-theme="dark"] .bh-mobile-menu-link {
+            color: #ffffff !important;
             background: rgba(255,255,255,.075) !important;
+            border-color: rgba(255,255,255,.1) !important;
+        }
+
+        .bh-mobile-menu-link.is-active {
+            background: linear-gradient(135deg, #6d5dfc, #8b5cf6) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.28) !important;
+            box-shadow: 0 12px 30px rgba(109,93,252,.28) !important;
+        }
+
+        .bh-menu-active-badge {
+            display: none !important;
+            flex: 0 0 auto !important;
+            border-radius: 999px !important;
+            padding: 4px 8px !important;
+            font-size: 10px !important;
+            font-weight: 950 !important;
+            background: rgba(255,255,255,.22) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255,255,255,.32) !important;
+        }
+
+        .bh-mobile-menu-link.is-active .bh-menu-active-badge {
+            display: inline-flex !important;
+            align-items: center !important;
         }
 
     </style>
@@ -7402,11 +7481,16 @@
 
     </nav>
 
+    <div id="mobileMenuBackdrop" class="bh-mobile-menu-backdrop hidden" onclick="toggleMobileMenu(false)" aria-hidden="true"></div>
     <div id="mobileMenuPanel" class="bh-mobile-menu hidden">
-        <a href="/sea-breeze-haqqinda" onclick="toggleMobileMenu(false); switchTab('seabreeze-info'); return false;">Sea Breeze Haqqında</a>
-        <a href="/gallery" onclick="toggleMobileMenu(false); switchTab('portfolio'); return false;">Qalereya</a>
-        <a href="/" onclick="toggleMobileMenu(false); switchTab('home'); return false;">Haqqımızda</a>
-        <a href="/vacancies" onclick="toggleMobileMenu(false); switchTab('career'); return false;">Vakansiya</a>
+        <div class="bh-mobile-menu__header">
+            <span class="bh-mobile-menu__title">Menyu</span>
+            <span class="bh-mobile-menu__current">Hazırda: <strong id="mobileMenuCurrentPage">Layihələr</strong></span>
+        </div>
+        <a class="bh-mobile-menu-link" data-route="/sea-breeze-haqqinda" href="/sea-breeze-haqqinda" onclick="toggleMobileMenu(false); switchTab('seabreeze-info'); return false;"><span>Sea Breeze Haqqında</span><span class="bh-menu-active-badge">Aktiv</span></a>
+        <a class="bh-mobile-menu-link" data-route="/qalereya" href="/qalereya" onclick="toggleMobileMenu(false); switchTab('portfolio'); return false;"><span>Qalereya</span><span class="bh-menu-active-badge">Aktiv</span></a>
+        <a class="bh-mobile-menu-link" data-route="/haqqimizda" href="/haqqimizda" onclick="toggleMobileMenu(false); switchTab('home'); return false;"><span>Haqqımızda</span><span class="bh-menu-active-badge">Aktiv</span></a>
+        <a class="bh-mobile-menu-link" data-route="/vakansiya" href="/vakansiya" onclick="toggleMobileMenu(false); switchTab('career'); return false;"><span>Vakansiya</span><span class="bh-menu-active-badge">Aktiv</span></a>
     </div>
 
     <span id="site-music-desktop-anchor" hidden></span>
@@ -16944,8 +17028,8 @@ ${profileMenuItemsHtml()}
                 }
             }
 
-            const routePaths = { 'seabreeze-info': '/sea-breeze-haqqinda', mortgage: '/ipoteka-kalkulyatoru', career: '/vacancies', portfolio: '/gallery', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
-            const routeTitles = { 'seabreeze-info': 'Sea Breeze Haqqında', mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiyalar', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
+            const routePaths = { 'seabreeze-info': '/sea-breeze-haqqinda', home: '/haqqimizda', mortgage: '/ipoteka-kalkulyatoru', career: '/vakansiya', portfolio: '/qalereya', listings: '/elanlar', 'create-listing': '/elan-elave-et', 'my-listings': '/profil/elanlarim', favorites: '/profil/favoriler', messages: '/profil/mesajlar' };
+            const routeTitles = { 'seabreeze-info': 'Sea Breeze Haqqında', home: 'Haqqımızda', mortgage: 'İpoteka Kalkulyatoru', career: 'Vakansiya', portfolio: 'Qalereya', listings: 'Elanlar', 'create-listing': 'Elan əlavə et', 'my-listings': 'Mənim elanlarım', favorites: 'Favorilər', messages: 'Mesajlar' };
             const routePath = routePaths[tabId] || '/';
             const staticSeo = STATIC_SEO[routePath];
             updateSeo({ title: staticSeo?.title || routeTitles[tabId] || SITE_NAME, description: staticSeo?.description || DEFAULT_SEO_DESCRIPTION, path: routePath });
@@ -16955,11 +17039,42 @@ ${profileMenuItemsHtml()}
             if (tabId === 'listings') renderListingHero(listingHeroIndex);
             else hideListingHero();
             setMobileBottomNavActive(tabId === 'my-listings' || tabId === 'favorites' || tabId === 'admin-dashboard' ? 'profile' : null);
+            updateMobileMenuActiveState();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function normalizeMobileMenuPath(path = window.location.pathname) {
+            const cleanPath = (path || '/').toLowerCase().replace(/\/+$/, '') || '/';
+            const aliases = {
+                '/gallery': '/qalereya',
+                '/portfolio': '/qalereya',
+                '/vacancies': '/vakansiya',
+                '/career': '/vakansiya',
+                '/': '/haqqimizda'
+            };
+            return aliases[cleanPath] || cleanPath;
+        }
+
+        function updateMobileMenuActiveState() {
+            const activePath = normalizeMobileMenuPath();
+            const labels = {
+                '/sea-breeze-haqqinda': 'Sea Breeze Haqqında',
+                '/qalereya': 'Qalereya',
+                '/haqqimizda': 'Haqqımızda',
+                '/vakansiya': 'Vakansiya'
+            };
+            document.querySelectorAll('.bh-mobile-menu-link[data-route]').forEach(link => {
+                const isActive = normalizeMobileMenuPath(link.dataset.route) === activePath;
+                link.classList.toggle('is-active', isActive);
+                link.setAttribute('aria-current', isActive ? 'page' : 'false');
+            });
+            const currentPage = document.getElementById('mobileMenuCurrentPage');
+            if (currentPage) currentPage.textContent = labels[activePath] || 'Layihələr';
         }
 
         window.toggleMobileMenu = function(force) {
             const panel = document.getElementById('mobileMenuPanel');
+            const backdrop = document.getElementById('mobileMenuBackdrop');
             const btn = document.querySelector('[data-mobile-menu-button]');
 
             if (!panel) {
@@ -16971,8 +17086,10 @@ ${profileMenuItemsHtml()}
                 ? force
                 : panel.classList.contains('hidden');
 
+            if (open) updateMobileMenuActiveState();
             panel.classList.toggle('hidden', !open);
             panel.classList.toggle('is-open', open);
+            if (backdrop) backdrop.classList.toggle('hidden', !open);
             if (btn) btn.setAttribute('aria-expanded', String(open));
 
             const icon = document.getElementById('menu-icon');
@@ -23168,7 +23285,7 @@ Təşəkkür edirəm. 🙏`;
 
         async function routeToCurrentPath({ replace = false } = {}) {
             cleanupTransientListingModals();
-            const path = window.location.pathname;
+            let path = window.location.pathname;
             if (ADMIN_ROUTE_SUBTABS[path]) {
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
                 routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
@@ -23267,7 +23384,7 @@ Təşəkkür edirəm. 🙏`;
                 if (listing) openPropertyModal(listing.id, false);
                 return;
             }
-            if (path === '/vacancies') {
+            if (path === '/vacancies' || path === '/vakansiya') {
                 switchTab('career', { skipPush: true });
                 updateSeo({ title: 'Vakansiyalar', path });
                 return;
@@ -23295,7 +23412,7 @@ Təşəkkür edirəm. 🙏`;
                 }
                 return;
             }
-            if (path === '/gallery' || path === '/videos') {
+            if (path === '/gallery' || path === '/qalereya' || path === '/videos') {
                 switchTab('portfolio', { skipPush: true });
                 currentFilter = path === '/videos' ? 'video' : 'all';
                 renderPortfolio();
@@ -23318,7 +23435,7 @@ Təşəkkür edirəm. 🙏`;
                 if (index > -1) openGalleryDetailModal(index, false);
                 return;
             }
-            switchTab(path === '/ipoteka-kalkulyatoru' ? 'mortgage' : 'seabreeze', { skipPush: true });
+            switchTab(path === '/ipoteka-kalkulyatoru' ? 'mortgage' : (path === '/haqqimizda' ? 'home' : 'seabreeze'), { skipPush: true });
             updateSeo({ title: STATIC_SEO[path]?.title || SITE_NAME, description: STATIC_SEO[path]?.description || DEFAULT_SEO_DESCRIPTION, path });
         }
 
