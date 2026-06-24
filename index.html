@@ -269,7 +269,7 @@
                 white-space: normal !important;
                 overflow-wrap: anywhere !important;
                 text-overflow: clip !important;
-                font-size: clamp(2.4rem, 12vw, 4rem) !important;
+                font-size: clamp(2rem, 8.5vw, 2.5rem) !important;
                 line-height: .98 !important;
             }
             #sea-breeze-hero-button.hero-luxury-link {
@@ -5450,6 +5450,15 @@
                 font-size: .9rem;
                 font-weight: 600;
             }
+            #mobile-menu.is-open {
+                display: block !important;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                z-index: 1200;
+                pointer-events: auto;
+            }
             main.flex-grow { padding-top: 5rem !important; }
         }
         @media (max-width: 380px) {
@@ -5956,7 +5965,7 @@
                 overflow-wrap: anywhere !important;
                 overflow: visible !important;
                 text-overflow: clip !important;
-                font-size: clamp(2.4rem, 12vw, 4rem) !important;
+                font-size: clamp(2rem, 8.5vw, 2.5rem) !important;
                 line-height: .98 !important;
             }
             .benefit-strip,
@@ -7000,14 +7009,14 @@
         }
 
 
-        .office-location-card {
+        .about-location-section.office-location-card {
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(246,247,255,.92));
             border: 1px solid rgba(127,127,255,.20);
             box-shadow: 0 26px 70px rgba(31, 41, 55, .10), 0 12px 32px rgba(127, 127, 255, .10);
         }
-        .office-location-card::before {
+        .about-location-section.office-location-card::before {
             content: '';
             position: absolute;
             inset: -35% auto auto -12%;
@@ -7017,8 +7026,9 @@
             background: radial-gradient(circle, rgba(127,127,255,.18), transparent 66%);
             pointer-events: none;
         }
-        .office-map-card {
+        .about-location-card .office-map-card {
             position: relative;
+            height: 100%;
             min-height: 360px;
             overflow: hidden;
             border-radius: 2rem;
@@ -7026,17 +7036,18 @@
             background: #eef2ff;
             box-shadow: inset 0 1px 0 rgba(255,255,255,.70), 0 22px 50px rgba(15,23,42,.12);
         }
-        .office-map-frame {
+        .about-location-card .office-map-frame {
+            display: block;
             width: 100%;
             height: 100%;
             min-height: 360px;
             border: 0;
             filter: saturate(1.04) contrast(1.02);
         }
-        .office-map-pin {
+        .about-location-card .office-map-pin {
             position: absolute;
             left: 50%;
-            top: 47%;
+            top: 50%;
             transform: translate(-50%, -100%);
             width: 3.25rem;
             height: 3.25rem;
@@ -7048,20 +7059,8 @@
             box-shadow: 0 18px 34px rgba(91,91,214,.38);
             z-index: 2;
         }
-        .office-map-pin i { rotate: 45deg; color: #fff; font-size: 1.15rem; }
-        .office-map-badge {
-            position: absolute;
-            left: 1rem;
-            right: 1rem;
-            bottom: 1rem;
-            border-radius: 1.5rem;
-            background: rgba(255,255,255,.92);
-            border: 1px solid rgba(127,127,255,.22);
-            box-shadow: 0 16px 38px rgba(15,23,42,.14);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-        }
-        .office-info-item {
+        .about-location-card .office-map-pin i { rotate: 45deg; color: #fff; font-size: 1.15rem; }
+        .about-location-card .office-info-item {
             display: flex;
             align-items: center;
             gap: .85rem;
@@ -7072,7 +7071,7 @@
             color: #111827;
             box-shadow: 0 10px 28px rgba(15,23,42,.05);
         }
-        .office-nav-button {
+        .about-location-card .office-nav-button {
             min-height: 3.65rem;
             border-radius: 1.15rem;
             border: 1px solid rgba(127,127,255,.22);
@@ -7081,55 +7080,54 @@
             box-shadow: 0 12px 28px rgba(15,23,42,.07);
             transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
         }
-        .office-nav-button:hover,
-        .office-nav-button:focus-visible {
+        .about-location-card .office-nav-button:hover,
+        .about-location-card .office-nav-button:focus-visible {
             transform: translateY(-2px);
             border-color: rgba(127,127,255,.55);
             box-shadow: 0 18px 38px rgba(127,127,255,.18);
             background: linear-gradient(135deg, #fff, #f7f7ff);
         }
-        .office-nav-button--primary {
+        .about-location-card .office-nav-button--primary {
             background: linear-gradient(135deg, #7F7FFF, #5b5bd6);
             color: #fff;
             border-color: rgba(255,255,255,.28);
             box-shadow: 0 18px 38px rgba(91,91,214,.28);
         }
-        .office-nav-button--primary:hover,
-        .office-nav-button--primary:focus-visible {
+        .about-location-card .office-nav-button--primary:hover,
+        .about-location-card .office-nav-button--primary:focus-visible {
             background: linear-gradient(135deg, #8b8bff, #6666e8);
             color: #fff;
         }
         @media (max-width: 640px) {
-            .office-location-card { border-radius: 1.5rem; }
-            .office-map-card, .office-map-frame { min-height: 300px; }
-            .office-map-card { border-radius: 1.5rem; }
-            .office-nav-button { min-height: 3.75rem; padding-inline: .75rem; }
+            .about-location-section.office-location-card { border-radius: 1.5rem; }
+            .about-location-card .office-map-card,
+            .about-location-card .office-map-frame { min-height: 300px; }
+            .about-location-card .office-map-card { border-radius: 1.5rem; height: auto; }
+            .about-location-card .office-nav-button { min-height: 3.75rem; padding-inline: .75rem; }
         }
-        html[data-theme="dark"] .office-location-card {
+        html[data-theme="dark"] .about-location-section.office-location-card {
             background: radial-gradient(circle at top left, rgba(124,108,255,.18), transparent 38%), linear-gradient(135deg, #0B0B0B, #111111) !important;
             border-color: rgba(255,255,255,.10) !important;
             box-shadow: 0 26px 70px rgba(0,0,0,.44) !important;
         }
-        html[data-theme="dark"] .office-map-card,
-        html[data-theme="dark"] .office-map-badge,
-        html[data-theme="dark"] .office-info-item,
-        html[data-theme="dark"] .office-nav-button {
+        html[data-theme="dark"] .about-location-card .office-map-card,
+        html[data-theme="dark"] .about-location-card .office-info-item,
+        html[data-theme="dark"] .about-location-card .office-nav-button {
             background: #0E0E0E !important;
             color: var(--dark-text) !important;
             border-color: rgba(255,255,255,.12) !important;
         }
-        html[data-theme="dark"] .office-map-badge p,
-        html[data-theme="dark"] .office-info-item span,
-        html[data-theme="dark"] .office-location-card p { color: var(--dark-text-2) !important; }
-        html[data-theme="dark"] .office-nav-button:hover,
-        html[data-theme="dark"] .office-nav-button:focus-visible {
+        html[data-theme="dark"] .about-location-card .office-info-item span,
+        html[data-theme="dark"] .about-location-section.office-location-card p { color: var(--dark-text-2) !important; }
+        html[data-theme="dark"] .about-location-card .office-nav-button:hover,
+        html[data-theme="dark"] .about-location-card .office-nav-button:focus-visible {
             background: rgba(124,108,255,.18) !important;
             border-color: rgba(124,108,255,.55) !important;
             color: #fff !important;
         }
-        html[data-theme="dark"] .office-nav-button--primary,
-        html[data-theme="dark"] .office-nav-button--primary:hover,
-        html[data-theme="dark"] .office-nav-button--primary:focus-visible {
+        html[data-theme="dark"] .about-location-card .office-nav-button--primary,
+        html[data-theme="dark"] .about-location-card .office-nav-button--primary:hover,
+        html[data-theme="dark"] .about-location-card .office-nav-button--primary:focus-visible {
             background: linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
             color: #fff !important;
             border-color: rgba(255,255,255,.20) !important;
@@ -7337,7 +7335,7 @@
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
                     <span id="site-music-mobile-anchor" class="inline-flex"></span>
-                    <button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç">
+                    <button id="mobile-menu-toggle" onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç" aria-controls="mobile-menu" aria-expanded="false">
                         <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
                     </button>
                 </div>
@@ -7345,11 +7343,11 @@
         </div>
 
         <!-- Mobile Dropdown Menu -->
-        <div class="hidden lg:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu">
-            <button onclick="switchTab('seabreeze-info'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Sea Breeze Haqqında</button>
-            <button onclick="switchTab('portfolio'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Qalereya</button>
-            <button onclick="switchTab('career'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Vakansiya</button>
-            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Haqqımızda</button>
+        <div class="hidden lg:hidden glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu" aria-hidden="true">
+            <button onclick="switchTab('seabreeze-info'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Sea Breeze Haqqında</button>
+            <button onclick="switchTab('portfolio'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Qalereya</button>
+            <button onclick="switchTab('career'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Vakansiya</button>
+            <button onclick="switchTab('home'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Haqqımızda</button>
             <div id="mobile-user-status-actions" class="hidden"></div>
         </div>
     </nav>
@@ -7660,21 +7658,12 @@
                 </div>
             </div>
 
-            <section class="office-location-card rounded-[2rem] p-4 sm:p-6 md:p-8 lg:p-10" aria-labelledby="office-location-title">
-                <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch">
+            <section class="about-location-section office-location-card rounded-[2rem] p-4 sm:p-6 md:p-8 lg:p-10" aria-labelledby="office-location-title">
+                <div class="about-location-card relative grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch">
                     <div class="lg:col-span-7">
                         <div class="office-map-card h-full" aria-label="BestHome.az Baş Ofis xəritə önizləməsi">
                             <iframe class="office-map-frame" title="BestHome.az Baş Ofis xəritəsi" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=49.8616745%2C40.3768683%2C49.8716745%2C40.3868683&amp;layer=mapnik&amp;marker=40.3818683%2C49.8666745"></iframe>
                             <div class="office-map-pin" aria-hidden="true"><i class="fa-solid fa-building"></i></div>
-                            <div class="office-map-badge p-4 sm:p-5">
-                                <div class="flex items-start gap-3">
-                                    <span class="w-11 h-11 rounded-2xl bg-brand-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-brand-500/25"><i class="fa-solid fa-location-dot"></i></span>
-                                    <div class="min-w-0">
-                                        <h3 class="text-gray-950 font-black text-base sm:text-lg">BestHome.az Baş Ofis</h3>
-                                        <p class="text-gray-600 text-xs sm:text-sm font-semibold leading-relaxed">14 Xocalı prospekti, Bakı 1142, Azərbaycan</p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
@@ -16913,16 +16902,20 @@ ${profileMenuItemsHtml()}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function toggleMobileMenu() {
+        function toggleMobileMenu(forceOpen) {
             const menu = document.getElementById('mobile-menu');
             const icon = document.getElementById('menu-icon');
-            if (menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-                icon.className = "fa-solid fa-xmark text-2xl";
-            } else {
-                menu.classList.add('hidden');
-                icon.className = "fa-solid fa-bars text-2xl";
+            if (!menu) return;
+
+            const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !shouldOpen);
+            menu.classList.toggle('is-open', shouldOpen);
+            menu.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+
+            if (icon) {
+                icon.className = shouldOpen ? "fa-solid fa-xmark text-2xl" : "fa-solid fa-bars text-2xl";
             }
+            document.getElementById('mobile-menu-toggle')?.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
         }
 
         // 3-LÜ LAYİHƏ KATEQORİYASI (Apartment / Villa / Townhouse)
