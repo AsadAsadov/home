@@ -7314,6 +7314,53 @@
         html[data-theme="dark"] .sb-media-modal__close,
         html[data-theme="dark"] .sb-media-modal__button { background:rgba(255,255,255,.12) !important; color:#ffffff !important; border:1px solid rgba(255,255,255,.25) !important; }
 
+        #mobileMenuPanel {
+            position: fixed;
+            top: 92px;
+            left: 12px;
+            right: 12px;
+            z-index: 99999;
+            border-radius: 24px;
+            padding: 14px;
+            background: var(--card-bg);
+            box-shadow: 0 24px 80px rgba(0,0,0,.22);
+            border: 1px solid var(--color-border);
+        }
+        #mobileMenuPanel.hidden {
+            display: none !important;
+        }
+        #mobileMenuPanel.mobile-menu-open {
+            display: block !important;
+        }
+        .mobile-menu-link {
+            display: block;
+            width: 100%;
+            min-height: 46px;
+            margin: 3px 0;
+            padding: 12px 14px;
+            border: 0;
+            border-radius: 16px;
+            background: transparent;
+            color: var(--color-text-primary) !important;
+            font-size: 15px;
+            font-weight: 800;
+            text-align: left;
+        }
+        .mobile-menu-link:hover,
+        .mobile-menu-link:focus-visible {
+            background: var(--color-primary-soft);
+            color: var(--color-primary) !important;
+            outline: none;
+        }
+        html[data-theme="dark"] #mobileMenuPanel {
+            background: var(--card-bg) !important;
+            border-color: var(--color-border);
+        }
+        html[data-theme="dark"] .mobile-menu-link {
+            color: var(--color-text-primary) !important;
+        }
+        body.mobile-menu-lock { overflow: hidden; }
+
     </style>
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
@@ -7346,7 +7393,7 @@
                 <div class="header-mobile-actions lg:hidden">
                     <div id="mobile-user-status-icon"></div>
                     <span id="site-music-mobile-anchor" class="inline-flex"></span>
-                    <button id="mobile-menu-toggle" onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç" aria-controls="mobile-menu" aria-expanded="false">
+                    <button id="mobile-menu-toggle" data-mobile-menu-button onclick="toggleMobileMenu()" class="w-11 h-11 rounded-full bg-white/85 border border-brand-100 text-gray-700 hover:text-brand-600 hover:border-brand-300 focus:outline-none shadow-sm" aria-label="Menyunu aç" aria-controls="mobileMenuPanel" aria-expanded="false">
                         <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
                     </button>
                 </div>
@@ -7354,14 +7401,14 @@
         </div>
 
         <!-- Mobile Dropdown Menu -->
-        <div class="hidden lg:hidden opacity-0 pointer-events-none -translate-y-4 glass-card border-t border-white/5 px-4 pt-2 pb-4 space-y-3" id="mobile-menu" aria-hidden="true">
-            <button type="button" onclick="switchTab('seabreeze'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Layihələr</button>
-            <button type="button" onclick="switchTab('seabreeze-info'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Sea Breeze Haqqında</button>
-            <button type="button" onclick="switchTab('listings'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Elanlar</button>
-            <button type="button" onclick="switchTab('portfolio'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Qalereya</button>
-            <button type="button" onclick="switchTab('mortgage'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">İpoteka</button>
-            <button type="button" onclick="switchTab('home'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Haqqımızda</button>
-            <button type="button" onclick="switchTab('career'); toggleMobileMenu(false)" class="block w-full text-left px-3 py-2 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-600 font-bold">Vakansiya</button>
+        <div id="mobileMenuPanel" class="hidden lg:hidden" data-open="false" aria-hidden="true">
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('seabreeze')" class="mobile-menu-link">Layihələr</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('seabreeze-info')" class="mobile-menu-link">Sea Breeze Haqqında</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('listings')" class="mobile-menu-link">Elanlar</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('portfolio')" class="mobile-menu-link">Qalereya</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('mortgage')" class="mobile-menu-link">İpoteka</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('home')" class="mobile-menu-link">Haqqımızda</button>
+            <button type="button" onclick="toggleMobileMenu(false); switchTab('career')" class="mobile-menu-link">Vakansiya</button>
             <div id="mobile-user-status-actions" class="hidden"></div>
         </div>
     </nav>
@@ -16916,30 +16963,28 @@ ${profileMenuItemsHtml()}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function toggleMobileMenu(forceOpen) {
-            const menu = document.getElementById('mobile-menu');
+        function toggleMobileMenu(force) {
+            const panel = document.getElementById('mobileMenuPanel');
+            const btn = document.querySelector('[data-mobile-menu-button]');
+            if (!panel) return;
+
+            const isOpen = force === undefined
+                ? panel.dataset.open !== 'true'
+                : !!force;
+
+            panel.dataset.open = isOpen ? 'true' : 'false';
+
+            panel.classList.toggle('hidden', !isOpen);
+            panel.classList.toggle('mobile-menu-open', isOpen);
+
+            document.body.classList.toggle('mobile-menu-lock', isOpen);
+
+            panel.setAttribute('aria-hidden', String(!isOpen));
             const icon = document.getElementById('menu-icon');
-            const toggleButton = document.getElementById('mobile-menu-toggle');
-            if (!menu) return;
-
-            const isOpen = menu.classList.contains('is-open') || !menu.classList.contains('hidden');
-            const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !isOpen;
-            const closedClasses = ['hidden', 'opacity-0', 'pointer-events-none', '-translate-y-4'];
-            const openClasses = ['block', 'opacity-100', 'pointer-events-auto', 'translate-y-0', 'is-open'];
-
-            if (shouldOpen) {
-                menu.classList.remove(...closedClasses);
-                menu.classList.add(...openClasses);
-            } else {
-                menu.classList.remove(...openClasses);
-                menu.classList.add(...closedClasses);
-            }
-
-            menu.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
-            if (icon) icon.className = shouldOpen ? 'fa-solid fa-xmark text-2xl' : 'fa-solid fa-bars text-xl';
-            if (toggleButton) {
-                toggleButton.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-                toggleButton.setAttribute('aria-label', shouldOpen ? 'Menyunu bağla' : 'Menyunu aç');
+            if (icon) icon.className = isOpen ? 'fa-solid fa-xmark text-2xl' : 'fa-solid fa-bars text-xl';
+            if (btn) {
+                btn.setAttribute('aria-expanded', String(isOpen));
+                btn.setAttribute('aria-label', isOpen ? 'Menyunu bağla' : 'Menyunu aç');
             }
         }
 
