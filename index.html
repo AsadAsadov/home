@@ -7324,80 +7324,42 @@
 
         .bh-mobile-menu {
             position: fixed !important;
-            top: 92px !important;
-            left: 14px !important;
-            right: 14px !important;
-            z-index: 2147483647 !important;
-
+            top: 88px !important;
+            left: 12px !important;
+            right: 12px !important;
+            z-index: 999999 !important;
             flex-direction: column !important;
-            gap: 10px !important;
-            padding: 16px !important;
-
-            border-radius: 24px !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            border-radius: 18px !important;
             background: #ffffff !important;
             color: #111827 !important;
-
-            border: 1px solid rgba(17, 24, 39, 0.10) !important;
-            box-shadow: 0 30px 90px rgba(0,0,0,.32) !important;
-
-            backdrop-filter: blur(18px) !important;
-            -webkit-backdrop-filter: blur(18px) !important;
+            border: 1px solid rgba(17,24,39,.12) !important;
+            box-shadow: 0 18px 45px rgba(0,0,0,.18) !important;
         }
 
         body.dark .bh-mobile-menu,
         .dark .bh-mobile-menu,
         [data-theme="dark"] .bh-mobile-menu {
-            background: #07070a !important;
+            background: #08080c !important;
             color: #ffffff !important;
-            border: 1px solid rgba(255,255,255,.16) !important;
-            box-shadow: 0 30px 90px rgba(0,0,0,.70) !important;
+            border: 1px solid rgba(255,255,255,.14) !important;
         }
 
         .bh-mobile-menu a {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-
-            padding: 14px 16px !important;
-            border-radius: 16px !important;
-
+            padding: 13px 14px !important;
+            border-radius: 14px !important;
+            font-weight: 800 !important;
             color: inherit !important;
             text-decoration: none !important;
-            font-weight: 800 !important;
-            font-size: 15px !important;
-
-            background: rgba(17, 24, 39, 0.045) !important;
-            border: 1px solid rgba(17, 24, 39, 0.08) !important;
+            background: rgba(17,24,39,.045) !important;
         }
 
         body.dark .bh-mobile-menu a,
         .dark .bh-mobile-menu a,
         [data-theme="dark"] .bh-mobile-menu a {
             background: rgba(255,255,255,.075) !important;
-            border: 1px solid rgba(255,255,255,.12) !important;
-            color: #ffffff !important;
         }
-
-        .bh-mobile-menu a:hover,
-        .bh-mobile-menu a:active {
-            transform: translateY(-1px);
-            background: rgba(111, 86, 255, 0.16) !important;
-        }
-
-        .bh-mobile-menu-backdrop.hidden {
-            display: none !important;
-        }
-
-        .bh-mobile-menu-backdrop {
-            position: fixed !important;
-            inset: 0 !important;
-            z-index: 2147483646 !important;
-            background: rgba(0,0,0,.28) !important;
-            backdrop-filter: blur(3px) !important;
-            -webkit-backdrop-filter: blur(3px) !important;
-        }
-
-        body.mobile-menu-open { overflow: hidden; }
 
     </style>
 </head>
@@ -7440,13 +7402,9 @@
 
     </nav>
 
-    <div id="mobileMenuBackdrop" class="bh-mobile-menu-backdrop hidden" onclick="toggleMobileMenu(false)"></div>
     <div id="mobileMenuPanel" class="bh-mobile-menu hidden">
-        <a href="/" onclick="toggleMobileMenu(false); switchTab('seabreeze'); return false;">Layihələr</a>
         <a href="/sea-breeze-haqqinda" onclick="toggleMobileMenu(false); switchTab('seabreeze-info'); return false;">Sea Breeze Haqqında</a>
-        <a href="/elanlar" onclick="toggleMobileMenu(false); switchTab('listings'); return false;">Elanlar</a>
         <a href="/gallery" onclick="toggleMobileMenu(false); switchTab('portfolio'); return false;">Qalereya</a>
-        <a href="/ipoteka-kalkulyatoru" onclick="toggleMobileMenu(false); switchTab('mortgage'); return false;">İpoteka</a>
         <a href="/" onclick="toggleMobileMenu(false); switchTab('home'); return false;">Haqqımızda</a>
         <a href="/vacancies" onclick="toggleMobileMenu(false); switchTab('career'); return false;">Vakansiya</a>
     </div>
@@ -7762,7 +7720,6 @@
                     <div class="lg:col-span-7">
                         <div class="office-map-card h-full" aria-label="BestHome.az Baş Ofis xəritə önizləməsi">
                             <iframe class="office-map-frame" title="BestHome.az Baş Ofis xəritəsi" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=49.8616745%2C40.3768683%2C49.8716745%2C40.3868683&amp;layer=mapnik&amp;marker=40.3818683%2C49.8666745"></iframe>
-                            <div class="office-map-pin" aria-hidden="true"><i class="fa-solid fa-building"></i></div>
                         </div>
                     </div>
                     <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
@@ -7770,8 +7727,8 @@
                             <span class="inline-flex items-center gap-2 bg-brand-500/10 text-brand-600 border border-brand-500/25 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest"><i class="fa-solid fa-route"></i> Baş Ofis</span>
                             <div class="space-y-2">
                                 <h2 id="office-location-title" class="text-3xl md:text-4xl font-black text-gray-950 leading-tight">Bizim ünvanımız</h2>
-                                <p class="text-brand-600 font-extrabold text-sm md:text-base">BestHome.az ofisinə rahat marşrut qurun.</p>
-                                <p class="text-gray-600 text-sm md:text-base leading-relaxed">Ofisimizin konumunu seçdiyiniz xəritə tətbiqi ilə aça və bir toxunuşla marşrut qura bilərsiniz.</p>
+                                <p class="text-brand-600 font-extrabold text-sm md:text-base">BestHome.az Baş Ofisinə asanlıqla yol tarifi alın.</p>
+                                <p class="text-gray-600 text-sm md:text-base leading-relaxed">Aşağıdakı xəritə tətbiqlərindən birini seçərək ünvanımıza rahat şəkildə marşrut qura bilərsiniz.</p>
                             </div>
                         </div>
 
@@ -17003,7 +16960,6 @@ ${profileMenuItemsHtml()}
 
         window.toggleMobileMenu = function(force) {
             const panel = document.getElementById('mobileMenuPanel');
-            const backdrop = document.getElementById('mobileMenuBackdrop');
             const btn = document.querySelector('[data-mobile-menu-button]');
 
             if (!panel) {
@@ -17017,11 +16973,7 @@ ${profileMenuItemsHtml()}
 
             panel.classList.toggle('hidden', !open);
             panel.classList.toggle('is-open', open);
-            if (backdrop) backdrop.classList.toggle('hidden', !open);
-
             if (btn) btn.setAttribute('aria-expanded', String(open));
-
-            document.body.classList.toggle('mobile-menu-open', open);
 
             const icon = document.getElementById('menu-icon');
             if (icon) icon.className = open ? 'fa-solid fa-xmark text-2xl' : 'fa-solid fa-bars text-xl';
