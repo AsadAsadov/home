@@ -9,8 +9,7 @@ const { logUserActivity } = require('../utils/activity');
 const {
   LISTING_CODE_MAX_RETRIES,
   LISTING_CODE_ERROR_RESPONSE,
-  generateNextListingCodeInLockedTransaction,
-  reserveTimestampListingCodeInLockedTransaction,
+  generateListingCode,
   isListingCodeCollision,
 } = require('../utils/listingCode');
 const { normalizeAzerbaijanPhone } = require('../utils/phone');
@@ -889,19 +888,18 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
     try {
       for (let attempt = 1; attempt <= LISTING_CODE_MAX_RETRIES; attempt += 1) {
         const retryCount = attempt - 1;
+        const txPayload = { ...payload };
+        delete txPayload.listingCode;
+        txPayload.listingCode = await generateListingCode(prisma, retryCount);
         try {
-          listing = await prisma.$transaction(async (tx) => {
-            const txPayload = { ...payload };
-            delete txPayload.listingCode;
-            txPayload.listingCode = await generateNextListingCodeInLockedTransaction(tx, retryCount);
-            return tx.listing.create({ data: txPayload, include });
-          });
+          listing = await prisma.listing.create({ data: txPayload, include });
           break;
         } catch (error) {
           const isListingCodeDuplicate = isListingCodeCollision(error);
           console.warn('[listings] listing_code create attempt failed', {
             attempt,
             retryCount,
+            listingCode: txPayload.listingCode?.toString(),
             isListingCodeDuplicate,
             code: error.code,
             meta: error.meta,
@@ -909,14 +907,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
           if (!isListingCodeDuplicate) throw error;
         }
       }
-      if (!listing) {
-        listing = await prisma.$transaction(async (tx) => {
-          const txPayload = { ...payload };
-          delete txPayload.listingCode;
-          txPayload.listingCode = await reserveTimestampListingCodeInLockedTransaction(tx);
-          return tx.listing.create({ data: txPayload, include });
-        });
-      }
+      if (!listing) throw new Error('Unable to create listing with a unique listing_code');
       createArgs.data = { ...payload, listingCode: listing.listingCode };
       console.log('LISTING INSERT OK', listing);
     } catch (error) {
