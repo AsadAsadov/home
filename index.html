@@ -15933,10 +15933,23 @@ Title: CASPIAN DREAM LINER
                 calcVal.textContent = '0 ₼';
             }
         }
+
+        function requireAuthTokenForListing() {
+            const token = getAuthToken();
+            if (token) return token;
+            activeUser = null;
+            clearAuthSession();
+            updateHeaderUI();
+            setPendingAuthRoute();
+            switchTab('admin-login');
+            throw new Error('Sessiya tapılmadı. Zəhmət olmasa yenidən daxil olun.');
+        }
+
         async function submitPublicListing(event) {
             event.preventDefault(); if(publicListingSubmitting) return; if(!activeUser){ switchTab('admin-login'); return; }
             publicListingSubmitting=true; setPublicSubmitLoading(true); setPublicListingError('');
             try {
+                requireAuthTokenForListing();
                 if (!(await ensureListingContactPhone())) return;
                 if (!publicListingImageFiles.length) throw new Error('Elan yerləşdirmək üçün ən azı 1 şəkil seçin.');
                 const regionType=document.getElementById('pl-region-type').value;
@@ -16901,7 +16914,7 @@ Title: CASPIAN DREAM LINER
 
             if (activeUser) {
                 const initial = escapeHtml((activeUser.name || 'U')[0]);
-                container.innerHTML = `
+                if (container) container.innerHTML = `
                     ${themeToggleHtml()}
                     <button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>
                     <button onclick="navigateToMessages()" class="header-action-btn header-badge-btn" aria-label="Mesajlar"><i class="fa-solid fa-message"></i>${badgeSlotHtml('message', messagingState.messagesUnread)}</button>
@@ -16915,22 +16928,22 @@ ${profileMenuItemsHtml()}
                     </div>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-notification-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>${themeToggleHtml('mobile-header-icon')}</div>`;
+                if (mobileIcon) mobileIcon.innerHTML = `<div class="flex items-center gap-2"><button onclick="toggleNotificationsPanel()" data-notification-toggle class="header-action-btn header-badge-btn mobile-notification-btn" aria-label="Bildirişlər"><i class="fa-solid fa-bell"></i>${badgeSlotHtml('notification', messagingState.notificationsUnread)}</button>${themeToggleHtml('mobile-header-icon')}</div>`;
                 readMessagingCache();
                 refreshHeaderBadges();
                 loadBadgeSummary();
                 connectRealtime();
                 preloadMessagingData();
-                mobileActions.innerHTML = ``;
+                if (mobileActions) mobileActions.innerHTML = ``;
                 updateMobileNotificationAccess();
             } else {
-                container.innerHTML = `
+                if (container) container.innerHTML = `
                     ${themeToggleHtml()}
                     <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
                     <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
                 `;
-                mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
-                mobileActions.innerHTML = ``;
+                if (mobileIcon) mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
+                if (mobileActions) mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
                 messagingState.messagesUnread = 0;
@@ -21655,6 +21668,7 @@ Təşəkkür edirəm. 🙏`;
             if (urlImg) formData.append('image_url', urlImg);
 
             try {
+                requireAuthTokenForListing();
                 setListingFormDisabled('admin-listing-form', true);
                 showListingSubmissionOverlay();
                 const saved = editId
