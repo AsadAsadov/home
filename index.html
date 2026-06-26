@@ -160,26 +160,6 @@
             max-width: 100%;
             min-width: 0;
         }
-        @media (max-width: 1279px) {
-            .ad-rail,
-            .left-ad-rail,
-            .right-ad-rail,
-            .desktop-ad,
-            .side-ad,
-            .desktop-ad-rail {
-                display: none !important;
-            }
-            .ad-content-grid,
-            .ad-content-grid.has-ads,
-            .desktop-ad-layout {
-                display: block !important;
-                grid-template-columns: minmax(0, 1fr) !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-        }
         @media (max-width: 767.98px) {
             html,
             body,
@@ -1341,122 +1321,6 @@
         html[data-theme="light"] #tab-seabreeze-info.sea-breeze-page { background: #fff !important; }
         html[data-theme="dark"] #tab-seabreeze-info.sea-breeze-page { background: #020617 !important; }
 
-
-        .desktop-ad-layout {
-            width: 100%;
-        }
-        .desktop-ad-rail {
-            display: none;
-        }
-        @media (min-width: 1366px) {
-            .desktop-ad-layout {
-                --ad-width: clamp(220px, 15vw, 340px);
-                --ad-height: clamp(450px, 34vw, 750px);
-                display: grid;
-                grid-template-columns: minmax(0, var(--ad-width)) minmax(720px, 1fr) minmax(0, var(--ad-width));
-                gap: clamp(0.75rem, 1.4vw, 1.5rem);
-                align-items: start;
-                max-width: min(100vw, 2040px);
-                margin: 0 auto;
-                padding: 0 clamp(0.5rem, 1vw, 1rem);
-                box-sizing: border-box;
-            }
-            .desktop-ad-layout > main {
-                min-width: 0;
-                max-width: 1280px;
-                width: 100%;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-                justify-self: center;
-            }
-            .desktop-ad-rail {
-                display: flex;
-                position: absolute;
-                top: 140px;
-                width: var(--ad-width, 220px);
-                max-width: 100%;
-                min-height: 0;
-                height: auto;
-                flex-direction: column;
-                gap: 1rem;
-                z-index: 20;
-            }
-            .desktop-ad-rail.is-loading::before {
-                content: '';
-                display: block;
-                width: 100%;
-                height: var(--ad-height);
-                border-radius: 1rem;
-                border: 1px solid rgba(207, 207, 255, 0.75);
-                box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
-            }
-        }
-        @media (min-width: 1366px) and (max-width: 1599px) {
-            .desktop-ad-layout { --ad-width: 220px; --ad-height: 450px; grid-template-columns: 220px minmax(760px, 1fr) 220px; }
-        }
-        @media (min-width: 1600px) and (max-width: 1919px) {
-            .desktop-ad-layout { --ad-width: 260px; --ad-height: 550px; }
-        }
-        @media (min-width: 1920px) and (max-width: 2559px) {
-            .desktop-ad-layout { --ad-width: 300px; --ad-height: 650px; }
-        }
-        @media (min-width: 2560px) {
-            .desktop-ad-layout { --ad-width: 340px; --ad-height: 750px; }
-        }
-        .desktop-ad-card {
-            overflow: hidden;
-            border-radius: 1rem;
-            border: 1px solid rgba(207, 207, 255, 0.75);
-            background: transparent;
-            box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
-            cursor: pointer;
-            transition: transform 180ms ease, box-shadow 180ms ease;
-        }
-        .desktop-ad-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 22px 45px rgba(127, 127, 255, 0.18);
-        }
-        .desktop-ad-card img,
-        .desktop-ad-card video {
-            display: block;
-        }
-        .desktop-ad-card--responsive {
-            width: 100%;
-            max-width: var(--ad-width);
-            min-height: calc(var(--ad-height) + 2rem);
-        }
-        .desktop-ad-stage {
-            position: relative;
-            width: 100%;
-            height: var(--ad-height);
-            overflow: hidden;
-            background: transparent;
-        }
-        .desktop-ad-layer {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            background: transparent;
-            transition: opacity 400ms ease;
-        }
-        .desktop-ad-layer.is-visible {
-            opacity: 1;
-        }
-        .desktop-ad-media {
-            width: 100% !important;
-            height: var(--ad-height) !important;
-            max-width: 100%;
-            aspect-ratio: var(--ad-width) / var(--ad-height);
-            object-fit: cover !important;
-            background: transparent;
-        }
-        .desktop-ad-label {
-            padding: .55rem .65rem;
-            font-size: .65rem;
-            font-weight: 800;
-            color: #475569;
-            line-height: 1.2;
-        }
         .ad-preview-box {
             overflow: hidden;
             border-radius: 1rem;
@@ -6969,22 +6833,6 @@
             color: #fff !important;
             background: rgba(124, 108, 255, .18) !important;
         }
-        html[data-theme="dark"] .desktop-ad-layout {
-            background: var(--dark-page) !important;
-        }
-        html[data-theme="dark"] .desktop-ad-rail.is-loading::before {
-            background: var(--dark-surface) !important;
-            border-color: rgba(255, 255, 255, .10) !important;
-            box-shadow: 0 18px 44px rgba(0, 0, 0, .34) !important;
-        }
-        html[data-theme="dark"] .desktop-ad-card:hover {
-            border-color: rgba(124, 108, 255, .50) !important;
-            box-shadow: 0 24px 52px rgba(0, 0, 0, .42), 0 0 0 1px rgba(124, 108, 255, .16) !important;
-        }
-        html[data-theme="dark"] .desktop-ad-label {
-            color: var(--dark-text-2) !important;
-            background: var(--dark-surface) !important;
-        }
         html[data-theme="dark"] #tab-home > .glass-card {
             background: radial-gradient(circle at top right, rgba(124, 108, 255, .16), transparent 34%), linear-gradient(135deg, var(--dark-surface), var(--dark-card)) !important;
             color: var(--dark-text) !important;
@@ -7308,64 +7156,6 @@
         .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-drag-handle{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);cursor:grab;color:#cbd5e1}.sb-admin-card.is-dragging{opacity:.55;transform:scale(.99)}.sb-admin-card.is-drag-over{outline:2px solid rgba(200,169,106,.8)}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
 
 
-        /* Desktop side ads are part of the page grid so they never overlay content. */
-        .page-with-ads,
-        .desktop-ad-layout {
-            display: grid;
-            grid-template-columns: minmax(120px, 220px) minmax(0, 1180px) minmax(120px, 220px);
-            gap: 24px;
-            align-items: start;
-            max-width: 1640px;
-            margin: 0 auto;
-            padding: 0 16px;
-        }
-        .page-with-ads > main,
-        .desktop-ad-layout > main {
-            min-width: 0;
-            max-width: 1180px !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-        #desktop-left-ads,
-        #desktop-right-ads {
-            display: block !important;
-            position: sticky !important;
-            top: 110px !important;
-            left: auto !important;
-            right: auto !important;
-            height: auto !important;
-            min-height: 0 !important;
-            z-index: auto !important;
-            align-self: start !important;
-        }
-        .desktop-ad-rail {
-            position: sticky !important;
-            top: 110px !important;
-            width: auto;
-            height: auto !important;
-        }
-        @media (max-width: 1279px) {
-            #desktop-left-ads,
-            #desktop-right-ads,
-            .desktop-ad-rail { display: none !important; }
-            .page-with-ads,
-            .desktop-ad-layout { display: block; max-width: 1180px; padding: 0 16px; }
-        }
-        @media (min-width: 1280px) and (max-width: 1439px) {
-            .page-with-ads, .desktop-ad-layout { grid-template-columns: 120px minmax(0, 980px) 120px; gap: 14px; }
-            .desktop-ad-card { width: 120px; }
-        }
-        @media (min-width: 1440px) and (max-width: 1599px) {
-            .page-with-ads, .desktop-ad-layout { grid-template-columns: 150px minmax(0, 1080px) 150px; gap: 18px; }
-            .desktop-ad-card { width: 150px; }
-        }
-        @media (min-width: 1600px) {
-            .page-with-ads, .desktop-ad-layout { grid-template-columns: 220px minmax(0, 1180px) 220px; gap: 24px; }
-            .desktop-ad-card { width: 220px; }
-        }
-
 
         /* Final contrast overrides for Sea Breeze read-more controls, media modal, and listing cards. */
         html[data-theme="dark"] .sea-breeze-listing-card .listing-location-lines,
@@ -7519,7 +7309,7 @@
         }
 
     </style>
-    <link rel="stylesheet" href="/css/components/ads.css">
+    <link rel="stylesheet" href="/public/css/components/ads.css">
 </head>
 <body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
 

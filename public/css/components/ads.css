@@ -1,28 +1,215 @@
-/* Ads component stylesheet for BestHome.az refactor stage 2.1.
+/* Ads component stylesheet for BestHome.az refactor stage 2.1.1.
 
-   public/css/base.css is not present in this repository snapshot; advertisement CSS
-   is still embedded in index.html, so these selectors are documented here without
-   changing the current cascade or layout in this phase.
-
-   Advertisement selectors identified for the next CSS-only extraction pass:
-   - .desktop-ad-layout
-   - .desktop-ad-rail
-   - .desktop-ad-rail.is-loading::before
-   - .desktop-ad-card
-   - .desktop-ad-card--responsive
-   - .desktop-ad-stage
-   - .desktop-ad-layer
-   - .desktop-ad-layer.is-visible
-   - .desktop-ad-label
-   - .desktop-ad-media
-   - #desktop-left-ads
-   - #desktop-right-ads
-   - .page-with-ads
-   - .ad-rail
-   - .left-ad-rail
-   - .right-ad-rail
-   - .desktop-ad
-   - .side-ad
-   - .ad-content-grid
-   - .ad-content-grid.has-ads
+   Advertisement CSS moved from index.html without selector/property changes.
 */
+        @media (max-width: 1279px) {
+            .ad-rail,
+            .left-ad-rail,
+            .right-ad-rail,
+            .desktop-ad,
+            .side-ad,
+            .desktop-ad-rail {
+                display: none !important;
+            }
+            .ad-content-grid,
+            .ad-content-grid.has-ads,
+            .desktop-ad-layout {
+                display: block !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+        }
+
+        .desktop-ad-layout {
+            width: 100%;
+        }
+        .desktop-ad-rail {
+            display: none;
+        }
+        @media (min-width: 1366px) {
+            .desktop-ad-layout {
+                --ad-width: clamp(220px, 15vw, 340px);
+                --ad-height: clamp(450px, 34vw, 750px);
+                display: grid;
+                grid-template-columns: minmax(0, var(--ad-width)) minmax(720px, 1fr) minmax(0, var(--ad-width));
+                gap: clamp(0.75rem, 1.4vw, 1.5rem);
+                align-items: start;
+                max-width: min(100vw, 2040px);
+                margin: 0 auto;
+                padding: 0 clamp(0.5rem, 1vw, 1rem);
+                box-sizing: border-box;
+            }
+            .desktop-ad-layout > main {
+                min-width: 0;
+                max-width: 1280px;
+                width: 100%;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                justify-self: center;
+            }
+            .desktop-ad-rail {
+                display: flex;
+                position: absolute;
+                top: 140px;
+                width: var(--ad-width, 220px);
+                max-width: 100%;
+                min-height: 0;
+                height: auto;
+                flex-direction: column;
+                gap: 1rem;
+                z-index: 20;
+            }
+            .desktop-ad-rail.is-loading::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: var(--ad-height);
+                border-radius: 1rem;
+                border: 1px solid rgba(207, 207, 255, 0.75);
+                box-shadow: 0 16px 35px rgba(15, 23, 42, 0.08);
+            }
+        }
+        @media (min-width: 1366px) and (max-width: 1599px) {
+            .desktop-ad-layout { --ad-width: 220px; --ad-height: 450px; grid-template-columns: 220px minmax(760px, 1fr) 220px; }
+        }
+        @media (min-width: 1600px) and (max-width: 1919px) {
+            .desktop-ad-layout { --ad-width: 260px; --ad-height: 550px; }
+        }
+        @media (min-width: 1920px) and (max-width: 2559px) {
+            .desktop-ad-layout { --ad-width: 300px; --ad-height: 650px; }
+        }
+        @media (min-width: 2560px) {
+            .desktop-ad-layout { --ad-width: 340px; --ad-height: 750px; }
+        }
+        .desktop-ad-card {
+            overflow: hidden;
+            border-radius: 1rem;
+            border: 1px solid rgba(207, 207, 255, 0.75);
+            background: transparent;
+            box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .desktop-ad-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 45px rgba(127, 127, 255, 0.18);
+        }
+        .desktop-ad-card img,
+        .desktop-ad-card video {
+            display: block;
+        }
+        .desktop-ad-card--responsive {
+            width: 100%;
+            max-width: var(--ad-width);
+            min-height: calc(var(--ad-height) + 2rem);
+        }
+        .desktop-ad-stage {
+            position: relative;
+            width: 100%;
+            height: var(--ad-height);
+            overflow: hidden;
+            background: transparent;
+        }
+        .desktop-ad-layer {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            background: transparent;
+            transition: opacity 400ms ease;
+        }
+        .desktop-ad-layer.is-visible {
+            opacity: 1;
+        }
+        .desktop-ad-media {
+            width: 100% !important;
+            height: var(--ad-height) !important;
+            max-width: 100%;
+            aspect-ratio: var(--ad-width) / var(--ad-height);
+            object-fit: cover !important;
+            background: transparent;
+        }
+        .desktop-ad-label {
+            padding: .55rem .65rem;
+            font-size: .65rem;
+            font-weight: 800;
+            color: #475569;
+            line-height: 1.2;
+        }
+
+        html[data-theme="dark"] .desktop-ad-layout {
+            background: var(--dark-page) !important;
+        }
+        html[data-theme="dark"] .desktop-ad-rail.is-loading::before {
+            background: var(--dark-surface) !important;
+            border-color: rgba(255, 255, 255, .10) !important;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, .34) !important;
+        }
+        html[data-theme="dark"] .desktop-ad-card:hover {
+            border-color: rgba(124, 108, 255, .50) !important;
+            box-shadow: 0 24px 52px rgba(0, 0, 0, .42), 0 0 0 1px rgba(124, 108, 255, .16) !important;
+        }
+        html[data-theme="dark"] .desktop-ad-label {
+            color: var(--dark-text-2) !important;
+            background: var(--dark-surface) !important;
+        }
+
+        /* Desktop side ads are part of the page grid so they never overlay content. */
+        .page-with-ads,
+        .desktop-ad-layout {
+            display: grid;
+            grid-template-columns: minmax(120px, 220px) minmax(0, 1180px) minmax(120px, 220px);
+            gap: 24px;
+            align-items: start;
+            max-width: 1640px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .page-with-ads > main,
+        .desktop-ad-layout > main {
+            min-width: 0;
+            max-width: 1180px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        #desktop-left-ads,
+        #desktop-right-ads {
+            display: block !important;
+            position: sticky !important;
+            top: 110px !important;
+            left: auto !important;
+            right: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            z-index: auto !important;
+            align-self: start !important;
+        }
+        .desktop-ad-rail {
+            position: sticky !important;
+            top: 110px !important;
+            width: auto;
+            height: auto !important;
+        }
+        @media (max-width: 1279px) {
+            #desktop-left-ads,
+            #desktop-right-ads,
+            .desktop-ad-rail { display: none !important; }
+            .page-with-ads,
+            .desktop-ad-layout { display: block; max-width: 1180px; padding: 0 16px; }
+        }
+        @media (min-width: 1280px) and (max-width: 1439px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 120px minmax(0, 980px) 120px; gap: 14px; }
+            .desktop-ad-card { width: 120px; }
+        }
+        @media (min-width: 1440px) and (max-width: 1599px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 150px minmax(0, 1080px) 150px; gap: 18px; }
+            .desktop-ad-card { width: 150px; }
+        }
+        @media (min-width: 1600px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 220px minmax(0, 1180px) 220px; gap: 24px; }
+            .desktop-ad-card { width: 220px; }
+        }
