@@ -399,6 +399,14 @@ app.use('/api/sync', require('./routes/sync'));
 
 app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found.' }));
 
+function toSafeJson(value) {
+  return JSON.parse(JSON.stringify(value, (_key, v) => {
+    if (typeof v === 'bigint') return v.toString();
+    if (v instanceof Date) return v.toISOString();
+    return v;
+  }));
+}
+
 app.use(express.static(process.cwd(), { index: false, maxAge: '1h' }));
 
 app.get('*', (req, res, next) => {
@@ -419,19 +427,19 @@ app.use((err, req, res, _next) => {
     const message = err.code === 'LIMIT_FILE_SIZE' && isMusicUpload
       ? 'Fayl çox böyükdür. Server limitini artırın və yenidən yoxlayın.'
       : err.code === 'LIMIT_FILE_SIZE' ? 'Uploaded file is too large.' : err.message;
-    return res.status(413).json({ success: false, error: message, message });
+    return res.status(413).json(toSafeJson({ success: false, error: message, message }));
   }
   if (err.type === 'entity.too.large') {
-    return res.status(413).json({ success: false, error: 'Request entity too large.', message: 'Request entity too large.' });
+    return res.status(413).json(toSafeJson({ success: false, error: 'Request entity too large.', message: 'Request entity too large.' }));
   }
   const isPrismaError = typeof err.code === 'string' && /^P\d{4}$/.test(err.code);
   const status = err.status || (err.code === 'P2025' ? 404 : 500);
   const message = isPrismaError ? 'Server database error.' : (err.message || 'Unexpected server error.');
-  return res.status(status).json({
+  return res.status(status).json(toSafeJson({
     success: false,
     error: message,
     message,
-  });
+  }));
 });
 
 async function ensurePublicUsersAuthColumns() {
