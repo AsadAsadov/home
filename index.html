@@ -12,10 +12,8 @@
     <meta property="og:url" content="https://besthome.az/">
     <meta property="og:image" content="https://juaapszzqxojferalmkn.supabase.co/storage/v1/object/public/siteimage/6d5073d8-6614-4a27-90e9-13c16456fb9a.jpg">
     <link rel="canonical" href="https://besthome.az/">
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/bestlogo.PNG" sizes="any">
+    <link rel="apple-touch-icon" href="/bestlogo.PNG">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
     <meta name="twitter:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
@@ -334,7 +332,10 @@
         }
         .theme-toggle-btn:hover,
         .site-music-controls:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
-        .theme-toggle-btn { min-height: 40px; border-radius: 999px; padding: .55rem .8rem; font-size: .78rem; font-weight: 800; }
+        .theme-toggle-btn { min-width: 42px; min-height: 38px; border-radius: 999px; padding: .48rem .62rem; font-size: .76rem; font-weight: 900; }
+        .theme-toggle-btn span { max-width: 4.8rem; overflow: hidden; text-overflow: ellipsis; }
+        .theme-toggle-btn.is-icon-only { width: 38px; min-width: 38px; padding: 0; gap: 0; }
+        .theme-toggle-btn.is-icon-only span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
         .site-music-controls {
             position: fixed;
             right: 24px;
@@ -1055,7 +1056,7 @@
             background: radial-gradient(circle at 20% 0%, rgba(127,127,255,.22), transparent 30%), #030712;
             border-radius: 0 0 2rem 2rem;
         }
-        #seaBreezeHero { display: flex; justify-content: center; padding: 1.25rem clamp(1rem, 3vw, 2rem) 0; }
+        #seaBreezeHero { display: flex; justify-content: center; padding: 0 clamp(1rem, 3vw, 2rem) 0; }
         .site-main-hero, .site-hero-frame, .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { width: 100%; max-width: 1180px; height: min(46vw, var(--site-hero-max-height-desktop)); max-height: var(--site-hero-max-height-desktop); min-height: 300px; border-radius: var(--site-card-radius); overflow: hidden; margin-left: auto; margin-right: auto; }
         .site-main-hero-media { width: 100%; height: 100%; object-fit: cover; }
         .sb-hero-slider { position: relative; background: linear-gradient(135deg, #111827, #312e81 55%, #0f172a); box-shadow: 0 24px 70px rgba(0,0,0,.28); }
@@ -1064,7 +1065,7 @@
         .sb-hero-slide.is-active { opacity: 1; z-index: 1; }
         .sb-hero-media, .sb-hero-slide video, .sb-hero-slide img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.06) contrast(1.04); }
         .sb-hero-placeholder { width: 100%; height: 100%; background: radial-gradient(circle at 20% 20%, rgba(200,169,106,.26), transparent 34%), linear-gradient(135deg, rgba(127,127,255,.32), rgba(15,23,42,.94)); }
-        .sb-hero-slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.62), rgba(0,0,0,.14)), linear-gradient(0deg, rgba(3,7,18,.48), transparent 52%); }
+        .sb-hero-slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.46), rgba(0,0,0,.08)), linear-gradient(0deg, rgba(3,7,18,.26), transparent 52%); }
         .sb-hero-copy { position: relative; z-index: 2; min-height: 100%; display: flex; flex-direction: column; justify-content: center; max-width: 560px; padding: clamp(3rem, 7vw, 5rem) clamp(1.25rem, 5vw, 3.5rem); }
         .sb-hero-copy span, .sb-info-text small { color: #c8a96a; text-transform: uppercase; letter-spacing: .22em; font-weight: 900; font-size: .72rem; }
         .sb-hero-copy h1 { font-size: clamp(2.1rem, 4.6vw, 3.8rem); line-height: 1; font-weight: 950; letter-spacing: -.055em; color: #fff; max-width: 12ch; }
@@ -1134,7 +1135,7 @@
         html[data-theme="light"] .sb-admin-upload-label:hover { background: #f8fafc; border-color: #7F7FFF; color: #5656E8; }
         @media (max-width: 1100px) { .seabreeze-premium-root { width: min(100%, calc(100vw - 2rem)); } .sb-stats { grid-template-columns: repeat(3,minmax(0,1fr)); } .sb-hero-slider { max-height: var(--site-hero-max-height-desktop); } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: 2.125rem; } }
         @media (max-width: 900px) { .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: min(54vw, var(--site-hero-max-height-tablet)); max-height: var(--site-hero-max-height-tablet); min-height: 280px; } .sb-section-nav { top: 72px; max-width: calc(100vw - 1.5rem); overflow-x: auto; } .sb-info-section, .sb-info-section.is-reverse { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-left: 1rem; padding-right: 1rem; } .sb-info-section.is-reverse .sb-info-media { order: 0; } .sb-info-media { width: 100%; max-width: 620px; height: auto; max-height: 320px; aspect-ratio: 1/1; } .sb-info-text { max-width: 620px; justify-self: center; } .sb-gallery > div { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: -1rem; } .seabreeze-premium-root { width: 100%; border-radius: 0; overflow-x: hidden; } #seaBreezeHero { padding: .75rem .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { border-radius: 1.15rem; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: clamp(1.45rem,6.5vw,1.7rem); line-height: 1.12; } .sb-info-text p { font-size: 14px; line-height: 1.65; } .sb-info-collapsible.is-collapsed { max-height: calc(14px * 1.65 * 5); } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
+        @media (max-width: 640px) { .seabreeze-premium-page { margin-top: 0; } .seabreeze-premium-root { width: 100%; border-radius: 0; overflow-x: hidden; } #seaBreezeHero { padding: 0 .85rem 0; } .sb-hero-slider, #sea-breeze-hero-slider.sea-breeze-hero.glass-card, #listing-hero-slider.sea-breeze-hero.glass-card { height: var(--site-hero-max-height-mobile); max-height: var(--site-hero-max-height-mobile); min-height: 240px; border-radius: 1.25rem; } .sb-hero-copy { padding: 3.75rem 1rem 1.35rem; } .sb-hero-copy h1 { font-size: clamp(1.85rem, 10vw, 2.6rem); } .sb-hero-copy p { font-size: .9rem; line-height: 1.5; margin: .75rem 0 1rem; } .sb-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .7rem; padding: 1rem; } .sb-stat-card { padding: .875rem; border-radius: 1rem; } .sb-stat-card strong { font-size: clamp(1.5rem, 7vw, 1.75rem); } .sb-stat-icon { width: 1.85rem; height: 1.85rem; margin-bottom: .65rem; } .sb-info-section { padding: 1.25rem 1rem; gap: 24px; } .sb-info-media { border-radius: 1.15rem; } .sb-fact-cards.is-compact { grid-template-columns: 1fr; } .sb-info-text h2, .sb-gallery h2, .sb-final-cta h2 { font-size: clamp(1.45rem,6.5vw,1.7rem); line-height: 1.12; } .sb-info-text p { font-size: 14px; line-height: 1.65; } .sb-info-collapsible.is-collapsed { max-height: calc(14px * 1.65 * 5); } .sb-gallery > div { grid-template-columns: 1fr; } .sb-gallery img, .sb-gallery video { height: 210px; } }
         @media (prefers-reduced-motion: reduce) { .sb-info-section, .sb-stat-card, .sb-gallery figure, .sb-final-cta { animation: none; } }
 
         @keyframes homepageSkeletonPulse {
@@ -5004,30 +5005,30 @@
             -webkit-backdrop-filter: blur(10px);
         }
         .site-header-inner {
-            height: 72px !important;
-            min-height: 72px;
+            height: 68px !important;
+            min-height: 68px;
         }
         .site-logo {
             display: block;
-            height: 50px !important;
+            height: 46px !important;
             width: auto;
-            max-width: 158px;
+            max-width: 150px;
         }
         .desktop-header-cluster {
             justify-content: flex-end;
         }
         .nav-links-wrapper {
             justify-content: flex-end;
-            gap: clamp(18px, 1.55vw, 26px);
+            gap: clamp(12px, 1.05vw, 20px);
             margin: 0;
         }
         .desktop-header-cluster .nav-link {
             position: relative;
-            min-height: 44px;
+            min-height: 38px;
             padding: 0;
             border: 0 !important;
             color: #263244 !important;
-            font-size: clamp(.82rem, .9vw, .91rem);
+            font-size: clamp(.76rem, .82vw, .86rem);
             font-weight: 600;
             letter-spacing: -.01em;
             transition: color 180ms ease;
@@ -5062,9 +5063,9 @@
             border-left: 1px solid rgba(148, 163, 184, .28);
         }
         .header-action-btn {
-            min-width: 42px;
-            min-height: 42px;
-            padding: .65rem .8rem;
+            min-width: 38px;
+            min-height: 38px;
+            padding: .52rem .68rem;
             border: 1px solid rgba(226, 232, 240, .95);
             border-radius: 999px;
             background: rgba(248, 250, 252, .92) !important;
@@ -5110,6 +5111,8 @@
             -webkit-backdrop-filter: blur(10px);
         }
         main.flex-grow { padding-top: 5.75rem !important; }
+        #tab-seabreeze, #tab-listings, #tab-seabreeze-info { padding-top: var(--page-top-gap); }
+        #tab-seabreeze #seabreeze-homepage-skeleton { margin-top: 0; }
 
         @media (min-width: 1024px) {
             .site-header-inner {
@@ -7237,7 +7240,7 @@
                         <button onclick="switchTab('portfolio')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-portfolio">Qalereya</button>
                         <button onclick="switchTab('mortgage')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-mortgage">İpoteka</button>
                         <button onclick="switchTab('home')" class="nav-link text-gray-300 hover:text-brand-500 font-medium transition duration-200" id="nav-home">Haqqımızda</button>
-                        <button onclick="switchTab('career')" class="nav-link font-semibold transition duration-200" id="nav-career">Vakansiya</button>
+                        <button onclick="switchTab('career')" class="nav-link font-semibold transition duration-200" id="nav-career" aria-label="Vakansiya" title="Vakansiya"><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span class="nav-career-text">Vakansiya</span></button>
                     </div>
                     <div id="header-user-status" class="header-actions-row"></div>
                 </div>
@@ -7984,7 +7987,7 @@
                     </div>
                     <div class="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between gap-3">
                         <div><h3 class="text-sm font-black text-white">Görünüş</h3><p class="text-[11px] text-gray-400">İşıqlı, qaranlıq və ya sistem rejimi.</p></div>
-                        <button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn"><i data-theme-toggle-icon class="fa-solid fa-circle-half-stroke"></i><span data-theme-toggle-label>Sistem</span></button>
+                        <button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn is-icon-only"><i data-theme-toggle-icon class="fa-solid fa-sun"></i><span data-theme-toggle-label>İşıqlı</span></button>
                     </div>
                     <form onsubmit="handleProfileUpdate(event)" class="space-y-3">
                         <input id="profile-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
