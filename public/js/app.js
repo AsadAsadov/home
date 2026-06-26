@@ -3053,7 +3053,11 @@
             return 'projects';
         }
 
-        async function hydrateFromDatabase() {
+        let homepageHydrationPromise = null;
+
+        async function hydrateFromDatabase({ backgroundOnly = false } = {}) {
+            if (homepageHydrationPromise) return homepageHydrationPromise;
+            homepageHydrationPromise = (async () => {
             try {
                 bootstrapCachedData();
                 isHeroSlidesLoaded = true;
@@ -3106,7 +3110,10 @@
                 dataLoadState.projects.loaded = true;
                 setHomepageInitialLoading(false);
                 setupHomepageLazyLoaders();
+                homepageHydrationPromise = null;
             }
+            })();
+            return homepageHydrationPromise;
         }
 
         function getOfficialProjects() {
@@ -5405,7 +5412,7 @@
                 const savedListing = extractListingFromResponse(saved);
                 const savedUi = dbListingToUi(savedListing);
                 cacheData('listings', [savedUi, ...(appData.listings || []).filter(x => String(x.id) !== String(savedUi.id))]);
-                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
+                if (isAdminRole(activeUser?.role)) scheduleIdleTask(() => loadAdminListings({ render: false }).catch(() => {}), 300);
                 hideListingSubmissionOverlay();
                 renderPublicListingForm(true, savedUi);
                 showListingResultModal({ type: 'success', createdListing: savedUi });
@@ -5604,7 +5611,7 @@ ${profileMenuItemsHtml()}
                     const targetConversation = messagingState.conversations.find(c => Number(c.unreadCount || 0) > 0);
                     if (targetConversation) openConversation(targetConversation.id);
                 }
-                loadConversations(true, { autoSelect: !conversationId && !messagingState.pendingConversation }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
+                loadConversations(false, { autoSelect: !conversationId && !messagingState.pendingConversation }).catch(error => showToast(error.message || 'Söhbətlər yüklənmədi.'));
             } else if (tabId === 'seabreeze-info') {
                 renderSeaBreezeInfoPage();
             } else if (tabId === 'seabreeze') {
@@ -6549,7 +6556,7 @@ Təşəkkür edirəm. 🙏`;
                 activeUser = { role, name: user.fullname || user.email, fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'google' };
                 updateHeaderUI();
                 homepageHydration.admin = false;
-                await hydrateFromDatabase();
+                scheduleIdleTask(() => hydrateFromDatabase().catch(error => console.warn('Google login sonrası məlumat yüklənməsi tamamlanmadı:', error.message)), 250);
                 if (isAdminRole(activeUser.role)) { await refreshAdminStats({ render: true }).catch(() => {}); await loadAdminListings({ render: false }).catch(() => {}); }
                 const pendingRoute = consumePendingAuthRoute();
                 if (pendingRoute) history.replaceState({ path: pendingRoute }, '', pendingRoute);
@@ -6821,10 +6828,10 @@ Təşəkkür edirəm. 🙏`;
                 setLoginButtonSuccess();
                 homepageHydration.admin = false;
                 const pendingRoute = consumePendingAuthRoute();
-                const targetPath = pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/projects');
+                const targetPath = pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/profil');
                 history.replaceState({ path: targetPath }, '', targetPath);
                 const routePromise = routeToCurrentPath();
-                hydrateFromDatabase().catch(error => console.warn('Login sonrası məlumat yüklənməsi tamamlanmadı:', error.message));
+                scheduleIdleTask(() => hydrateFromDatabase().catch(error => console.warn('Login sonrası məlumat yüklənməsi tamamlanmadı:', error.message)), 250);
                 if (isAdminRole(activeUser.role)) {
                     appData.dashboardStatsLoading = true;
                     renderDashboardCards();
@@ -7113,12 +7120,16 @@ Təşəkkür edirəm. 🙏`;
 
         async function compressListingImages(files, progressId) {
             const imageFiles = Array.from(files || []).filter(file => file.type && file.type.startsWith('image/'));
-            const compressed = [];
-            for (let i = 0; i < imageFiles.length; i += 1) {
-                setListingUploadProgress(progressId, (i / Math.max(imageFiles.length, 1)) * 100, `Şəkil sıxılır ${i + 1}/${imageFiles.length}…`);
-                compressed.push(await compressListingImage(imageFiles[i]));
-            }
-            if (imageFiles.length) setListingUploadProgress(progressId, 100, 'Sıxılma tamamlandı');
+            if (!imageFiles.length) return [];
+            let completed = 0;
+            const compressed = await Promise.all(imageFiles.map(async (file, index) => {
+                setListingUploadProgress(progressId, (completed / imageFiles.length) * 100, `Şəkil sıxılır ${index + 1}/${imageFiles.length}…`);
+                const output = await compressListingImage(file);
+                completed += 1;
+                setListingUploadProgress(progressId, (completed / imageFiles.length) * 100, `Şəkil sıxılır ${completed}/${imageFiles.length}…`);
+                return output;
+            }));
+            setListingUploadProgress(progressId, 100, 'Sıxılma tamamlandı');
             return compressed;
         }
 
