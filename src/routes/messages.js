@@ -97,21 +97,90 @@ async function requireParticipant(conversationId, userId) {
   return prisma.participant.findFirst({ where: { conversationId: BigInt(conversationId), userId: Number(userId) } });
 }
 
+function stringifyId(value) {
+  return value === undefined || value === null ? null : String(value);
+}
+
+function serializeUser(user) {
+  if (!user) return null;
+  return {
+    id: stringifyId(user.id),
+    fullname: user.fullname || '',
+    avatarUrl: user.avatarUrl || null,
+  };
+}
+
+function serializeParticipant(participant) {
+  if (!participant) return null;
+  return {
+    id: stringifyId(participant.id),
+    conversationId: stringifyId(participant.conversationId),
+    userId: stringifyId(participant.userId),
+    hiddenAt: participant.hiddenAt || null,
+    clearedAt: participant.clearedAt || null,
+    createdAt: participant.createdAt || null,
+    user: serializeUser(participant.user),
+  };
+}
+
+function serializeListing(listing) {
+  if (!listing) return null;
+  return {
+    id: stringifyId(listing.id),
+    userId: stringifyId(listing.userId),
+    listingCode: listing.listingCode || stringifyId(listing.id),
+    title: listing.title || 'Elan',
+    city: listing.city || '',
+    district: listing.district || '',
+    settlement: listing.settlement || '',
+    price: listing.price == null ? null : String(listing.price),
+    currency: listing.currency || 'AZN',
+    imageUrl: listing.imageUrl || listing.images?.[0]?.imageUrl || '',
+    images: Array.isArray(listing.images) ? listing.images.map((image) => ({
+      id: stringifyId(image.id),
+      listingId: stringifyId(image.listingId),
+      imageUrl: image.imageUrl || '',
+      sortOrder: image.sortOrder ?? null,
+    })) : [],
+  };
+}
+
 function serializeMessage(message) {
   if (!message) return null;
-  return message.deletedAt ? { ...message, text: 'Bu mesaj silindi' } : message;
+  return {
+    id: stringifyId(message.id),
+    conversationId: stringifyId(message.conversationId),
+    senderId: stringifyId(message.senderId),
+    receiverId: stringifyId(message.receiverId),
+    text: message.deletedAt ? 'Bu mesaj silindi' : (message.text || ''),
+    isRead: Boolean(message.isRead),
+    deliveredAt: message.deliveredAt || null,
+    readAt: message.readAt || null,
+    deletedAt: message.deletedAt || null,
+    deletedById: stringifyId(message.deletedById),
+    createdAt: message.createdAt || null,
+    updatedAt: message.updatedAt || null,
+  };
 }
 
 function serializeConversation(conversation, currentUserId, unreadCount = 0) {
+  if (!conversation) return null;
   const other = conversation.participants?.find((participant) => String(participant.userId) !== String(currentUserId)) || conversation.participants?.[0];
   const self = conversation.participants?.find((participant) => String(participant.userId) === String(currentUserId));
   const presence = other?.userId ? getUserPresence(other.userId) : null;
   const rawLastMessage = conversation.messages?.[0] || null;
   const lastMessage = rawLastMessage && (!self?.clearedAt || new Date(rawLastMessage.createdAt).getTime() > new Date(self.clearedAt).getTime()) ? rawLastMessage : null;
+  const otherUser = serializeUser(other?.user);
   return {
-    ...conversation,
-    otherUser: other?.user ? {
-      ...other.user,
+    id: stringifyId(conversation.id),
+    listingId: stringifyId(conversation.listingId),
+    createdAt: conversation.createdAt || null,
+    updatedAt: conversation.updatedAt || null,
+    participants: Array.isArray(conversation.participants) ? conversation.participants.map(serializeParticipant) : [],
+    listing: serializeListing(conversation.listing),
+    messages: Array.isArray(conversation.messages) ? conversation.messages.map(serializeMessage) : [],
+    otherUser: otherUser ? {
+      ...otherUser,
       ...(presence?.isOnline ? { isOnline: true } : {}),
       ...(presence?.lastSeenAt ? { lastSeenAt: presence.lastSeenAt } : {}),
     } : null,
@@ -251,10 +320,15 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
       return saved;
     });
     console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existing), durationMs: Math.round(durationMs(startedAt)) });
-    return jsonMessagesConversations(res, { conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
-  } catch (error) {
-    console.error('[messages/conversations] failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
-    throw error;
+    return jsonMessagesConversations(res, { success: true, conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
+  } catch (err) {
+    console.error('[messages/conversations] exact failure', {
+      message: err?.message,
+      stack: err?.stack,
+      name: err?.name
+    });
+    console.error('[messages/conversations] failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: err.message, code: err.code, meta: err.meta });
+    throw err;
   }
 }));
 
