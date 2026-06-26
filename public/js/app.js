@@ -2911,9 +2911,9 @@
             try {
                 const gallery = await cachedApiGet('gallery', '/api/gallery?page=1&limit=5000');
                 const galleryRows = extractResponseItems(gallery, ['items', 'gallery']);
-                galleryPagination = Array.isArray(gallery)
+                window.BestHomeGallery.setPagination(Array.isArray(gallery)
                     ? { page: 1, limit: galleryRows.length || 5000, total: galleryRows.length, totalPages: 1 }
-                    : { page: gallery?.page || gallery?.data?.page || 1, limit: gallery?.limit || gallery?.data?.limit || 5000, total: gallery?.total || gallery?.data?.total || galleryRows.length, totalPages: gallery?.totalPages || gallery?.data?.totalPages || 1 };
+                    : { page: gallery?.page || gallery?.data?.page || 1, limit: gallery?.limit || gallery?.data?.limit || 5000, total: gallery?.total || gallery?.data?.total || galleryRows.length, totalPages: gallery?.totalPages || gallery?.data?.totalPages || 1 });
                 cacheData('gallery', galleryRows.map(dbGalleryToUi).sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
                 if (isTabAktiv('portfolio')) renderPortfolio();
             } catch (error) {
@@ -6027,40 +6027,36 @@ Təşəkkür edirəm. 🙏`;
         // Listing modal functions moved to /js/components/listing-modal.js
 
         // PORTFOLIO AND LIGHTBOX ENGINE
-        let currentFilter = 'all';
         const GALLERY_PAGE_LIMIT = 5000;
-        let galleryPagination = { page: 1, limit: GALLERY_PAGE_LIMIT, total: 0, totalPages: 1 };
         let activeModalGalleryItems = [];
         let activeModalGalleryIndex = 0;
         let activeModalMediaIndex = 0;
-        function filterPortfolio(type) {
-            currentFilter = type;
-            document.querySelectorAll('.portfolio-filter-btn').forEach(btn => {
-                btn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white transition duration-200";
-            });
-            const activeBtn = document.getElementById('filter-' + type);
-            if (activeBtn) activeBtn.className = "portfolio-filter-btn px-4 py-2 rounded-lg text-sm font-semibold bg-brand-700 text-white";
-            renderPortfolio();
-        }
 
-        let featuredVideoIndex = 0;
+        window.BestHomeGallery.configure({
+            pageLimit: GALLERY_PAGE_LIMIT,
+            orderedGalleryItems,
+            escapeHtml,
+            renderCardSkeletons,
+            emptyDataState,
+            apiRequest,
+            extractResponseItems,
+            isTabAktiv,
+            renderAdminGallery: () => renderAdminGallery(),
+            isGalleryLoading: () => dataLoadState.gallery.loading,
+            setGalleryLoading: (loading, error) => {
+                dataLoadState.gallery.loading = Boolean(loading);
+                if (typeof error === 'string') dataLoadState.gallery.error = error;
+            },
+            setGalleryLoaded: (loaded) => { dataLoadState.gallery.loaded = Boolean(loaded); },
+            setGalleryItems: (items) => {
+                appData.gallery = Array.isArray(items) ? items : [];
+                cacheData('gallery', appData.gallery);
+            }
+        });
 
-        function featuredVideos() {
-            const heroVideo = galleryItems().find(item =>
-                item.mediaType === 'video' &&
-                item.isFeatured === true
-            );
-            return heroVideo ? [heroVideo] : [];
-        }
-
-        function galleryItems() {
-            return orderedGalleryItems().map(normalizeGalleryItem);
-        }
-
-        function renderGalleryHero() {
-            return renderFeaturedVideoSection(featuredVideos());
-        }
-
+        function filterPortfolio(type) { return window.BestHomeGallery.filterPortfolio(type); }
+        function galleryItems() { return window.BestHomeGallery.galleryItems(); }
+        function renderGalleryHero() { return window.BestHomeGallery.renderGalleryHero(); }
         function adminGalleryActionArg(id) {
             return `'${String(id ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n')}'`;
         }
@@ -6175,57 +6171,12 @@ Təşəkkür edirəm. 🙏`;
             return item.type === 'event' ? Math.max(1, item.images?.length || 0) : 1;
         }
 
-        let galleryLazyObserver = null;
-
         const markMediaLoaded = window.BestHomeGallery.markMediaLoaded;
         window.markMediaLoaded = markMediaLoaded;
 
-        function observeGalleryMedia() {
-            const nodes = document.querySelectorAll('[data-gallery-src]');
-            if (!('IntersectionObserver' in window)) {
-                nodes.forEach(img => { img.src = img.dataset.gallerySrc; img.removeAttribute('data-gallery-src'); });
-                return;
-            }
-            galleryLazyObserver?.disconnect();
-            galleryLazyObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting) return;
-                    const img = entry.target;
-                    img.src = img.dataset.gallerySrc;
-                    img.removeAttribute('data-gallery-src');
-                    observer.unobserve(img);
-                });
-            }, { rootMargin: '200px 0px', threshold: 0.01 });
-            nodes.forEach(img => galleryLazyObserver.observe(img));
-        }
-
-        async function loadGalleryPage(page = 1) {
-            dataLoadState.gallery.loading = true;
-            dataLoadState.gallery.error = '';
-            renderPortfolio();
-            if (isTabAktiv('admin-dashboard')) renderAdminGallery();
-            try {
-                const response = await apiRequest(`/api/gallery?page=${page}&limit=${GALLERY_PAGE_LIMIT}`);
-                const payload = Array.isArray(response) ? { items: response } : (response || {});
-                const records = extractResponseItems(payload, ['items', 'gallery']);
-                galleryPagination = { page: payload.page || payload.data?.page || page, limit: payload.limit || payload.data?.limit || GALLERY_PAGE_LIMIT, total: payload.total || payload.data?.total || records.length, totalPages: payload.totalPages || payload.data?.totalPages || 1 };
-                appData.gallery = records.map(dbGalleryToUi);
-                cacheData('gallery', appData.gallery);
-            } catch (error) {
-                dataLoadState.gallery.error = 'Məlumat yüklənmədi. Yenidən cəhd edin.';
-                console.warn('Qalereya səhifəsi API-dən yüklənmədi:', error.message);
-            } finally {
-                dataLoadState.gallery.loading = false;
-                dataLoadState.gallery.loaded = true;
-            }
-            renderPortfolio();
-            if (isTabAktiv('admin-dashboard')) renderAdminGallery();
-        }
-
-
-        async function loadGallery() {
-            await loadGalleryPage(galleryPagination.page || 1);
-        }
+        function observeGalleryMedia() { return window.BestHomeGallery.observeGalleryMedia(); }
+        async function loadGalleryPage(page = 1) { return window.BestHomeGallery.loadGalleryPage(page); }
+        async function loadGallery() { return window.BestHomeGallery.loadGallery(); }
 
         let galleryHeroToggleSubmittingId = null;
 
@@ -6251,126 +6202,10 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
-        function renderPortfolioPagination() {
-            const container = document.getElementById('portfolio-pagination');
-            if (!container) return;
-            const { page, totalPages } = galleryPagination;
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
-            const buttons = [];
-            buttons.push(`<button onclick="loadGalleryPage(${Math.max(1, page - 1)})" ${page <= 1 ? 'disabled' : ''} class="px-4 py-2 rounded-xl text-sm font-bold border ${page <= 1 ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-700 border-gray-200 hover:bg-brand-50'}">Previous</button>`);
-            for (let i = 1; i <= totalPages; i++) {
-                buttons.push(`<button onclick="loadGalleryPage(${i})" class="w-10 h-10 rounded-xl text-sm font-extrabold transition ${i === page ? 'bg-brand-500 text-white shadow-lg' : 'bg-white text-gray-700 border border-gray-200 hover:bg-brand-50'}">${i}</button>`);
-            }
-            buttons.push(`<button onclick="loadGalleryPage(${Math.min(totalPages, page + 1)})" ${page >= totalPages ? 'disabled' : ''} class="px-4 py-2 rounded-xl text-sm font-bold border ${page >= totalPages ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-gray-700 border-gray-200 hover:bg-brand-50'}">Next</button>`);
-            container.innerHTML = buttons.join('');
-        }
-
-        function renderFeaturedVideoSection(videos = []) {
-            const section = document.getElementById('featured-video-section');
-            if (!section) return false;
-            if (!videos.length) {
-                section.innerHTML = '';
-                return false;
-            }
-            featuredVideoIndex = Math.max(0, Math.min(featuredVideoIndex, videos.length - 1));
-            const featuredVideo = videos[featuredVideoIndex];
-            const thumb = getGalleryVideoThumbnail(featuredVideo);
-            const fallbackThumb = getGalleryVideoThumbnailFallback(featuredVideo);
-            const thumbnailMarkup = thumb
-                ? `<img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} alt="${escapeHtml(featuredVideo.title || 'Video')}" loading="eager" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-cover w-full h-full transition duration-500">`
-                : `<div class="w-full h-full flex flex-col items-center justify-center text-white bg-gradient-to-br from-slate-950 via-slate-800 to-brand-900"><div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-2xl md:text-3xl shadow-2xl"><i class="fa-solid fa-play ml-1"></i></div><span class="mt-4 text-xs md:text-sm font-black uppercase tracking-[0.3em] text-white/75">Video</span></div>`;
-            section.innerHTML = `
-                <div class="featured-video-section-inner">
-                    <article onclick="openFeaturedVideoModal(${featuredVideoIndex})" class="featured-video-card group cursor-pointer">
-                        <div class="featured-video-thumb media-shell ${thumb ? 'bg-gray-100 media-skeleton' : 'bg-slate-900'} relative">
-                            ${thumbnailMarkup}
-                            <div class="featured-video-overlay absolute inset-0"></div>
-                            ${thumb ? `<div class="featured-video-play absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-2xl md:text-3xl transition duration-300"><i class="fa-solid fa-play ml-1"></i></div>` : ''}
-                            <div class="absolute inset-x-0 bottom-0 p-4 md:p-5">
-                                <h3 class="text-base md:text-lg font-black text-white leading-snug drop-shadow-lg">${escapeHtml(featuredVideo.title || 'Video')}</h3>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            `;
-            return true;
-        }
-
-        function changeFeaturedVideo(dir) {
-            const videos = featuredVideos();
-            if (!videos.length) return;
-            featuredVideoIndex = (featuredVideoIndex + dir + videos.length) % videos.length;
-            renderFeaturedVideoSection(videos);
-            observeGalleryMedia();
-        }
-
-        function renderPortfolio() {
-            const list = orderedGalleryItems();
-            const grid = document.getElementById('portfolio-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            if (dataLoadState.gallery.loading) {
-                const section = document.getElementById('featured-video-section');
-                if (section) section.innerHTML = '';
-                grid.innerHTML = renderCardSkeletons(6);
-                const countEl = document.getElementById('gallery-items-count');
-                if (countEl) countEl.textContent = '';
-                renderPortfolioPagination();
-                return;
-            }
-
-            try {
-                renderGalleryHero();
-            } catch (error) {
-                console.error('[gallery hero] hero render result', { rendered: false, error: error.message });
-                const section = document.getElementById('featured-video-section');
-                if (section) section.innerHTML = '';
-            }
-
-            const filtered = list.filter(item => currentFilter === 'all' || item.type === currentFilter);
-            const countEl = document.getElementById('gallery-items-count');
-            if (countEl) countEl.textContent = filtered.length ? `${filtered.length} element` : '';
-
-            if (filtered.length === 0) {
-                grid.innerHTML = emptyDataState();
-                renderPortfolioPagination();
-                observeGalleryMedia();
-                return;
-            }
-
-            filtered.forEach((item) => {
-                const itemIndex = list.findIndex(x => String(x.id) === String(item.id));
-                if (item.type === 'event') {
-                    const thumb = item.images && item.images.length > 0 ? item.images[0] : 'https://placehold.co/600x400/f3f4f6/6b7280?text=Photo';
-                    grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
-                            <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden">
-                                <img data-gallery-src="${escapeHtml(thumb)}" width="600" height="338" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" class="gallery-media w-full h-full transition duration-500">
-                            </div>
-                        </article>
-                    `);
-                } else {
-                    const thumb = getGalleryVideoThumbnail(item);
-                    const fallbackThumb = getGalleryVideoThumbnailFallback(item);
-                    grid.insertAdjacentHTML('beforeend', `
-                        <article onclick="openGalleryDetailModal(${itemIndex}, true)" class="media-card cursor-pointer group relative rounded-[18px] overflow-hidden">
-                            <div class="gallery-card-media media-shell w-full media-skeleton overflow-hidden relative">
-                                ${thumb ? `<img data-gallery-src="${escapeHtml(thumb)}" ${fallbackThumb ? `data-fallback-src="${escapeHtml(fallbackThumb)}"` : ''} width="600" height="338" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" onload="markMediaLoaded(this)" onerror="handleGalleryThumbnailError(this)" class="gallery-media gallery-media-cover w-full h-full transition duration-500">` : galleryVideoPlaceholderMarkup()}
-                            </div>
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-90"></div>
-                            <div class="absolute top-3 left-3 md:top-4 md:left-4 w-10 h-10 rounded-full bg-white/90 text-slate-950 flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div>
-                            ${item.duration ? `<div class="absolute top-3 right-3 md:top-4 md:right-4 bg-black/55 text-white rounded-full px-2.5 py-1 text-xs font-bold">${escapeHtml(item.duration)}</div>` : ''}
-                        </article>
-                    `);
-                }
-            });
-            renderPortfolioPagination();
-            observeGalleryMedia();
-        }
+        function renderPortfolioPagination() { return window.BestHomeGallery.renderPortfolioPagination(); }
+        function renderFeaturedVideoSection(videos = []) { return window.BestHomeGallery.renderFeaturedVideoSection(videos); }
+        function changeFeaturedVideo(dir) { return window.BestHomeGallery.changeFeaturedVideo(dir); }
+        function renderPortfolio() { return window.BestHomeGallery.renderPortfolio(); }
 
         // KARYERA & VAKANSİYA SİSTEMİ
         function renderCareerSection() {
@@ -7075,7 +6910,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'gallery-manager') {
                 renderAdminDashboard();
-                void loadGalleryPage(galleryPagination.page || 1);
+                void loadGalleryPage(window.BestHomeGallery.getPagination().page || 1);
             }
             if (subtab === 'ads-manager') {
                 setAdFormOpen(false);
@@ -9746,7 +9581,7 @@ Təşəkkür edirəm. 🙏`;
             try {
                 if (editId) await apiRequest(`/api/gallery/${editId}`, 'PUT', formData);
                 else await apiRequest('/api/gallery', 'POST', formData);
-                await loadGalleryPage(galleryPagination.page || 1);
+                await loadGalleryPage(window.BestHomeGallery.getPagination().page || 1);
                 await refreshAdminStats({ render: true }).catch(() => {});
                 renderPortfolio();
                 resetGalleryForm();
@@ -9806,7 +9641,7 @@ Təşəkkür edirəm. 🙏`;
             try {
                 await apiRequest(`/api/gallery/${id}`, { method: 'DELETE' });
                 cacheData('gallery', appData.gallery.filter(x => String(x.id) !== String(id)));
-                await loadGalleryPage(galleryPagination.page || 1);
+                await loadGalleryPage(window.BestHomeGallery.getPagination().page || 1);
                 await refreshAdminStats({ render: true }).catch(() => {});
                 renderAdminDashboard();
                 renderPortfolio();
@@ -9905,13 +9740,13 @@ Təşəkkür edirəm. 🙏`;
             return [...appData.gallery].sort((a, b) => (Number(a.sortOrder || 0) - Number(b.sortOrder || 0)) || new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         }
 
-        function openFeaturedVideoModal(index = featuredVideoIndex) {
+        function openFeaturedVideoModal(index = window.BestHomeGallery.getFeaturedVideoIndex()) {
             const videos = featuredVideos();
             const selected = videos[index] || videos[0];
             if (!selected) return;
-            featuredVideoIndex = Math.max(0, videos.findIndex(item => String(item.id) === String(selected.id)));
+            window.BestHomeGallery.setFeaturedVideoIndex(Math.max(0, videos.findIndex(item => String(item.id) === String(selected.id))));
             activeModalGalleryItems = videos;
-            activeModalGalleryIndex = featuredVideoIndex;
+            activeModalGalleryIndex = window.BestHomeGallery.getFeaturedVideoIndex();
             activeModalMediaIndex = 0;
             lightboxScale = 1;
             updateSeo({ title: selected.title || 'Video', description: selected.desc || DEFAULT_SEO_DESCRIPTION, path: galleryPath(selected), image: selected.thumbnail || '', type: 'article' });
@@ -9922,7 +9757,7 @@ Təşəkkür edirəm. 🙏`;
 
         function openGalleryDetailModal(index = 0, pushRoute = false) {
             const orderedGallery = orderedGalleryItems();
-            activeModalGalleryItems = orderedGallery.filter(item => currentFilter === 'all' || item.type === currentFilter);
+            activeModalGalleryItems = orderedGallery.filter(item => window.BestHomeGallery.getCurrentFilter() === 'all' || item.type === window.BestHomeGallery.getCurrentFilter());
             const clicked = orderedGallery[index];
             activeModalGalleryIndex = Math.max(0, activeModalGalleryItems.findIndex(item => String(item.id) === String(clicked?.id)));
             activeModalMediaIndex = 0;
@@ -10890,14 +10725,14 @@ Təşəkkür edirəm. 🙏`;
             }
             if (path === '/gallery' || path === '/qalereya' || path === '/videos') {
                 switchTab('portfolio', { skipPush: true });
-                currentFilter = path === '/videos' ? 'video' : 'all';
+                window.BestHomeGallery.setCurrentFilter(path === '/videos' ? 'video' : 'all');
                 renderPortfolio();
                 updateSeo({ title: path === '/videos' ? 'Videolar' : STATIC_SEO['/gallery'].title, description: path === '/videos' ? DEFAULT_SEO_DESCRIPTION : STATIC_SEO['/gallery'].description, path });
                 return;
             }
             if (path.startsWith('/gallery/') || path.startsWith('/video/')) {
                 switchTab('portfolio', { skipPush: true });
-                currentFilter = path.startsWith('/video/') ? 'video' : 'all';
+                window.BestHomeGallery.setCurrentFilter(path.startsWith('/video/') ? 'video' : 'all');
                 const id = currentRouteValue();
                 let item = appData.gallery.find(g => String(g.id) === String(id));
                 if (!item && /^\d+$/.test(id)) {
