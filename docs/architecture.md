@@ -33,10 +33,10 @@ This document is the reference for the current no-build, browser-global frontend
 
 - JS: `public/js/components/chat.js`
 - CSS: `public/css/components/chat.css`
-- Depends on: authenticated user state, Socket.IO connection, messaging state, API wrapper.
-- Globals required: chat/messaging globals initialized by `app.js`.
+- Depends on: authenticated user state, the single Socket.IO connection, messaging state, API wrapper, and `window.BestHomeNotifications` for public notification UI delegation.
+- Globals required: chat/messaging globals initialized by `app.js`; notification component loaded before `chat.js`.
 - Window exports: chat panel, conversation, and message handlers used by inline handlers.
-- Notes: chat notification logic remains here and was not moved to the public notifications component.
+- Notes: chat owns conversations, active messages, message cache, optimistic send, delivered/read state, typing/listing-context behavior, and message socket events. Public notification rendering/state is delegated to `BestHomeNotifications`; chat keeps only the existing Socket.IO listener registration and forwards notification events to avoid duplicate listeners or a second socket connection.
 
 ### Hero
 
@@ -112,14 +112,24 @@ This document is the reference for the current no-build, browser-global frontend
 ### Notifications
 
 - JS: `public/js/components/notifications.js`
-- CSS: notification styles are still mixed with chat/mobile header CSS and remain in their current files to avoid cascade changes.
-- Depends on: DOM badge nodes only.
-- Globals required: `window.BestHomeNotifications` must load before `public/js/app.js` if future app code delegates badge rendering.
+- CSS: `public/css/components/notifications.css` owns the mobile notification panel/modal responsive rules. Some base notification selectors still remain in the legacy inline stylesheet because they are adjacent to theme and header rules and were left to avoid cascade changes.
+- Depends on: configured messaging state, `apiRequest`, HTML/date/navigation/toast helpers, and an injected `isMessageNotification` filter from chat.
+- Globals required: `window.BestHomeNotifications` loads before `chat.js`/`app.js`; chat calls `configure({...})` once with shared dependencies.
 - Window exports exposed by component:
+  - `window.BestHomeNotifications.configure`
   - `window.BestHomeNotifications.formatUnreadCount`
   - `window.BestHomeNotifications.badgeSlotHtml`
-  - `window.BestHomeNotifications.updateBadge`
-- Remaining in `app.js`: public header/dropdown integration and admin broadcast notification management. Chat-specific notification behavior remains in `chat.js`.
+  - `window.BestHomeNotifications.updateHeaderBadges` / `updateBadge`
+  - `window.BestHomeNotifications.preloadNotifications`
+  - `window.BestHomeNotifications.handleRealtimeNotification`
+  - `window.BestHomeNotifications.toggleNotificationsPanel`
+  - `window.BestHomeNotifications.closeNotificationsPanel`
+  - `window.BestHomeNotifications.openAllNotifications`
+  - `window.BestHomeNotifications.openNotification` / `openNotificationVideo` / `closeNotificationVideo`
+  - `window.BestHomeNotifications.markAllNotificationsRead`
+- Compatibility exports preserved for existing inline handlers/globals: `badgeSlotHtml`, `updateNotificationBadge`, `updateBadge`, `toggleNotificationsPanel`, `closeNotificationsPanel`, `openAllNotifications`, `openNotification`, `openNotificationVideo`, `closeNotificationVideo`, and `markAllNotificationsRead`.
+- Socket responsibility: chat owns the single Socket.IO client and listener registration; notification `notification:new`, `notification:read`, and `notification:read-all` callbacks delegate payload handling to `BestHomeNotifications.handleRealtimeNotification` without changing event names or payload shape.
+- Remaining in `app.js`: header HTML integration, auth/session bootstrap, and admin broadcast notification management. Chat-specific notification decisions for message notification filtering remain in `chat.js`.
 
 ### Admin public helpers
 
@@ -289,7 +299,7 @@ Remaining non-core functions in `app.js` are intentionally left because they are
 The remaining `app.js` functions were grouped by ownership before moving code:
 
 - Gallery-only helpers read gallery item fields and Gallery DOM (`portfolio-grid`, `featured-video-section`, gallery modal media nodes), write Gallery render state (`currentFilter`, `featuredVideoIndex`, `galleryLazyObserver`, `galleryPagination`, `galleryHeroToggleSubmittingId`) and use Core API/cache helpers through `apiRequest` and `cacheData`.
-- Notification dropdown/panel state is currently owned by `components/chat.js`, because it shares `messagingState`, Socket.IO realtime updates, chat unread counts, header badge refresh, and message navigation. It was not moved to avoid duplicating Socket.IO, notification cache, or unread state.
+- Public notification dropdown/panel state, rendering, API loading, read/read-all helpers, badge syncing, and notification realtime payload handling are owned by `components/notifications.js`. Chat still owns the Socket.IO connection/listener registration and message-notification filtering so the extraction does not duplicate sockets, listeners, fetches, unread counters, or message-specific decisions.
 - Generic admin loading helpers read/write button DOM state only and are owned by `admin/admin.js`; feature CRUD, admin routes, page state, API mutations, and feature renderers remain in `app.js` or feature admin files.
 - Shared modal helpers remain in `app.js` because modal state is still cross-cutting (`Gallery`, `Projects`, `Listing`, fullscreen map, Sea Breeze media) and is tied to global backdrop/body scroll compatibility.
 - Shared media helpers were moved only where ownership was already clear: Gallery video thumbnail/placeholder/error helpers live in `components/gallery.js`; listing/project/hero media logic remains feature-specific.
@@ -302,8 +312,8 @@ app.js
   ├─ core/cache.js             (cacheData/readCache/getCachedData/invalidateCache)
   ├─ core/state.js             (appData compatibility)
   ├─ components/gallery.js     (Gallery normalization + media thumbnail helpers)
-  ├─ components/chat.js        (messagingState, notifications, Socket.IO, badges)
-  ├─ components/notifications.js (small badge formatting helpers only)
+  ├─ components/chat.js        (messagingState, chat messages, single Socket.IO registration)
+  ├─ components/notifications.js (public notification UI/state, badges, notification API reads, realtime notification payload handling)
   ├─ admin/admin.js            (generic admin button/form helpers)
   └─ feature components        (projects, listing modal, ads, hero)
 ```
@@ -317,9 +327,10 @@ Gallery
   └─ Reason left: remaining functions touch routing, admin dashboard rendering, shared modal state, or API mutations
 
 Notifications
-  ├─ Owns in chat.js: dropdown/panel rendering, unread state, realtime updates, read/read-all operations
-  ├─ Owns in notifications.js: badge formatting only
-  └─ Reason left: notification state is shared with chat and Socket.IO bootstrap
+  ├─ Owns in notifications.js: badge UI, dropdown/full panel state, notification list rendering, empty/loading/error state, notification API loading, mark read/read-all helpers, video notification modal, mobile notification responsive CSS, and header badge sync
+  ├─ Owns in chat.js: single Socket.IO notification listener registration/delegation and the `isMessageNotification` filter used to keep message-owned notification types out of the public notification list
+  ├─ Owns in app.js: header button markup/auth bootstrap and admin broadcast notification forms
+  └─ Reason left: socket bootstrap and message-notification filtering are shared with chat behavior; moving them would risk duplicate listeners or altered message unread behavior
 
 Admin
   ├─ Owns in admin/admin.js: generic submit-button loading, hidden toggles, clear form fields
@@ -335,7 +346,7 @@ Shared modal/media
 
 - `app.js` calls component namespaces through `window.BestHomeGallery`, `window.BestHomeAdmin`, and existing compatibility globals.
 - Inline HTML handlers are preserved; extracted helpers are re-bound in `app.js` with the same local names where existing code expects them.
-- Notification badge/header communication remains via `messagingState` and chat component functions to avoid duplicate unread state.
+- Notification badge/header communication now goes through `BestHomeNotifications.updateHeaderBadges`; `messagingState` remains the shared compatibility store injected by chat so cached unread counts and app header rendering do not fork state.
 
 ### Core usage
 
