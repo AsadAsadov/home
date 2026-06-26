@@ -40,12 +40,7 @@
         let heroPreviewObjectUrl = '';
 
 
-        function formatPrice(price, currency = 'AZN') {
-            const parsed = Number(price);
-            if (!Number.isFinite(parsed)) return '—';
-            const code = String(currency || 'AZN').toUpperCase() === 'USD' ? 'USD' : 'AZN';
-            return `${parsed.toLocaleString('az-AZ')} ${code === 'USD' ? '$' : '₼'}`;
-        }
+
 
         const REGION_LABELS = { seabreeze: 'Sea Breeze', general: 'Digər ərazilər', baki: 'Bakı', absheron: 'Abşeron', sumqayit: 'Sumqayıt', unknown: 'Unknown' };
         const SEA_BREEZE_CATEGORIES = [{ value: 'Apartment', label: 'Mənzil' }, { value: 'Villa', label: 'Villa' }, { value: 'Townhouse', label: 'Townhouse' }, { value: 'Penthouse', label: 'Penthouse' }];
@@ -861,45 +856,7 @@
             switchTab('admin-login');
         }
 
-        async function apiRequest(url, method = 'GET', body = null) {
-            let options = {};
-            if (typeof method === 'object') {
-                options = { ...method };
-                method = options.method || 'GET';
-                body = options.body ?? null;
-            }
-            const authRedirect = options.authRedirect !== false;
-            delete options.authRedirect;
 
-            const headers = { ...(options.headers || {}) };
-            const isFormData = body instanceof FormData;
-            if (body && !isFormData && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-            const token = getAuthToken();
-            if (token) headers.Authorization = `Bearer ${token}`;
-
-            const response = await fetch(url.startsWith('http') ? url : `${API_BASE}${url}`, {
-                ...options,
-                method,
-                body,
-                headers
-            });
-            if (token && response.ok) refreshAuthLastActiveAt();
-
-            if (response.status === 401) {
-                const errorBody = await response.json().catch(() => ({}));
-                if (authRedirect && getAuthToken()) redirectToLoginOnAuthFailure();
-                const error = new Error(errorBody.message || 'Sessiya bitib. Zəhmət olmasa yenidən daxil olun.');
-                error.status = 401;
-                throw error;
-            }
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({}));
-                const error = new Error(errorBody.message || 'API sorğusu uğursuz oldu');
-                error.status = response.status;
-                throw error;
-            }
-            return response.status === 204 ? null : response.json();
-        }
 
 
         const SITE_THEME_KEY = 'siteTheme';
@@ -1984,45 +1941,10 @@
             seaBreezeGallery: 'besthome_seabreeze_gallery',
             adminStats: 'besthome_admin_stats'
         };
+        window.appData = appData;
+        window.CACHE_KEYS = CACHE_KEYS;
 
-        const memoryCache = new Map();
-        const pendingPromises = new Map();
-        const CACHE_TTL_MS = 5 * 60 * 1000;
 
-        function readCache(key, fallback) {
-            try {
-                const raw = localStorage.getItem(key);
-                if (!raw) return fallback;
-                const parsed = JSON.parse(raw);
-                if (parsed && typeof parsed === 'object' && Object.prototype.hasOwnProperty.call(parsed, 'value') && Object.prototype.hasOwnProperty.call(parsed, 'expiresAt')) {
-                    return parsed.expiresAt > Date.now() ? parsed.value : fallback;
-                }
-                return parsed;
-            } catch (_error) {
-                return fallback;
-            }
-        }
-
-        function cacheData(name, value, ttl = CACHE_TTL_MS) {
-            appData[name] = value;
-            memoryCache.set(name, { value, expiresAt: Date.now() + ttl });
-            try {
-                const key = CACHE_KEYS[name];
-                if (key) localStorage.setItem(key, JSON.stringify({ value, expiresAt: Date.now() + ttl }));
-            } catch (_error) {
-                // localStorage is now only an optional cache; API data remains authoritative.
-            }
-        }
-
-        function getCachedData(name) {
-            const cached = memoryCache.get(name);
-            if (cached && cached.expiresAt > Date.now()) return cached.value;
-            const key = CACHE_KEYS[name];
-            if (!key) return appData[name];
-            const stored = readCache(key, undefined);
-            if (stored !== undefined) { appData[name] = stored; return stored; }
-            return appData[name];
-        }
 
         async function cachedApiGet(name, endpoint, { force = false, ttl = CACHE_TTL_MS, authRedirect = true } = {}) {
             const cached = getCachedData(name);
@@ -2037,12 +1959,6 @@
             }).finally(() => pendingPromises.delete(pendingKey));
             pendingPromises.set(pendingKey, promise);
             return promise;
-        }
-
-        function invalidateCache(name) {
-            memoryCache.delete(name);
-            pendingPromises.forEach((_value, key) => { if (key.startsWith(`${name}:`)) pendingPromises.delete(key); });
-            try { const key = CACHE_KEYS[name]; if (key) localStorage.removeItem(key); } catch (_error) {}
         }
 
         function invalidateSeaBreezePublicCaches(...names) {
@@ -5798,33 +5714,6 @@ ${profileMenuItemsHtml()}
             document.getElementById('seabreeze-properties-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        const AZ_MONTH_NAMES = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-
-        function formatAzDate(value) {
-            if (typeof value === 'string') {
-                const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-                if (dateOnly) {
-                    const [, year, month, day] = dateOnly;
-                    return `${day} ${AZ_MONTH_NAMES[Number(month) - 1] || ''} ${year}`;
-                }
-            }
-            const date = value ? new Date(value) : new Date();
-            if (Number.isNaN(date.getTime())) return '—';
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = AZ_MONTH_NAMES[date.getMonth()] || '';
-            return `${day} ${month} ${date.getFullYear()}`;
-        }
-
-        function formatAzDateTime(value) {
-            const date = value ? new Date(value) : new Date();
-            if (Number.isNaN(date.getTime())) return '—';
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = AZ_MONTH_NAMES[date.getMonth()] || '';
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${day} ${month} ${date.getFullYear()} • ${hours}:${minutes}`;
-        }
-
         function getListingLocationLabel(listing = {}) {
             const settings = currentSiteSettings();
             const region = getListingRegionType(listing);
@@ -6625,10 +6514,6 @@ Təşəkkür edirəm. 🙏`;
             setTimeout(() => alertBox.classList.add('hidden'), 5000);
         }
 
-
-        function formatCurrency(value) {
-            return `${Math.max(0, Number(value) || 0).toLocaleString('az-AZ', { maximumFractionDigits: 2 })} AZN`;
-        }
 
         function getMortgageCalculation() {
             const price = Math.max(0, Number(document.getElementById('mortgage-price')?.value) || 0);
