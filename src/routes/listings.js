@@ -892,7 +892,15 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
         delete txPayload.listingCode;
         txPayload.listingCode = await generateListingCode(prisma, retryCount);
         try {
-          listing = await prisma.listing.create({ data: txPayload, include });
+          listing = await prisma.$transaction(async (tx) => {
+            const created = await tx.listing.create({ data: txPayload, include });
+            if (listingImagesPayload.length) {
+              await tx.listingImage.createMany({
+                data: listingImagesPayload.map((image) => ({ ...image, listingId: created.id })),
+              });
+            }
+            return created;
+          }, { timeout: 20000, maxWait: 10000 });
           break;
         } catch (error) {
           const isListingCodeDuplicate = isListingCodeCollision(error);
@@ -919,23 +927,7 @@ router.post('/', authenticate, authorize('admin', 'user'), listingUpload.fields(
       return res.status(500).json(LISTING_CODE_ERROR_RESPONSE);
     }
 
-    if (listingImagesPayload.length) {
-      try {
-        const result = await prisma.listingImage.createMany({
-          data: listingImagesPayload.map((image) => ({ ...image, listingId: listing.id })),
-        });
-        console.log('LISTING_IMAGES INSERT OK', result);
-      } catch (error) {
-        console.error('[listings] prisma.listingImage.createMany error details', {
-          code: error.code,
-          meta: error.meta,
-          stack: error.stack,
-        });
-        return res.status(500).json({ success: false, message: 'Elan şəkilləri yadda saxlanılarkən xəta baş verdi.' });
-      }
-    } else {
-      console.log('LISTING_IMAGES INSERT OK', { count: 0 });
-    }
+    console.log('LISTING_IMAGES INSERT OK', { count: listingImagesPayload.length });
 
     const savedListing = await prisma.listing.findUnique({ where: { id: listing.id }, include });
     await logUserActivity(prisma, req.auth.id, 'create_listing');
