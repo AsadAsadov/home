@@ -58,8 +58,14 @@ This document is the reference for the current no-build, browser-global frontend
 
 - JS: `public/js/components/gallery.js`
 - CSS: `public/css/components/gallery.css`
-- Depends on: none for extracted pure helpers; `app.js` still passes data through existing calls.
-- Globals required: `window.BestHomeGallery` must load before `public/js/app.js`.
+- Ownership: public Gallery runtime behavior now lives behind `window.BestHomeGallery`. This includes public gallery filter state, render state, pagination state, card/grid rendering, public gallery loading, skeleton/empty-state rendering, featured-video rendering, thumbnail fallback handling, and Gallery-only lazy loading observer lifecycle.
+- Dependencies injected by `app.js` through `window.BestHomeGallery.configure(...)`:
+  - `orderedGalleryItems` for reading the shared `appData.gallery` list without moving shared cache ownership.
+  - `escapeHtml`, `renderCardSkeletons`, and `emptyDataState` for existing markup compatibility.
+  - `apiRequest` and `extractResponseItems` for the existing `/api/gallery` read endpoint.
+  - `isTabAktiv` and `renderAdminGallery` so public reloads can preserve the existing admin refresh behavior without moving admin CRUD.
+  - `setGalleryLoading`, `setGalleryLoaded`, `isGalleryLoading`, and `setGalleryItems` for controlled writes back into `dataLoadState.gallery` and `appData.gallery`.
+- Globals required: `window.BestHomeGallery` must load before `public/js/app.js`, and `app.js` must configure the namespace before Gallery route/render calls.
 - Window exports exposed by component:
   - `window.BestHomeGallery.normalizeJsonArray`
   - `window.BestHomeGallery.normalizeGalleryItem`
@@ -74,11 +80,34 @@ This document is the reference for the current no-build, browser-global frontend
   - `window.BestHomeGallery.normalizeGalleryVideoUrl`
   - `window.BestHomeGallery.handleGalleryThumbnailError`
   - `window.BestHomeGallery.markMediaLoaded`
-- Compatibility exports retained by `app.js`:
+  - `window.BestHomeGallery.configure`
+  - `window.BestHomeGallery.setPagination` / `getPagination`
+  - `window.BestHomeGallery.setCurrentFilter` / `getCurrentFilter`
+  - `window.BestHomeGallery.setFeaturedVideoIndex` / `getFeaturedVideoIndex`
+  - `window.BestHomeGallery.galleryItems` / `featuredVideos`
+  - `window.BestHomeGallery.renderGalleryHero`
+  - `window.BestHomeGallery.observeGalleryMedia`
+  - `window.BestHomeGallery.renderPortfolioPagination`
+  - `window.BestHomeGallery.renderFeaturedVideoSection`
+  - `window.BestHomeGallery.changeFeaturedVideo`
+  - `window.BestHomeGallery.filterPortfolio`
+  - `window.BestHomeGallery.loadGalleryPage` / `loadGallery`
+  - `window.BestHomeGallery.renderPortfolio`
+- Compatibility exports retained:
   - `window.handleGalleryThumbnailError`
   - `window.markMediaLoaded`
-  - existing gallery form/modal functions remain globally callable through legacy declarations.
-- Remaining in `app.js`: gallery CRUD, gallery pagination state, lazy observer lifecycle, modal navigation state, route handling, shared cache writes, and admin gallery management. These remain because they depend on shared app state, routing, API wrappers, admin dashboard rendering, or modal state.
+  - `window.filterPortfolio`
+  - `window.loadGalleryPage` / `window.loadGallery`
+  - `window.renderPortfolio`
+  - `window.renderGalleryHero`
+  - `window.changeFeaturedVideo`
+  - `app.js` also keeps same-named top-level wrappers so legacy inline handlers and route code continue to resolve unchanged.
+- Remaining in `app.js` and why:
+  - Admin Gallery CRUD, drag/drop, form state, thumbnail form preview, and hero toggle stay in `app.js` because they touch admin dashboard state, admin rendering, upload form state, and protected mutations.
+  - Gallery detail modal/lightbox state and media navigation stay in `app.js` because the modal shell and keyboard/lightbox lifecycle are shared with listing/project media behavior.
+  - Gallery route bootstrap stays in `app.js` because SPA routing and SEO updates are shared application concerns.
+  - Homepage background hydration stays in `app.js` because it coordinates multiple shared homepage data loaders and cache timing. It delegates pagination state back into `BestHomeGallery`.
+- Remaining technical debt: split the shared media modal shell before moving Gallery detail modal state; isolate admin Gallery CRUD into an admin component; decide whether homepage hydration should become a core data-loader service; keep Sea Breeze Gallery and Project Gallery separate from public Gallery ownership.
 
 ### Notifications
 
