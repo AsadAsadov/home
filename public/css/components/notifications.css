@@ -1,0 +1,6 @@
+@media(max-width: 768px){
+  .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); }
+  .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; }
+  .notification-video-modal{ padding:0; align-items:stretch; }
+  .notification-video-modal__card{ width:100%; min-height:100dvh; border-radius:0; display:flex; flex-direction:column; justify-content:center; }
+}

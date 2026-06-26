@@ -35,39 +35,30 @@
             } catch (_error) {}
         }
 
-        function badgeHtml(count, extraClass = '') {
-            const value = Number(count || 0);
-            const classes = ['header-badge-btn__badge', extraClass, value ? '' : 'is-empty'].filter(Boolean).join(' ');
-            return `<span class="${classes}">${value > 99 ? '99+' : value}</span>`;
-        }
-
-        function badgeSlotHtml(type, count, options = {}) {
-            const attr = type === 'message' ? 'data-message-badge' : 'data-notification-badge';
-            const variant = options.variant ? ` data-badge-variant="${escapeHtml(options.variant)}"` : '';
-            return `<span ${attr} class="header-badge-btn__slot"${variant}>${badgeHtml(count, options.badgeClass || '')}</span>`;
-        }
-
-        function badgeClassForSlot(el, type) {
-            return type === 'notification' && el?.dataset?.badgeVariant === 'mobile' ? 'mobile-notification-badge' : '';
+        function refreshHeaderBadges() {
+            window.BestHomeNotifications?.updateHeaderBadges?.();
         }
 
         function updateMobileNotificationAccess() {
-            document.getElementById('mobile-bottom-notification-btn')?.remove();
-        }
-
-        function refreshHeaderBadges() {
-            clearTimeout(messagingState.badgeRefreshTimer);
-            updateMobileNotificationAccess();
-            document.querySelectorAll('[data-notification-badge]').forEach(el => {
-                el.innerHTML = badgeHtml(messagingState.notificationsUnread, badgeClassForSlot(el, 'notification'));
-            });
-            document.querySelectorAll('[data-message-badge]').forEach(el => {
-                el.innerHTML = badgeHtml(messagingState.messagesUnread, badgeClassForSlot(el, 'message'));
-            });
+            window.BestHomeNotifications?.updateMobileNotificationAccess?.();
         }
 
         function perfLog(label, startedAt) {
             console.log(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
+        }
+
+        if (window.BestHomeNotifications?.configure) {
+            window.BestHomeNotifications.configure({
+                state: messagingState,
+                isMessageNotification,
+                writeCache: writeMessagingCache,
+                apiRequest: (...args) => apiRequest(...args),
+                escapeHtml: (value) => escapeHtml(value),
+                formatAzDateTime: (value) => formatAzDateTime(value),
+                spaNavigate: (path) => spaNavigate(path),
+                showToast: (message, type) => showToast(message, type),
+                perfLog
+            });
         }
 
         async function loadBadgeSummary() {
@@ -94,56 +85,16 @@
             });
         }
 
-        function updateOpenNotificationsPanel() {
-            const panel = document.getElementById('notification-panel');
-            if (!panel) return;
-            renderNotificationsPanel({ full: panel.classList.contains('notification-panel--full') });
-        }
-
-        function isNotificationsPanelOpen() {
-            return Boolean(document.getElementById('notification-panel'));
-        }
-
         function handleRealtimeNotificationNew(payload) {
-            const notification = payload?.notification || payload;
-            const unreadCount = Number(payload?.unreadCount);
-            if (!notification || isMessageNotification(notification)) return;
-            const panelOpen = isNotificationsPanelOpen();
-            const localNotification = panelOpen ? { ...notification, isRead: true } : notification;
-            const alreadyVisible = messagingState.notifications.some(n => String(n.id) === String(notification.id));
-            messagingState.notifications = [localNotification, ...messagingState.notifications.filter(n => String(n.id) !== String(notification.id))];
-            if (panelOpen) {
-                messagingState.notificationsUnread = 0;
-                apiRequest(`/api/notifications/${notification.id}/read`, { method: 'PATCH' }).catch(error => console.warn('Notification auto-read failed', error));
-            } else if (Number.isFinite(unreadCount)) {
-                messagingState.notificationsUnread = Math.max(0, unreadCount);
-            } else if (!alreadyVisible && !notification.isRead) {
-                messagingState.notificationsUnread += 1;
-            }
-            refreshHeaderBadges();
-            updateOpenNotificationsPanel();
-            writeMessagingCache();
+            window.BestHomeNotifications?.handleRealtimeNotification?.('notification:new', payload);
         }
 
-        function handleRealtimeNotificationRead({ notificationId, unreadCount } = {}) {
-            if (notificationId) {
-                const item = messagingState.notifications.find(n => String(n.id) === String(notificationId) && !isMessageNotification(n));
-                if (item) item.isRead = true;
-            }
-            const nextCount = Number(unreadCount);
-            if (Number.isFinite(nextCount)) messagingState.notificationsUnread = Math.max(0, nextCount);
-            refreshHeaderBadges();
-            updateOpenNotificationsPanel();
-            writeMessagingCache();
+        function handleRealtimeNotificationRead(payload = {}) {
+            window.BestHomeNotifications?.handleRealtimeNotification?.('notification:read', payload);
         }
 
-        function handleRealtimeNotificationsReadAll({ unreadCount } = {}) {
-            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
-            const nextCount = Number(unreadCount);
-            messagingState.notificationsUnread = Number.isFinite(nextCount) ? Math.max(0, nextCount) : 0;
-            refreshHeaderBadges();
-            updateOpenNotificationsPanel();
-            writeMessagingCache();
+        function handleRealtimeNotificationsReadAll(payload = {}) {
+            window.BestHomeNotifications?.handleRealtimeNotification?.('notification:read-all', payload);
         }
 
         async function connectRealtime() {
@@ -180,15 +131,7 @@
             if (!activeUser) return;
             loadBadgeSummary();
             loadConversations(false, { force: false }).catch(error => console.warn('Conversation preload failed', error));
-            if (Date.now() - (messagingState.notificationsLoadedAt || 0) > 15000) {
-                apiRequest('/api/notifications?limit=30')
-                    .then(result => {
-                        messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
-                        messagingState.notificationsLoadedAt = Date.now();
-                        writeMessagingCache();
-                    })
-                    .catch(error => console.warn('Notification preload failed', error));
-            }
+            window.BestHomeNotifications?.preloadNotifications?.();
         }
 
         function disconnectRealtime() {
@@ -201,308 +144,10 @@
             messagingState.socket = null;
         }
 
-        function closeNotificationsPanel() {
-            document.getElementById('notification-panel')?.remove();
-            document.getElementById('notification-full-backdrop')?.remove();
-            document.removeEventListener('click', handleNotificationOutsideClick, true);
-            document.removeEventListener('keydown', handleNotificationKeydown, true);
-        }
-
-        function handleNotificationOutsideClick(event) {
-            if (event.target.closest('#notification-panel') || event.target.closest('[data-notification-toggle]')) return;
-            closeNotificationsPanel();
-        }
-
-        function handleNotificationKeydown(event) {
-            if (event.key === 'Escape') closeNotificationsPanel();
-        }
-
-        function positionNotificationPanel(panel) {
-            if (!panel || panel.classList.contains('notification-panel--full')) return;
-            const isMobile = window.innerWidth <= 768;
-            const mobileBottomToggle = document.getElementById('mobile-bottom-notification-btn');
-            const anchor = document.querySelector('[data-notification-toggle]:focus')
-                || (isMobile && mobileBottomToggle && !mobileBottomToggle.classList.contains('is-hidden') ? mobileBottomToggle : null)
-                || document.querySelector('[data-notification-toggle]');
-            const rect = anchor?.getBoundingClientRect();
-            const anchoredInBottomNav = Boolean(anchor?.closest?.('#mobile-bottom-nav'));
-            const top = Math.max(70, (rect?.bottom || 78) + 8);
-            panel.style.bottom = '';
-            panel.style.maxHeight = '';
-            panel.style.top = `${top}px`;
-            if (isMobile) {
-                panel.style.left = '10px';
-                panel.style.right = '10px';
-                if (anchoredInBottomNav) {
-                    panel.style.top = 'auto';
-                    panel.style.bottom = 'calc(var(--mobile-bottom-nav-height) + 12px + env(safe-area-inset-bottom))';
-                    panel.style.maxHeight = 'calc(100dvh - var(--header-height) - var(--mobile-bottom-nav-height) - 24px)';
-                }
-                return;
-            }
-            const width = Math.min(380, window.innerWidth - 28);
-            panel.style.width = `${width}px`;
-            panel.style.left = `${Math.max(14, Math.min(window.innerWidth - width - 14, (rect?.right || window.innerWidth - 18) - width))}px`;
-            panel.style.right = 'auto';
-        }
-
-        function renderNotificationsPanel({ full = false, loading = false, error = '' } = {}) {
-            const notifications = visibleNotifications();
-            const body = loading
-                ? '<div class="p-4 space-y-2"><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div><div class="h-12 rounded-2xl bg-slate-100 animate-pulse"></div></div>'
-                : (notifications.length ? notifications.map(renderNotificationItem).join('') : '<div class="p-6 text-center text-slate-500 font-bold">Bildiriş yoxdur</div>');
-            const panel = document.getElementById('notification-panel');
-            const html = `<div class="flex items-center justify-between gap-3 px-1 pb-2"><strong class="text-slate-950">🔔 Bildirişlər</strong><div class="flex items-center gap-3"><button onclick="openAllNotifications()" class="text-xs font-black text-brand-600">Hamısına bax</button><button onclick="markAllNotificationsRead()" class="text-xs font-black text-brand-600">Hamısını oxu</button>${full ? '<button onclick="closeNotificationsPanel()" class="text-slate-500 hover:text-slate-950 text-lg font-black leading-none" aria-label="Bağla">×</button>' : ''}</div></div><div>${body}</div>${error ? `<div class="notification-inline-error">${escapeHtml(error)}</div>` : ''}`;
-            if (full && !document.getElementById('notification-full-backdrop')) document.body.insertAdjacentHTML('beforeend', '<div id="notification-full-backdrop" class="notification-full-backdrop" onclick="closeNotificationsPanel()"></div>');
-            if (panel) { panel.className = `notification-panel ${full ? 'notification-panel--full' : ''}`; panel.innerHTML = html; positionNotificationPanel(panel); return; }
-            document.body.insertAdjacentHTML('beforeend', `<div id="notification-panel" class="notification-panel ${full ? 'notification-panel--full' : ''}">${html}</div>`);
-            positionNotificationPanel(document.getElementById('notification-panel'));
-            setTimeout(() => { document.addEventListener('click', handleNotificationOutsideClick, true); document.addEventListener('keydown', handleNotificationKeydown, true); }, 0);
-        }
-
-        function markNotificationsReadLocal() {
-            const previousUnread = messagingState.notificationsUnread;
-            const previousNotifications = messagingState.notifications.map(n => ({ ...n }));
-            messagingState.notificationsUnread = 0;
-            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
-            refreshHeaderBadges();
-            writeMessagingCache();
-            return { previousUnread, previousNotifications };
-        }
-
-        function restoreNotificationsReadLocal(snapshot) {
-            if (!snapshot) return;
-            messagingState.notificationsUnread = snapshot.previousUnread;
-            messagingState.notifications = snapshot.previousNotifications;
-            refreshHeaderBadges();
-            writeMessagingCache();
-        }
-
-        async function markNotificationsReadAllRequest() {
-            const result = await apiRequest('/api/notifications/read-all', { method: 'PATCH' });
-            const nextUnread = Number(result?.unreadCount);
-            if (Number.isFinite(nextUnread)) messagingState.notificationsUnread = Math.max(0, nextUnread);
-            else messagingState.notificationsUnread = 0;
-            messagingState.notifications = messagingState.notifications.map(n => isMessageNotification(n) ? n : ({ ...n, isRead: true }));
-            refreshHeaderBadges();
-            writeMessagingCache();
-            return result;
-        }
-
-        async function markNotificationsReadOnPanelOpen() {
-            if (messagingState.notificationsUnread <= 0) return;
-            if (messagingState.notificationsReadAllInFlight) return messagingState.notificationsReadAllInFlight;
-            const snapshot = markNotificationsReadLocal();
-            updateOpenNotificationsPanel();
-            messagingState.notificationsReadAllInFlight = markNotificationsReadAllRequest()
-                .catch(error => {
-                    restoreNotificationsReadLocal(snapshot);
-                    updateOpenNotificationsPanel();
-                    console.warn('Notification panel auto-read failed', error);
-                    throw error;
-                })
-                .finally(() => { messagingState.notificationsReadAllInFlight = null; });
-            return messagingState.notificationsReadAllInFlight;
-        }
-
-        async function toggleNotificationsPanel() {
-            const startedAt = performance.now();
-            const existing = document.getElementById('notification-panel');
-            if (existing && !existing.classList.contains('notification-panel--full')) { closeNotificationsPanel(); return; }
-            renderNotificationsPanel({ loading: !visibleNotifications().length });
-            perfLog('notifications_open_ms', startedAt);
-            try { await markNotificationsReadOnPanelOpen(); } catch (_error) {}
-            if (Date.now() - (messagingState.notificationsLoadedAt || 0) < 15000) return;
-            try {
-                const result = await apiRequest('/api/notifications');
-                messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
-                messagingState.notificationsLoadedAt = Date.now();
-                writeMessagingCache();
-                renderNotificationsPanel();
-            } catch (error) { renderNotificationsPanel({ error: error.message || 'Bildirişlər yüklənmədi.' }); }
-        }
-
-        async function openAllNotifications() {
-            closeNotificationsPanel();
-            renderNotificationsPanel({ full: true, loading: !visibleNotifications().length });
-            try { await markNotificationsReadOnPanelOpen(); } catch (_error) {}
-            try {
-                const result = await apiRequest('/api/notifications?all=true&limit=1000');
-                messagingState.notifications = (result.data || []).filter(item => !isMessageNotification(item));
-                messagingState.notificationsLoadedAt = Date.now();
-                writeMessagingCache();
-                renderNotificationsPanel({ full: true });
-            } catch (error) { renderNotificationsPanel({ full: true, error: error.message || 'Bildirişlər yüklənmədi.' }); }
-        }
-
-        function safeNotificationArg(value) {
-            return encodeURIComponent(String(value || ''));
-        }
-
-        function decodeNotificationArg(value) {
-            try { return decodeURIComponent(String(value || '')); } catch (_error) { return String(value || ''); }
-        }
-
-        function getVideoProvider(url) {
-            try {
-                const parsed = new URL(url);
-                const host = parsed.hostname.toLowerCase();
-                if (host.includes('youtu.be') || host.includes('youtube.com')) return 'youtube';
-                if (host.includes('vimeo.com')) return 'vimeo';
-                if (parsed.pathname.toLowerCase().endsWith('.mp4')) return 'mp4';
-            } catch (_error) {}
-            return '';
-        }
-
-        function youtubeVideoId(url) {
-            try {
-                const parsed = new URL(url);
-                if (parsed.hostname.toLowerCase().includes('youtu.be')) return parsed.pathname.split('/').filter(Boolean)[0] || '';
-                if (parsed.searchParams.get('v')) return parsed.searchParams.get('v');
-                const parts = parsed.pathname.split('/').filter(Boolean);
-                const marker = parts.findIndex(part => ['embed', 'shorts'].includes(part));
-                return marker > -1 ? (parts[marker + 1] || '') : '';
-            } catch (_error) { return ''; }
-        }
-
-        function notificationVideoEmbedUrl(url) {
-            const provider = getVideoProvider(url);
-            if (provider === 'youtube') {
-                const id = youtubeVideoId(url);
-                return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0` : '';
-            }
-            if (provider === 'vimeo') {
-                try {
-                    const parsed = new URL(url);
-                    const id = parsed.pathname.split('/').filter(Boolean).pop();
-                    return id ? `https://player.vimeo.com/video/${encodeURIComponent(id)}?autoplay=1` : '';
-                } catch (_error) { return ''; }
-            }
-            return url;
-        }
-
-        function notificationVideoThumb(item) {
-            if (item.imageUrl) return item.imageUrl;
-            if (getVideoProvider(item.videoUrl) === 'youtube') {
-                const id = youtubeVideoId(item.videoUrl);
-                if (id) return `https://img.youtube.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
-            }
-            return '';
-        }
-
-        function renderNotificationMedia(item) {
-            if (item.videoUrl) {
-                const thumb = notificationVideoThumb(item);
-                const media = thumb
-                    ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title || 'Video')}" loading="lazy">`
-                    : `<div class="notification-video-frame flex items-center justify-center text-white font-black text-sm">Video</div>`;
-                return `<div class="notification-media" onclick="event.stopPropagation(); openNotificationVideo('${safeNotificationArg(item.id)}')">${media}<div class="notification-media__play"><i class="fa-solid fa-circle-play"></i></div></div>`;
-            }
-            if (item.imageUrl) return `<div class="notification-media"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title || 'Bildiriş')}" loading="lazy"></div>`;
-            return '';
-        }
-
-        function renderNotificationActions(item) {
-            const actions = [];
-            if (item.link) actions.push(`<button type="button" class="notification-detail-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', 'link')">Ətraflı bax</button>`);
-            if (item.videoUrl) actions.push(`<button type="button" class="notification-video-link" onclick="event.stopPropagation(); openNotification('${safeNotificationArg(item.id)}', '', 'video')">Videoya bax</button>`);
-            if (!actions.length) actions.push('<span></span>');
-            actions.push(`<div class="notification-action-row__date text-[10px] font-bold text-slate-400">${formatAzDateTime(item.createdAt)}</div>`);
-            return actions.join('');
-        }
-
-        function renderNotificationItem(item) {
-            const defaultAction = item.link ? 'link' : (item.videoUrl ? 'video' : 'link');
-            return `<div role="button" tabindex="0" class="notification-item ${item.isRead ? '' : 'is-unread'}" onclick="openNotification('${safeNotificationArg(item.id)}', '${safeNotificationArg(item.link || '')}', '${defaultAction}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click();}">${renderNotificationMedia(item)}<div class="font-black">${escapeHtml(item.title)}</div><div class="text-xs font-bold text-slate-600 mt-1">${escapeHtml(item.message || '')}</div><div class="notification-action-row">${renderNotificationActions(item)}</div></div>`;
-        }
-
-        function closeNotificationVideo() {
-            document.getElementById('notification-video-modal')?.remove();
-        }
-
-        function markNotificationVideoRead(id) {
-            markNotificationReadLocal(id);
-            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => showToast('Bildiriş oxundu kimi işarələnmədi.'));
-        }
-
-        function openNotificationExternalVideo(item, id) {
-            markNotificationVideoRead(id);
-            window.open(item.videoUrl, '_blank', 'noopener,noreferrer');
-        }
-
-        function openNotificationVideo(id) {
-            id = decodeNotificationArg(id);
-            const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
-            if (!item?.videoUrl) return;
-            const provider = getVideoProvider(item.videoUrl);
-            if (provider === 'youtube' || provider === 'vimeo') {
-                openNotificationExternalVideo(item, id);
-                return;
-            }
-            if (provider !== 'mp4') {
-                openNotificationExternalVideo(item, id);
-                return;
-            }
-            markNotificationVideoRead(id);
-            const player = `<video src="${escapeHtml(item.videoUrl)}" controls autoplay playsinline></video>`;
-            closeNotificationVideo();
-            document.body.insertAdjacentHTML('beforeend', `<div id="notification-video-modal" class="notification-video-modal" onclick="if(event.target.id==='notification-video-modal') closeNotificationVideo()"><div class="notification-video-modal__card"><div class="notification-video-modal__head"><strong>${escapeHtml(item.title || 'Video')}</strong><button class="notification-video-modal__close" onclick="closeNotificationVideo()" aria-label="Bağla">×</button></div><div class="notification-video-modal__body">${player}</div></div></div>`);
-        }
-
-        function markNotificationReadLocal(id) {
-            id = decodeNotificationArg(id);
-            const item = messagingState.notifications.find(n => String(n.id) === String(id) && !isMessageNotification(n));
-            const wasUnread = item && !item.isRead;
-            if (item) item.isRead = true;
-            if (wasUnread) messagingState.notificationsUnread = Math.max(0, messagingState.notificationsUnread - 1);
-            refreshHeaderBadges();
-            writeMessagingCache();
-            return { item, wasUnread };
-        }
-
-        function openNotification(id, link, action = 'link') {
-            id = decodeNotificationArg(id);
-            link = decodeNotificationArg(link);
-            const { item, wasUnread } = markNotificationReadLocal(id);
-            closeNotificationsPanel();
-            if (action === 'video' && item?.videoUrl) {
-                openNotificationVideo(id);
-                return;
-            }
-            if (link) openNotificationLink(link);
-            apiRequest(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => { if (item) item.isRead = false; if (wasUnread) messagingState.notificationsUnread += 1; refreshHeaderBadges(); showToast('Bildiriş oxundu kimi işarələnmədi.'); });
-        }
-
-        function openNotificationLink(link) {
-            link = decodeNotificationArg(link);
-            if (/^https?:\/\//i.test(link)) {
-                window.open(link, '_blank', 'noopener,noreferrer');
-                return;
-            }
-            spaNavigate(link.replace(window.location.origin, ''));
-        }
-
-        async function markAllNotificationsRead() {
-            if (messagingState.notificationsReadAllInFlight) {
-                try { await messagingState.notificationsReadAllInFlight; } catch (_error) {}
-                return;
-            }
-            const snapshot = markNotificationsReadLocal();
-            const full = document.getElementById('notification-panel')?.classList.contains('notification-panel--full');
-            renderNotificationsPanel({ full });
-            messagingState.notificationsReadAllInFlight = markNotificationsReadAllRequest()
-                .catch(error => {
-                    restoreNotificationsReadLocal(snapshot);
-                    renderNotificationsPanel({ full, error: error.message || 'Hamısını oxu alınmadı.' });
-                })
-                .finally(() => { messagingState.notificationsReadAllInFlight = null; });
-            await messagingState.notificationsReadAllInFlight;
-        }
-
         function navigateToMessages(conversationId = '') {
             const startedAt = performance.now();
             if (!activeUser) { setPendingAuthRoute('/profil/mesajlar'); switchTab('admin-login'); return; }
-            closeNotificationsPanel();
+            window.BestHomeNotifications?.closeNotificationsPanel?.();
             spaNavigate(`/profil/mesajlar${conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : ''}`);
             perfLog('inbox_open_ms', startedAt);
         }
