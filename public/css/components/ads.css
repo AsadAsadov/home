@@ -1,0 +1,28 @@
+/* Ads component stylesheet for BestHome.az refactor stage 2.1.
+
+   public/css/base.css is not present in this repository snapshot; advertisement CSS
+   is still embedded in index.html, so these selectors are documented here without
+   changing the current cascade or layout in this phase.
+
+   Advertisement selectors identified for the next CSS-only extraction pass:
+   - .desktop-ad-layout
+   - .desktop-ad-rail
+   - .desktop-ad-rail.is-loading::before
+   - .desktop-ad-card
+   - .desktop-ad-card--responsive
+   - .desktop-ad-stage
+   - .desktop-ad-layer
+   - .desktop-ad-layer.is-visible
+   - .desktop-ad-label
+   - .desktop-ad-media
+   - #desktop-left-ads
+   - #desktop-right-ads
+   - .page-with-ads
+   - .ad-rail
+   - .left-ad-rail
+   - .right-ad-rail
+   - .desktop-ad
+   - .side-ad
+   - .ad-content-grid
+   - .ad-content-grid.has-ads
+*/
