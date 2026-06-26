@@ -75,12 +75,9 @@
         height: auto !important;
         min-height: 100% !important;
         align-self: stretch !important;
-        background-color: rgba(248, 250, 252, 0.88);
-        background-image: var(--ad-rail-image, none);
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: var(--ad-object-fit, cover);
+        background-color: transparent !important;
         border-radius: 1rem;
+        overflow: hidden;
         z-index: auto !important;
     }
 
@@ -130,21 +127,17 @@
 .desktop-ad-card {
     width: var(--ad-width);
     max-width: 100%;
-    min-height: 100%;
     overflow: hidden;
     border-radius: 1rem;
     border: 1px solid rgba(207, 207, 255, 0.75);
     background-color: rgba(248, 250, 252, 0.88);
-    background-image: var(--ad-rail-image, none);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: var(--ad-object-fit, cover);
     box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
     cursor: pointer;
-    transition: transform 180ms ease, box-shadow 180ms ease;
+    transform: translateY(var(--desktop-ad-translate-y, 0px));
+    will-change: transform;
+    transition: box-shadow 180ms ease;
 }
 .desktop-ad-card:hover {
-    transform: translateY(-3px);
     box-shadow: 0 22px 45px rgba(127, 127, 255, 0.18);
 }
 .desktop-ad-card img,
@@ -154,7 +147,6 @@
 .desktop-ad-card--responsive {
     width: var(--ad-width);
     max-width: 100%;
-    min-height: 100%;
     position: static !important;
 }
 .desktop-ad-stage {
