@@ -162,10 +162,6 @@
             return normalizeHeroSlide(hero);
         }
 
-        function escapeHtml(value = '') {
-            return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-        }
-
         function formatHeroTitle(title = '') {
             const lines = String(title || defaultSeaBreezeHero.title).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
             if (lines.length <= 1) return escapeHtml(lines[0] || defaultSeaBreezeHero.title);
