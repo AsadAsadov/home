@@ -7311,6 +7311,9 @@
         .desktop-ad-rail {
             position: static !important;
             top: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            align-self: flex-start !important;
         }
 
 
@@ -10443,10 +10446,12 @@ Title: CASPIAN DREAM LINER
         }
 
         async function loadSiteMusicBackground({ render = true, admin = false } = {}) {
+            if (!admin && homepageHydration.musicTracks && (appData.musicTracks || []).length) return appData.musicTracks;
             siteMusicState.loading = true;
             try {
                 const endpoint = admin ? '/api/admin/site-music' : '/api/site-music';
-                const tracks = await apiRequest(endpoint, { authRedirect: false }).catch(() => appData.musicTracks || []);
+                const result = await withHomepageTimeout(apiRequest(endpoint, { authRedirect: false }), admin ? 'Admin musiqisi' : 'Sayt musiqisi', 3500, { warn: false });
+                const tracks = result?.timedOut || result?.error ? (appData.musicTracks || []) : (result.value || []);
                 const normalized = orderedMusicTracks(tracks);
                 cacheData('musicTracks', normalized);
                 siteMusicState.tracks = normalized;
@@ -13559,8 +13564,12 @@ Title: CASPIAN DREAM LINER
             }
         }
 
+        function canLoadAdminBackground() {
+            return Boolean(getAuthToken() && isAdminRole(activeUser?.role) && isTabAktiv('admin-dashboard'));
+        }
+
         async function loadAdminBackground() {
-            if (homepageHydration.admin || !getAuthToken() || !isAdminRole(activeUser?.role)) return;
+            if (homepageHydration.admin || !canLoadAdminBackground()) return;
             homepageHydration.admin = true;
             try {
                 const [applications, users, dashboardStats] = await Promise.all([
@@ -13608,7 +13617,7 @@ Title: CASPIAN DREAM LINER
             if (homepageHydration.observersReady) return;
             homepageHydration.observersReady = true;
             scheduleIdleTask(loadVacanciesBackground, 1200);
-            if (isAdminRole(activeUser?.role)) scheduleIdleTask(() => loadAdminBackground().catch(error => console.warn('Admin fon yüklənməsi alınmadı:', error.message)), 1600);
+            if (canLoadAdminBackground()) scheduleIdleTask(() => loadAdminBackground().catch(error => console.warn('Admin fon yüklənməsi alınmadı:', error.message)), 1600);
             runWhenSectionVisible('#agent-listings-area', loadListingsLazy, { rootMargin: '500px 0px' });
             runWhenSectionVisible('#tab-portfolio', loadGalleryBackground, { rootMargin: '500px 0px' });
             runWhenSectionVisible('#tab-career', loadVacanciesBackground, { rootMargin: '500px 0px' });
@@ -13650,7 +13659,7 @@ Title: CASPIAN DREAM LINER
                 if (route !== 'listings') scheduleIdleTask(() => loadListingsLazy().catch(() => {}), 1100);
                 if (route !== 'portfolio') scheduleIdleTask(() => loadGalleryBackground().catch(() => {}), 1300);
                 if (route !== 'projects') scheduleIdleTask(() => loadProjectsPriority({ render: false }).catch(() => {}), 1500);
-                if (isAdminRole(activeUser?.role)) scheduleIdleTask(() => loadAdminBackground().catch(() => {}), 1700);
+                if (canLoadAdminBackground()) scheduleIdleTask(() => loadAdminBackground().catch(() => {}), 1700);
 
                 if (homepageHydration.rawHeroSlides) {
                     cacheData('heroSlides', normalizeHeroSlides(homepageHydration.rawHeroSlides, false));
