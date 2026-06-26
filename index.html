@@ -1276,6 +1276,9 @@
         html[data-theme="dark"] #tab-seabreeze-info.sea-breeze-page { background: #020617 !important; }
 
         .ad-preview-box {
+            width: var(--ad-width, 160px);
+            height: var(--ad-height, 560px);
+            max-width: 100%;
             overflow: hidden;
             border-radius: 1rem;
             border: 1px solid rgba(207, 207, 255, 0.75);
@@ -8524,8 +8527,8 @@ Title: CASPIAN DREAM LINER
                         </div>
                         <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300"><input type="checkbox" id="ad-is-active" checked> Aktiv Status</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Width (px)<input type="number" id="ad-width-px" min="80" max="1000" value="180" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
-                            <label class="text-[10px] text-gray-400 font-bold uppercase">Height (px)<input type="number" id="ad-height-px" min="80" max="1200" value="320" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Width (px)<input type="number" id="ad-width-px" min="80" max="1000" value="160" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
+                            <label class="text-[10px] text-gray-400 font-bold uppercase">Height (px)<input type="number" id="ad-height-px" min="80" max="1200" value="560" required class="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white"></label>
                         </div>
                         <select id="ad-object-fit" class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
                             <option value="cover">Object Fit: cover</option>

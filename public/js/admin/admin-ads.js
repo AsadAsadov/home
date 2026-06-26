@@ -234,8 +234,11 @@ function updateAdPreview() {
         preview.innerHTML = 'Media URL daxil edin';
         return;
     }
-    const ad = dbAdToUi({ title: adFormValue('ad-title') || 'Reklam', mediaType: adFormValue('ad-media-type') || (file?.type?.startsWith('video/') ? 'video' : 'image'), mediaUrl, widthPx: 180, heightPx: 120, objectFit: adFormValue('ad-object-fit') || 'cover', isActive: true });
-    preview.innerHTML = renderAdMedia(ad, 'w-full h-full', { loop: true });
+    const ad = dbAdToUi({ title: adFormValue('ad-title') || 'Reklam', mediaType: adFormValue('ad-media-type') || (file?.type?.startsWith('video/') ? 'video' : 'image'), mediaUrl, widthPx: adFormValue('ad-width-px') || AD_DIMENSION_DEFAULTS.width, heightPx: adFormValue('ad-height-px') || AD_DIMENSION_DEFAULTS.height, objectFit: adFormValue('ad-object-fit') || AD_DIMENSION_DEFAULTS.objectFit, isActive: true });
+    const dimensions = getAdDimensions(ad);
+    preview.style.setProperty('--ad-width', `${dimensions.width}px`);
+    preview.style.setProperty('--ad-height', `${dimensions.height}px`);
+    preview.innerHTML = renderAdMedia(ad, 'admin-ad-preview-media', { loop: true, responsive: true });
 }
 
 function handleAdMediaFileSelection() {
