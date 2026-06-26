@@ -16,8 +16,6 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="preload" as="image" href="/uploads/siteimage/logo/besthomelight.png?v=2">
-    <link rel="preload" as="image" href="/uploads/siteimage/logo/besthomedark.png?v=2">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BestHome.az - Satılıq və Kirayə Daşınmaz Əmlak Elanları">
     <meta name="twitter:description" content="Bakıda satılıq və kirayə mənzillər, villalar, həyət evləri və yeni layihələr. BestHome.az-da daşınmaz əmlak elanlarını rahat axtarın.">
@@ -25,14 +23,8 @@
 
     <script>
         (function () {
-            const LOGOS = {
-                light: '/uploads/siteimage/logo/besthomelight.png?v=2',
-                dark: '/uploads/siteimage/logo/besthomedark.png?v=2'
-            };
-            const lightLogo = new Image();
-            lightLogo.src = LOGOS.light;
-            const darkLogo = new Image();
-            darkLogo.src = LOGOS.dark;
+            const LOGOS = { light: '', dark: '' };
+            const LOGO_FALLBACK_TEXT = 'BestHome.az';
             const THEME_KEY = 'siteTheme';
             const resolveTheme = (choice) => {
                 const preferred = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
@@ -42,12 +34,17 @@
             const currentPreference = () => {
                 try { return localStorage.getItem(THEME_KEY) || 'system'; } catch (_error) { return 'system'; }
             };
-            const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'];
+            const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'] || '';
             window.getCurrentThemeLogo = (theme = resolveTheme(currentPreference())) => logoSrc(theme);
             window.updateThemeLogos = (theme = resolveTheme(currentPreference())) => {
                 const src = window.getCurrentThemeLogo(theme);
                 document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+                    if (src) { if (img.getAttribute('src') !== src) img.setAttribute('src', src); return; }
+                    const fallback = document.createElement('span');
+                    fallback.className = img.className || 'site-logo';
+                    fallback.textContent = LOGO_FALLBACK_TEXT;
+                    fallback.setAttribute('data-site-logo-text', '');
+                    img.replaceWith(fallback);
                 });
             };
             window.BestHomeLogo = {
@@ -56,7 +53,9 @@
                 src: logoSrc,
                 html({ className = 'site-logo', width = 180, height = 48, loading = 'lazy', fetchpriority = '', extra = '' } = {}) {
                     const priority = fetchpriority ? ` fetchpriority="${fetchpriority}"` : '';
-                    return `<span class="theme-logo-wrap"><img src="${logoSrc()}" data-theme-logo data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async"${extra ? ` ${extra}` : ''}></span>`;
+                    const src = logoSrc();
+                    if (!src) return `<span class="theme-logo-wrap"><span data-site-logo-text class="${className}" style="display:inline-flex;align-items:center;font-weight:900;letter-spacing:-.03em;color:inherit">${LOGO_FALLBACK_TEXT}</span></span>`;
+                    return `<span class="theme-logo-wrap"><img src="${src}" data-theme-logo data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${LOGO_FALLBACK_TEXT}',className:this.className}))"${extra ? ` ${extra}` : ''}></span>`;
                 },
                 update: window.updateThemeLogos
             };

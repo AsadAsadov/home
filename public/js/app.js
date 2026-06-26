@@ -1,3 +1,23 @@
+        function showToast(message) {
+            const text = String(message || '');
+            let toast = document.getElementById('besthome-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'besthome-toast';
+                toast.className = 'fixed left-1/2 top-24 z-[1200] -translate-x-1/2 rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-2xl transition';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = text;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            clearTimeout(window.__besthomeToastTimer);
+            window.__besthomeToastTimer = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(-8px)';
+            }, 1800);
+        }
+        window.showToast = window.showToast || showToast;
+
         var currentAdminAnalyticsTab = window.currentAdminAnalyticsTab || 'listings';
         window.currentAdminAnalyticsTab = currentAdminAnalyticsTab;
         function extractResponseItems(response, keys = []) {
@@ -888,8 +908,8 @@
         const SITE_MUSIC_ENABLED_KEY = 'siteMusicEnabled';
         const SITE_MUSIC_VOLUME_KEY = 'siteMusicVolume';
         const SITE_MUSIC_TRACK_INDEX_KEY = 'currentTrackIndex';
-        const LIGHT_LOGO_SRC = '/uploads/siteimage/logo/besthomelight.png?v=2';
-        const DARK_LOGO_SRC = '/uploads/siteimage/logo/besthomedark.png?v=2';
+        const LIGHT_LOGO_SRC = window.BestHomeLogo?.paths?.light || '';
+        const DARK_LOGO_SRC = window.BestHomeLogo?.paths?.dark || LIGHT_LOGO_SRC;
         const siteMusicState = { tracks: [], audio: null, currentIndex: 0, enabled: false, volume: 0.35, autoplayAttempted: false, loading: false, collapsed: true, inactivityTimer: null, scrollTimer: null };
 
         function preferredTheme() {
@@ -916,14 +936,19 @@
         }
 
         function getCurrentThemeLogo(theme) {
+            if (typeof window.getCurrentThemeLogo === 'function' && window.getCurrentThemeLogo !== getCurrentThemeLogo) return window.getCurrentThemeLogo(theme);
             const resolvedTheme = theme || getResolvedSiteTheme();
             return resolvedTheme === 'dark' ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
         }
 
         function updateThemeLogos(theme) {
+            if (typeof window.updateThemeLogos === 'function' && window.updateThemeLogos !== updateThemeLogos) {
+                window.updateThemeLogos(theme);
+                return;
+            }
             const logoSrc = getCurrentThemeLogo(theme);
             document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                if (img && img.getAttribute('src') !== logoSrc) {
+                if (img && logoSrc && img.getAttribute('src') !== logoSrc) {
                     img.setAttribute('src', logoSrc);
                 }
             });
@@ -9891,11 +9916,11 @@ Təşəkkür edirəm. 🙏`;
             const deltaY = touch.clientY - touchStartY;
             if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
-            if (isProjectLightboxOpen() && (window.getOfficialProjectImages?.().length || 0) > 1) {
+            if (typeof window.isProjectLightboxOpen === 'function' && window.isProjectLightboxOpen() && (window.getOfficialProjectImages?.().length || 0) > 1) {
                 changeProjectLightboxImage(deltaX > 0 ? -1 : 1);
                 return;
             }
-            if (isPropertyLightboxOpen() && window.activePropertyImages.length > 1) {
+            if (typeof window.isPropertyLightboxOpen === 'function' && window.isPropertyLightboxOpen() && window.activePropertyImages.length > 1) {
                 changePropertyLightboxImage(deltaX > 0 ? -1 : 1);
                 return;
             }
@@ -9922,8 +9947,8 @@ Təşəkkür edirəm. 🙏`;
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') closePublicAddressSuggestions();
-            const projectLightboxOpen = isProjectLightboxOpen();
-            const propertyLightboxOpen = isPropertyLightboxOpen();
+            const projectLightboxOpen = typeof window.isProjectLightboxOpen === 'function' && window.isProjectLightboxOpen();
+            const propertyLightboxOpen = typeof window.isPropertyLightboxOpen === 'function' && window.isPropertyLightboxOpen();
             const inquiryOpen = !document.getElementById('project-inquiry-modal').classList.contains('hidden');
             const mediaOpen = !document.getElementById('media-modal').classList.contains('hidden');
             const projectOpen = !document.getElementById('project-detail-modal-official').classList.contains('hidden');
@@ -9956,8 +9981,8 @@ Təşəkkür edirəm. 🙏`;
 
         document.getElementById('modal-content')?.addEventListener('dblclick', toggleLightboxZoom);
         window.addEventListener('resize', () => {
-            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
-            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
+            if (typeof window.isPropertyLightboxOpen === 'function' && window.isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+            if (typeof window.isProjectLightboxOpen === 'function' && window.isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
         });
 
         ['media-modal', 'project-detail-modal-official', 'property-detail-modal', 'property-lightbox', 'project-lightbox'].forEach((id) => {
@@ -10748,8 +10773,8 @@ Təşəkkür edirəm. 🙏`;
         window.addEventListener('resize', () => {
             renderDesktopAds();
             updateMobileModalMetrics();
-            if (isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
-            if (isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
+            if (typeof window.isPropertyLightboxOpen === 'function' && window.isPropertyLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('property-lightbox-img'));
+            if (typeof window.isProjectLightboxOpen === 'function' && window.isProjectLightboxOpen()) applyPropertyLightboxImageFit(document.getElementById('project-lightbox-img'));
         });
 
         window.addEventListener('DOMContentLoaded', async () => {

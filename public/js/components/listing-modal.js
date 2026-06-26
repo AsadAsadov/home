@@ -423,6 +423,8 @@ window.closePropertyLightbox = window.closePropertyLightbox || closePropertyLigh
 window.changePropertyLightboxImage = window.changePropertyLightboxImage || changePropertyLightboxImage;
 window.setPropertyLightboxImage = window.setPropertyLightboxImage || setPropertyLightboxImage;
 window.closeListingModalForMessageNavigation = window.closeListingModalForMessageNavigation || closeListingModalForMessageNavigation;
+window.isPropertyLightboxOpen = window.isPropertyLightboxOpen || isPropertyLightboxOpen;
+window.applyPropertyLightboxImageFit = window.applyPropertyLightboxImageFit || applyPropertyLightboxImageFit;
 window.getListingDetailModalOpener = window.getListingDetailModalOpener || getListingDetailModalOpener;
 window.isListingCardInteractiveClick = window.isListingCardInteractiveClick || isListingCardInteractiveClick;
 
