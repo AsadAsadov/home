@@ -71,7 +71,7 @@
         }
 
         const PROJECT_VIEW_THROTTLE_MS = 6 * 60 * 60 * 1000;
-        let mostViewedProjectsOpen = window.matchMedia ? window.matchMedia('(min-width: 768px)').matches : true;
+        let mostViewedProjectsOpen = false;
 
         function setMostViewedProjectsOpen(open) {
             mostViewedProjectsOpen = Boolean(open);

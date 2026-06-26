@@ -1,6 +1,6 @@
 /* Ads component stylesheet for BestHome.az stabilization phase. */
 
-@media (max-width: 1535px) {
+@media (max-width: 1279px) {
     .ad-rail,
     .left-ad-rail,
     .right-ad-rail,
@@ -32,7 +32,7 @@
     display: none;
 }
 
-@media (min-width: 1536px) {
+@media (min-width: 1280px) {
     .page-with-ads,
     .desktop-ad-layout {
         --ad-width: 120px;
@@ -194,4 +194,29 @@ html[data-theme="dark"] .desktop-ad-card:hover {
 html[data-theme="dark"] .desktop-ad-label {
     color: var(--dark-text-2) !important;
     background: var(--dark-surface) !important;
+}
+
+/* Auth stabilization: keep auth panels compact without changing existing IDs/classes. */
+#tab-admin-login,
+#tab-register,
+#tab-forgot-password,
+#tab-reset-password {
+    width: min(100%, 480px) !important;
+    max-width: 480px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (max-width: 640px) {
+    #tab-admin-login,
+    #tab-register,
+    #tab-forgot-password,
+    #tab-reset-password {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: .75rem;
+        padding-right: .75rem;
+    }
 }
