@@ -73,8 +73,14 @@
         max-width: 100% !important;
         min-width: 0 !important;
         height: auto !important;
-        min-height: 0 !important;
-        align-self: start !important;
+        min-height: 100% !important;
+        align-self: stretch !important;
+        background-color: rgba(248, 250, 252, 0.88);
+        background-image: var(--ad-rail-image, none);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: var(--ad-object-fit, cover);
+        border-radius: 1rem;
         z-index: auto !important;
     }
 
@@ -124,10 +130,15 @@
 .desktop-ad-card {
     width: var(--ad-width);
     max-width: 100%;
+    min-height: 100%;
     overflow: hidden;
     border-radius: 1rem;
     border: 1px solid rgba(207, 207, 255, 0.75);
-    background: transparent;
+    background-color: rgba(248, 250, 252, 0.88);
+    background-image: var(--ad-rail-image, none);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: var(--ad-object-fit, cover);
     box-shadow: 0 16px 35px rgba(15, 23, 42, 0.10);
     cursor: pointer;
     transition: transform 180ms ease, box-shadow 180ms ease;
@@ -143,7 +154,7 @@
 .desktop-ad-card--responsive {
     width: var(--ad-width);
     max-width: 100%;
-    min-height: calc(var(--ad-height) + 2rem);
+    min-height: 100%;
     position: static !important;
 }
 .desktop-ad-stage {
@@ -169,7 +180,7 @@
     height: var(--ad-height) !important;
     max-width: 100%;
     aspect-ratio: var(--ad-width) / var(--ad-height);
-    object-fit: cover !important;
+    object-fit: var(--ad-object-fit, cover) !important;
     background: transparent;
 }
 .desktop-ad-label {
