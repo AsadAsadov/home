@@ -6,6 +6,26 @@
     async function parseErrorBody(response) {
         return response.json().catch(() => ({}));
     }
+    function extractResponseItems(response, keys = []) {
+        if (Array.isArray(response)) return response;
+        if (!response || typeof response !== 'object') return [];
+        for (const key of keys) {
+            const value = response?.[key];
+            if (Array.isArray(value)) return value;
+        }
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+            for (const key of keys) {
+                const value = response.data?.[key];
+                if (Array.isArray(value)) return value;
+            }
+            if (Array.isArray(response.data.items)) return response.data.items;
+            if (Array.isArray(response.data.gallery)) return response.data.gallery;
+        }
+        if (Array.isArray(response?.data?.items)) return response.data.items;
+        if (Array.isArray(response?.data?.gallery)) return response.data.gallery;
+        if (Array.isArray(response?.data)) return response.data;
+        return [];
+    }
     async function apiRequest(url, method = 'GET', body = null) {
         let options = {};
         if (typeof method === 'object') {
@@ -37,6 +57,6 @@
         }
         return response.status === 204 ? null : response.json();
     }
-    Object.assign(window, { apiRequest, resolveApiUrl, parseErrorBody });
-    window.BestHomeAPI = { apiRequest, resolveApiUrl, parseErrorBody };
+    Object.assign(window, { apiRequest, resolveApiUrl, parseErrorBody, extractResponseItems });
+    window.BestHomeAPI = { apiRequest, resolveApiUrl, parseErrorBody, extractResponseItems };
 })(window);

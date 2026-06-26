@@ -1,3 +1,28 @@
+        var currentAdminAnalyticsTab = window.currentAdminAnalyticsTab || 'listings';
+        window.currentAdminAnalyticsTab = currentAdminAnalyticsTab;
+        function extractResponseItems(response, keys = []) {
+            if (typeof window.extractResponseItems === 'function' && window.extractResponseItems !== extractResponseItems) return window.extractResponseItems(response, keys);
+            if (Array.isArray(response)) return response;
+            if (!response || typeof response !== 'object') return [];
+            for (const key of keys) {
+                const value = response?.[key];
+                if (Array.isArray(value)) return value;
+            }
+            if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+                for (const key of keys) {
+                    const value = response.data?.[key];
+                    if (Array.isArray(value)) return value;
+                }
+                if (Array.isArray(response.data.items)) return response.data.items;
+                if (Array.isArray(response.data.gallery)) return response.data.gallery;
+            }
+            if (Array.isArray(response?.data?.items)) return response.data.items;
+            if (Array.isArray(response?.data?.gallery)) return response.data.gallery;
+            if (Array.isArray(response?.data)) return response.data;
+            return [];
+        }
+        window.extractResponseItems = window.extractResponseItems || extractResponseItems;
+
         const SEA_BREEZE_PAGE_KEY = 'sea-breeze';
         const DEFAULT_SEA_BREEZE_HERO_IMAGE = 'https://scontent.fgyd21-1.fna.fbcdn.net/v/t39.30808-6/557956945_1410435877753430_6514473924415472229_n.jpg';
         const defaultSeaBreezeHero = {
@@ -8209,7 +8234,8 @@ Təşəkkür edirəm. 🙏`;
         }
 
 
-        let currentAdminAnalyticsTab = 'listings';
+        currentAdminAnalyticsTab = window.currentAdminAnalyticsTab || 'listings';
+        window.currentAdminAnalyticsTab = currentAdminAnalyticsTab;
         let adminAnalyticsExpanded = localStorage.getItem('adminAnalyticsExpanded') === 'true';
 
         function toggleAdminAnalyticsPanel() {
@@ -8232,6 +8258,7 @@ Təşəkkür edirəm. 🙏`;
 
         function setAdminAnalyticsTab(tab = 'listings') {
             currentAdminAnalyticsTab = ['listings', 'ads', 'projects', 'career'].includes(tab) ? tab : 'listings';
+            window.currentAdminAnalyticsTab = currentAdminAnalyticsTab;
             renderDashboardCards();
         }
 
