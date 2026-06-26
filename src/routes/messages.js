@@ -25,15 +25,29 @@ function durationMs(startedAt) {
   return Number(process.hrtime.bigint() - startedAt) / 1e6;
 }
 
-function safeJson(value) {
-  return JSON.parse(JSON.stringify(value, (_key, v) =>
-    typeof v === 'bigint' ? v.toString() : v
-  ));
+function toSafeJson(value) {
+  return JSON.parse(JSON.stringify(value, (_key, v) => {
+    if (typeof v === 'bigint') return v.toString();
+    if (v instanceof Date) return v.toISOString();
+    return v;
+  }));
 }
+
+const safeJson = toSafeJson;
 
 function jsonSafe(res, payload, statusCode) {
   const response = res.status(statusCode || res.statusCode);
-  return response.json(safeJson(payload));
+  return response.json(toSafeJson(payload));
+}
+
+function logMessagesConversationsResponse(data) {
+  console.log('[messages/conversations] response data', data);
+  return data;
+}
+
+function jsonMessagesConversations(res, payload, statusCode) {
+  logMessagesConversationsResponse(payload);
+  return jsonSafe(res, payload, statusCode);
 }
 
 function listingInclude() {
@@ -165,7 +179,7 @@ async function markDeliveredInBackground(userId) {
   undelivered.forEach((message) => emitToUser(message.senderId, 'message:delivered', safeJson({ conversationId: message.conversationId, messageId: message.id, deliveredAt: deliveredNow })));
 }
 
-router.get('/', authenticate, asyncHandler(async (req, res) => {
+async function listConversations(req, res) {
   markDeliveredInBackground(req.auth.id).catch((error) => console.warn('[messages] delivered background failed', { userId: req.auth.id, message: error.message, code: error.code }));
   const conversations = await prisma.conversation.findMany({
     where: { participants: { some: { userId: Number(req.auth.id) } } },
@@ -175,7 +189,10 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
   const visibleConversations = dedupeConversationsByParticipantPair(conversations.filter((conversation) => isConversationVisibleForParticipant(conversation, req.auth.id)), req.auth.id);
   const counts = await conversationUnreadCounts(req.auth.id, visibleConversations);
   return jsonSafe(res, { data: visibleConversations.map((conversation) => serializeConversation(conversation, req.auth.id, counts.get(String(conversation.id)) || 0)) });
-}));
+}
+
+router.get('/', authenticate, asyncHandler(listConversations));
+router.get('/conversations', authenticate, asyncHandler(listConversations));
 
 router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
   const startedAt = process.hrtime.bigint();
@@ -186,11 +203,11 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
 
     if (listingId) {
       listing = await prisma.listing.findUnique({ where: { id: listingId }, include: listingInclude() });
-      if (!listing || listing.status !== 'approved') return res.status(404).json(safeJson({ message: 'Listing not found.' }));
+      if (!listing || listing.status !== 'approved') return jsonMessagesConversations(res, { message: 'Listing not found.' }, 404);
       receiverId = toIntId(listing.userId);
     }
-    if (!receiverId) return res.status(400).json(safeJson({ message: 'Recipient is required.' }));
-    if (String(receiverId) === String(req.auth.id)) return res.status(400).json(safeJson({ message: 'Öz elanınıza mesaj yaza bilməzsiniz.' }));
+    if (!receiverId) return jsonMessagesConversations(res, { message: 'Recipient is required.' }, 400);
+    if (String(receiverId) === String(req.auth.id)) return jsonMessagesConversations(res, { message: 'Öz elanınıza mesaj yaza bilməzsiniz.' }, 400);
 
     const participantIds = [Number(req.auth.id), receiverId];
     const existingParticipants = await prisma.participant.findMany({
@@ -234,7 +251,7 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
       return saved;
     });
     console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existing), durationMs: Math.round(durationMs(startedAt)) });
-    return jsonSafe(res, { conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
+    return jsonMessagesConversations(res, { conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
   } catch (error) {
     console.error('[messages] create/open conversation failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;
@@ -243,8 +260,8 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
 
 router.get('/conversations/:id', authenticate, asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
-  if (!id) return res.status(400).json(safeJson({ message: 'Invalid conversation ID.' }));
-  if (!await requireParticipant(id, req.auth.id)) return res.status(403).json(safeJson({ message: 'Conversation access denied.' }));
+  if (!id) return jsonSafe(res, { message: 'Invalid conversation ID.' }, 400);
+  if (!await requireParticipant(id, req.auth.id)) return jsonSafe(res, { message: 'Conversation access denied.' }, 403);
 
   const now = new Date();
   const unread = await prisma.message.findMany({ where: { conversationId: id, receiverId: Number(req.auth.id), isRead: false }, select: { id: true, senderId: true } });
@@ -273,13 +290,13 @@ router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req
   const startedAt = process.hrtime.bigint();
   try {
     const id = toBigIntId(req.params.id);
-    if (!id) return res.status(400).json(safeJson({ message: 'Invalid conversation ID.' }));
-    if (!await requireParticipant(id, req.auth.id)) return res.status(403).json(safeJson({ message: 'Conversation access denied.' }));
+    if (!id) return jsonSafe(res, { message: 'Invalid conversation ID.' }, 400);
+    if (!await requireParticipant(id, req.auth.id)) return jsonSafe(res, { message: 'Conversation access denied.' }, 403);
     const text = String(req.body.text || '').trim();
-    if (!text) return res.status(400).json(safeJson({ message: 'Message text is required.' }));
+    if (!text) return jsonSafe(res, { message: 'Message text is required.' }, 400);
 
     const participant = await prisma.participant.findFirst({ where: { conversationId: id, userId: { not: Number(req.auth.id) } }, include: { user: true } });
-    if (!participant) return res.status(400).json(safeJson({ message: 'Recipient not found.' }));
+    if (!participant) return jsonSafe(res, { message: 'Recipient not found.' }, 400);
     const deliveredAt = isUserOnline(participant.userId) ? new Date() : null;
 
     const message = await prisma.$transaction(async (tx) => {
@@ -302,25 +319,25 @@ router.post('/conversations/:id/messages', authenticate, asyncHandler(async (req
 
 router.delete('/messages/:messageId', authenticate, asyncHandler(async (req, res) => {
   const messageId = toBigIntId(req.params.messageId);
-  if (!messageId) return res.status(400).json(safeJson({ message: 'Invalid message ID.' }));
+  if (!messageId) return jsonSafe(res, { message: 'Invalid message ID.' }, 400);
   const existing = await prisma.message.findUnique({ where: { id: messageId }, include: { conversation: { include: { participants: true } } } });
-  if (!existing) return res.status(404).json(safeJson({ message: 'Message not found.' }));
-  if (String(existing.senderId) !== String(req.auth.id)) return res.status(403).json(safeJson({ message: 'Yalnız öz mesajınızı silə bilərsiniz.' }));
-  if (!await requireParticipant(existing.conversationId, req.auth.id)) return res.status(403).json(safeJson({ message: 'Conversation access denied.' }));
+  if (!existing) return jsonSafe(res, { message: 'Message not found.' }, 404);
+  if (String(existing.senderId) !== String(req.auth.id)) return jsonSafe(res, { message: 'Yalnız öz mesajınızı silə bilərsiniz.' }, 403);
+  if (!await requireParticipant(existing.conversationId, req.auth.id)) return jsonSafe(res, { message: 'Conversation access denied.' }, 403);
 
   const deletedAt = new Date();
   const deleted = await prisma.message.update({ where: { id: messageId }, data: { deletedAt, deletedById: Number(req.auth.id) } });
   const payload = { conversationId: deleted.conversationId, message: serializeMessage(deleted), messageId: deleted.id, deletedAt, deletedById: Number(req.auth.id) };
   const safePayload = safeJson(payload);
   existing.conversation.participants.forEach((participant) => emitToUser(participant.userId, 'message:deleted', safePayload));
-  return res.json(safeJson(safePayload));
+  return jsonSafe(res, safePayload);
 }));
 
 router.patch('/conversations/:id/hide', authenticate, asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
-  if (!id) return res.status(400).json(safeJson({ message: 'Invalid conversation ID.' }));
+  if (!id) return jsonSafe(res, { message: 'Invalid conversation ID.' }, 400);
   const participant = await requireParticipant(id, req.auth.id);
-  if (!participant) return res.status(403).json(safeJson({ message: 'Conversation access denied.' }));
+  if (!participant) return jsonSafe(res, { message: 'Conversation access denied.' }, 403);
   const hiddenAt = new Date();
   await prisma.participant.update({ where: { id: participant.id }, data: { hiddenAt } });
   emitToUser(req.auth.id, 'conversation:hidden', safeJson({ conversationId: id, hiddenAt }));
@@ -329,9 +346,9 @@ router.patch('/conversations/:id/hide', authenticate, asyncHandler(async (req, r
 
 router.patch('/conversations/:id/clear', authenticate, asyncHandler(async (req, res) => {
   const id = toBigIntId(req.params.id);
-  if (!id) return res.status(400).json(safeJson({ message: 'Invalid conversation ID.' }));
+  if (!id) return jsonSafe(res, { message: 'Invalid conversation ID.' }, 400);
   const participant = await requireParticipant(id, req.auth.id);
-  if (!participant) return res.status(403).json(safeJson({ message: 'Conversation access denied.' }));
+  if (!participant) return jsonSafe(res, { message: 'Conversation access denied.' }, 403);
   const clearedAt = new Date();
   await prisma.participant.update({ where: { id: participant.id }, data: { clearedAt } });
   return jsonSafe(res, { success: true, conversationId: id, clearedAt });
