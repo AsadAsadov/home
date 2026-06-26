@@ -181,7 +181,10 @@ function updateDesktopAdRailPosition(rail) {
     const railTop = railRect.top + window.scrollY;
     const railHeight = rail.offsetHeight;
     const cardHeight = card.offsetHeight;
-    const maxTranslation = Math.max(0, railHeight - cardHeight);
+    const railStyles = window.getComputedStyle(rail);
+    const railPaddingTop = parseFloat(railStyles.paddingTop) || 0;
+    const railPaddingBottom = parseFloat(railStyles.paddingBottom) || 0;
+    const maxTranslation = Math.max(0, railHeight - railPaddingTop - railPaddingBottom - cardHeight);
     const translation = clampDesktopAdTranslation(window.scrollY - railTop, 0, maxTranslation);
     card.style.setProperty('--desktop-ad-translate-y', `${translation}px`);
 }
