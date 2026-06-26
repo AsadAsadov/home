@@ -332,10 +332,8 @@
         }
         .theme-toggle-btn:hover,
         .site-music-controls:hover { transform: translateY(-1px); border-color: rgba(var(--primary-rgb), .55); }
-        .theme-toggle-btn { min-width: 42px; min-height: 38px; border-radius: 999px; padding: .48rem .62rem; font-size: .76rem; font-weight: 900; }
-        .theme-toggle-btn span { max-width: 4.8rem; overflow: hidden; text-overflow: ellipsis; }
-        .theme-toggle-btn.is-icon-only { width: 38px; min-width: 38px; padding: 0; gap: 0; }
-        .theme-toggle-btn.is-icon-only span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .theme-toggle-btn { width: 36px; min-width: 36px; min-height: 36px; border-radius: 999px; padding: 0; font-size: .82rem; font-weight: 900; }
+        .theme-toggle-btn.is-icon-only { width: 36px; min-width: 36px; padding: 0; gap: 0; }
         .site-music-controls {
             position: fixed;
             right: 24px;
@@ -5281,7 +5279,10 @@
         .desktop-header-cluster .vacancy-cta {
             position: relative;
             flex: 0 0 auto;
-            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            gap: .42rem;
+            min-height: 40px;
             padding: 0 !important;
             border: 0 !important;
             background: transparent !important;
@@ -5305,23 +5306,23 @@
             flex: 0 0 auto;
             align-items: center;
             justify-content: flex-end;
-            gap: 8px;
-            margin-left: 8px;
+            gap: 7px;
+            margin-left: 6px;
             padding-left: 0;
             border-left: 0;
         }
         .header-action-btn {
-            min-width: 42px;
-            height: 42px;
-            min-height: 42px;
-            padding: 0 12px;
+            min-width: 38px;
+            height: 38px;
+            min-height: 38px;
+            padding: 0 10px;
             border-radius: 13px;
         }
-        .header-badge-btn { width: 42px; padding: 0; }
+        .header-badge-btn { width: 38px; padding: 0; }
         .header-action-btn--primary {
-            height: 42px;
-            min-height: 42px;
-            padding-inline: 16px;
+            height: 38px;
+            min-height: 38px;
+            padding-inline: 14px;
             border-radius: 13px;
             box-shadow: 0 8px 20px rgba(var(--primary-rgb), .22);
         }
@@ -5334,7 +5335,7 @@
             .header-actions-row { gap: 6px; margin-left: 4px; }
             .header-action-btn { padding-inline: 10px; }
             .header-actions-row .header-action-btn span:not(.header-badge-btn__badge):not(.header-badge-btn__slot) { display: none; }
-            .header-action-btn--primary { width: 42px; padding: 0; }
+            .header-action-btn--primary { width: 38px; padding: 0; }
         }
         @media (max-width: 1023px) {
             :root { --header-height: calc(64px + env(safe-area-inset-top)); }
@@ -7349,6 +7350,7 @@
                         <label class="premium-filter-label" for="project-delivery-year-filter">Təhvil ili</label>
                         <select id="project-delivery-year-filter" onchange="projectPage = 1; renderOfficialProjects()" class="premium-filter-control px-4 text-sm">
                             <option value="all">Bütün illər</option>
+                            <option value="delivered">Təhvil verilib</option>
                         </select>
                     </div>
                 </div>
@@ -7987,7 +7989,7 @@
                     </div>
                     <div class="rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center justify-between gap-3">
                         <div><h3 class="text-sm font-black text-white">Görünüş</h3><p class="text-[11px] text-gray-400">İşıqlı, qaranlıq və ya sistem rejimi.</p></div>
-                        <button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn is-icon-only"><i data-theme-toggle-icon class="fa-solid fa-sun"></i><span data-theme-toggle-label>İşıqlı</span></button>
+                        <button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn is-icon-only" aria-label="Light/Dark rejimini dəyiş" title="Light/Dark rejimini dəyiş"><i data-theme-toggle-icon class="fa-solid fa-sun" aria-hidden="true"></i></button>
                     </div>
                     <form onsubmit="handleProfileUpdate(event)" class="space-y-3">
                         <input id="profile-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">

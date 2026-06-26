@@ -64,9 +64,8 @@
             if (!select) return;
             const current = select.value || 'all';
             const years = [...new Set(projects.map(extractProjectDeliveryYear).filter(Boolean))].sort();
-            const deliveredOption = projects.some(isProjectDelivered) ? '<option value="delivered">Təhvil verilib</option>' : '';
-            select.innerHTML = '<option value="all">Bütün illər</option>' + deliveredOption + years.map(year => `<option value="${year}">${year}</option>`).join('');
-            select.value = current === 'delivered' && projects.some(isProjectDelivered) ? 'delivered' : (years.includes(current) ? current : 'all');
+            select.innerHTML = '<option value="all">Bütün illər</option><option value="delivered">Təhvil verilib</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+            select.value = current === 'delivered' ? 'delivered' : (years.includes(current) ? current : 'all');
         }
 
 

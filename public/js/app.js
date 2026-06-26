@@ -968,19 +968,16 @@
             document.body.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '#ffffff';
             document.querySelectorAll('.site-header, header, footer').forEach(el => { el.style.transition = 'none'; el.style.backgroundColor = resolvedTheme === 'dark' ? '#000000' : '#ffffff'; });
             updateThemeLogos(resolvedTheme);
-            document.querySelectorAll('[data-theme-toggle-label]').forEach(el => { el.textContent = resolvedTheme === 'dark' ? 'Qaranlıq' : 'İşıqlı'; });
             document.querySelectorAll('[data-theme-toggle-icon]').forEach(el => { el.className = resolvedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun'; });
         }
 
         function cycleSiteTheme() {
-            const order = ['light', 'dark'];
-            const current = preferredTheme();
-            applySiteTheme(order[(order.indexOf(current) + 1) % order.length]);
+            applySiteTheme(getResolvedSiteTheme() === 'dark' ? 'light' : 'dark');
             updateHeaderUI();
         }
 
         function themeToggleHtml(extraClass = '') {
-            return `<button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn is-icon-only ${extraClass}" aria-label="Light/Dark rejimini dəyiş"><i data-theme-toggle-icon class="fa-solid fa-sun"></i><span data-theme-toggle-label>İşıqlı</span></button>`;
+            return `<button type="button" onclick="cycleSiteTheme()" class="theme-toggle-btn is-icon-only ${extraClass}" aria-label="Light/Dark rejimini dəyiş" title="Light/Dark rejimini dəyiş"><i data-theme-toggle-icon class="fa-solid fa-sun" aria-hidden="true"></i></button>`;
         }
 
         function normalizeMusicTrack(track = {}) {
