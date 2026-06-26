@@ -21,7 +21,7 @@ function visibleRotationAds() {
 }
 
 function getAdSignature(ads = []) {
-    return ads.map(ad => [ad.id, ad.rotationOrder, ad.repeatCount, ad.displayDuration, ad.mediaType, ad.position].join(':')).join('|');
+    return ads.map(ad => [ad.id, ad.rotationOrder, ad.repeatCount, ad.displayDuration, ad.mediaType, ad.position, ad.widthPx, ad.heightPx, ad.objectFit].join(':')).join('|');
 }
 
 function clearAdRotationTimer() {
@@ -80,6 +80,20 @@ function clearDesktopAdRail(rail) {
     rail.replaceChildren();
 }
 
+
+function applyDesktopAdDimensions(element, ad) {
+    if (!element || !ad) return;
+    const dimensions = getAdDimensions(ad);
+    element.style.setProperty('--ad-width', `${dimensions.width}px`);
+    element.style.setProperty('--ad-height', `${dimensions.height}px`);
+}
+
+function applyDesktopAdLayoutDimensions(rail, ad) {
+    applyDesktopAdDimensions(rail, ad);
+    const layout = rail.closest('.desktop-ad-layout, .page-with-ads');
+    applyDesktopAdDimensions(layout, ad);
+}
+
 function createDesktopAdLayer(ad, visible = false, mediaNode = null) {
     const layer = document.createElement('div');
     layer.className = `desktop-ad-layer${visible ? ' is-visible' : ''}`;
@@ -91,10 +105,12 @@ function createDesktopAdLayer(ad, visible = false, mediaNode = null) {
 function createDesktopAdCard(ad) {
     const card = document.createElement('article');
     card.className = 'desktop-ad-card desktop-ad-card--responsive';
+    applyDesktopAdDimensions(card, ad);
     card.role = 'button';
     card.tabIndex = 0;
     const stage = document.createElement('div');
     stage.className = 'desktop-ad-stage';
+    applyDesktopAdDimensions(stage, ad);
     stage.appendChild(createDesktopAdLayer(ad, true));
     const label = document.createElement('div');
     label.className = 'desktop-ad-label';
@@ -105,6 +121,9 @@ function createDesktopAdCard(ad) {
 
 function configureDesktopAdCard(card, ad) {
     card.dataset.adId = ad.id || '';
+    applyDesktopAdDimensions(card, ad);
+    const stage = card.querySelector('.desktop-ad-stage');
+    applyDesktopAdDimensions(stage, ad);
     card.onclick = () => handleAdClick(ad.id, ad.clickUrl || '');
     card.onkeydown = event => { if (event.key === 'Enter') handleAdClick(ad.id, ad.clickUrl || ''); };
     const label = card.querySelector('.desktop-ad-label');
@@ -112,6 +131,7 @@ function configureDesktopAdCard(card, ad) {
 }
 
 function showDesktopAdInRail(rail, ad, token, mediaNode = null) {
+    applyDesktopAdLayoutDimensions(rail, ad);
     let card = rail.querySelector('.desktop-ad-card');
     if (!card) {
         card = createDesktopAdCard(ad);
@@ -339,6 +359,8 @@ async function renderDesktopAds(options = {}) {
     trackAdView(ad);
     left.classList.remove('is-loading');
     right.classList.remove('is-loading');
+    applyDesktopAdLayoutDimensions(left, ad);
+    applyDesktopAdLayoutDimensions(right, ad);
     if (ad.position === 'left' || ad.position === 'both') showDesktopAdInRail(left, ad, token, preparedMediaNode);
     else clearDesktopAdRail(left);
     if (ad.position === 'right' || ad.position === 'both') showDesktopAdInRail(right, ad, token, preparedMediaNode ? preparedMediaNode.cloneNode(true) : null);
@@ -382,4 +404,4 @@ async function loadAdsBackground(options = {}) {
 }
 
 
-Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });
+Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, applyDesktopAdDimensions, applyDesktopAdLayoutDimensions, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });

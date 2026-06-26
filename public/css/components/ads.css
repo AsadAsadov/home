@@ -35,8 +35,8 @@
 @media (min-width: 1280px) {
     .page-with-ads,
     .desktop-ad-layout {
-        --ad-width: 120px;
-        --ad-height: 450px;
+        --ad-width: 160px;
+        --ad-height: 560px;
         display: grid;
         grid-template-columns: var(--ad-width) minmax(0, 1fr) var(--ad-width);
         gap: 14px;
@@ -65,8 +65,8 @@
     #desktop-right-ads,
     .desktop-ad-rail {
         display: flex !important;
-        position: sticky !important;
-        top: 110px !important;
+        position: static !important;
+        top: auto !important;
         left: auto !important;
         right: auto !important;
         width: var(--ad-width) !important;
@@ -94,8 +94,8 @@
 @media (min-width: 1440px) {
     .page-with-ads,
     .desktop-ad-layout {
-        --ad-width: 150px;
-        --ad-height: 500px;
+        --ad-width: 160px;
+        --ad-height: 560px;
         grid-template-columns: var(--ad-width) minmax(0, 1fr) var(--ad-width);
         gap: 18px;
         padding: 0 16px;
@@ -110,8 +110,8 @@
 @media (min-width: 1600px) {
     .page-with-ads,
     .desktop-ad-layout {
-        --ad-width: 220px;
-        --ad-height: 550px;
+        --ad-width: 160px;
+        --ad-height: 560px;
         grid-template-columns: var(--ad-width) minmax(0, 1fr) var(--ad-width);
         gap: 24px;
         max-width: 1640px;
@@ -124,7 +124,8 @@
 }
 
 .desktop-ad-card {
-    width: 100%;
+    width: var(--ad-width);
+    max-width: 100%;
     overflow: hidden;
     border-radius: 1rem;
     border: 1px solid rgba(207, 207, 255, 0.75);
@@ -142,13 +143,14 @@
     display: block;
 }
 .desktop-ad-card--responsive {
-    width: 100%;
-    max-width: var(--ad-width);
+    width: var(--ad-width);
+    max-width: 100%;
     min-height: calc(var(--ad-height) + 2rem);
 }
 .desktop-ad-stage {
     display: grid;
-    width: 100%;
+    width: var(--ad-width);
+    max-width: 100%;
     height: var(--ad-height);
     overflow: hidden;
     background: transparent;
@@ -164,7 +166,7 @@
     opacity: 1;
 }
 .desktop-ad-media {
-    width: 100% !important;
+    width: var(--ad-width) !important;
     height: var(--ad-height) !important;
     max-width: 100%;
     aspect-ratio: var(--ad-width) / var(--ad-height);

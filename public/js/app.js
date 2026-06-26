@@ -1568,7 +1568,7 @@
                 : { ...g, id: g.id, title: g.title || '', type: 'event', mediaType: 'image', media_type: 'image', images, mediaUrls: mediaRows, media_urls: mediaRows, image: imageUrl, imageUrl, image_url: imageUrl, thumbnail: thumbnailUrl, thumbnailUrl, thumbnail_url: thumbnailUrl, desc: g.description || g.desc || '', createdAt, sortOrder: g.sortOrder ?? g.sort_order ?? 0, isFeatured: false, is_featured: false };
         }
 
-        const AD_DIMENSION_DEFAULTS = { width: 180, height: 320, objectFit: 'cover' };
+        const AD_DIMENSION_DEFAULTS = { width: 160, height: 560, objectFit: 'cover' };
         const AD_DIMENSION_LIMITS = { minWidth: 80, maxWidth: 1000, minHeight: 80, maxHeight: 1200 };
         const AD_OBJECT_FITS = new Set(['cover', 'contain', 'fill']);
 
@@ -1621,7 +1621,7 @@
 
         function adMediaStyle(ad, responsive = false) {
             const dimensions = getAdDimensions(ad);
-            return responsive ? `width:100%;height:var(--ad-height);object-fit:${dimensions.objectFit};` : `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
+            return responsive ? `--ad-width:${dimensions.width}px;--ad-height:${dimensions.height}px;width:var(--ad-width);height:var(--ad-height);object-fit:${dimensions.objectFit};` : `width:${dimensions.width}px;height:${dimensions.height}px;object-fit:${dimensions.objectFit};`;
         }
 
         function renderAdMedia(ad, classes = '', options = {}) {
@@ -1629,7 +1629,7 @@
             const title = escapeHtml(ad.title || 'Advertisement');
             const dimensions = getAdDimensions(ad);
             const style = adMediaStyle(ad, options.responsive);
-            if (!url) return `<div class="p-4 text-xs text-gray-400" style="${options.responsive ? 'width:100%;height:var(--ad-height);' : `width:${dimensions.width}px;height:${dimensions.height}px;`}">Media yoxdur</div>`;
+            if (!url) return `<div class="p-4 text-xs text-gray-400" style="${options.responsive ? `--ad-width:${dimensions.width}px;--ad-height:${dimensions.height}px;width:var(--ad-width);height:var(--ad-height);` : `width:${dimensions.width}px;height:${dimensions.height}px;`}">Media yoxdur</div>`;
             if (ad.mediaType === 'video') {
                 const loopAttr = options.loop === false ? '' : ' loop';
                 const dataRole = options.rotation ? ` data-ad-rotation-video="true" data-ad-id="${escapeHtml(ad.id || '')}"` : '';
@@ -1648,7 +1648,7 @@
                 const empty = document.createElement('div');
                 empty.className = 'p-4 text-xs text-gray-400';
                 empty.textContent = 'Media yoxdur';
-                empty.style.cssText = options.responsive ? 'width:100%;height:var(--ad-height);' : `width:${dimensions.width}px;height:${dimensions.height}px;`;
+                empty.style.cssText = options.responsive ? `--ad-width:${dimensions.width}px;--ad-height:${dimensions.height}px;width:var(--ad-width);height:var(--ad-height);` : `width:${dimensions.width}px;height:${dimensions.height}px;`;
                 return empty;
             }
             const media = document.createElement(ad.mediaType === 'video' ? 'video' : 'img');
