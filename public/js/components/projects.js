@@ -53,6 +53,15 @@
         }
 
 
+        function getProjectPictureMarkup(project = {}, className = 'w-full h-full object-cover transition duration-500') {
+            const imageUrl = project.img || project.image || project.imageUrl || project.coverImage || project.cover_image || project.mainImage || project.main_image || project.thumbnail || (Array.isArray(project.images) ? project.images[0] : '');
+            const title = project.title || 'BestHome layihəsi';
+            if (imageUrl) {
+                return `<img src="${escapeHtml(imageUrl)}" width="800" height="600" loading="lazy" decoding="async" class="${escapeHtml(className)}" alt="${escapeHtml(title)}">`;
+            }
+            return `<div class="${escapeHtml(className)} flex items-center justify-center bg-gradient-to-br from-slate-900 via-brand-700 to-slate-700 text-white"><span class="text-xs font-black uppercase tracking-[0.28em]">BestHome</span></div>`;
+        }
+
         const PROJECT_VIEW_THROTTLE_MS = 6 * 60 * 60 * 1000;
         let mostViewedProjectsOpen = window.matchMedia ? window.matchMedia('(min-width: 768px)').matches : true;
 
@@ -151,6 +160,7 @@
 
 
         function showToast(message) {
+            if (typeof window.showToast === 'function' && window.showToast !== showToast) { window.showToast(message); return; }
             let toast = document.getElementById('besthome-toast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -717,6 +727,9 @@
         }
 
 
+
+    window.getProjectPictureMarkup = window.getProjectPictureMarkup || getProjectPictureMarkup;
+    window.isProjectLightboxOpen = window.isProjectLightboxOpen || isProjectLightboxOpen;
 
     Object.assign(window, {
         extractProjectDeliveryYear,
