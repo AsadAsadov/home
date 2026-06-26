@@ -1326,6 +1326,21 @@
         .admin-ad-drag-handle:active {
             cursor: grabbing;
         }
+        .most-viewed-projects-toggle { flex: 0 0 auto; width: 42px; height: 42px; display: inline-grid; place-items: center; border-radius: 999px; background: rgba(127,127,255,.12); color: #4f46e5; transition: transform .25s ease, background .25s ease; }
+        .most-viewed-projects-toggle:hover { background: rgba(127,127,255,.2); }
+        .most-viewed-projects-toggle i { transition: transform .28s ease; }
+        .most-viewed-projects-toggle.is-open i { transform: rotate(180deg); }
+        .most-viewed-projects-body { display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows .32s ease, opacity .24s ease, margin .32s ease; overflow: hidden; }
+        .most-viewed-projects-body.is-collapsed { grid-template-rows: 0fr; opacity: 0; margin-top: -1rem; pointer-events: none; }
+        .most-viewed-projects-body > #most-viewed-projects { min-height: 0; overflow: hidden; }
+        #project-inquiry-modal.project-inquiry-backdrop:not(.hidden) { z-index: 5000; background: rgba(2,6,23,.62) !important; backdrop-filter: blur(10px) saturate(115%) !important; -webkit-backdrop-filter: blur(10px) saturate(115%) !important; }
+        .project-inquiry-dialog { width: min(640px, calc(100vw - 24px)); max-width: 680px; max-height: calc(100dvh - 24px); overflow-y: auto; overflow-x: hidden; box-shadow: 0 28px 90px rgba(0,0,0,.38); }
+        @media (max-width: 640px) { .project-inquiry-dialog { width: calc(100vw - 24px); padding: 1rem; } }
+        #tab-seabreeze-info.sea-breeze-page, #seabreeze-info-root, #seaBreezeSections, #tab-seabreeze-info .seabreeze-premium-root { opacity: 1 !important; filter: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; mask-image: none !important; -webkit-mask-image: none !important; }
+        #tab-seabreeze-info .sb-final-cta { opacity: 1 !important; filter: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; mask-image: none !important; -webkit-mask-image: none !important; }
+        html[data-theme="light"] #tab-seabreeze-info.sea-breeze-page { background: #fff !important; }
+        html[data-theme="dark"] #tab-seabreeze-info.sea-breeze-page { background: #020617 !important; }
+
 
         .desktop-ad-layout {
             width: 100%;
@@ -1356,11 +1371,12 @@
             }
             .desktop-ad-rail {
                 display: flex;
-                position: sticky;
-                top: var(--desktop-ad-sticky-top, 100px);
+                position: static;
+                top: auto;
                 width: var(--ad-width);
                 max-width: 100%;
                 min-height: calc(var(--ad-height) + 2rem);
+                height: auto;
                 flex-direction: column;
                 gap: 1rem;
                 z-index: 10;
@@ -7576,11 +7592,14 @@
                     </div>
                 </div>
 
-                <section class="glass-card rounded-3xl border border-white/10 p-4 sm:p-5 space-y-4">
+                <section class="glass-card rounded-3xl border border-white/10 p-4 sm:p-5 space-y-4 most-viewed-projects-section">
                     <div class="flex items-center justify-between gap-3">
                         <div><h2 class="text-xl sm:text-2xl font-black text-slate-950">🔥 Ən çox baxılan layihələr</h2><p class="text-xs font-bold text-slate-500">BestHome ziyarətçilərinin ən çox açdığı premium layihələr.</p></div>
+                        <button id="mostViewedProjectsToggle" type="button" onclick="toggleMostViewedProjects()" class="most-viewed-projects-toggle" aria-expanded="false" aria-controls="mostViewedProjectsBody" aria-label="Ən çox baxılan layihələri aç və ya bağla"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
-                    <div id="most-viewed-projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+                    <div id="mostViewedProjectsBody" class="most-viewed-projects-body is-collapsed">
+                        <div id="most-viewed-projects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+                    </div>
                 </section>
 
 
@@ -9064,8 +9083,8 @@ Title: CASPIAN DREAM LINER
 
 
 
-    <div id="project-inquiry-modal" class="modal-glass-backdrop hidden fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Layihə müraciəti" onclick="if (event.target === this) closeProjectInquiryModal()">
-        <div class="glass-card w-full max-w-md rounded-3xl border border-white/10 p-6">
+    <div id="project-inquiry-modal" class="modal-glass-backdrop project-inquiry-backdrop hidden fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true" aria-label="Layihə müraciəti" onclick="if (event.target === this) closeProjectInquiryModal()">
+        <div class="project-inquiry-dialog glass-card rounded-3xl border border-white/10 p-5 sm:p-6">
             <div class="flex items-center justify-between gap-3 mb-4">
                 <h3 class="text-xl font-black text-white">💬 Maraqlanıram</h3>
                 <button type="button" onclick="closeProjectInquiryModal()" class="text-gray-300 hover:text-white">✕</button>
@@ -17315,11 +17334,28 @@ Təşəkkür edirəm. 🙏`;
 
 
         const PROJECT_VIEW_THROTTLE_MS = 6 * 60 * 60 * 1000;
+        let mostViewedProjectsOpen = window.matchMedia ? window.matchMedia('(min-width: 768px)').matches : true;
+
+        function setMostViewedProjectsOpen(open) {
+            mostViewedProjectsOpen = Boolean(open);
+            const body = document.getElementById('mostViewedProjectsBody');
+            const toggle = document.getElementById('mostViewedProjectsToggle');
+            if (body) body.classList.toggle('is-collapsed', !mostViewedProjectsOpen);
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', String(mostViewedProjectsOpen));
+                toggle.classList.toggle('is-open', mostViewedProjectsOpen);
+            }
+        }
+
+        function toggleMostViewedProjects() {
+            setMostViewedProjectsOpen(!mostViewedProjectsOpen);
+        }
 
         function renderMostViewedProjects() {
             const el = document.getElementById('most-viewed-projects'); if (!el) return;
             const rows = getOfficialProjects().slice().sort((a,b) => Number(b.viewCount||0)-Number(a.viewCount||0)).slice(0,5);
             el.innerHTML = rows.length ? rows.map(p => `<button type="button" onclick="openOfficialProjectModal('${p.id}', true)" class="rounded-2xl overflow-hidden border border-slate-200 bg-white/80 text-left hover:-translate-y-1 hover:border-brand-500 transition"><div class="h-28 overflow-hidden">${getProjectPictureMarkup(p,'w-full h-full object-cover')}</div><div class="p-3"><strong class="block truncate text-sm text-slate-950">${escapeHtml(p.title)}</strong><span class="text-xs font-black text-slate-500">👁 ${Number(p.viewCount||0)} baxış</span><div class="mt-2 flex flex-wrap gap-1">${[p.year,p.area].filter(Boolean).slice(0,2).map(x=>`<span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600">${escapeHtml(x)}</span>`).join('')}</div></div></button>`).join('') : '<div class="col-span-full text-sm font-bold text-slate-500">Hələ baxış statistikası yoxdur.</div>';
+            setMostViewedProjectsOpen(mostViewedProjectsOpen);
         }
 
 
