@@ -253,7 +253,7 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
     console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existing), durationMs: Math.round(durationMs(startedAt)) });
     return jsonMessagesConversations(res, { conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
   } catch (error) {
-    console.error('[messages] create/open conversation failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
+    console.error('[messages/conversations] failed', { userId: req.auth.id, durationMs: Math.round(durationMs(startedAt)), message: error.message, code: error.code, meta: error.meta });
     throw error;
   }
 }));

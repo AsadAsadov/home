@@ -29,6 +29,16 @@ const { startAutoApproveExpiredListingsJob } = require('./utils/autoApproveListi
 
 const app = express();
 app.set('trust proxy', 1);
+
+const originalJson = express.response.json;
+express.response.json = function jsonWithBigInt(body) {
+  if (arguments.length === 0 || body === undefined) return originalJson.call(this, body);
+  const safeBody = JSON.parse(JSON.stringify(body, (_key, value) => {
+    if (typeof value === 'bigint') return value.toString();
+    return value;
+  }));
+  return originalJson.call(this, safeBody);
+};
 app.set('json replacer', (_key, value) => {
   if (typeof value !== 'bigint') return value;
   return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
