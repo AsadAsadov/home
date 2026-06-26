@@ -369,3 +369,47 @@ No broad shared media layer was created. Only Gallery-owned media helpers are in
 ### Refactor progress
 
 Phase 2.8 reduced duplication by delegating Gallery thumbnail/media fallback helpers to `components/gallery.js` and generic admin submit-button loading to `admin/admin.js`. Notification extraction was intentionally deferred because the implementation is coupled to Chat realtime state.
+
+## Admin split status (Phase 2.11)
+
+Phase 2.11 starts the Admin split conservatively. `app.js` remains the bootstrap/integration owner for admin tabs, auth/session checks, protected route routing, dashboard aggregation, mixed public/admin listing forms, and all unsafe mixed CRUD/render flows.
+
+### Admin dependency map summary
+
+| Category | Approx. app.js lines before extraction | Functions/blocks mapped | Globals read/written | Endpoints | DOM ownership | Destination | Risk |
+| --- | ---: | --- | --- | --- | --- | --- | --- |
+| Admin listings | ~900 | `loadAdminListings`, `adminListingStatsFromListings`, listing hero CRUD/order, listing moderation actions (`approveListing`, `rejectListing`, `deactivateListing`), admin listing map/search/form helpers | `appData`, `activeUser`, `dataLoadState`, listing image/map state, `adminListingMap`, `adminListingMarker` | `/api/listings/admin`, `/api/listings/:id/approve`, `/reject`, `/deactivate`, `/api/listing-hero-items` | `admin-listing-*`, `listing-hero-*`, `sb-*` | `admin-listings.js` for safe moderation actions; mixed form/map/listing-hero remains in `app.js` | Medium/high because listing create/edit is shared with public user listing flow |
+| Admin projects | ~1,000 | project image rows, project form open/reset, search/order/drag, render/save/edit/delete/archive/bulk import, hero toggles | `appData`, `officialSeaBreezeProjects`, project image/PDF state, map state | `/api/projects`, `/api/projects/:id`, `/api/projects/reorder`, archive endpoints | `project-*`, `admin-projects-*`, archive/bulk import ids | `admin-projects.js` placeholder only; code remains in `app.js` | High because project admin shares public project modal/options and listing project synchronization |
+| Admin gallery | ~450 | gallery admin form open/close, preview, save/edit/delete, order drag, admin render, hero toggle | `appData.gallery`, `uploadedGalleryFiles`, `window.BestHomeGallery`, public gallery pagination | `/api/gallery`, `/api/gallery/:id`, `/api/gallery/reorder`, `/api/gallery/:id/hero` | `gallery-*`, `admin-gallery-*` | `admin-gallery.js` placeholder only; code remains in `app.js` | High because admin CRUD refreshes public gallery runtime and shared detail modal state |
+| Admin users | ~280 | refresh/autorefresh, create/edit modal, verify/block/delete | `appData.agents`, `activeUser`, modal state, user action submission flag | `/api/users`, `/api/users/:id`, `/verify-email`, `/activate`, `/block` | `user-edit-*`, `agent-reg-*`, `admin-users-*` | `admin-users.js` placeholder only; code remains in `app.js` | Medium because modal lifecycle is safe but dashboard rendering is still centralized |
+| Admin settings | ~340 | site settings, site music CRUD/order/preview | `appData.siteSettings`, `appData.musicTracks`, homepage music player state | `/api/site-settings`, `/api/admin/site-music` | `site-settings-*`, `music-admin-*`, `admin-music-list` | `admin-settings.js` placeholder only; code remains in `app.js` | Medium/high because public music playback and settings UI hydration share state |
+| Admin notifications | ~140 | broadcast form open/reset/send, Google users email send | `activeUser`, notification form state | `/api/admin/notifications/broadcast`, `/api/admin/google-users/email` | `broadcast-*`, `google-email-*` | `admin-notifications.js` placeholder only; code remains in `app.js` | Medium because public notification component and Socket.IO listener ownership must stay unchanged |
+| Admin Sea Breeze | ~420 | Sea Breeze hero/about section admin, gallery/content preview, save/edit/delete/toggle/order | `window.__seaBreeze*`, `appData`, public Sea Breeze render functions | `/api/seabreeze/*` | `sb-hero-*`, `sb-sections-*`, `seabreeze-*` | `admin-seabreeze.js` placeholder only; code remains in `app.js` | High because public Sea Breeze runtime and admin content editor are adjacent |
+| Admin vacancies/career | ~350 | vacancy save/edit/delete/render/status | `appData.vacancies`, career render state | `/api/vacancies` | `vacancy-*`, `admin-vacancy-*` | left in `app.js` | Mixed; not requested for this split |
+| Admin dashboard/stats | ~600 | background admin load, dashboard render, stats refresh, analytics panel, inquiry render/status/delete | `appData.dashboardStats`, `activeUser`, subtabs | `/api/admin/stats/overview`, `/api/applications`, `/api/project-inquiries` | `admin-dashboard`, analytics panels, inquiry ids | left in `app.js` | High; this is integration/aggregation owner |
+| Shared admin helper | ~120 | `beginAdminAction`, `finishAdminAction`, button loading helpers, runtime bridge | `activeAdminActions`, submission flags | none | shared admin buttons/forms | `admin.js` plus `window.BestHomeAdminRuntime` bridge in `app.js` | Low when DOM-only; runtime bridge is intentionally narrow |
+| Mixed / unsafe | large | public/admin listing forms, routes, auth, Socket.IO, public gallery/project/Sea Breeze refreshes | broad shared state | broad | broad | left in `app.js` | High |
+
+### Admin module ownership and window exports
+
+- `public/js/admin/admin.js` remains the shared DOM helper layer.
+- `public/js/admin/admin-listings.js` now owns the safe listing moderation status actions: `approveListing`, `rejectListing`, and `deactivateListing`.
+- `public/js/admin/admin-projects.js`, `admin-gallery.js`, `admin-users.js`, `admin-settings.js`, `admin-notifications.js`, and `admin-seabreeze.js` are loaded as domain namespaces for the next safe extraction pass, but their feature bodies intentionally remain in `app.js` until their mixed dependencies are isolated.
+- Compatibility exports retained on `window`: `approveListing`, `rejectListing`, and `deactivateListing` still resolve for existing inline handlers.
+- `app.js` keeps same-named wrappers for internal lexical compatibility and delegates those listing moderation actions to `window.BestHomeAdminListings`.
+
+### Shared dependencies
+
+`app.js` exposes a narrow `window.BestHomeAdminRuntime` bridge for extracted admin modules. The current bridge includes shared state/read helpers for listing moderation only: `appData`, `activeUser`, `apiRequest`, `cacheData`, `dbListingToUi`, `isAdminRole`, `loadAdminListings`, `renderAdminDashboard`, `renderSeaBreeze`, `showToast`, `beginAdminAction`, and `finishAdminAction`.
+
+### Functions intentionally left in app.js and why
+
+Project CRUD/order/import, gallery CRUD/order, user CRUD, site settings/music, broadcast notifications, Sea Breeze admin content, vacancies, listing forms/maps, listing hero management, dashboard/stats, routing, auth/session, and Socket.IO-related integration remain in `app.js`. They either read/write shared public runtime state, depend on centralized dashboard rendering, use mixed public/admin DOM, or coordinate protected routing/session behavior.
+
+### Next blockers before HTML componentization
+
+1. Create an explicit admin dependency injection contract per domain instead of adding broad globals.
+2. Split dashboard rendering into smaller render functions so users/projects/gallery/settings modules can refresh their own panels safely.
+3. Separate public listing create/edit state from admin listing moderation and listing map helpers.
+4. Separate public Gallery detail modal state from admin Gallery CRUD refreshes.
+5. Isolate Sea Breeze public rendering from Sea Breeze admin content editing.
