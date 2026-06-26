@@ -252,3 +252,80 @@ Remaining non-core functions in `app.js` are intentionally left because they are
 - Feature-specific requests, component state, renderers, observers, Socket.IO, and route behavior were not moved.
 - Window compatibility was preserved by exporting the same helper names globally.
 - `app.js` still contains substantial feature code; this is expected until Gallery, Notifications, Admin, and HTML componentization are separately extracted.
+
+## Phase 2.8 dependency cleanup
+
+### Dependency analysis summary
+
+The remaining `app.js` functions were grouped by ownership before moving code:
+
+- Gallery-only helpers read gallery item fields and Gallery DOM (`portfolio-grid`, `featured-video-section`, gallery modal media nodes), write Gallery render state (`currentFilter`, `featuredVideoIndex`, `galleryLazyObserver`, `galleryPagination`, `galleryHeroToggleSubmittingId`) and use Core API/cache helpers through `apiRequest` and `cacheData`.
+- Notification dropdown/panel state is currently owned by `components/chat.js`, because it shares `messagingState`, Socket.IO realtime updates, chat unread counts, header badge refresh, and message navigation. It was not moved to avoid duplicating Socket.IO, notification cache, or unread state.
+- Generic admin loading helpers read/write button DOM state only and are owned by `admin/admin.js`; feature CRUD, admin routes, page state, API mutations, and feature renderers remain in `app.js` or feature admin files.
+- Shared modal helpers remain in `app.js` because modal state is still cross-cutting (`Gallery`, `Projects`, `Listing`, fullscreen map, Sea Breeze media) and is tied to global backdrop/body scroll compatibility.
+- Shared media helpers were moved only where ownership was already clear: Gallery video thumbnail/placeholder/error helpers live in `components/gallery.js`; listing/project/hero media logic remains feature-specific.
+
+### Dependency graph
+
+```text
+app.js
+  ├─ core/api.js               (apiRequest for feature loaders and mutations)
+  ├─ core/cache.js             (cacheData/readCache/getCachedData/invalidateCache)
+  ├─ core/state.js             (appData compatibility)
+  ├─ components/gallery.js     (Gallery normalization + media thumbnail helpers)
+  ├─ components/chat.js        (messagingState, notifications, Socket.IO, badges)
+  ├─ components/notifications.js (small badge formatting helpers only)
+  ├─ admin/admin.js            (generic admin button/form helpers)
+  └─ feature components        (projects, listing modal, ads, hero)
+```
+
+### Ownership graph
+
+```text
+Gallery
+  ├─ Owns: gallery media normalization, gallery thumbnail fallback, gallery media placeholder, lazy media marker
+  ├─ Still in app.js: Gallery API loading, pagination rendering, admin gallery CRUD, drag ordering, gallery modal/lightbox
+  └─ Reason left: remaining functions touch routing, admin dashboard rendering, shared modal state, or API mutations
+
+Notifications
+  ├─ Owns in chat.js: dropdown/panel rendering, unread state, realtime updates, read/read-all operations
+  ├─ Owns in notifications.js: badge formatting only
+  └─ Reason left: notification state is shared with chat and Socket.IO bootstrap
+
+Admin
+  ├─ Owns in admin/admin.js: generic submit-button loading, hidden toggles, clear form fields
+  ├─ Still in app.js: feature CRUD, admin subtab routes, dashboard rendering, feature-specific validation
+  └─ Reason left: feature admin logic mutates feature APIs and page state
+
+Shared modal/media
+  ├─ Modal remains in app.js pending clearer ownership boundaries
+  └─ Media remains feature-owned except Gallery thumbnail helpers
+```
+
+### Component communication
+
+- `app.js` calls component namespaces through `window.BestHomeGallery`, `window.BestHomeAdmin`, and existing compatibility globals.
+- Inline HTML handlers are preserved; extracted helpers are re-bound in `app.js` with the same local names where existing code expects them.
+- Notification badge/header communication remains via `messagingState` and chat component functions to avoid duplicate unread state.
+
+### Core usage
+
+- API access remains centralized through `apiRequest`.
+- Cache writes remain centralized through `cacheData`/Core cache compatibility helpers.
+- No new fetch wrappers, intervals, observers, or Socket.IO connections were introduced.
+
+### Shared modal layer
+
+No new shared modal file was created in Phase 2.8. Current reusable modal behavior is not isolated enough: Gallery, Listing, Projects, fullscreen maps, and Sea Breeze media still share global backdrop/body state and inline handler compatibility. Extracting now would risk route and modal regressions.
+
+### Shared media layer
+
+No broad shared media layer was created. Only Gallery-owned media helpers are in `components/gallery.js`. Project image inputs, listing uploads/compression, hero media preview, and Sea Breeze media remain with their feature flows because they use different form state, validation, and API payloads.
+
+### Remaining `app.js` responsibilities
+
+`app.js` remains responsible for bootstrap, initialization, SPA routing, auth/session lifecycle, component initialization, cross-component calls, dependency injection through `window.*` compatibility, global modal lifecycle, and feature-specific code not yet safe to extract.
+
+### Refactor progress
+
+Phase 2.8 reduced duplication by delegating Gallery thumbnail/media fallback helpers to `components/gallery.js` and generic admin submit-button loading to `admin/admin.js`. Notification extraction was intentionally deferred because the implementation is coupled to Chat realtime state.

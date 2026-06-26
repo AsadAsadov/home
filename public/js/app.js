@@ -2568,35 +2568,10 @@
         const getYouTubeThumbnail = window.BestHomeGallery.getYouTubeThumbnail;
         const getYouTubeThumbnailFallback = window.BestHomeGallery.getYouTubeThumbnailFallback;
 
-        function getGalleryVideoThumbnail(item = {}) {
-            return item.thumbnailUrl || item.thumbnail_url || item.thumbnail || item.autoThumbnailUrl || item.auto_thumbnail_url || item.imageUrl || item.image_url || getYouTubeThumbnail(item.url || item.videoUrl || item.video_url) || getVimeoThumbnail(item.url || item.videoUrl || item.video_url) || '';
-        }
-
-        function getGalleryVideoThumbnailFallback(item = {}) {
-            const primary = getGalleryVideoThumbnail(item);
-            const youtubeFallback = item.thumbnailFallbackUrl || item.thumbnail_fallback_url || getYouTubeThumbnailFallback(item.url || item.videoUrl || item.video_url);
-            return youtubeFallback && youtubeFallback !== primary ? youtubeFallback : '';
-        }
-
-        function handleGalleryThumbnailError(img) {
-            const fallback = img?.dataset?.fallbackSrc || '';
-            if (fallback && img.src !== fallback) {
-                img.src = fallback;
-                img.removeAttribute('data-fallback-src');
-                return;
-            }
-            const shell = img?.closest('.media-shell');
-            if (shell) {
-                shell.classList.remove('media-skeleton', 'bg-gray-100');
-                shell.classList.add('bg-slate-900');
-                shell.innerHTML = galleryVideoPlaceholderMarkup();
-            }
-        }
-
-        function galleryVideoPlaceholderMarkup() {
-            return `<div class="w-full h-full flex flex-col items-center justify-center text-white bg-gradient-to-br from-slate-950 via-slate-800 to-brand-900"><div class="w-16 h-16 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-2xl shadow-2xl"><i class="fa-solid fa-play ml-1"></i></div><span class="mt-3 text-xs font-black uppercase tracking-[0.25em] text-white/80">Video</span></div>`;
-        }
-
+        const getGalleryVideoThumbnail = window.BestHomeGallery.getGalleryVideoThumbnail;
+        const getGalleryVideoThumbnailFallback = window.BestHomeGallery.getGalleryVideoThumbnailFallback;
+        const handleGalleryThumbnailError = window.BestHomeGallery.handleGalleryThumbnailError;
+        const galleryVideoPlaceholderMarkup = window.BestHomeGallery.galleryVideoPlaceholderMarkup;
         const getVimeoThumbnail = window.BestHomeGallery.getVimeoThumbnail;
         const normalizeGalleryVideoUrl = window.BestHomeGallery.normalizeGalleryVideoUrl;
 
@@ -6789,16 +6764,7 @@ Təşəkkür edirəm. 🙏`;
         let isVacancySaveSubmitting = false;
         let isUserActionSubmitting = false;
 
-        function setSubmitButtonLoading(buttonId, isLoading, loadingText, defaultText) {
-            const button = document.getElementById(buttonId);
-            if (!button) return;
-            button.disabled = isLoading;
-            button.classList.toggle('is-loading', isLoading);
-            button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
-            button.innerHTML = isLoading
-                ? `<span class="button-spinner" aria-hidden="true"></span><span>${loadingText}</span>`
-                : defaultText;
-        }
+        const setSubmitButtonLoading = window.BestHomeAdmin.setSubmitButtonLoading;
 
 
         const adminActionLocks = new Set();
