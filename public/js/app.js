@@ -9107,67 +9107,16 @@ Təşəkkür edirəm. 🙏`;
         }
 
         async function approveListing(id, button = null) {
-            const restore = beginAdminAction(button, `listing-approveListing:${id}`, 'Yenilənir...');
-            if (!restore) return;
-            try {
-                const saved = await apiRequest(`/api/listings/${id}/approve`, { method: 'PATCH' });
-                const list = [...appData.listings];
-                const idx = list.findIndex(x => String(x.id) === String(id));
-                if (idx > -1) list[idx] = dbListingToUi(saved);
-                cacheData('listings', list);
-                appData.dashboardStats = null;
-                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
-                renderAdminDashboard();
-                renderSeaBreeze();
-                showToast('✅ Elan təsdiqləndi.');
-            } catch (error) {
-                alert('Approve alınmadı: ' + error.message);
-            } finally {
-                finishAdminAction(restore);
-            }
+            return window.BestHomeAdminListings?.approveListing(id, button);
         }
 
         async function rejectListing(id, button = null) {
-            const restore = beginAdminAction(button, `listing-rejectListing:${id}`, 'Yenilənir...');
-            if (!restore) return;
-            try {
-                const saved = await apiRequest(`/api/listings/${id}/reject`, { method: 'PATCH' });
-                const list = [...appData.listings];
-                const idx = list.findIndex(x => String(x.id) === String(id));
-                if (idx > -1) list[idx] = dbListingToUi(saved);
-                cacheData('listings', list);
-                appData.dashboardStats = null;
-                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
-                renderAdminDashboard();
-                renderSeaBreeze();
-                showToast('✅ Elan rədd edildi.');
-            } catch (error) {
-                alert('Reject alınmadı: ' + error.message);
-            } finally {
-                finishAdminAction(restore);
-            }
+            return window.BestHomeAdminListings?.rejectListing(id, button);
         }
 
 
         async function deactivateListing(id, button = null) {
-            const restore = beginAdminAction(button, `listing-deactivateListing:${id}`, 'Yenilənir...');
-            if (!restore) return;
-            try {
-                const saved = await apiRequest(`/api/listings/${id}/deactivate`, { method: 'PATCH' });
-                const list = [...appData.listings];
-                const idx = list.findIndex(x => String(x.id) === String(id));
-                if (idx > -1) list[idx] = dbListingToUi(saved);
-                cacheData('listings', list);
-                appData.dashboardStats = null;
-                if (isAdminRole(activeUser?.role)) await loadAdminListings({ render: false }).catch(() => {});
-                renderAdminDashboard();
-                renderSeaBreeze();
-                showToast('✅ Elan deaktiv edildi.');
-            } catch (error) {
-                alert('Deactivate alınmadı: ' + error.message);
-            } finally {
-                finishAdminAction(restore);
-            }
+            return window.BestHomeAdminListings?.deactivateListing(id, button);
         }
 
         // USER REGISTRATION / EDITING
@@ -10761,6 +10710,13 @@ Təşəkkür edirəm. 🙏`;
                 }
             });
         }
+
+        window.BestHomeAdminRuntime = {
+            get appData() { return appData; },
+            get activeUser() { return activeUser; },
+            apiRequest, cacheData, dbListingToUi, isAdminRole, loadAdminListings,
+            renderAdminDashboard, renderSeaBreeze, showToast, beginAdminAction, finishAdminAction
+        };
 
         // MAIN SETUP AND BOOTSTRAP
         window.addEventListener('resize', () => {
