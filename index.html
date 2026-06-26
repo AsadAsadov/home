@@ -9375,7 +9375,7 @@ Title: CASPIAN DREAM LINER
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
         const AD_DESKTOP_MIN_WIDTH = 1366;
-        window.addEventListener('resize', () => { updateDesktopAdStickyOffset(); renderDesktopAds({ force: true }); });
+        window.addEventListener('resize', () => { renderDesktopAds({ force: true }); });
         const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, recoveryTimer: null, stuckTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
         function normalizeRegionType(value, projectName = '') {
@@ -11078,11 +11078,6 @@ Title: CASPIAN DREAM LINER
             if (clickUrl) window.open(clickUrl, '_blank', 'noopener,noreferrer');
         }
 
-        function updateDesktopAdStickyOffset() {
-            const headerHeight = document.querySelector('.site-header')?.offsetHeight || 80;
-            document.documentElement.style.setProperty('--desktop-ad-sticky-top', `${headerHeight + 12}px`);
-        }
-
         function clearDesktopAdRail(rail) {
             rail.querySelectorAll('video').forEach(video => {
                 video.pause();
@@ -11294,7 +11289,6 @@ Title: CASPIAN DREAM LINER
             const left = document.getElementById('desktop-left-ads');
             const right = document.getElementById('desktop-right-ads');
             if (!left || !right) return;
-            updateDesktopAdStickyOffset();
             if (window.innerWidth < AD_DESKTOP_MIN_WIDTH) {
                 clearDesktopAdRail(left);
                 clearDesktopAdRail(right);
@@ -13298,7 +13292,6 @@ Title: CASPIAN DREAM LINER
                 const rail = document.getElementById(id);
                 if (rail) rail.classList.toggle('is-loading', shouldShowRailSkeleton);
             });
-            updateDesktopAdStickyOffset();
         }
 
         function safeHomepageRender(label, callback) {
