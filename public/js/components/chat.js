@@ -284,14 +284,17 @@
             if (!id) return;
             messagingState.activeConversationId = String(id);
             const startedAt = performance.now();
-            const cached = messagingState.conversations.find(c => String(c.id) === String(id)) || (String(messagingState.pendingConversation?.id) === String(id) ? messagingState.pendingConversation : null);
+            const cacheKey = String(id);
+            const cached = messagingState.conversations.find(c => String(c.id) === cacheKey) || (String(messagingState.pendingConversation?.id) === cacheKey ? messagingState.pendingConversation : null);
             const cachedUnreadCount = Number(cached?.unreadCount || 0);
-            const cachedMessages = messagingState.messagesByConversation.get(String(id)) || [];
+            const cachedMessages = messagingState.messagesByConversation.get(cacheKey) || [];
+            const hasFreshConversationCache = Boolean(cached && cachedMessages.length && !cachedUnreadCount && Date.now() - (messagingState.conversationsLoadedAt || 0) < 15000);
             messagingState.activeMessages = cachedMessages.slice();
             renderConversations();
             renderChatWindow(cached || { placeholderName: 'Söhbət', pending: true }, messagingState.activeMessages, !cachedMessages.length);
             perfLog('conversation_open_ms', startedAt);
             if (String(id).startsWith('pending-')) return;
+            if (hasFreshConversationCache) return;
             try {
                 const historyStartedAt = performance.now();
                 let request = messagingState.conversationRequests.get(String(id));
@@ -354,7 +357,8 @@
             messagingState.activeConversation = conversation || messagingState.activeConversation;
             const otherName = conversation?.otherUser?.fullname || conversation?.placeholderName || 'İstifadəçi';
             const loader = loading ? '<div class="typing-placeholder">Söhbət yüklənir…</div>' : '';
-            const listingContext = conversation?.listing || (messages || []).map(messageListingContext).find(Boolean);
+            const messageListingContexts = (messages || []).map(messageListingContext).filter(Boolean);
+            const listingContext = conversation?.listing || messageListingContexts[0];
             const visibleMessages = (messages || []).filter(message => !messageListingContext(message));
             const presenceLine = conversationPresenceLine(conversation?.otherUser);
             const clearButton = conversation?.id && !String(conversation.id).startsWith('pending-') ? `<button type="button" onclick="clearActiveConversation()" class="text-xs font-black text-slate-500 hover:text-brand-600">Söhbəti təmizlə</button>` : '';
