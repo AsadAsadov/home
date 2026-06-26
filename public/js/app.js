@@ -84,7 +84,7 @@
         const AD_DEFAULT_REPEAT_COUNT = 3;
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
-        const AD_DESKTOP_MIN_WIDTH = 1280;
+        const AD_DESKTOP_MIN_WIDTH = 1536;
         window.addEventListener('resize', () => { renderDesktopAds({ force: true }); });
         const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, recoveryTimer: null, stuckTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
@@ -5517,10 +5517,9 @@ ${profileMenuItemsHtml()}
             } else {
                 if (container) container.innerHTML = `
                     ${themeToggleHtml()}
-                    <button onclick="navigateToProfileInfo()" class="header-action-btn"><i class="fa-solid fa-user"></i><span>Profil</span></button>
-                    <button onclick="navigateToCreateListing()" class="header-action-btn header-action-btn--primary"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
+                    <button onclick="setPendingAuthRoute('/profil'); switchTab('admin-login')" class="header-action-btn"><i class="fa-solid fa-right-to-bracket"></i><span>Giriş</span></button>
                 `;
-                if (mobileIcon) mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}</div>`;
+                if (mobileIcon) mobileIcon.innerHTML = `<div class="flex items-center gap-2">${themeToggleHtml('mobile-header-icon')}<button onclick="setPendingAuthRoute('/profil'); switchTab('admin-login')" class="header-action-btn" aria-label="Giriş"><i class="fa-solid fa-right-to-bracket"></i></button></div>`;
                 if (mobileActions) mobileActions.innerHTML = ``;
                 disconnectRealtime();
                 messagingState.notificationsUnread = 0;
