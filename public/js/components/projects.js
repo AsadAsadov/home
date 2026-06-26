@@ -51,13 +51,22 @@
             return deliveryText.match(/\d{4}/)?.[0] || '';
         }
 
+        function isProjectDelivered(project = {}) {
+            const statusText = String(project.status || project.projectStatus || project.project_status || project.deliveryStatus || project.delivery_status || project.badge || project.badge_text || project.deliveryDate || project.delivery_date || project.year || '').trim().toLowerCase();
+            if (/təhvil\s*verilib|tehvil\s*verilib|delivered|completed|complete|hazır|ready|bitib|finished/.test(statusText)) return true;
+            if (project.isDelivered === true || project.is_delivered === true || project.isCompleted === true || project.is_completed === true) return true;
+            const year = Number.parseInt(extractProjectDeliveryYear(project), 10);
+            return Number.isFinite(year) && year <= new Date().getFullYear();
+        }
+
         function renderProjectYearOptions(projects) {
             const select = document.getElementById('project-delivery-year-filter');
             if (!select) return;
             const current = select.value || 'all';
             const years = [...new Set(projects.map(extractProjectDeliveryYear).filter(Boolean))].sort();
-            select.innerHTML = '<option value="all">Bütün illər</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
-            select.value = years.includes(current) ? current : 'all';
+            const deliveredOption = projects.some(isProjectDelivered) ? '<option value="delivered">Təhvil verilib</option>' : '';
+            select.innerHTML = '<option value="all">Bütün illər</option>' + deliveredOption + years.map(year => `<option value="${year}">${year}</option>`).join('');
+            select.value = current === 'delivered' && projects.some(isProjectDelivered) ? 'delivered' : (years.includes(current) ? current : 'all');
         }
 
 
@@ -116,7 +125,7 @@
                 const year = extractProjectDeliveryYear(p);
                 return (selectedProjectCategory === 'all' || p.category === selectedProjectCategory)
                     && (!projectSearchQuery || titleText.includes(projectSearchQuery))
-                    && (deliveryYear === 'all' || year === deliveryYear);
+                    && (deliveryYear === 'all' || (deliveryYear === 'delivered' ? isProjectDelivered(p) : year === deliveryYear));
             });
             officialProjectNavigationProjects = filtered;
             const totalPages = Math.max(Math.ceil(filtered.length / window.PAGE_SIZE), 1);
