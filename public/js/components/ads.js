@@ -77,15 +77,35 @@ function clearDesktopAdRail(rail) {
         video.removeAttribute('src');
         video.load?.();
     });
+    rail.style.removeProperty('--ad-rail-image');
+    rail.style.removeProperty('--ad-object-fit');
+    rail.classList.remove('has-image-background');
     rail.replaceChildren();
 }
 
+function cssUrl(value = '') {
+    return `url("${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}")`;
+}
+
+function applyDesktopAdBackground(element, ad) {
+    if (!element || !ad) return;
+    const dimensions = getAdDimensions(ad);
+    element.style.setProperty('--ad-object-fit', dimensions.objectFit);
+    if (ad.mediaType === 'video' || !ad.mediaUrl) {
+        element.style.removeProperty('--ad-rail-image');
+        element.classList.remove('has-image-background');
+        return;
+    }
+    element.style.setProperty('--ad-rail-image', cssUrl(ad.mediaUrl));
+    element.classList.add('has-image-background');
+}
 
 function applyDesktopAdDimensions(element, ad) {
     if (!element || !ad) return;
     const dimensions = getAdDimensions(ad);
     element.style.setProperty('--ad-width', `${dimensions.width}px`);
     element.style.setProperty('--ad-height', `${dimensions.height}px`);
+    element.style.setProperty('--ad-object-fit', dimensions.objectFit);
 }
 
 function applyDesktopAdLayoutDimensions(rail, ad) {
@@ -106,6 +126,7 @@ function createDesktopAdCard(ad, options = {}) {
     const card = document.createElement('article');
     card.className = 'desktop-ad-card desktop-ad-card--responsive';
     applyDesktopAdDimensions(card, ad);
+    applyDesktopAdBackground(card, ad);
     const dimensions = getAdDimensions(ad);
     card.dataset.adWidth = String(dimensions.width);
     card.dataset.adHeight = String(dimensions.height);
@@ -125,6 +146,7 @@ function createDesktopAdCard(ad, options = {}) {
 function configureDesktopAdCard(card, ad) {
     card.dataset.adId = ad.id || '';
     applyDesktopAdDimensions(card, ad);
+    applyDesktopAdBackground(card, ad);
     const stage = card.querySelector('.desktop-ad-stage');
     applyDesktopAdDimensions(stage, ad);
     card.onclick = () => handleAdClick(ad.id, ad.clickUrl || '');
@@ -135,6 +157,7 @@ function configureDesktopAdCard(card, ad) {
 
 function showDesktopAdInRail(rail, ad, token, mediaNode = null) {
     applyDesktopAdLayoutDimensions(rail, ad);
+    applyDesktopAdBackground(rail, ad);
     const dimensions = getAdDimensions(ad);
     const existingCards = Array.from(rail.querySelectorAll('.desktop-ad-card'));
     const existingCard = existingCards[0] || null;
@@ -391,4 +414,4 @@ async function loadAdsBackground(options = {}) {
 }
 
 
-Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, applyDesktopAdDimensions, applyDesktopAdLayoutDimensions, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });
+Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, cssUrl, applyDesktopAdBackground, applyDesktopAdDimensions, applyDesktopAdLayoutDimensions, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });
