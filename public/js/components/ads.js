@@ -91,13 +91,8 @@ function applyDesktopAdBackground(element, ad) {
     if (!element || !ad) return;
     const dimensions = getAdDimensions(ad);
     element.style.setProperty('--ad-object-fit', dimensions.objectFit);
-    if (ad.mediaType === 'video' || !ad.mediaUrl) {
-        element.style.removeProperty('--ad-rail-image');
-        element.classList.remove('has-image-background');
-        return;
-    }
-    element.style.setProperty('--ad-rail-image', cssUrl(ad.mediaUrl));
-    element.classList.add('has-image-background');
+    element.style.removeProperty('--ad-rail-image');
+    element.classList.remove('has-image-background');
 }
 
 function applyDesktopAdDimensions(element, ad) {
@@ -166,10 +161,49 @@ function showDesktopAdInRail(rail, ad, token, mediaNode = null) {
         const card = createDesktopAdCard(ad, { mediaNode });
         configureDesktopAdCard(card, ad);
         rail.replaceChildren(card);
+        scheduleDesktopAdPositionUpdate();
         return;
     }
     configureDesktopAdCard(existingCard, ad);
     if (existingCards.length > 1) rail.replaceChildren(existingCard);
+    scheduleDesktopAdPositionUpdate();
+}
+
+function clampDesktopAdTranslation(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+function updateDesktopAdRailPosition(rail) {
+    if (!rail || window.innerWidth < AD_DESKTOP_MIN_WIDTH) return;
+    const card = rail.querySelector(':scope > .desktop-ad-card');
+    if (!card) return;
+    const railRect = rail.getBoundingClientRect();
+    const railTop = railRect.top + window.scrollY;
+    const railHeight = rail.offsetHeight;
+    const cardHeight = card.offsetHeight;
+    const maxTranslation = Math.max(0, railHeight - cardHeight);
+    const translation = clampDesktopAdTranslation(window.scrollY - railTop, 0, maxTranslation);
+    card.style.setProperty('--desktop-ad-translate-y', `${translation}px`);
+}
+
+let desktopAdScrollFrame = null;
+function updateDesktopAdPositions() {
+    desktopAdScrollFrame = null;
+    updateDesktopAdRailPosition(document.getElementById('desktop-left-ads'));
+    updateDesktopAdRailPosition(document.getElementById('desktop-right-ads'));
+}
+
+function scheduleDesktopAdPositionUpdate() {
+    if (desktopAdScrollFrame !== null) return;
+    desktopAdScrollFrame = requestAnimationFrame(updateDesktopAdPositions);
+}
+
+function initDesktopAdScrollBehavior() {
+    if (window.__besthomeDesktopAdScrollBehaviorReady) return;
+    window.__besthomeDesktopAdScrollBehaviorReady = true;
+    window.addEventListener('scroll', scheduleDesktopAdPositionUpdate, { passive: true });
+    window.addEventListener('resize', scheduleDesktopAdPositionUpdate);
+    window.addEventListener('load', scheduleDesktopAdPositionUpdate, { once: true });
 }
 
 function attachDesktopAdVideoHandlers(ad, token) {
@@ -376,6 +410,7 @@ async function renderDesktopAds(options = {}) {
     if (ad.position === 'right' || ad.position === 'both') showDesktopAdInRail(right, ad, token, preparedMediaNode ? preparedMediaNode.cloneNode(true) : null);
     else clearDesktopAdRail(right);
     adRotationState.renderedAdId = ad.id;
+    scheduleDesktopAdPositionUpdate();
     attachDesktopAdVideoHandlers(ad, token);
     if (ad.mediaType !== 'video') {
         loadedAdImages.add(ad.mediaUrl || '');
@@ -414,4 +449,6 @@ async function loadAdsBackground(options = {}) {
 }
 
 
-Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, cssUrl, applyDesktopAdBackground, applyDesktopAdDimensions, applyDesktopAdLayoutDimensions, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });
+initDesktopAdScrollBehavior();
+
+Object.assign(window, { adIsWithinDates, visibleRotationAds, getAdSignature, clearAdRotationTimer, resetAdRotationRenderState, finishAdRotationRepeat, trackAdView, handleAdClick, clearDesktopAdRail, cssUrl, applyDesktopAdBackground, applyDesktopAdDimensions, applyDesktopAdLayoutDimensions, createDesktopAdLayer, createDesktopAdCard, configureDesktopAdCard, showDesktopAdInRail, clampDesktopAdTranslation, updateDesktopAdRailPosition, updateDesktopAdPositions, scheduleDesktopAdPositionUpdate, initDesktopAdScrollBehavior, attachDesktopAdVideoHandlers, preloadAdMediaNode, renderDesktopAds, preloadNextAdImage, loadAdsBackground });
