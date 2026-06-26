@@ -1455,6 +1455,7 @@
                 id: l.id,
                 title: firstDefined(l.title, ''),
                 project: firstDefined(l.projectName, l.project_name, l.project, ''),
+                projectName: firstDefined(l.projectName, l.project_name, l.project, ''),
                 regionType: normalizeRegionType(firstDefined(l.regionType, l.region_type, ''), firstDefined(l.projectName, l.project_name, l.project, '')),
                 city: firstDefined(l.city, ''),
                 district: firstDefined(l.district, ''),

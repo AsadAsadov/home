@@ -7159,6 +7159,54 @@
             align-items: center !important;
         }
 
+
+        /* Focused Projects hero spacing: keep the shared ad/content row aligned below the header. */
+        :root { --page-top-gap: clamp(24px, 2vw, 32px); }
+        @media (max-width: 640px) {
+            :root { --page-top-gap: 10px; }
+        }
+
+        /* Desktop listing modal: keep media stable and scroll only the details column. */
+        @media (min-width: 1024px) {
+            #property-detail-modal > .listing-detail-shell {
+                height: calc(100vh - 100px) !important;
+                max-height: calc(100vh - 100px) !important;
+                overflow: hidden !important;
+            }
+            #property-detail-modal .listing-detail-scroll {
+                height: 100% !important;
+                max-height: none !important;
+                overflow: hidden !important;
+                padding-bottom: 0 !important;
+            }
+            #property-detail-modal .listing-detail-modal-grid {
+                display: grid !important;
+                grid-template-columns: minmax(0, 55%) minmax(0, 45%) !important;
+                height: 100% !important;
+                min-height: 0 !important;
+                align-items: stretch !important;
+            }
+            #property-detail-modal .listing-detail-gallery-card {
+                height: 100% !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+                align-content: start !important;
+            }
+            #property-detail-modal .listing-detail-content {
+                height: 100% !important;
+                min-height: 0 !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain;
+            }
+            #property-detail-modal .listing-detail-scroll > .detail-close-btn {
+                position: absolute !important;
+                top: 12px !important;
+                right: 12px !important;
+                z-index: 4010 !important;
+                margin: 0 !important;
+            }
+        }
+
     </style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">

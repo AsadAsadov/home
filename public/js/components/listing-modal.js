@@ -329,7 +329,8 @@ async function openPropertyModal(id, pushRoute = false) {
         }
 
         const visibleLocationLabel = listingLocation;
-        const compactStreetAddress = isListingLocationVisible(p) ? (p.streetAddress || visibleLocationLabel || '') : '';
+        const listingProjectLocation = p.projectName || p.project || p.projectTitle || p.project_name || '';
+        const compactStreetAddress = isListingLocationVisible(p) ? (listingProjectLocation || p.settlement || p.streetAddress || p.district || visibleLocationLabel || '') : '';
         document.getElementById('p-modal-street-address').textContent = compactStreetAddress ? `📌 ${compactStreetAddress}` : '';
         const locationSection = document.getElementById('p-modal-location-section');
         locationSection?.classList.toggle('hidden', !compactStreetAddress && !renderLocationBadges(p));
