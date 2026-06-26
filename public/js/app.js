@@ -2648,20 +2648,9 @@
             };
         }
 
-        function getYouTubeVideoId(url = '') {
-            const match = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-            return match?.[1] || '';
-        }
-
-        function getYouTubeThumbnail(url = '') {
-            const videoId = getYouTubeVideoId(url);
-            return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
-        }
-
-        function getYouTubeThumbnailFallback(url = '') {
-            const videoId = getYouTubeVideoId(url);
-            return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
-        }
+        const getYouTubeVideoId = window.BestHomeGallery.getYouTubeVideoId;
+        const getYouTubeThumbnail = window.BestHomeGallery.getYouTubeThumbnail;
+        const getYouTubeThumbnailFallback = window.BestHomeGallery.getYouTubeThumbnailFallback;
 
         function getGalleryVideoThumbnail(item = {}) {
             return item.thumbnailUrl || item.thumbnail_url || item.thumbnail || item.autoThumbnailUrl || item.auto_thumbnail_url || item.imageUrl || item.image_url || getYouTubeThumbnail(item.url || item.videoUrl || item.video_url) || getVimeoThumbnail(item.url || item.videoUrl || item.video_url) || '';
@@ -2692,18 +2681,8 @@
             return `<div class="w-full h-full flex flex-col items-center justify-center text-white bg-gradient-to-br from-slate-950 via-slate-800 to-brand-900"><div class="w-16 h-16 rounded-full bg-white/95 text-slate-950 flex items-center justify-center text-2xl shadow-2xl"><i class="fa-solid fa-play ml-1"></i></div><span class="mt-3 text-xs font-black uppercase tracking-[0.25em] text-white/80">Video</span></div>`;
         }
 
-        function getVimeoThumbnail(url = '') {
-            const match = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
-            return match ? `https://vumbnail.com/${match[1]}.jpg` : '';
-        }
-
-        function normalizeGalleryVideoUrl(url = '') {
-            const youtube = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
-            if (youtube) return `https://www.youtube.com/embed/${youtube[1]}?rel=0&modestbranding=1&origin=https://besthome.onrender.com`;
-            const vimeo = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
-            if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
-            return url;
-        }
+        const getVimeoThumbnail = window.BestHomeGallery.getVimeoThumbnail;
+        const normalizeGalleryVideoUrl = window.BestHomeGallery.normalizeGalleryVideoUrl;
 
         function uiGalleryToApi(g) {
             const isVideo = String(g.media_type || g.mediaType || g.type).toLowerCase() === 'video';
@@ -6334,10 +6313,8 @@ Təşəkkür edirəm. 🙏`;
 
         let galleryLazyObserver = null;
 
-        function markMediaLoaded(el) {
-            el.classList.add('is-loaded');
-            el.closest('.media-shell')?.classList.remove('media-skeleton', 'bg-gray-100');
-        }
+        const markMediaLoaded = window.BestHomeGallery.markMediaLoaded;
+        window.markMediaLoaded = markMediaLoaded;
 
         function observeGalleryMedia() {
             const nodes = document.querySelectorAll('[data-gallery-src]');

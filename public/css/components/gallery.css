@@ -1,0 +1,25 @@
+.gallery-media {
+    opacity: 0;
+    transition: opacity 320ms ease, transform 320ms ease;
+}
+.gallery-media.is-loaded { opacity: 1; }
+.featured-video-section-inner { width: 100%; max-width: 1100px; margin: 0 auto; }
+.featured-video-card { width: 100%; max-width: 100%; border-radius: 16px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18); overflow: hidden; display: block; border: 0; background: #0f172a; }
+.featured-video-thumb { width: 100%; height: clamp(320px, 38vw, 520px); overflow: hidden; border-radius: 16px; flex: 0 0 auto; }
+.featured-video-thumb .gallery-media-cover { width: 100%; height: 100%; object-fit: cover !important; object-position: center center !important; }
+@media (min-width: 1600px) { .featured-video-thumb { height: clamp(380px, 34vw, 560px); } }
+@media (max-width: 1024px) { .featured-video-thumb { height: 320px; } }
+@media (max-width: 640px) { .featured-video-thumb { height: 220px; border-radius: 14px; } .featured-video-card { border-radius: 14px; } }
+.gallery-media-contain { object-fit: contain !important; object-position: center !important; }
+.gallery-media-cover { object-fit: cover !important; object-position: center center !important; }
+.featured-video-overlay { background: linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,.05)); }
+.featured-video-play { box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22); }
+.featured-video-card:hover .featured-video-play { transform: translate(-50%, -50%) scale(1.06); }
+.gallery-detail-title { font-size: 18px; line-height: 1.25; letter-spacing: -0.01em; }
+.gallery-detail-copy { display: grid; gap: 0.7rem; }
+.gallery-detail-copy #modal-date { margin-top: 0; }
+@media (min-width: 768px) { .gallery-detail-title { font-size: 20px; } .gallery-detail-copy { gap: 0.8rem; } }
+@media (min-width: 1024px) { .gallery-detail-title { font-size: 22px; } .gallery-detail-copy { gap: 0.9rem; } }
+.gallery-card-media { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: 14px; background: transparent; }
+.gallery-card-media.media-skeleton { background: transparent; }
+.gallery-card-media img, .gallery-card-media video, .gallery-card-media .gallery-media-cover { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover !important; object-position: center center !important; display: block; }
