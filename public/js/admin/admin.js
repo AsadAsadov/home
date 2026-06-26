@@ -5,12 +5,11 @@
     const btn = document.getElementById(buttonId);
     if (!btn) return;
     btn.disabled = Boolean(isLoading);
-    if (isLoading) {
-      btn.dataset.defaultText = btn.dataset.defaultText || btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingText}`;
-    } else {
-      btn.innerHTML = btn.dataset.defaultText || defaultText;
-    }
+    btn.classList.toggle('is-loading', Boolean(isLoading));
+    btn.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+    btn.innerHTML = isLoading
+      ? `<span class="button-spinner" aria-hidden="true"></span><span>${loadingText}</span>`
+      : (btn.dataset.defaultText || defaultText);
   }
 
   function setElementHidden(id, hidden) {
