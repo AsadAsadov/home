@@ -24,6 +24,19 @@
             renderOfficialProjects();
         }
 
+        function switchProjectCategory(category = 'all') {
+            selectedProjectCategory = category || 'all';
+            projectPage = 1;
+            document.querySelectorAll('.project-cat-btn').forEach(button => {
+                const isActive = button.id === `p-cat-${selectedProjectCategory}`;
+                button.classList.toggle('bg-brand-500', isActive);
+                button.classList.toggle('text-white', isActive);
+                button.classList.toggle('bg-brand-50', !isActive);
+                button.classList.toggle('text-gray-500', !isActive);
+            });
+            renderOfficialProjects();
+        }
+
 
         function extractProjectDeliveryYear(project = {}) {
             const deliveryText = String(project.deliveryDate || project.delivery_date || project.year || '');
