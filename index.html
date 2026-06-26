@@ -6971,7 +6971,11 @@
             image-rendering: auto;
             transition: none !important;
         }
-        .site-logo,
+        .site-logo {
+            width: min(180px, 44vw) !important;
+            height: auto !important;
+            max-height: 52px !important;
+        }
         [data-site-logo] {
             height: auto !important;
             max-height: 52px !important;
