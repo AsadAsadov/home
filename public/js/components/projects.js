@@ -37,6 +37,14 @@
             renderOfficialProjects();
         }
 
+        function setProjectPage(page, category) {
+            if (category) selectedProjectCategory = category;
+            const nextPage = Number.parseInt(page, 10);
+            projectPage = Number.isFinite(nextPage) ? Math.max(1, nextPage) : 1;
+            renderOfficialProjects();
+            document.getElementById('sea-breeze-projects-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
 
         function extractProjectDeliveryYear(project = {}) {
             const deliveryText = String(project.deliveryDate || project.delivery_date || project.year || '');
@@ -730,6 +738,18 @@
 
     window.getProjectPictureMarkup = window.getProjectPictureMarkup || getProjectPictureMarkup;
     window.isProjectLightboxOpen = window.isProjectLightboxOpen || isProjectLightboxOpen;
+    try {
+        Object.defineProperty(window, 'projectPage', {
+            configurable: true,
+            get: () => projectPage,
+            set: value => {
+                const nextPage = Number.parseInt(value, 10);
+                projectPage = Number.isFinite(nextPage) ? Math.max(1, nextPage) : 1;
+            }
+        });
+    } catch (_error) {
+        window.projectPage = projectPage;
+    }
 
     Object.assign(window, {
         extractProjectDeliveryYear,
@@ -742,6 +762,7 @@
         switchProjectCategory,
         getProjectPictureMarkup,
         setProjectPage,
+        toggleMostViewedProjects,
         renderMostViewedProjects,
         renderOfficialProjects,
         projectSharePayload,
