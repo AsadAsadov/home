@@ -1,3 +1,9 @@
+if (typeof BigInt !== 'undefined' && !BigInt.prototype.toJSON) {
+  BigInt.prototype.toJSON = function () {
+    return this.toString();
+  };
+}
+
 require('dotenv').config();
 
 const path = require('path');
