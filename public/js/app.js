@@ -104,7 +104,7 @@
         const AD_DEFAULT_REPEAT_COUNT = 3;
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
-        const AD_DESKTOP_MIN_WIDTH = 1536;
+        const AD_DESKTOP_MIN_WIDTH = 1280;
         window.addEventListener('resize', () => { renderDesktopAds({ force: true }); });
         const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, recoveryTimer: null, stuckTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
