@@ -296,31 +296,49 @@ router.post('/conversations', authenticate, asyncHandler(async (req, res) => {
     }) : null;
 
     const shouldUpdateListingContext = existing && listingId && String(existing.listingId || '') !== String(listingId);
-    const shouldAddListingContextMessage = listing && (!existing || shouldUpdateListingContext);
-    const conversation = await prisma.$transaction(async (tx) => {
-      const saved = existing
-        ? (shouldUpdateListingContext
-          ? await tx.conversation.update({
-            where: { id: existing.id },
-            data: { listingId, updatedAt: new Date() },
-            include: conversationInclude,
-          })
-          : existing)
-        : await tx.conversation.create({
-          data: {
-            listingId,
-            participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
-          },
-          include: conversationInclude,
+    const shouldAddListingContextMessage = Boolean(listing && !existing);
+    const savedConversation = await prisma.$transaction(async (tx) => {
+      if (existing) {
+        if (!shouldUpdateListingContext) return { id: existing.id, existed: true };
+        const updated = await tx.conversation.update({
+          where: { id: existing.id },
+          data: { listingId, updatedAt: new Date() },
+          select: { id: true },
         });
-      if (shouldAddListingContextMessage) {
-        await addListingContextMessage(tx, { conversationId: saved.id, senderId: req.auth.id, receiverId, listing });
-        return tx.conversation.findUnique({ where: { id: saved.id }, include: conversationInclude });
+        return { id: updated.id, existed: true };
       }
-      return saved;
+
+      const created = await tx.conversation.create({
+        data: {
+          listingId,
+          participants: { create: [{ userId: Number(req.auth.id) }, { userId: receiverId }] },
+        },
+        select: { id: true },
+      });
+      return { id: created.id, existed: false };
+    }, { timeout: 15000, maxWait: 10000 });
+
+    if (shouldAddListingContextMessage) {
+      try {
+        await addListingContextMessage(prisma, { conversationId: savedConversation.id, senderId: req.auth.id, receiverId, listing });
+      } catch (contextError) {
+        console.warn('[messages/conversations] listing context message failed', {
+          userId: req.auth.id,
+          conversationId: String(savedConversation.id),
+          message: contextError.message,
+          code: contextError.code,
+          meta: contextError.meta,
+        });
+      }
+    }
+
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: savedConversation.id },
+      include: conversationInclude,
     });
-    console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: conversation.id, existing: Boolean(existing), durationMs: Math.round(durationMs(startedAt)) });
-    return jsonMessagesConversations(res, { success: true, conversation: serializeConversation(conversation, req.auth.id, 0) }, existing ? 200 : 201);
+
+    console.log('[messages] create/open conversation durationMs', { userId: req.auth.id, conversationId: savedConversation.id, existing: savedConversation.existed, durationMs: Math.round(durationMs(startedAt)) });
+    return jsonMessagesConversations(res, { success: true, conversation: serializeConversation(conversation, req.auth.id, 0) }, savedConversation.existed ? 200 : 201);
   } catch (err) {
     console.error('[messages/conversations] exact failure', {
       message: err?.message,
