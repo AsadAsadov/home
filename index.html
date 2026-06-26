@@ -4183,14 +4183,15 @@
         .notification-video-modal__close { width:34px; height:34px; border-radius:999px; background:rgba(255,255,255,.12); font-size:22px; line-height:1; }
         .notification-video-modal__body { aspect-ratio:16/9; border-radius:18px; overflow:hidden; background:#000; }
         .notification-video-modal__body iframe, .notification-video-modal__body video { width:100%; height:100%; display:block; border:0; }
-        .messages-shell { min-height: 640px; display:grid; grid-template-columns: minmax(240px, 340px) minmax(0,1fr); overflow:hidden; }
-        .conversation-list { border-right:1px solid #e2e8f0; background:#f8fafc; overflow:auto; }
-        .conversation-item { width:100%; display:flex; gap:10px; align-items:center; text-align:left; padding:14px; border-bottom:1px solid #e2e8f0; color:#0f172a; }
-        .conversation-item:hover, .conversation-item.is-active { background:#fff; }
+        .messages-shell { min-height: 640px; display:grid; grid-template-columns: minmax(260px, 360px) minmax(0,1fr); overflow:hidden; }
+        .conversation-list { border-right:1px solid #e2e8f0; background:linear-gradient(180deg,#f8fafc,#eef2ff); overflow:auto; }
+        .conversation-item { width:calc(100% - 16px); margin:8px; display:flex; gap:10px; align-items:center; text-align:left; padding:12px; border:1px solid transparent; border-radius:18px; color:#0f172a; transition:background .18s ease,border-color .18s ease,box-shadow .18s ease; }
+        .conversation-item:hover, .conversation-item.is-active { background:#fff; border-color:#dbeafe; box-shadow:0 12px 28px rgba(15,23,42,.08); }
+        .conversation-item.is-active { outline:2px solid rgba(79,70,229,.12); }
         .chat-window { display:flex; flex-direction:column; min-height:640px; background:#fff; }
-        .chat-messages { flex:1; overflow:auto; padding:18px; background:linear-gradient(180deg,#ffffff,#f8fafc); }
-        .chat-bubble { position: relative; max-width:min(70%,520px); margin:8px 0; padding:10px 12px; border-radius:18px; font-weight:700; color:#0f172a; background:#e2e8f0; }
-        .chat-bubble.is-mine { margin-left:auto; background:#dcfce7; }
+        .chat-messages { flex:1; overflow:auto; padding:20px; background:linear-gradient(180deg,#ffffff,#f8fafc); }
+        .chat-bubble { position: relative; max-width:min(72%,540px); margin:10px 0; padding:11px 13px; border-radius:20px; font-weight:700; line-height:1.45; color:#0f172a; background:#e2e8f0; box-shadow:0 6px 18px rgba(15,23,42,.06); }
+        .chat-bubble.is-mine { margin-left:auto; background:#dcfce7; border-bottom-right-radius:8px; }
         .chat-bubble.is-deleted { color:#64748b; font-style:italic; background:#f1f5f9; }
         .chat-bubble__menu { display:none; position:absolute; top:6px; right:8px; border:0; background:rgba(255,255,255,.78); color:#334155; border-radius:999px; width:24px; height:24px; font-weight:900; }
         .chat-bubble:hover .chat-bubble__menu, .chat-bubble:focus-within .chat-bubble__menu { display:inline-flex; align-items:center; justify-content:center; }
@@ -4198,9 +4199,11 @@
         .conversation-item__menu:hover { background:#eef2ff; color:#4f46e5; }
         .message-status { display:inline-flex; margin-left:8px; font-size:11px; font-weight:900; color:#94a3b8; }
         .message-status.is-read { color:#16a34a; }
-        .listing-chat-card { margin:14px; border:1px solid #e2e8f0; border-radius:20px; padding:12px; display:flex; gap:12px; align-items:center; color:#0f172a; background:#f8fafc; }
+        .listing-chat-card { margin:14px; border:1px solid #dbeafe; border-radius:22px; padding:12px; display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center; color:#0f172a; background:linear-gradient(135deg,#fff,#eef2ff); box-shadow:0 14px 35px rgba(79,70,229,.10); max-width:calc(100% - 28px); }
+        .listing-chat-card__eyebrow { flex:0 0 100%; max-width:112px; font-size:10px; line-height:1.25; text-transform:uppercase; letter-spacing:.08em; font-weight:900; color:#64748b; }
+        .listing-chat-card__cta { display:inline-flex; margin-top:5px; border-radius:999px; background:#4f46e5; color:#fff; font-size:10px; font-weight:900; padding:4px 9px; }
         .typing-placeholder { font-size:12px; color:#64748b; font-weight:800; padding:0 18px 8px; }
-        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } .notification-video-modal{ padding:0; align-items:stretch; } .notification-video-modal__card{ width:100%; min-height:100dvh; border-radius:0; display:flex; flex-direction:column; justify-content:center; } }
+        @media(max-width: 768px){ .messages-shell{ grid-template-columns: 1fr; min-height:calc(100dvh - 150px); } .conversation-list{ max-height: 260px; border-right:0; border-bottom:1px solid #e2e8f0; } .chat-window{ min-height:520px; } .chat-bubble{ max-width:88%; } .listing-chat-card{ align-items:flex-start; } .listing-chat-card__eyebrow{ max-width:none; flex-basis:100%; } .notification-panel{ left: 10px !important; right: 10px !important; width: auto; max-height: calc(100dvh - 88px); } .notification-panel--full{ top:72px !important; left:50% !important; right:auto !important; transform:translateX(-50%) !important; width:calc(100vw - 24px) !important; max-width:420px !important; max-height:calc(100dvh - 96px) !important; border-radius:18px !important; overflow-y:auto; } .notification-video-modal{ padding:0; align-items:stretch; } .notification-video-modal__card{ width:100%; min-height:100dvh; border-radius:0; display:flex; flex-direction:column; justify-content:center; } }
 
         /* Production-safe modal layout: keep every popup above fixed header/bottom nav. */
         .popup-backdrop,
@@ -7305,53 +7308,62 @@
         .sb-admin-card{display:flex;align-items:center;gap:.85rem;justify-content:space-between}.sb-admin-thumb{position:relative;flex:0 0 86px;width:86px;height:64px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#eef2ff,#dbeafe);display:flex;align-items:center;justify-content:center}.sb-admin-thumb img,.sb-admin-thumb video{width:100%;height:100%;object-fit:cover}.sb-thumb-placeholder{color:#64748b}.sb-video-badge{position:absolute;right:6px;bottom:6px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:10px;padding:2px 7px}.sb-drag-handle{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.1);cursor:grab;color:#cbd5e1}.sb-admin-card.is-dragging{opacity:.55;transform:scale(.99)}.sb-admin-card.is-drag-over{outline:2px solid rgba(200,169,106,.8)}.sb-admin-actions{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:flex-end}.sb-admin-preview{margin-top:.65rem;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.08);border-radius:14px;padding:.55rem;color:#111827}.sb-admin-preview:empty{display:none}.sb-admin-preview span{display:block;font-size:.75rem;font-weight:800;margin-bottom:.35rem;color:#334155}.sb-admin-preview img,.sb-admin-preview video{width:100%;max-height:220px;object-fit:cover;border-radius:10px}.sb-media-modal{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem}.sb-media-modal.hidden{display:none}.sb-media-modal__dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh;text-align:center}.sb-media-modal img,.sb-media-modal video{max-width:100%;max-height:82vh;object-fit:contain;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}.sb-media-modal__close{position:absolute;right:-.5rem;top:-.5rem;width:42px;height:42px;border-radius:999px;background:#fff;color:#111827;font-size:28px;font-weight:800}.sb-media-modal__button{margin-top:.75rem;border-radius:999px;background:#fff;color:#111827;font-weight:800;padding:.65rem 1.15rem}html[data-theme="light"] #admin-subtab-seabreeze-hero .glass-card,html[data-theme="light"] #admin-subtab-seabreeze-info-admin .glass-card{color:#111827}html[data-theme="light"] #admin-subtab-seabreeze-hero h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h3,html[data-theme="light"] #admin-subtab-seabreeze-info-admin h4{color:#111827!important}html[data-theme="light"] #admin-subtab-seabreeze-hero input,html[data-theme="light"] #admin-subtab-seabreeze-hero textarea,html[data-theme="light"] #admin-subtab-seabreeze-hero select,html[data-theme="light"] #admin-subtab-seabreeze-info-admin input,html[data-theme="light"] #admin-subtab-seabreeze-info-admin textarea,html[data-theme="light"] #admin-subtab-seabreeze-info-admin select{color:#111827!important;background:rgba(255,255,255,.9)!important;border-color:rgba(100,116,139,.35)!important}html[data-theme="light"] #admin-subtab-seabreeze-hero ::placeholder,html[data-theme="light"] #admin-subtab-seabreeze-info-admin ::placeholder{color:#64748b!important}html[data-theme="light"] .sb-admin-upload-label{color:#111827;border:1px solid rgba(100,116,139,.35);background:#fff}@media(max-width:640px){.sb-admin-card{align-items:flex-start;flex-direction:column}.sb-admin-thumb{width:100%;height:150px}.sb-admin-actions{justify-content:flex-start}.sb-media-modal{padding:.75rem}.sb-media-modal__close{right:.25rem;top:.25rem}}
 
 
-        /* Desktop side ads only render when there is enough room outside the main content. */
-        @media (max-width: 1760px) {
+        /* Desktop side ads are part of the page grid so they never overlay content. */
+        .page-with-ads,
+        .desktop-ad-layout {
+            display: grid;
+            grid-template-columns: minmax(120px, 220px) minmax(0, 1180px) minmax(120px, 220px);
+            gap: 24px;
+            align-items: start;
+            max-width: 1640px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .page-with-ads > main,
+        .desktop-ad-layout > main {
+            min-width: 0;
+            max-width: 1180px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        #desktop-left-ads,
+        #desktop-right-ads {
+            display: block !important;
+            position: sticky !important;
+            top: 110px !important;
+            left: auto !important;
+            right: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            z-index: auto !important;
+            align-self: start !important;
+        }
+        .desktop-ad-rail {
+            position: sticky !important;
+            top: 110px !important;
+            width: auto;
+            height: auto !important;
+        }
+        @media (max-width: 1279px) {
             #desktop-left-ads,
             #desktop-right-ads,
-            .desktop-ad-rail {
-                display: none !important;
-            }
-
-            .desktop-ad-layout {
-                display: block !important;
-                max-width: 100% !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-
-            .desktop-ad-layout > main {
-                margin-left: auto !important;
-                margin-right: auto !important;
-            }
+            .desktop-ad-rail { display: none !important; }
+            .page-with-ads,
+            .desktop-ad-layout { display: block; max-width: 1180px; padding: 0 16px; }
         }
-
-        @media (min-width: 1761px) {
-            #desktop-left-ads,
-            #desktop-right-ads {
-                display: block !important;
-                position: absolute !important;
-                top: 140px !important;
-                height: auto !important;
-                min-height: 0 !important;
-                z-index: 20 !important;
-                align-self: flex-start !important;
-            }
-
-            #desktop-left-ads {
-                left: calc((100vw - 1180px) / 2 - 260px) !important;
-            }
-
-            #desktop-right-ads {
-                right: calc((100vw - 1180px) / 2 - 260px) !important;
-            }
-
-            .desktop-ad-rail {
-                position: absolute !important;
-                top: 140px !important;
-                width: var(--ad-width, 220px);
-                height: auto !important;
-            }
+        @media (min-width: 1280px) and (max-width: 1439px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 120px minmax(0, 980px) 120px; gap: 14px; }
+            .desktop-ad-card { width: 120px; }
+        }
+        @media (min-width: 1440px) and (max-width: 1599px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 150px minmax(0, 1080px) 150px; gap: 18px; }
+            .desktop-ad-card { width: 150px; }
+        }
+        @media (min-width: 1600px) {
+            .page-with-ads, .desktop-ad-layout { grid-template-columns: 220px minmax(0, 1180px) 220px; gap: 24px; }
+            .desktop-ad-card { width: 220px; }
         }
 
 
@@ -7571,7 +7583,7 @@
     <button id="add-listing-fab" onclick="navigateToCreateListing()" class="add-listing-fab" aria-label="Elan əlavə et"><span>➕</span><span>Elan</span></button>
 
     <!-- MAIN CONTAINER -->
-    <div id="desktop-ad-layout" class="desktop-ad-layout">
+    <div id="desktop-ad-layout" class="desktop-ad-layout page-with-ads">
         <aside id="desktop-left-ads" class="desktop-ad-rail" aria-label="Sol reklamlar"></aside>
     <main class="flex-grow pt-28 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
@@ -9424,7 +9436,7 @@ Title: CASPIAN DREAM LINER
         const AD_DEFAULT_REPEAT_COUNT = 3;
         const AD_MIN_REPEAT_COUNT = 1;
         const AD_MAX_REPEAT_COUNT = 100;
-        const AD_DESKTOP_MIN_WIDTH = 1366;
+        const AD_DESKTOP_MIN_WIDTH = 1280;
         window.addEventListener('resize', () => { renderDesktopAds({ force: true }); });
         const adRotationState = { index: 0, repeat: 0, timer: null, safetyTimer: null, stallTimer: null, durationTimer: null, recoveryTimer: null, stuckTimer: null, videoCleanups: [], activeAdId: null, renderedAdId: null, activeAdsSignature: '', transitionToken: 0 };
 
@@ -16136,7 +16148,7 @@ Title: CASPIAN DREAM LINER
 
 
         const MESSAGE_NOTIFICATION_TYPES = new Set(['new_message', 'message']);
-        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, activeConversationId: null, activeConversation: null, activeMessages: [], messagesByConversation: new Map(), socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null, notificationsReadAllInFlight: null };
+        const messagingState = { notificationsUnread: 0, messagesUnread: 0, notifications: [], notificationsLoadedAt: 0, conversations: [], conversationsLoadedAt: 0, conversationsLoading: false, conversationsRequest: null, activeConversationId: null, activeConversation: null, activeMessages: [], messagesByConversation: new Map(), conversationRequests: new Map(), sendRequests: new Map(), socket: null, summaryLoadedAt: 0, pendingConversation: null, seenMessageIds: new Set(), badgeRefreshTimer: null, notificationsReadAllInFlight: null };
 
         function isMessageNotification(item) {
             return MESSAGE_NOTIFICATION_TYPES.has(String(item?.type || '').toLowerCase());
@@ -16672,12 +16684,18 @@ Title: CASPIAN DREAM LINER
         }
 
         async function loadConversations(render = true, { force = false, autoSelect = false } = {}) {
-            if (!activeUser || messagingState.conversationsLoading) return;
+            if (!activeUser) return;
             if (!force && Date.now() - (messagingState.conversationsLoadedAt || 0) < 15000) { if (render) renderConversations(); return; }
+            if (messagingState.conversationsRequest) {
+                try { await messagingState.conversationsRequest; } catch (_error) {}
+                if (render) renderConversations();
+                return;
+            }
             messagingState.conversationsLoading = true;
-            if (render) renderConversations(true);
+            if (render && !messagingState.conversations.length) renderConversations(true);
             try {
-                const result = await apiRequest('/api/messages');
+                messagingState.conversationsRequest = apiRequest('/api/messages');
+                const result = await messagingState.conversationsRequest;
                 messagingState.conversations = result.data || [];
                 messagingState.conversationsLoadedAt = Date.now();
                 writeMessagingCache();
@@ -16689,12 +16707,16 @@ Title: CASPIAN DREAM LINER
                     const targetConversation = messagingState.conversations.find(c => Number(c.unreadCount || 0) > 0) || messagingState.conversations[0];
                     if (targetConversation) openConversation(targetConversation.id);
                 }
-            } finally { messagingState.conversationsLoading = false; }
+            } finally { messagingState.conversationsLoading = false; messagingState.conversationsRequest = null; }
         }
 
         const LISTING_CONTEXT_PREFIX = '__BESTHOME_LISTING_CONTEXT__';
 
         function messageListingContext(message) {
+            if (!message) return null;
+            if (String(message.type || '').toLowerCase() === 'listing_context') return message.metadata?.listing || message.metadata || message.listing || null;
+            if (message.metadata?.listingContext) return message.metadata.listingContext;
+            if (message.metadata?.listing_context) return message.metadata.listing_context;
             const text = String(message?.text || '');
             if (!text.startsWith(LISTING_CONTEXT_PREFIX)) return null;
             try { return JSON.parse(text.slice(LISTING_CONTEXT_PREFIX.length)); } catch (_error) { return null; }
@@ -16731,7 +16753,15 @@ Title: CASPIAN DREAM LINER
             const code = listing.listingCode || listing.listing_code || listing.code || listing.id;
             const location = [listing.district, listing.settlement, listing.city].filter(Boolean).join(', ');
             const price = formatPrice(listing.price, listing.currency || 'AZN');
-            return `<button type="button" onclick="navigateToListingPreview('${escapeHtml(code)}')" class="listing-chat-card text-left hover:border-brand-300 hover:bg-brand-50 transition"><div class="text-[10px] uppercase tracking-wide font-black text-slate-400">Bu elan haqqında yazılır:</div>${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover">` : ''}<div><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(code)}</div><strong>${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500">${escapeHtml(location || 'Məkan göstərilməyib')}</div><div class="text-xs font-black text-slate-900">${escapeHtml(price)}</div></div></button>`;
+            return `<button type="button" onclick="openMessageListingCard(event, '${escapeHtml(code)}')" class="listing-chat-card text-left hover:border-brand-300 hover:bg-brand-50 transition"><div class="listing-chat-card__eyebrow">Bu elan haqqında yazılır</div>${img ? `<img src="${escapeHtml(img)}" class="w-16 h-14 rounded-2xl object-cover" alt="">` : ''}<div class="min-w-0"><div class="text-xs font-black text-brand-600">Elan #${escapeHtml(code)}</div><strong class="block truncate">${escapeHtml(listing.title || 'Elan')}</strong><div class="text-xs font-bold text-slate-500 truncate">${escapeHtml(location || 'Məkan göstərilməyib')}</div><div class="text-xs font-black text-slate-900">${escapeHtml(price)}</div><span class="listing-chat-card__cta">Elana bax</span></div></button>`;
+        }
+
+        function openMessageListingCard(event, listingKey) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const opener = getListingDetailModalOpener();
+            if (opener && listingKey) return opener(String(listingKey));
+            if (listingKey) navigateToListingPreview(listingKey);
         }
 
         function formatAzRelativeTime(value) {
@@ -16769,7 +16799,18 @@ Title: CASPIAN DREAM LINER
             if (String(id).startsWith('pending-')) return;
             try {
                 const historyStartedAt = performance.now();
-                const result = await apiRequest(`/api/messages/conversations/${id}?limit=30`);
+                let request = messagingState.conversationRequests.get(String(id));
+                if (!request) {
+                    request = apiRequest(`/api/messages/conversations/${encodeURIComponent(id)}?limit=30`);
+                    messagingState.conversationRequests.set(String(id), request);
+                }
+                const result = await request;
+                if (String(messagingState.activeConversationId) !== String(id)) {
+                    if (result.messages) messagingState.messagesByConversation.set(String(id), result.messages || []);
+                    if (result.conversation) upsertConversationLocal(result.conversation);
+                    writeMessagingCache();
+                    return;
+                }
                 messagingState.activeConversation = result.conversation;
                 messagingState.activeMessages = result.messages || [];
                 messagingState.messagesByConversation.set(String(id), messagingState.activeMessages);
@@ -16785,6 +16826,8 @@ Title: CASPIAN DREAM LINER
             } catch (error) {
                 const root = document.getElementById('chat-window-root');
                 if (root) root.innerHTML = `<div class="flex-1 flex items-center justify-center text-red-600 font-bold p-8 text-center">${escapeHtml(error.message || 'Söhbət açılmadı.')}</div>`;
+            } finally {
+                messagingState.conversationRequests.delete(String(id));
             }
         }
 
@@ -16803,7 +16846,7 @@ Title: CASPIAN DREAM LINER
 
         function renderMessageBubble(message) {
             const context = messageListingContext(message);
-            if (context) return `<div class="my-2" data-message-id="${escapeHtml(message.id)}">${listingChatCard(context)}</div>`;
+            if (context) return '';
             const mine = String(message.senderId) === String(activeUser.id);
             const deleted = Boolean(message.deletedAt);
             const text = deleted ? 'Bu mesaj silindi' : (message.text || '');
@@ -16816,9 +16859,11 @@ Title: CASPIAN DREAM LINER
             messagingState.activeConversation = conversation || messagingState.activeConversation;
             const otherName = conversation?.otherUser?.fullname || conversation?.placeholderName || 'İstifadəçi';
             const loader = loading ? '<div class="typing-placeholder">Söhbət yüklənir…</div>' : '';
+            const listingContext = conversation?.listing || (messages || []).map(messageListingContext).find(Boolean);
+            const visibleMessages = (messages || []).filter(message => !messageListingContext(message));
             const presenceLine = conversationPresenceLine(conversation?.otherUser);
             const clearButton = conversation?.id && !String(conversation.id).startsWith('pending-') ? `<button type="button" onclick="clearActiveConversation()" class="text-xs font-black text-slate-500 hover:text-brand-600">Söhbəti təmizlə</button>` : '';
-            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between gap-3"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong>${presenceLine}</div>${clearButton}</div>${listingChatCard(conversation?.listing)}${loader}<div id="chat-messages" class="chat-messages">${messages.map(renderMessageBubble).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
+            root.innerHTML = `<div class="p-4 border-b border-slate-200 flex items-center justify-between gap-3"><div><strong class="text-slate-950">${escapeHtml(otherName)}</strong>${presenceLine}</div>${clearButton}</div>${listingChatCard(listingContext)}${loader}<div id="chat-messages" class="chat-messages">${visibleMessages.map(renderMessageBubble).join('')}</div><form onsubmit="sendChatMessage(event)" class="p-4 border-t border-slate-200 flex gap-2"><input id="chat-message-input" class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 font-bold focus:outline-none focus:border-brand-500" placeholder="Mesaj yazın…" autocomplete="off"><button class="rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-5 font-black">Göndər</button></form>`;
             document.getElementById('chat-messages')?.scrollTo({ top: 999999 });
         }
 
@@ -16915,7 +16960,11 @@ Title: CASPIAN DREAM LINER
             perfLog('message optimistic append ms', startedAt);
             document.getElementById('chat-message-input')?.focus();
             try {
-                const result = await apiRequest(`/api/messages/conversations/${messagingState.activeConversationId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
+                const sendKey = `${messagingState.activeConversationId}:${tempId}`;
+                const request = apiRequest(`/api/messages/conversations/${encodeURIComponent(messagingState.activeConversationId)}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
+                messagingState.sendRequests.set(sendKey, request);
+                const result = await request;
+                messagingState.sendRequests.delete(sendKey);
                 const idx = messagingState.activeMessages.findIndex(m => m.id === tempId);
                 if (idx > -1) messagingState.activeMessages[idx] = result.message;
                 else messagingState.activeMessages.push(result.message);
@@ -16927,6 +16976,7 @@ Title: CASPIAN DREAM LINER
                 renderConversations();
                 writeMessagingCache();
             } catch (error) {
+                messagingState.sendRequests.delete(`${messagingState.activeConversationId}:${tempId}`);
                 const msg = messagingState.activeMessages.find(m => m.id === tempId);
                 if (msg) { msg.pending = false; msg.failed = true; msg.errorText = error.message; }
                 renderChatWindow(messagingState.activeConversation, messagingState.activeMessages);
