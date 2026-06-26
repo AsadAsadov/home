@@ -64,7 +64,7 @@
     #desktop-left-ads,
     #desktop-right-ads,
     .desktop-ad-rail {
-        display: flex !important;
+        display: block !important;
         position: static !important;
         top: auto !important;
         left: auto !important;
@@ -73,10 +73,8 @@
         max-width: 100% !important;
         min-width: 0 !important;
         height: auto !important;
-        min-height: 100% !important;
-        flex-direction: column;
-        gap: 1rem;
-        align-self: stretch !important;
+        min-height: 0 !important;
+        align-self: start !important;
         z-index: auto !important;
     }
 
@@ -146,7 +144,7 @@
     width: var(--ad-width);
     max-width: 100%;
     min-height: calc(var(--ad-height) + 2rem);
-    flex: 0 0 auto;
+    position: static !important;
 }
 .desktop-ad-stage {
     display: grid;
