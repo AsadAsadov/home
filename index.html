@@ -7555,6 +7555,29 @@
             display: block !important;
         }
 
+        /* Admin host SaaS redesign */
+        html.is-admin-host { background:#f6f7fb; }
+        html.is-admin-host body { background:#f6f7fb !important; color:#172033; }
+        html.is-admin-host main.flex-grow { max-width:none !important; width:100% !important; padding:0 !important; }
+        html.is-admin-host #desktop-ad-layout { background:#f6f7fb; min-height:100vh; }
+        html.is-admin-host #tab-admin-login { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1rem !important; }
+        html.is-admin-host #tab-admin-login.hidden { display:none !important; }
+        html.is-admin-host #tab-admin-login .glass-card { width:min(100%, 440px); background:rgba(255,255,255,.94) !important; border:1px solid rgba(124,108,255,.13) !important; box-shadow:0 28px 80px rgba(69,72,129,.18) !important; color:#172033; }
+        html.is-admin-host #tab-admin-login h2 { color:#111827 !important; }
+        html.is-admin-host #tab-admin-login input { background:#f8fafc !important; border-color:#e5e7eb !important; color:#111827 !important; }
+        .admin-login-brand{display:none}.admin-login-brand__mark,.admin-sidebar-logo{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#7c6cff,#4f9cff);color:#fff;font-weight:900;box-shadow:0 16px 30px rgba(124,108,255,.28)}
+        html.is-admin-host .admin-login-brand{display:flex;align-items:center;gap:.9rem;margin-bottom:1.2rem;color:#111827}.admin-login-brand strong,.admin-sidebar-brand strong{display:block;font-size:.95rem;letter-spacing:.08em}.admin-login-brand small,.admin-sidebar-brand small{display:block;color:#64748b;font-size:.72rem;font-weight:800}
+        html.is-admin-host .admin-dashboard-shell{display:block !important;min-height:100vh;background:#f6f7fb;color:#172033;padding:0 !important;margin:0 !important}.admin-shell-sidebar{display:none}
+        html.is-admin-host .admin-shell-sidebar{display:flex;position:fixed;z-index:80;left:0;top:0;bottom:0;width:286px;padding:22px 16px;flex-direction:column;gap:18px;background:rgba(255,255,255,.92);border-right:1px solid #e7e9f3;box-shadow:16px 0 50px rgba(81,88,145,.10);backdrop-filter:blur(18px)}
+        .admin-sidebar-brand{display:flex;align-items:center;gap:.85rem;padding:4px 8px 14px;border-bottom:1px solid #eef0f6;color:#111827}.admin-subtabs{display:flex;flex-direction:column;gap:6px;overflow:auto;padding:0;margin:0;flex:1}.admin-subtabs::-webkit-scrollbar{width:4px}.admin-subtabs::-webkit-scrollbar-thumb{background:#d8dcf0;border-radius:99px}
+        html.is-admin-host .admin-subtab-button{width:100%;display:flex;align-items:center;gap:.75rem;border:0;border-radius:16px;padding:12px 14px;background:transparent;color:#667085;font-size:.88rem;font-weight:850;text-align:left;transition:.18s}.admin-subtab-button i{width:18px;text-align:center;color:#9aa3b2}.admin-subtab-button:hover{background:#f2f4ff;color:#4438ca}.admin-subtab-button.is-active,.admin-subtab-button.active{background:linear-gradient(135deg,#7c6cff,#5f8cff)!important;color:#fff!important;box-shadow:0 14px 28px rgba(124,108,255,.25)}.admin-subtab-button.is-active i{color:#fff}
+        .admin-sidebar-user-card{display:flex;align-items:center;gap:.75rem;border:1px solid #edf0f7;background:#f8fafc;border-radius:20px;padding:12px;color:#111827}.admin-sidebar-avatar{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#e9e6ff;color:#6554e8;font-weight:900}.admin-sidebar-user-card strong{display:block;font-size:.86rem}.admin-sidebar-user-card small{display:block;color:#64748b;font-size:.72rem}.admin-sidebar-user-card i{margin-left:auto;width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.12)}
+        html.is-admin-host .admin-shell-main{margin-left:286px;padding:22px 26px 50px;min-height:100vh}.admin-shell-topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:-22px -26px 24px;padding:18px 26px;background:rgba(246,247,251,.86);border-bottom:1px solid rgba(226,232,240,.75);backdrop-filter:blur(18px)}.admin-menu-toggle,.admin-notification-btn,.admin-logout-btn{border:1px solid #e6e9f4;background:#fff;color:#475467;border-radius:14px;height:42px;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:0 14px;font-weight:850;box-shadow:0 8px 22px rgba(31,41,55,.05)}.admin-menu-toggle{width:42px;padding:0}.admin-topbar-eyebrow{font-size:.7rem;color:#7c6cff;font-weight:900;text-transform:uppercase;letter-spacing:.14em}.admin-shell-topbar h1{font-size:1.35rem;line-height:1.1;font-weight:950;color:#101828}.admin-topbar-actions{display:flex;align-items:center;gap:.65rem}.admin-current-date{color:#667085;font-size:.82rem;font-weight:800}.admin-logout-btn{background:#111827;color:#fff;border-color:#111827}
+        html.is-admin-host .admin-dashboard-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-bottom:22px}.admin-stat-card{background:#fff!important;border:1px solid #eaecf4!important;border-radius:22px!important;padding:18px!important;box-shadow:0 18px 45px rgba(16,24,40,.06)!important;color:#111827!important}.admin-stat-card h3,.admin-stat-card p,.admin-stat-card span{color:inherit}.admin-stat-card__icon{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;background:#eef2ff!important;color:#6554e8!important}.admin-kpi-change{margin-top:10px;color:#16a34a;font-size:.72rem;font-weight:900}.admin-dashboard-widgets{grid-column:1/-1;display:grid;grid-template-columns:1.35fr .9fr .75fr;gap:16px}.admin-widget-card{background:#fff;border:1px solid #eaecf4;border-radius:24px;padding:20px;box-shadow:0 18px 45px rgba(16,24,40,.06);min-width:0}.admin-widget-card h3{font-size:1rem;font-weight:950;color:#111827;margin-bottom:14px}.admin-placeholder-chart{height:190px;display:flex;align-items:end;gap:10px;padding:14px;border-radius:18px;background:linear-gradient(180deg,#f8f9ff,#fff)}.admin-chart-bar{flex:1;border-radius:999px 999px 8px 8px;background:linear-gradient(180deg,#7c6cff,#70b7ff);min-height:24px}.admin-mini-row{display:flex;justify-content:space-between;gap:1rem;padding:10px 0;border-bottom:1px solid #f0f2f7;color:#475467;font-weight:800}.admin-mini-row:last-child{border-bottom:0}.admin-empty-state{border:1px dashed #d9def0;border-radius:18px;padding:24px;text-align:center;color:#98a2b3;font-weight:800;background:#fafbff}
+        html.is-admin-host .glass-card{background:#fff!important;border-color:#e7eaf3!important;box-shadow:0 16px 45px rgba(16,24,40,.06)!important;color:#111827!important}html.is-admin-host .glass-card h1,html.is-admin-host .glass-card h2,html.is-admin-host .glass-card h3,html.is-admin-host .glass-card h4,html.is-admin-host .text-white{color:#111827!important}html.is-admin-host .text-gray-400,html.is-admin-host .text-gray-300{color:#667085!important}html.is-admin-host input,html.is-admin-host textarea,html.is-admin-host select{background:#fff!important;color:#111827!important;border-color:#dfe3ee!important}html.is-admin-host .admin-subtab-panel{min-width:0;overflow:visible}html.is-admin-host table{min-width:760px}html.is-admin-host .overflow-x-auto,html.is-admin-host .admin-subtab-panel{max-width:100%}
+        .admin-mobile-sidebar-backdrop{display:none}@media(max-width:1180px){html.is-admin-host .admin-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.admin-dashboard-widgets{grid-template-columns:1fr 1fr}}@media(max-width:900px){html.is-admin-host .admin-shell-sidebar{transform:translateX(-105%);transition:.22s}.admin-sidebar-open html.is-admin-host .admin-shell-sidebar,html.is-admin-host.admin-sidebar-open .admin-shell-sidebar{transform:translateX(0)}html.is-admin-host .admin-shell-main{margin-left:0;padding:18px 14px 40px}.admin-shell-topbar{margin:-18px -14px 18px;padding:14px}.admin-mobile-sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:70}.admin-sidebar-open .admin-mobile-sidebar-backdrop{display:block}html.is-admin-host .admin-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-dashboard-widgets{grid-template-columns:1fr}.admin-current-date{display:none}}@media(max-width:560px){html.is-admin-host .admin-dashboard-stats{grid-template-columns:1fr}.admin-topbar-actions{gap:.4rem}.admin-logout-btn span{display:none}}
+
+
     </style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">
@@ -7988,6 +8011,7 @@
 
         <!-- 6. LOGIN -->
         <section id="tab-admin-login" class="tab-content hidden max-w-md mx-auto py-12">
+            <div class="admin-login-brand" aria-hidden="true"><span class="admin-login-brand__mark">BH</span><div><strong>BEST HOME</strong><small>Admin Panel</small></div></div>
             <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
                 <h2 class="text-2xl font-bold text-white">Sistemə Giriş</h2>
                 <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs">E-poçt və ya şifrə yanlışdır!</div>
@@ -8089,13 +8113,22 @@
         </section>
 
         <section id="tab-admin-dashboard" class="tab-content hidden space-y-5 admin-dashboard-shell">
-            <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
-
-            <!-- Dashboard Subtabs are rendered by role so admin-only cabinet buttons are absent from the DOM for normal users. -->
-            <div id="admin-subtabs-container" class="admin-subtabs" aria-label="Admin bölmələri">
-                <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="admin-subtab-button is-active">Elanlar</button>
-                <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button">Profil</button>
-            </div>
+            <div id="admin-mobile-sidebar-backdrop" class="admin-mobile-sidebar-backdrop" onclick="toggleAdminSidebar(false)" aria-hidden="true"></div>
+            <aside class="admin-shell-sidebar" aria-label="Admin naviqasiyası">
+                <div class="admin-sidebar-brand"><span class="admin-sidebar-logo">BH</span><div><strong>BEST HOME</strong><small>Admin Panel</small></div></div>
+                <nav id="admin-subtabs-container" class="admin-subtabs" aria-label="Admin bölmələri">
+                    <button onclick="switchAdminSubtab('seabreeze-manager')" id="subtab-btn-sb" class="admin-subtab-button is-active">Elanlar</button>
+                    <button onclick="switchAdminSubtab('user-profile')" id="subtab-btn-user-profile" class="admin-subtab-button">Profil</button>
+                </nav>
+                <div id="admin-sidebar-user-card" class="admin-sidebar-user-card"><span class="admin-sidebar-avatar">AD</span><div><strong>Admin</strong><small>Online</small></div><i></i></div>
+            </aside>
+            <div class="admin-shell-main">
+                <header class="admin-shell-topbar">
+                    <button type="button" class="admin-menu-toggle" onclick="toggleAdminSidebar()" aria-label="Admin menyunu aç"><i class="fa-solid fa-bars"></i></button>
+                    <div><span class="admin-topbar-eyebrow">Admin Panel</span><h1 id="admin-topbar-title">Dashboard</h1></div>
+                    <div class="admin-topbar-actions"><span id="admin-current-date" class="admin-current-date"></span><button type="button" class="admin-notification-btn" aria-label="Bildirişlər" onclick="switchAdminSubtab('broadcast-notifications')"><i class="fa-regular fa-bell"></i></button><button type="button" class="admin-logout-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Çıxış</span></button></div>
+                </header>
+                <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
             <div id="admin-subtab-seabreeze-manager" class="admin-subtab-panel grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -8990,6 +9023,7 @@ Title: CASPIAN DREAM LINER
                     <div class="glass-card p-4 rounded-2xl text-xs text-gray-300">Saytda yalnız aktiv treklər sıra nömrəsinə görə çalınır. Autoplay brauzer icazə verdikdə yoxlanılır, əks halda istifadəçi “Səsi aç” düyməsinə basır.</div>
                     <div id="admin-music-list" class="space-y-3"></div>
                 </div>
+            </div>
             </div>
         </section>
 
