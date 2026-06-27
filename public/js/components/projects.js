@@ -104,6 +104,28 @@
         }
 
 
+        function getProjectDescription(project = {}) {
+            let metadata = project.metadata && typeof project.metadata === 'object' ? project.metadata : {};
+            if (typeof project.metadata === 'string') {
+                try { metadata = JSON.parse(project.metadata); } catch (_error) { metadata = {}; }
+            }
+            const values = [
+                project.description,
+                project.descriptionAz,
+                project.desc,
+                project.content,
+                project.details,
+                project.about,
+                metadata.description
+            ];
+            for (const value of values) {
+                const text = String(value ?? '').trim();
+                if (text) return text;
+            }
+            return '';
+        }
+
+
         // RENDER OFFICIAL LAYOUTS
         function renderOfficialProjects() {
             const container = document.getElementById('sea-breeze-projects-list');
@@ -139,7 +161,7 @@
 
             paged.forEach(p => {
                 const projectTitle = p.title || '—';
-                const projectDesc = p.desc || '';
+                const projectDesc = getProjectDescription(p);
                 const area = String(p.area || '').trim();
                 const floors = String(p.floors || '').trim();
                 const metaBadges = [
@@ -156,7 +178,7 @@
                             <h3 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h3>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
-                            <p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${escapeHtml(projectDesc)}</p>
+                            ${projectDesc ? `<p class="sea-breeze-project-card__description text-xs text-gray-700 line-clamp-2 font-medium">${escapeHtml(projectDesc)}</p>` : ''}
                             ${projectMeta}
                         </div>
                     </div>
@@ -443,7 +465,7 @@
         function renderOfficialProjectModalContent(project) {
             activeOfficialProject = project;
             const localizedTitle = project.title || 'Layihə';
-            const localizedDesc = project.desc || '';
+            const localizedDesc = getProjectDescription(project);
             updateSeo({ title: projectSeoTitle(project), description: projectSeoDescription(project), path: projectPath(project), image: project.img, type: 'article' });
 
             officialProjectImages = getProjectImages(project);
@@ -453,7 +475,8 @@
             document.getElementById('op-modal-title').textContent = localizedTitle;
             document.getElementById('op-modal-year').textContent = project.year || '';
             document.getElementById('op-modal-desc-text').textContent = localizedDesc;
-            document.getElementById('op-tab-btn-description')?.classList.remove('hidden');
+            document.getElementById('op-tab-description')?.classList.toggle('hidden', !localizedDesc || currentProjectModalTab !== 'description');
+            document.getElementById('op-tab-btn-description')?.classList.toggle('hidden', !localizedDesc);
             document.getElementById('op-modal-pdf-btn')?.classList.remove('hidden');
 
             const projects = getOfficialProjectNavigationProjects();
@@ -687,7 +710,7 @@
         async function shareOfficialProject() {
             if (!activeOfficialProject) return;
             const shareUrl = absoluteUrl(projectPath(activeOfficialProject));
-            const shareData = { title: activeOfficialProject.title || 'Layihə', text: activeOfficialProject.desc || activeOfficialProject.title || 'BestHome layihəsi', url: shareUrl };
+            const shareData = { title: activeOfficialProject.title || 'Layihə', text: getProjectDescription(activeOfficialProject) || activeOfficialProject.title || 'BestHome layihəsi', url: shareUrl };
             if (navigator.share && window.matchMedia('(max-width: 767px)').matches) {
                 try {
                     await navigator.share(shareData);
@@ -769,6 +792,7 @@
         fetchProjectsBySearch,
         switchProjectCategory,
         getProjectPictureMarkup,
+        getProjectDescription,
         setProjectPage,
         toggleMostViewedProjects,
         renderMostViewedProjects,

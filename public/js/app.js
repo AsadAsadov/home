@@ -683,7 +683,22 @@
             return `${project.title || 'Sea Breeze layihəsi'} - Sea Breeze layihəsi | ${SITE_NAME}`;
         }
 
+        function getProjectDescriptionFallback(project = {}) {
+            let metadata = project.metadata && typeof project.metadata === 'object' ? project.metadata : {};
+            if (typeof project.metadata === 'string') {
+                try { metadata = JSON.parse(project.metadata); } catch (_error) { metadata = {}; }
+            }
+            const values = [project.description, project.descriptionAz, project.desc, project.content, project.details, project.about, metadata.description];
+            for (const value of values) {
+                const text = String(value ?? '').trim();
+                if (text) return text;
+            }
+            return '';
+        }
+
         function projectSeoDescription(project = {}) {
+            const description = getProjectDescriptionFallback(project);
+            if (description) return description.replace(/\s+/g, ' ').slice(0, 155);
             const title = project.title || 'Sea Breeze';
             return `${title} layihəsi haqqında məlumat, təhvil ili, mərtəbə sayı, mənzil sahələri və üstünlüklər. Sea Breeze layihələrini ${SITE_NAME}-da kəşf edin.`;
         }
@@ -1268,6 +1283,11 @@
             const floorCount = p.floorCount || p.floor_count || '';
             const areaRange = p.areaRange || p.area_range || p.area || '';
             const apartmentCount = p.apartmentCount || p.apartment_count || '';
+            let metadata = p.metadata && typeof p.metadata === 'object' ? p.metadata : {};
+            if (typeof p.metadata === 'string') {
+                try { metadata = JSON.parse(p.metadata); } catch (_error) { metadata = {}; }
+            }
+            const description = getProjectDescriptionFallback({ ...p, metadata });
             return {
                 id: String(p.id), title: p.title || '', category: p.category || 'Apartment', year: deliveryDate, deliveryDate,
                 region: p.region || p.regionType || p.region_type || '', projectArea: p.projectArea || p.project_area || '', location: p.location || '',
@@ -1275,7 +1295,8 @@
                 buildings: p.buildingCount || p.building_count || '', floors: floorCount, floorCount, area: areaRange, areaRange, apartments: apartmentCount, apartmentCount, parking: p.parkingSpaces || p.parking_spaces || '',
                 repair: p.repairStatus || p.repair_status || '', repairStatus: p.repairStatus || p.repair_status || '', apartmentFormats: p.apartmentFormats || p.apartment_formats || '', apartmentAreas: p.apartmentAreas || p.apartment_areas || '',
                 pricePerM2: p.pricePerM2 || p.price_per_m2 || '', totalPrice: p.totalPrice || p.total_price || '', bankMortgage: p.bankMortgage || p.bank_mortgage || '', internalCredit: p.internalCredit || p.internal_credit || '', downPayment: p.downPayment || p.down_payment || '', infrastructure: p.infrastructure || '', features: normalizeFeatures(p.features),
-                desc: p.description || '', img, imageUrl: primaryImage || images[0] || PROJECT_IMAGE_PLACEHOLDER, images, picture: buildProjectPictureFromLink(img),
+                description, descriptionAz: p.descriptionAz || p.description_az || '', desc: description, content: p.content || '', details: p.details || '', about: p.about || '', metadata,
+                img, imageUrl: primaryImage || images[0] || PROJECT_IMAGE_PLACEHOLDER, images, picture: buildProjectPictureFromLink(img),
                 displayOrder: p.displayOrder ?? p.display_order ?? null,
                 createdAt: p.createdAt || p.created_at || '',
                 slug: p.slug || localSlug(p.title),
@@ -2679,7 +2700,7 @@
                 down_payment: p.downPayment,
                 infrastructure: p.infrastructure,
                 features: Array.isArray(p.features) ? p.features.join(' / ') : p.features,
-                description: p.desc,
+                description: getProjectDescriptionFallback(p),
                 image_url: p.img,
                 images: normalizeProjectImages(p.images, p.img),
                 display_order: p.displayOrder ?? p.display_order,
@@ -7648,6 +7669,7 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-slug').value = '';
             document.getElementById('project-form-action-title').textContent = 'Yeni Layihə Əlavə Et';
             document.getElementById('official-project-form')?.reset();
+            document.getElementById('project-desc')?.removeAttribute('data-project-description-dirty');
             document.getElementById('project-map-verified') && (document.getElementById('project-map-verified').value = 'false');
             updateProjectMapStatus();
             if (projectLocationMarker) { projectLocationMarker.remove(); projectLocationMarker = null; }
@@ -8298,7 +8320,12 @@ Təşəkkür edirəm. 🙏`;
                 img: imageUrl,
                 images: projectImages,
                 picture: buildProjectPictureFromLink(imageUrl, existing.picture),
-                desc: document.getElementById('project-desc').value.trim(),
+                desc: (() => {
+                    const descInput = document.getElementById('project-desc');
+                    const nextDesc = descInput.value.trim();
+                    const previousDesc = getProjectDescriptionFallback(existing);
+                    return editId && !nextDesc && previousDesc && descInput.dataset.projectDescriptionDirty !== 'true' ? previousDesc : nextDesc;
+                })(),
                 buildings: document.getElementById('project-buildings').value.trim(),
                 floors: document.getElementById('project-floors').value.trim(),
                 area: document.getElementById('project-area').value.trim(),
@@ -8356,6 +8383,8 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        document.getElementById('project-desc')?.addEventListener('input', event => { event.currentTarget.dataset.projectDescriptionDirty = 'true'; });
+
         window.resetOfficialProjectForm = resetOfficialProjectForm;
 
         function editOfficialProject(id) {
@@ -8391,7 +8420,11 @@ Təşəkkür edirəm. 🙏`;
             document.getElementById('project-down-payment').value = project.downPayment || '';
             document.getElementById('project-infrastructure').value = project.infrastructure || '';
             document.getElementById('project-features').value = Array.isArray(project.features) ? project.features.join(' / ') : project.features;
-            document.getElementById('project-desc').value = project.desc;
+            const projectDescriptionInput = document.getElementById('project-desc');
+            if (projectDescriptionInput) {
+                projectDescriptionInput.value = getProjectDescriptionFallback(project);
+                projectDescriptionInput.dataset.projectDescriptionDirty = 'false';
+            }
             document.getElementById('project-featured-hero').checked = Boolean(project.featuredInHero);
             document.getElementById('project-hero-badge')?.classList.toggle('hidden', !project.featuredInHero);
             const images = getProjectImages(project);
