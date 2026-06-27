@@ -99,7 +99,7 @@
         function renderMostViewedProjects() {
             const el = document.getElementById('most-viewed-projects'); if (!el) return;
             const rows = getOfficialProjects().slice().sort((a,b) => Number(b.viewCount||0)-Number(a.viewCount||0)).slice(0,5);
-            el.innerHTML = rows.length ? rows.map(p => `<button type="button" onclick="openOfficialProjectModal('${p.id}', true)" class="rounded-2xl overflow-hidden border border-slate-200 bg-white/80 text-left hover:-translate-y-1 hover:border-brand-500 transition"><div class="h-28 overflow-hidden">${getProjectPictureMarkup(p,'w-full h-full object-cover')}</div><div class="p-3"><strong class="block truncate text-sm text-slate-950">${escapeHtml(p.title)}</strong><span class="text-xs font-black text-slate-500">👁 ${Number(p.viewCount||0)} baxış</span><div class="mt-2 flex flex-wrap gap-1">${[p.year,p.area].filter(Boolean).slice(0,2).map(x=>`<span class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600">${escapeHtml(x)}</span>`).join('')}</div></div></button>`).join('') : '<div class="col-span-full text-sm font-bold text-slate-500">Hələ baxış statistikası yoxdur.</div>';
+            el.innerHTML = rows.length ? rows.map(p => `<button type="button" onclick="openOfficialProjectModal('${p.id}', true)" class="rounded-2xl overflow-hidden border border-slate-200 bg-white/80 text-left hover:-translate-y-1 hover:border-brand-500 transition"><div class="h-28 overflow-hidden">${getProjectPictureMarkup(p,'w-full h-full object-cover')}</div><div class="p-3"><strong class="block truncate text-sm text-slate-950">${escapeHtml(p.title)}</strong><span class="text-xs font-black text-slate-500">👁 ${Number(p.viewCount||0)} baxış</span><div class="mt-2 flex flex-wrap gap-1">${[p.year,p.area].filter(Boolean).slice(0,2).map(x=>`<span class="rounded-full bg-slate-100 px-2 py-1 text-sm font-black text-slate-600">${escapeHtml(x)}</span>`).join('')}</div></div></button>`).join('') : '<div class="col-span-full text-sm font-bold text-slate-500">Hələ baxış statistikası yoxdur.</div>';
             setMostViewedProjectsOpen(mostViewedProjectsOpen);
         }
 
@@ -152,7 +152,7 @@
                         <div class="sea-breeze-project-card__image h-48 md:h-52 relative overflow-hidden">
                             ${getProjectPictureMarkup(p)}
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
+                            ${p.year ? `<span class="sea-breeze-project-card__year absolute top-4 right-4 bg-brand-700 text-white text-sm font-bold px-2.5 py-1 rounded-full">${escapeHtml(p.year)}</span>` : ''}
                             <h3 class="sea-breeze-project-card__title absolute bottom-4 left-4 right-4 text-lg font-extrabold text-white overflow-hidden text-ellipsis line-clamp-2">${escapeHtml(projectTitle)}</h3>
                         </div>
                         <div class="sea-breeze-project-card__body p-4 flex-1 flex flex-col justify-between">
