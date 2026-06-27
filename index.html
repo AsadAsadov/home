@@ -9035,6 +9035,10 @@ Title: CASPIAN DREAM LINER
                 </div>
 
                 <div id="op-modal-thumbnails" class="hidden px-6 md:px-8 pt-5 grid grid-cols-4 sm:grid-cols-6 gap-2"></div>
+                <div class="project-modal-actions flex flex-row gap-3">
+                    <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black text-white transition"><span aria-hidden="true">📄</span><span class="project-cta-text truncate">PDF Yüklə</span></button>
+                    <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-3 py-3 text-sm font-black text-white hover:bg-brand-600 transition"><span aria-hidden="true">💬</span><span class="project-cta-text truncate">Maraqlanıram</span></button>
+                </div>
 
                 <div class="op-modal-body p-6 md:p-8 space-y-6">
                     <div class="op-modal-tabs-row flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -9050,11 +9054,6 @@ Title: CASPIAN DREAM LINER
                             <span id="op-modal-share-status" class="hidden text-xs font-black text-green-300">✅ Link kopyalandı</span>
                         </div>
                     </div>
-                    <div class="project-modal-actions flex flex-row gap-3">
-                        <button id="op-modal-pdf-btn" type="button" onclick="downloadActiveProjectPdf()" class="project-pdf-download-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black text-white transition"><span aria-hidden="true">📄</span><span class="project-cta-text truncate">PDF Yüklə</span></button>
-                        <button type="button" onclick="openProjectInquiryModal()" class="project-inquiry-open-btn inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-3 py-3 text-sm font-black text-white hover:bg-brand-600 transition"><span aria-hidden="true">💬</span><span class="project-cta-text truncate">Maraqlanıram</span></button>
-                    </div>
-
                     <div id="op-tab-details" class="project-detail-sections"></div>
                     <section id="op-modal-location-section" class="hidden project-detail-section project-detail-section--wide">
                         <h3>📍 Yerləşmə</h3>
@@ -9280,7 +9279,7 @@ Title: CASPIAN DREAM LINER
                 <p class="cursor-pointer select-none hover:text-brand-600 transition" ondblclick="switchTab('admin-login')">
                     &copy; 2026 BestHome.az. Bütün hüquqlar qorunur.
                 </p>
-                <p class="text-gray-600 font-semibold text-center md:text-right">Sayt Əsəd Əsədov tərəfindən hazırlanıb</p>
+                <a href="https://wa.me/994708468585" target="_blank" rel="noopener noreferrer" class="footer-maker-badge" aria-label="Hazırladı: Əsəd Əsədov ilə WhatsApp-da əlaqə saxla">Dizayn &amp; Kod: Əsəd Əsədov</a>
             </div>
         </div>
     </footer>

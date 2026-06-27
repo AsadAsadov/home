@@ -99,3 +99,163 @@
     .sea-breeze-project-card__title { font-size: .78rem !important; line-height: 1.15 !important; }
     .sea-breeze-project-card__description { font-size: .67rem !important; line-height: 1.35 !important; }
 }
+
+/* Final compact project detail modal: gallery left, details right. */
+#project-detail-modal-official:not(.hidden) {
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 2.2vw, 28px);
+}
+#project-detail-modal-official > .modal-glass-panel {
+    width: min(94vw, 1040px) !important;
+    max-width: 1040px !important;
+    max-height: min(86vh, 760px) !important;
+    border-radius: 26px !important;
+    overflow: hidden !important;
+    background: rgba(255, 255, 255, .98) !important;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, .34) !important;
+}
+#project-detail-modal-official #op-modal-scroll.project-modal-content {
+    background: rgba(255, 255, 255, .98) !important;
+}
+@media (min-width: 769px) {
+    #project-detail-modal-official #op-modal-scroll.project-modal-content {
+        display: grid !important;
+        grid-template-columns: minmax(390px, 48%) minmax(0, 52%) !important;
+        grid-template-rows: minmax(0, 1fr) auto auto !important;
+        grid-template-areas:
+            "hero body"
+            "thumbs body"
+            "actions body" !important;
+        max-height: min(86vh, 760px) !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+    #project-detail-modal-official .op-modal-hero {
+        grid-area: hero !important;
+        height: auto !important;
+        min-height: 430px !important;
+        align-self: stretch !important;
+        border-radius: 0 !important;
+    }
+    #project-detail-modal-official .op-modal-hero picture,
+    #project-detail-modal-official .op-modal-hero img { height: 100% !important; }
+    #project-detail-modal-official #op-modal-thumbnails {
+        grid-area: thumbs !important;
+        padding: .72rem .85rem .25rem !important;
+        gap: .5rem !important;
+        max-height: 96px !important;
+        overflow-y: auto !important;
+        background: #fff !important;
+    }
+    #project-detail-modal-official .project-modal-actions {
+        grid-area: actions !important;
+        padding: .85rem !important;
+        gap: .65rem !important;
+        background: #fff !important;
+        border-top: 1px solid rgba(127, 127, 255, .12) !important;
+    }
+    #project-detail-modal-official .op-modal-body {
+        grid-area: body !important;
+        min-height: 0 !important;
+        max-height: min(86vh, 760px) !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        padding: 1.35rem 1.45rem 1.45rem !important;
+        gap: .95rem !important;
+        line-height: 1.55 !important;
+        border-left: 1px solid rgba(127, 127, 255, .14) !important;
+    }
+    #project-detail-modal-official .detail-close-btn {
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+        z-index: 40 !important;
+    }
+}
+#project-detail-modal-official .op-modal-tabs-row { gap: .75rem !important; }
+#project-detail-modal-official .op-modal-tabs { gap: .45rem !important; padding-bottom: .2rem !important; }
+#project-detail-modal-official .op-modal-tab-pill {
+    padding: .58rem .78rem !important;
+    border-radius: 999px !important;
+    font-size: .78rem !important;
+    line-height: 1.12 !important;
+    white-space: nowrap !important;
+}
+#project-detail-modal-official .project-detail-section,
+#project-detail-modal-official #op-tab-description {
+    border-radius: 18px !important;
+    padding: 1rem !important;
+    margin-bottom: .75rem !important;
+}
+#project-detail-modal-official .project-detail-section h3 {
+    margin-bottom: .7rem !important;
+    font-size: .88rem !important;
+    line-height: 1.25 !important;
+}
+#project-detail-modal-official .project-detail-row {
+    gap: .65rem !important;
+    padding-block: .52rem !important;
+    line-height: 1.35 !important;
+}
+#project-detail-modal-official .op-modal-share-btn,
+#project-detail-modal-official .project-modal-actions > button {
+    min-height: 42px !important;
+    border-radius: 15px !important;
+    padding: .68rem .85rem !important;
+    font-size: .82rem !important;
+}
+@media (max-width: 768px) {
+    #project-detail-modal-official > .modal-glass-panel {
+        width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 24px) !important;
+        max-height: 88vh !important;
+    }
+    #project-detail-modal-official #op-modal-scroll.project-modal-content { overflow-y: auto !important; }
+    #project-detail-modal-official .project-modal-actions { padding: .85rem 1rem 0 !important; }
+}
+
+/* Compact dark premium footer refinements. */
+footer.footer-premium {
+    margin-top: 1rem !important;
+    padding-top: 22px !important;
+    padding-bottom: 16px !important;
+    background: radial-gradient(circle at 12% 0%, rgba(127,127,255,.22), transparent 34%), linear-gradient(135deg, #070912 0%, #0d1020 54%, #151936 100%) !important;
+    color: rgba(255,255,255,.78) !important;
+}
+footer.footer-premium > .max-w-7xl { width: min(100% - 32px, 1180px) !important; padding-inline: 0 !important; }
+footer.footer-premium .grid { gap: .9rem !important; }
+footer.footer-premium .space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: .9rem !important; }
+footer.footer-premium h3 { color: #fff !important; margin-bottom: .55rem !important; font-size: .88rem !important; }
+footer.footer-premium p,
+footer.footer-premium a,
+footer.footer-premium .footer-quick-link { color: rgba(255,255,255,.7) !important; font-size: .8rem !important; line-height: 1.35 !important; }
+footer.footer-premium .site-footer-logo { max-width: 170px !important; height: auto !important; }
+footer.footer-premium .w-9.h-9 { width: 2rem !important; height: 2rem !important; background: rgba(127,127,255,.12) !important; color: #c7d2fe !important; }
+footer.footer-premium .footer-stat-card { padding: .65rem .75rem !important; border-radius: 16px !important; background: rgba(255,255,255,.07) !important; border-color: rgba(255,255,255,.1) !important; }
+footer.footer-premium .footer-stat-card strong { font-size: 1.25rem !important; line-height: 1 !important; color: #c7d2fe !important; }
+footer.footer-premium .footer-stat-card span { font-size: .72rem !important; color: rgba(255,255,255,.68) !important; }
+footer.footer-premium .h-px { background: rgba(255,255,255,.12) !important; }
+footer.footer-premium .footer-maker-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(127,127,255,.32);
+    background: rgba(255,255,255,.06);
+    border-radius: 999px;
+    padding: .55rem .85rem;
+    font-weight: 900;
+    color: #e0e7ff !important;
+    transition: color 220ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+footer.footer-premium .footer-maker-badge:hover {
+    color: #fff !important;
+    border-color: rgba(127,127,255,.9);
+    background: rgba(127,127,255,.18);
+    box-shadow: 0 0 24px rgba(127,127,255,.28);
+    transform: translateY(-1px);
+}
+@media (max-width: 767px) {
+    footer.footer-premium { padding-bottom: calc(4.75rem + env(safe-area-inset-bottom)) !important; }
+    footer.footer-premium > .max-w-7xl { width: min(100% - 28px, 1180px) !important; }
+}
