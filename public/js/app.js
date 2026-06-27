@@ -748,7 +748,14 @@
             const adminHost = isAdminHost();
             document.documentElement.classList.toggle('is-admin-host', adminHost);
             document.body?.classList.toggle('is-admin-host', adminHost);
+            syncAdminAuthShellClass();
             return adminHost;
+        }
+
+        function syncAdminAuthShellClass() {
+            const isAuthedAdmin = isAdminHost() && activeUser && isAdminRole(activeUser.role);
+            document.documentElement.classList.toggle('admin-authenticated', Boolean(isAuthedAdmin));
+            document.body?.classList.toggle('admin-authenticated', Boolean(isAuthedAdmin));
         }
 
         function normalizeAuthRole(role, fallback = 'user') {
@@ -757,27 +764,24 @@
         }
 
         const DASHBOARD_SUBTAB_BUTTONS = [
-            { id: 'subtab-btn-dashboard', subtab: 'seabreeze-manager', label: 'Dashboard', icon: 'fa-chart-pie', adminOnly: false },
+            { id: 'subtab-btn-dashboard', subtab: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie', adminOnly: false },
             { id: 'subtab-btn-sb', subtab: 'seabreeze-manager', label: 'Elanlar', icon: 'fa-building', adminOnly: false },
             { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', icon: 'fa-diagram-project', adminOnly: true },
             { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Müraciətlər', icon: 'fa-inbox', adminOnly: true },
             { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', icon: 'fa-users', adminOnly: true },
-            { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Mesajlar', icon: 'fa-message', adminOnly: false },
+            { id: 'subtab-btn-messages', subtab: 'messages', label: 'Mesajlar', icon: 'fa-message', adminOnly: false },
             { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklamlar', icon: 'fa-rectangle-ad', adminOnly: true },
             { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', icon: 'fa-images', adminOnly: true },
             { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Vakansiyalar', icon: 'fa-briefcase', adminOnly: true },
             { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sistem Ayarları', icon: 'fa-sliders', adminOnly: true },
             { id: 'subtab-btn-site-music', subtab: 'site-music', label: 'Sayt Musiqisi', icon: 'fa-music', adminOnly: true },
             { id: 'subtab-btn-broadcast-notifications', subtab: 'broadcast-notifications', label: 'Bildirişlər', icon: 'fa-bell', adminOnly: true },
-            { id: 'subtab-btn-google-email', subtab: 'google-email', label: 'Sayt Statistikaları', icon: 'fa-chart-line', adminOnly: true },
-            { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Yedəkləmə', icon: 'fa-database', adminOnly: true },
-            { id: 'subtab-btn-hero', subtab: 'hero-sections', label: 'Sistem Logları', icon: 'fa-clipboard-list', adminOnly: true },
             { id: 'subtab-btn-seabreeze-hero', subtab: 'seabreeze-hero', label: 'Sea Breeze Hero', icon: 'fa-star', adminOnly: true },
-            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: 'Sea Breeze Məlumat', icon: 'fa-circle-info', adminOnly: true },
-            { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: 'Elan Hero', icon: 'fa-star-half-stroke', adminOnly: true }
+            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: 'Sea Breeze Məlumatları', icon: 'fa-circle-info', adminOnly: true },
+            { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Profil', icon: 'fa-user', adminOnly: false }
         ];
 
-        let currentAdminSubtab = 'seabreeze-manager';
+        let currentAdminSubtab = 'dashboard';
 
         function toggleAdminSidebar(force) {
             const shouldOpen = typeof force === 'boolean' ? force : !document.documentElement.classList.contains('admin-sidebar-open');
@@ -877,6 +881,7 @@
             if (token && isAuthSessionExpired()) {
                 clearAuthSession();
                 activeUser = null;
+                syncAdminAuthShellClass();
                 updateHeaderUI();
                 return;
             }
@@ -932,6 +937,7 @@
             stopAdminUsersAutoRefresh();
             clearAuthSession();
             activeUser = null;
+            syncAdminAuthShellClass();
             updateHeaderUI();
             switchTab('admin-login');
         }
@@ -1980,6 +1986,8 @@
         }
 
         let adminListingStatusFilter = 'all';
+        let adminListingPage = 1;
+        const ADMIN_LISTINGS_PAGE_SIZE = 12;
 
         const appData = {
             dashboardStats: null,
@@ -4924,6 +4932,7 @@
                     const user = JSON.parse(cachedUser);
                     const role = normalizeAuthRole(user.role);
                     activeUser = { role, name: user.fullname || user.name || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
+                    syncAdminAuthShellClass();
                     updateHeaderUI();
                 } catch (_error) {
                     activeUser = null;
@@ -4932,6 +4941,7 @@
 
             if (!token) {
                 activeUser = null;
+                syncAdminAuthShellClass();
                 updateHeaderUI();
                 return;
             }
@@ -4941,11 +4951,13 @@
                 const user = result.user || result;
                 const role = normalizeAuthRole(user.role);
                 activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
+                syncAdminAuthShellClass();
                 setAuthSession(token, { ...user, role, fullname: activeUser.name });
             } catch (error) {
                 if (error?.status === 401 || error?.status === 403) {
                     clearAuthSession();
                     activeUser = null;
+                    syncAdminAuthShellClass();
                 } else {
                     console.warn('Sessiya yoxlanışı müvəqqəti alınmadı:', error.message);
                 }
@@ -5601,9 +5613,14 @@ ${profileMenuItemsHtml()}
             stopAdminUsersAutoRefresh();
             clearAuthSession();
             activeUser = null;
+            syncAdminAuthShellClass();
             updateHeaderUI();
-            switchTab(isAdminHost() ? 'admin-login' : 'seabreeze', { skipPush: isAdminHost() });
+            switchTab(isAdminHost() ? 'admin-login' : 'seabreeze', { skipPush: true });
+            if (isAdminHost()) history.replaceState({ path: '/' }, '', '/');
         }
+
+        window.logoutAdmin = logoutAdmin;
+        window.logout = logoutAdmin;
 
         // TABS SWITCHER
         function switchTab(tabId, options = {}) {
@@ -6857,6 +6874,7 @@ Təşəkkür edirəm. 🙏`;
                 error.classList.add('hidden');
                 setAuthSession(result.token, result.user);
                 activeUser = { role: normalizeAuthRole(result.user.role), name: result.user.fullname || result.user.email, fullname: result.user.fullname || '', id: result.user.id, email: result.user.email, phone: result.user.phone || '', avatarUrl: result.user.avatarUrl || result.user.avatar_url || '', bio: result.user.bio || '' };
+                syncAdminAuthShellClass();
                 updateHeaderUI();
                 setLoginButtonSuccess();
                 homepageHydration.admin = false;
@@ -6917,7 +6935,7 @@ Təşəkkür edirəm. 🙏`;
 
         function normalizeAdminSubtab(subtab) {
             const key = String(subtab || '').trim().toLowerCase();
-            const subtabAliases = { ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', music: 'site-music', musiqi: 'site-music', 'site-music': 'site-music', gallery: 'gallery-manager', 'media-gallery': 'gallery-manager', qalereya: 'gallery-manager', 'media-qalereya': 'gallery-manager' };
+            const subtabAliases = { dashboard: 'dashboard', messages: 'messages', mesajlar: 'messages', ads: 'ads-manager', reklam: 'ads-manager', advertisement: 'ads-manager', advertisements: 'ads-manager', music: 'site-music', musiqi: 'site-music', 'site-music': 'site-music', gallery: 'gallery-manager', 'media-gallery': 'gallery-manager', qalereya: 'gallery-manager', 'media-qalereya': 'gallery-manager' };
             return subtabAliases[key] || subtab;
         }
 
@@ -6940,6 +6958,7 @@ Təşəkkür edirəm. 🙏`;
             const subtab = normalizeAdminSubtab(tabName) || 'seabreeze-manager';
             const panel = document.getElementById(`admin-subtab-${subtab}`);
             hideAdminSubtabPanels();
+            if (subtab === 'dashboard') return 'dashboard';
             if (!panel) return '';
             panel.classList.add('admin-subtab-panel', 'active', 'is-active', 'show');
             panel.classList.remove('hidden');
@@ -6965,7 +6984,8 @@ Təşəkkür edirəm. 🙏`;
 
             const targetPanelId = `admin-subtab-${subtab}`;
             const targetPanel = document.getElementById(targetPanelId);
-            if (!targetPanel) {
+            if (subtab === 'messages') { switchTab('messages', { skipPush: true }); return; }
+            if (subtab !== 'dashboard' && !targetPanel) {
                 subtab = 'seabreeze-manager';
                 currentAdminSubtab = subtab;
             }
@@ -6982,12 +7002,12 @@ Təşəkkür edirəm. 🙏`;
                 button.classList.toggle('active', isActiveButton);
                 button.setAttribute('aria-selected', isActiveButton ? 'true' : 'false');
             });
-            const subtabRoute = ADMIN_SUBTAB_ROUTES[subtab] || '/admin';
+            const subtabRoute = subtab === 'dashboard' ? '/admin' : (ADMIN_SUBTAB_ROUTES[subtab] || '/admin');
             if (!options.skipPush && (isAdmin || subtab === 'user-profile') && window.location.pathname !== subtabRoute) {
                 history.pushState({ path: subtabRoute, adminSubtab: subtab }, '', subtabRoute);
                 updateSeo({ title: 'Admin Panel', path: subtabRoute });
             }
-            if (isAdmin && ['seabreeze-manager','projects-manager','project-inquiries','gallery-manager','ads-manager','site-music'].includes(subtab)) refreshAdminStats({ render: true });
+            if (isAdmin && subtab === 'dashboard') refreshAdminStats({ render: true });
             if (subtab === 'projects-manager') {
                 renderAdminProjects();
                 renderBulkProjectPreview();
@@ -6996,6 +7016,7 @@ Təşəkkür edirəm. 🙏`;
             if (subtab === 'projects-archive') { loadArchivedProjects(); }
             if (subtab === 'project-inquiries') { loadProjectInquiries(); }
             if (subtab === 'seabreeze-manager') {
+                adminListingPage = 1;
                 toggleMetroFieldForCity();
                 setTimeout(initAdminListingMap, 80);
                 if (isAdmin) loadAdminListings({ force: true }).catch(() => {});
@@ -8425,20 +8446,18 @@ Təşəkkür edirəm. 🙏`;
                 ['Aktiv', stats.approvedListings ?? 0], ['Gözləyən', stats.pendingListings ?? 0],
                 ['Arxiv', stats.archivedListings ?? 0], ['Rədd', stats.rejectedListings ?? 0]
             ];
-            const maxViews = Math.max(1, stats.totalProjectViews || stats.totalViews || stats.totalListings || 1);
-            const bars = [35, 58, 44, 72, 61, 84, 68].map((base, i) => `<span class="admin-chart-bar" style="height:${Math.min(96, Math.max(18, base + ((maxViews + i) % 10)))}%"></span>`).join('');
             return `<div class="admin-dashboard-widgets">
-                <section class="admin-widget-card"><h3>Baxışlar (Son 7 gün)</h3><div class="admin-placeholder-chart">${bars}</div></section>
-                <section class="admin-widget-card"><h3>Son Aktivliklər</h3>${(stats.projectInquiriesTotal || stats.pendingListings) ? `<div class="admin-mini-row"><span>Gözləyən elanlar</span><strong>${stats.pendingListings || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div><div class="admin-mini-row"><span>Reklam baxışları</span><strong>${stats.totalViews || 0}</strong></div>` : '<div class="admin-empty-state">Hələ aktivlik yoxdur.</div>'}</section>
+                <section class="admin-widget-card"><h3>Son Aktivliklər</h3>${(stats.projectInquiriesTotal || stats.pendingListings || stats.totalViews) ? `<div class="admin-mini-row"><span>Gözləyən elanlar</span><strong>${stats.pendingListings || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div><div class="admin-mini-row"><span>Reklam baxışları</span><strong>${stats.totalViews || 0}</strong></div>` : '<div class="admin-empty-state">Hələ aktivlik yoxdur.</div>'}</section>
                 <section class="admin-widget-card"><h3>Elan Statusları</h3>${statusRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${value}</strong></div>`).join('')}</section>
-                <section class="admin-widget-card"><h3>Ən Populyar Layihələr</h3><div class="admin-mini-row"><span>Layihə baxışları</span><strong>${stats.totalProjectViews || 0}</strong></div><div class="admin-mini-row"><span>Layihələr</span><strong>${stats.projectsCount || 0}</strong></div></section>
-                <section class="admin-widget-card"><h3>Statistikalar</h3><div class="admin-mini-row"><span>Elan baxışları</span><strong>${stats.totalListingViews || stats.totalViews || 0}</strong></div><div class="admin-mini-row"><span>İstifadəçilər</span><strong>${stats.totalUsers || 0}</strong></div></section>
+                <section class="admin-widget-card"><h3>İstifadəçilər</h3><div class="admin-mini-row"><span>Ümumi istifadəçi</span><strong>${stats.totalUsers || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div></section>
             </div>`;
         }
 
         function renderDashboardCards() {
             const container = document.getElementById('admin-dashboard-cards');
             if (!container || !activeUser) return;
+            if (currentAdminSubtab !== 'dashboard') { container.innerHTML = ''; container.classList.add('hidden'); return; }
+            container.classList.remove('hidden');
             if (!isAdminRole(activeUser.role)) {
                 const mine = appData.listings.filter(item => String(item.authorId) === String(activeUser.id));
                 const stats = appData.dashboardStats || {};
@@ -8471,8 +8490,30 @@ Təşəkkür edirəm. 🙏`;
                 { label: 'Reklam Baxışları', value: stats.totalViews, icon: 'fa-rectangle-ad' },
                 { label: 'Müraciətlər', value: stats.projectInquiriesTotal, icon: 'fa-inbox' }
             ];
-            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminDashboardWidgets(stats) + renderAdminAnalyticsPanel(stats);
+            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminDashboardWidgets(stats);
         }
+
+
+        function renderAdminListingsPagination(totalItems = 0, totalPages = 1) {
+            const list = document.getElementById('admin-seabreeze-list');
+            if (!list) return;
+            let controls = document.getElementById('admin-listings-pagination');
+            if (!controls) {
+                controls = document.createElement('div');
+                controls.id = 'admin-listings-pagination';
+                controls.className = 'admin-listings-pagination mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-black text-slate-700';
+                list.insertAdjacentElement('afterend', controls);
+            }
+            if (totalItems <= ADMIN_LISTINGS_PAGE_SIZE) { controls.innerHTML = ''; controls.classList.add('hidden'); return; }
+            controls.classList.remove('hidden');
+            controls.innerHTML = `<span>${totalItems} elan • Səhifə ${adminListingPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${adminListingPage <= 1 ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage - 1})">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${adminListingPage >= totalPages ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage + 1})">Növbəti</button></div>`;
+        }
+
+        function setAdminListingPage(page = 1) {
+            adminListingPage = Math.max(1, Number(page) || 1);
+            renderAdminDashboard();
+        }
+        window.setAdminListingPage = setAdminListingPage;
 
         function syncAdminListingStatusFilters() {
             document.querySelectorAll('[data-listing-status-filter]').forEach(button => {
@@ -8486,9 +8527,11 @@ Təşəkkür edirəm. 🙏`;
         function setAdminListingStatusFilter(status = 'all') {
             const normalized = ['all', 'pending', 'approved', 'rejected', 'archived'].includes(status) ? status : 'all';
             adminListingStatusFilter = normalized;
+            adminListingPage = 1;
             syncAdminListingStatusFilters();
             renderAdminDashboard();
         }
+        window.setAdminListingStatusFilter = setAdminListingStatusFilter;
 
         async function loadProjectInquiries() {
             if (!isAdminRole(activeUser?.role)) return;
@@ -8563,6 +8606,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function renderAdminDashboard() {
+            syncAdminAuthShellClass();
             if (!activeUser) {
                 switchTab('admin-login');
                 return;
@@ -8608,10 +8652,14 @@ Təşəkkür edirəm. 🙏`;
                 pContainer.innerHTML = '<div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-gray-400">Elan tapılmadı.</div>';
             }
 
-            if (!adminListingsBlocked && properties.length) properties.forEach(p => {
-                // Agent restriction filter
-                if (activeUser.role === 'user' && p.authorId !== activeUser.id) return;
+            let visibleProperties = properties;
+            if (activeUser.role === 'user') visibleProperties = properties.filter(p => p.authorId === activeUser.id);
+            const adminListingTotalPages = Math.max(1, Math.ceil(visibleProperties.length / ADMIN_LISTINGS_PAGE_SIZE));
+            adminListingPage = Math.min(Math.max(1, adminListingPage), adminListingTotalPages);
+            const pagedAdminProperties = visibleProperties.slice((adminListingPage - 1) * ADMIN_LISTINGS_PAGE_SIZE, adminListingPage * ADMIN_LISTINGS_PAGE_SIZE);
 
+            if (!adminListingsBlocked && visibleProperties.length && !pagedAdminProperties.length) adminListingPage = 1;
+            if (!adminListingsBlocked && visibleProperties.length) pagedAdminProperties.forEach(p => {
                 const normalizedStatus = normalizeListingStatus(p.status);
                 const isApproved = normalizedStatus === 'approved';
                 const label = { pending: 'Gözləyir', approved: 'Aktiv', rejected: 'Rədd edildi', archived: 'Arxivdə' }[normalizedStatus] || 'Gözləyir';
@@ -8668,6 +8716,8 @@ Təşəkkür edirəm. 🙏`;
                     </article>
                 `;
             });
+
+            renderAdminListingsPagination(visibleProperties.length, adminListingTotalPages);
 
             if (isAdminRole(activeUser.role)) {
                 // 2. CV Table
@@ -10610,7 +10660,7 @@ Təşəkkür edirəm. 🙏`;
         };
 
         const ADMIN_ROUTE_SUBTABS = {
-            '/admin': 'seabreeze-manager',
+            '/admin': 'dashboard',
             '/admin/listings': 'seabreeze-manager',
             '/admin/qalereya': 'gallery-manager',
             '/admin/gallery': 'gallery-manager',
@@ -10671,7 +10721,7 @@ Təşəkkür edirəm. 🙏`;
                 }
 
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
-                const subtab = ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path] || 'seabreeze-manager';
+                const subtab = ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path] || 'dashboard';
                 switchTab('admin-dashboard', { skipPush: true });
                 switchAdminSubtab(subtab, { skipPush: true });
                 updateSeo({ title: 'Admin Panel', path: `${path}${window.location.search}` });
