@@ -7749,6 +7749,31 @@
         .admin-listing-action { min-width:0; font-size:11px; line-height:1.2; }
         .admin-stat-card { min-height:150px; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
         .admin-stat-card * { min-width:0; overflow-wrap:anywhere; }
+
+        .user-listing-card, .admin-listing-management-card { display:flex; flex-direction:column; min-width:0; overflow:hidden; border:1px solid #e2e8f0 !important; border-radius:24px !important; background:#fff !important; box-shadow:0 14px 34px rgba(15,23,42,.08) !important; color:#0f172a !important; }
+        .user-listing-card__main { display:block; width:100%; min-width:0; text-align:left; }
+        .user-listing-card__media, .admin-listing-management-card__media { position:relative; display:block; width:100%; height:180px; overflow:hidden; background:#f1f5f9; }
+        .user-listing-card__media img, .admin-listing-management-card__thumb { width:100% !important; height:100% !important; min-height:0 !important; max-height:none !important; object-fit:cover !important; border-radius:0 !important; display:block; flex:none !important; }
+        .admin-listing-management-card__thumb--placeholder { display:flex !important; align-items:center; justify-content:center; color:#94a3b8; font-size:30px; }
+        .user-listing-card__status, .admin-listing-management-card__status { position:absolute !important; top:12px; left:12px; z-index:2; width:max-content; max-width:calc(100% - 24px); border-radius:999px !important; padding:7px 10px !important; font-size:10px !important; font-weight:900 !important; line-height:1 !important; box-shadow:0 8px 18px rgba(15,23,42,.16); }
+        .user-listing-card__body, .admin-listing-management-card__info { display:flex; flex-direction:column; gap:9px; padding:14px; min-width:0; color:#0f172a; }
+        .user-listing-card__title, .admin-listing-management-card__title { color:#0f172a !important; font-size:16px !important; line-height:1.25 !important; font-weight:950 !important; min-height:40px; display:-webkit-box !important; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+        .user-listing-card__price, .admin-listing-management-card__price { color:#4f46e5 !important; font-size:18px !important; line-height:1.1; font-weight:950 !important; }
+        .user-listing-card__location, .admin-listing-management-card__location { display:flex; align-items:center; gap:6px; min-width:0; color:#64748b !important; font-size:12px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .user-listing-card__location i, .admin-listing-management-card__location i { color:#818cf8; flex:0 0 auto; }
+        .user-listing-card__facts, .admin-listing-management-card__facts { display:flex; flex-wrap:wrap; gap:7px; min-width:0; }
+        .user-listing-card__facts span, .admin-listing-management-card__facts span { display:inline-flex; align-items:center; gap:5px; min-width:0; border-radius:999px; background:#f8fafc; color:#475569; padding:6px 8px; font-size:11px; font-weight:900; }
+        .user-listing-card__code, .admin-listing-management-card__code { color:#64748b !important; font-size:11px !important; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .admin-listing-management-card__footer-meta { display:flex; flex-direction:column; align-items:flex-start !important; gap:7px !important; color:#64748b !important; font-size:11px !important; }
+        .admin-listing-management-card__summary { display:flex !important; flex-direction:column !important; gap:0 !important; min-width:0; }
+        .user-listing-card__actions, .admin-listing-management-card__actions { margin-top:auto; display:flex !important; flex-wrap:wrap; gap:8px; padding:12px 14px 14px !important; border-top:1px solid #f1f5f9; }
+        .listing-icon-action, .admin-listing-action { display:inline-flex !important; align-items:center; justify-content:center; width:38px !important; height:38px !important; min-width:38px !important; padding:0 !important; border-radius:13px !important; border:1px solid #e2e8f0; font-size:14px !important; font-weight:900; line-height:1 !important; color:#334155; background:#f8fafc; }
+        .listing-icon-action--open, .admin-listing-action--open { color:#2563eb; background:#eff6ff; border-color:#bfdbfe; }
+        .listing-icon-action--delete, .admin-listing-action--delete { color:#dc2626 !important; background:#fef2f2 !important; border-color:#fecaca !important; }
+        .listing-icon-action--edit, .admin-listing-action--edit { color:#4f46e5 !important; background:#eef2ff !important; border-color:#c7d2fe !important; }
+        .admin-listing-action--reject { color:#dc2626 !important; background:#fef2f2 !important; border-color:#fecaca !important; }
+        .admin-listing-action--approve { color:#059669 !important; background:#ecfdf5 !important; border-color:#bbf7d0 !important; }
+        .admin-listing-action--deactivate { color:#b45309 !important; background:#fffbeb !important; border-color:#fde68a !important; }
         @media (max-width: 1180px) { .user-listing-card-grid, .admin-listing-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
         @media (max-width: 640px) { .user-listing-card-grid, .admin-listing-card-grid { grid-template-columns:1fr; } .user-cabinet-header { align-items:flex-start; } }
         @media (min-width: 1181px) { html.is-admin-host .admin-dashboard-stats { grid-template-columns:repeat(6,minmax(0,1fr)) !important; } }
