@@ -1494,10 +1494,56 @@
             return Number.isFinite(parsed) ? `${parsed.toLocaleString('az-AZ')}${suffix}` : '—';
         }
 
+        function normalizeListingImageRows(images) {
+            if (Array.isArray(images)) return images;
+            if (typeof images !== 'string') return [];
+            const trimmed = images.trim();
+            if (!trimmed) return [];
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (_) {}
+            return trimmed.split(/[\n,]+/).map(value => value.trim()).filter(Boolean);
+        }
+
+        function normalizeListingImageUrl(url) {
+            const raw = String(url || '').trim();
+            if (!raw) return '';
+            if (/^(https?:)?\/\//i.test(raw) || /^data:image\//i.test(raw) || /^blob:/i.test(raw)) return raw;
+            if (/^uploads\//i.test(raw)) return `/${raw}`;
+            if (/^\/uploads\//i.test(raw)) return raw;
+            return raw.startsWith('/') ? raw : `/${raw}`;
+        }
+
         function normalizeListingImages(l = {}) {
-            const rows = Array.isArray(l.images) ? l.images : [];
-            const fromRows = rows.map(item => typeof item === 'string' ? item : item.imageUrl || item.image_url).filter(Boolean);
-            return [...fromRows, l.imageUrl || l.image_url || l.img].map(x => String(x || '').trim()).filter((x, idx, all) => x && all.indexOf(x) === idx);
+            const rows = normalizeListingImageRows(l.images);
+            const fromRows = rows.map(item => {
+                if (typeof item === 'string') return item;
+                return item?.imageUrl || item?.image_url || item?.url || item?.src || item?.path || item?.image || '';
+            }).filter(Boolean);
+            return [l.image, l.imageUrl, l.image_url, l.img, ...fromRows]
+                .map(normalizeListingImageUrl)
+                .filter((x, idx, all) => x && all.indexOf(x) === idx);
+        }
+
+        function adminListingImageFallback(src) {
+            const url = String(src || '').trim();
+            if (!url || !isAdminHost()) return '';
+            const uploadPath = url.match(/^https?:\/\/[^/]+(\/uploads\/.+)$/i)?.[1] || (/^\/uploads\//i.test(url) ? url : '');
+            return uploadPath ? `https://test.besthome.az${uploadPath}` : '';
+        }
+
+        function adminListingImageMarkup(listing = {}, alt = 'Elan') {
+            const images = normalizeListingImages(listing);
+            const mainImage = images[0] || '';
+            if (!mainImage) {
+                return `<div class="admin-listing-management-card__thumb admin-listing-management-card__thumb--placeholder" aria-label="Şəkil yoxdur"><i class="fa-regular fa-image"></i></div>`;
+            }
+            const fallback = adminListingImageFallback(mainImage);
+            const onError = fallback
+                ? `this.onerror=function(){this.replaceWith(document.createRange().createContextualFragment('<div class=&quot;admin-listing-management-card__thumb admin-listing-management-card__thumb--placeholder&quot; aria-label=&quot;Şəkil yüklənmədi&quot;><i class=&quot;fa-regular fa-image&quot;></i></div>'));};this.src='${escapeHtml(fallback)}';`
+                : `this.replaceWith(document.createRange().createContextualFragment('<div class=&quot;admin-listing-management-card__thumb admin-listing-management-card__thumb--placeholder&quot; aria-label=&quot;Şəkil yüklənmədi&quot;><i class=&quot;fa-regular fa-image&quot;></i></div>'));`;
+            return `<img src="${escapeHtml(mainImage)}" class="admin-listing-management-card__thumb" alt="${escapeHtml(alt)}" loading="lazy" onerror="${onError}">`;
         }
 
         function dbListingToUi(l) {
@@ -8731,10 +8777,10 @@ Təşəkkür edirəm. 🙏`;
                 const isApproved = normalizedStatus === 'approved';
                 const label = { pending: 'Gözləyir', approved: 'Aktiv', rejected: 'Rədd edildi', archived: 'Arxivdə' }[normalizedStatus] || 'Gözləyir';
                 const badge = listingStatusBadgeClass(normalizedStatus);
-                const mainImage = p.img || p.images?.[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=200&q=80';
+                const adminListingTitle = p.title || '—';
+                const adminListingImage = adminListingImageMarkup(p, adminListingTitle);
                 const regionLabel = getRegionLabel(getListingRegionType(p) || 'unknown');
                 const districtLabel = getListingDistrict(p) || (regionLabel === 'Unknown' ? '—' : regionLabel);
-                const adminListingTitle = p.title || '—';
                 const listingHeroItem = listingHeroItemForListing(p.id);
                 const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
                 const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
@@ -8745,7 +8791,7 @@ Təşəkkür edirəm. 🙏`;
                 pContainer.innerHTML += `
                     <article class="admin-listing-management-card glass-card">
                         <div class="admin-listing-management-card__summary">
-                            <img src="${mainImage}" class="admin-listing-management-card__thumb" alt="${escapeHtml(adminListingTitle)}" loading="lazy">
+                            ${adminListingImage}
                             <div class="admin-listing-management-card__info">
                                 <div class="admin-listing-management-card__heading">
                                     <h3 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h3>
