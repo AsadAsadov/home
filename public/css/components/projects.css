@@ -221,7 +221,33 @@ html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
         max-height: 88vh !important;
     }
     #project-detail-modal-official #op-modal-scroll.project-modal-content { overflow-y: auto !important; }
-    #project-detail-modal-official .project-modal-actions { padding: .85rem 1rem 0 !important; }
+    #project-detail-modal-official .project-modal-actions {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 10px !important;
+        padding: .75rem .85rem 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    #project-detail-modal-official .project-modal-actions > button {
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 40px !important;
+        padding: 12px 10px !important;
+        gap: 6px !important;
+        border-radius: 13px !important;
+        font-size: 14px !important;
+        line-height: 1.15 !important;
+        box-sizing: border-box !important;
+    }
+    #project-detail-modal-official .project-modal-actions > button > span[aria-hidden="true"] {
+        flex: 0 0 auto !important;
+        font-size: .95em !important;
+        line-height: 1 !important;
+    }
+    #project-detail-modal-official .project-modal-actions .project-cta-text { min-width: 0 !important; }
     #project-detail-modal-official .op-modal-tabs {
         overflow-x: auto !important;
         overflow-y: hidden !important;
@@ -233,6 +259,11 @@ html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
     html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
         background: #090909 !important;
         border-top-color: rgba(255, 255, 255, .10) !important;
+    }
+}
+@media (max-width: 359.98px) {
+    #project-detail-modal-official .project-modal-actions {
+        grid-template-columns: minmax(0, 1fr) !important;
     }
 }
 
