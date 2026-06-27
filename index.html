@@ -7212,48 +7212,83 @@
         }
 
 
-        /* Focused UI polish: compact project modal, contained footer, readable listing hero. */
+        /* Verified DOM selectors: #project-detail-modal-official > .modal-glass-panel and footer.footer-premium. */
         @media (min-width: 769px) {
-            #project-detail-modal-official > .glass-card {
-                width: min(1040px, calc(100vw - 96px)) !important;
-                max-width: 1040px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
+            #project-detail-modal-official:not(.hidden) {
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 24px !important;
+            }
+            #project-detail-modal-official > .modal-glass-panel {
+                width: min(94vw, 960px) !important;
+                max-width: 960px !important;
+                margin-inline: auto !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
                 border-radius: 26px !important;
             }
             #project-detail-modal-official .op-modal-hero {
-                height: clamp(300px, 34vw, 380px) !important;
+                height: clamp(300px, 30vw, 340px) !important;
             }
             #project-detail-modal-official .op-modal-body {
-                padding: 1.45rem 1.65rem 1.65rem !important;
+                padding: 1.35rem 1.55rem 1.5rem !important;
             }
         }
-        @media (min-width: 1180px) {
-            #project-detail-modal-official > .glass-card {
-                width: min(1080px, calc(100vw - 120px)) !important;
-                max-width: 1080px !important;
+        @media (max-width: 768px) {
+            #project-detail-modal-official > .modal-glass-panel {
+                width: calc(100vw - 24px) !important;
+                max-width: calc(100vw - 24px) !important;
             }
         }
-        .footer-premium > .max-w-7xl {
-            width: min(100% - 32px, 1240px) !important;
-            max-width: 1240px !important;
+        footer.footer-premium {
+            margin-top: 2rem !important;
+            padding-top: 1.75rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+        footer.footer-premium > .max-w-7xl {
+            width: min(100% - 32px, 1220px) !important;
+            max-width: 1220px !important;
             padding-left: 0 !important;
             padding-right: 0 !important;
+            row-gap: 1.5rem !important;
         }
-        .footer-premium .grid {
+        footer.footer-premium .grid {
             max-width: 100%;
         }
+        footer.footer-premium > .max-w-7xl > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 1.5rem !important;
+        }
+        footer.footer-premium .grid.grid-cols-1 {
+            gap: 1.25rem !important;
+        }
+        footer.footer-premium .footer-stat-card {
+            padding: .85rem !important;
+            border-radius: 1.1rem !important;
+        }
+        footer.footer-premium .footer-stat-card strong {
+            font-size: 1.45rem !important;
+            line-height: 1.15 !important;
+        }
+        footer.footer-premium .h-px {
+            margin-block: 0 !important;
+        }
         @media (min-width: 1024px) {
-            .footer-premium > .max-w-7xl {
-                width: min(100% - 64px, 1240px) !important;
+            footer.footer-premium > .max-w-7xl {
+                width: min(100% - 64px, 1220px) !important;
             }
-            .footer-premium .grid.grid-cols-1 {
-                gap: 2rem !important;
+            footer.footer-premium .grid.grid-cols-1 {
+                gap: 1.5rem !important;
             }
         }
         @media (max-width: 767px) {
-            .footer-premium > .max-w-7xl {
-                width: min(100% - 28px, 1240px) !important;
+            footer.footer-premium {
+                padding-top: 1.5rem !important;
+                padding-bottom: calc(5.75rem + env(safe-area-inset-bottom)) !important;
+            }
+            footer.footer-premium > .max-w-7xl {
+                width: min(100% - 28px, 1220px) !important;
+                row-gap: 1.25rem !important;
             }
         }
         .listing-hero::after {
