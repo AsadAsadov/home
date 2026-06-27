@@ -173,6 +173,15 @@
         z-index: 40 !important;
     }
 }
+
+html[data-theme="dark"] #project-detail-modal-official > .modal-glass-panel,
+html[data-theme="dark"] #project-detail-modal-official #op-modal-scroll.project-modal-content,
+html[data-theme="dark"] #project-detail-modal-official #op-modal-thumbnails,
+html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
+    background: #090909 !important;
+    border-color: rgba(255, 255, 255, .10) !important;
+}
+
 #project-detail-modal-official .op-modal-tabs-row { gap: .75rem !important; }
 #project-detail-modal-official .op-modal-tabs { gap: .45rem !important; padding-bottom: .2rem !important; }
 #project-detail-modal-official .op-modal-tab-pill {
