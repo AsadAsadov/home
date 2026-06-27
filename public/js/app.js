@@ -769,7 +769,6 @@
             { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', icon: 'fa-diagram-project', adminOnly: true },
             { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Müraciətlər', icon: 'fa-inbox', adminOnly: true },
             { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', icon: 'fa-users', adminOnly: true },
-            { id: 'subtab-btn-messages', subtab: 'messages', label: 'Mesajlar', icon: 'fa-message', adminOnly: false },
             { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklamlar', icon: 'fa-rectangle-ad', adminOnly: true },
             { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', icon: 'fa-images', adminOnly: true },
             { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Vakansiyalar', icon: 'fa-briefcase', adminOnly: true },
@@ -795,7 +794,7 @@
             const title = document.getElementById('admin-topbar-title');
             if (title) title.textContent = activeConfig?.label || 'Dashboard';
             const date = document.getElementById('admin-current-date');
-            if (date) date.textContent = new Date().toLocaleDateString('az-AZ', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            if (date) date.textContent = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).format(new Date());
             const userCard = document.getElementById('admin-sidebar-user-card');
             if (userCard && activeUser) {
                 const fullname = activeUser.fullname || activeUser.name || activeUser.email || 'Admin';
@@ -5607,8 +5606,10 @@ ${profileMenuItemsHtml()}
             applySiteTheme(preferredTheme());
         }
 
-        async function logoutAdmin() {
-            try { if (getAuthToken()) await apiRequest('/api/auth/logout', { method: 'POST' }); } catch (_error) {}
+        async function logoutAdmin(button) {
+            const trigger = button || (typeof event !== 'undefined' ? event?.currentTarget : null) || document.querySelector('.admin-logout-btn');
+            if (trigger) { trigger.disabled = true; trigger.setAttribute('aria-busy', 'true'); }
+            const token = getAuthToken();
             stopAuthHeartbeat({ markOffline: true });
             stopAdminUsersAutoRefresh();
             clearAuthSession();
@@ -5617,6 +5618,9 @@ ${profileMenuItemsHtml()}
             updateHeaderUI();
             switchTab(isAdminHost() ? 'admin-login' : 'seabreeze', { skipPush: true });
             if (isAdminHost()) history.replaceState({ path: '/' }, '', '/');
+            if (token) apiRequest('/api/auth/logout', { method: 'POST' }).catch(() => {}).finally(() => {
+                if (trigger) { trigger.disabled = false; trigger.removeAttribute('aria-busy'); }
+            });
         }
 
         window.logoutAdmin = logoutAdmin;
@@ -6883,6 +6887,7 @@ Təşəkkür edirəm. 🙏`;
                     ? (isAdminRole(activeUser.role) ? (pendingRoute && pendingRoute.startsWith('/admin') ? pendingRoute : '/admin') : '/')
                     : (pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/profil'));
                 history.replaceState({ path: targetPath }, '', targetPath);
+                if (isAdminHost() && isAdminRole(activeUser.role)) switchTab('admin-dashboard', { skipPush: true });
                 const routePromise = routeToCurrentPath();
                 scheduleIdleTask(() => hydrateFromDatabase().catch(error => console.warn('Login sonrası məlumat yüklənməsi tamamlanmadı:', error.message)), 250);
                 if (isAdminRole(activeUser.role)) {
@@ -8174,6 +8179,8 @@ Təşəkkür edirəm. 🙏`;
             }
         }
 
+        window.resetOfficialProjectForm = resetOfficialProjectForm;
+
         function editOfficialProject(id) {
             const project = getOfficialProjects().find(item => item.id === id);
             if (!project) return;
@@ -8441,15 +8448,37 @@ Təşəkkür edirəm. 🙏`;
             `).join('');
         }
 
+        function adminQuickOpen(subtab, opener) {
+            switchAdminSubtab(subtab);
+            if (typeof opener === 'function') setTimeout(opener, 0);
+        }
+        window.adminQuickOpen = adminQuickOpen;
+
+        function openAdminListingPublic(id) {
+            const listing = appData.listings.find(item => String(item.id) === String(id));
+            const code = listing?.listingCode || id;
+            const url = `/listing/${encodeURIComponent(code)}`;
+            const opened = window.open(url, '_blank', 'noopener');
+            if (!opened) window.location.href = url;
+        }
+        window.openAdminListingPublic = openAdminListingPublic;
+
         function renderAdminDashboardWidgets(stats = {}) {
             const statusRows = [
                 ['Aktiv', stats.approvedListings ?? 0], ['Gözləyən', stats.pendingListings ?? 0],
                 ['Arxiv', stats.archivedListings ?? 0], ['Rədd', stats.rejectedListings ?? 0]
             ];
+            const overviewRows = [
+                ['Gözləyən elanlar', stats.pendingListings ?? 0],
+                ['Layihə müraciətləri', stats.projectInquiriesTotal ?? 0],
+                ['Aktiv reklamlar', stats.activeAds ?? stats.adsActive ?? stats.activeAdsCount]
+            ].filter(([, value]) => value !== undefined && value !== null);
+            if (stats.newUsers !== undefined || stats.newUsersToday !== undefined) overviewRows.push(['Yeni istifadəçilər', stats.newUsersToday ?? stats.newUsers]);
             return `<div class="admin-dashboard-widgets">
-                <section class="admin-widget-card"><h3>Son Aktivliklər</h3>${(stats.projectInquiriesTotal || stats.pendingListings || stats.totalViews) ? `<div class="admin-mini-row"><span>Gözləyən elanlar</span><strong>${stats.pendingListings || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div><div class="admin-mini-row"><span>Reklam baxışları</span><strong>${stats.totalViews || 0}</strong></div>` : '<div class="admin-empty-state">Hələ aktivlik yoxdur.</div>'}</section>
-                <section class="admin-widget-card"><h3>Elan Statusları</h3>${statusRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${value}</strong></div>`).join('')}</section>
-                <section class="admin-widget-card"><h3>İstifadəçilər</h3><div class="admin-mini-row"><span>Ümumi istifadəçi</span><strong>${stats.totalUsers || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div></section>
+                <section class="admin-widget-card"><h3>Bugünkü icmal</h3>${overviewRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${dashboardNumber(value)}</strong></div>`).join('') || '<div class="admin-empty-state">Hazırda icmal məlumatı yoxdur.</div>'}</section>
+                <section class="admin-widget-card"><h3>Elan statusları</h3>${statusRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${dashboardNumber(value)}</strong></div>`).join('')}</section>
+                <section class="admin-widget-card admin-quick-links"><h3>Sürətli keçidlər</h3><button type="button" onclick="adminQuickOpen('seabreeze-manager', () => window.resetSeaBreezeForm?.())">Yeni elan əlavə et</button><button type="button" onclick="adminQuickOpen('projects-manager', () => window.resetOfficialProjectForm?.())">Layihə əlavə et</button><button type="button" onclick="adminQuickOpen('ads-manager', () => window.openAdForm?.())">Reklam əlavə et</button><button type="button" onclick="adminQuickOpen('broadcast-notifications', () => window.toggleBroadcastForm?.(true))">Bildiriş göndər</button></section>
+                <section class="admin-widget-card admin-recent-card"><h3>Son dəyişikliklər</h3><div class="admin-empty-state">Hələ son aktivlik yoxdur.</div></section>
             </div>`;
         }
 
@@ -8709,7 +8738,7 @@ Təşəkkür edirəm. 🙏`;
                                 <button onclick="rejectListing(${p.id}, this)" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
                             ` : ''}
                             ${heroAction}
-                            <button onclick="runInstantAdminAction(this, 'Açılır...', () => openPropertyModal('${p.id}', true))" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
+                            <button onclick="runInstantAdminAction(this, 'Açılır...', () => openAdminListingPublic('${p.id}'))" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
                             <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editSeaBreezeItem(${p.id}))" class="admin-listing-action admin-listing-action--edit"><i class="fa-solid fa-pen"></i>Düzəliş</button>
                             <button onclick="deleteSeaBreezeItem(${p.id}, this)" class="admin-listing-action admin-listing-action--delete" aria-label="Elanı sil" title="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
@@ -8862,10 +8891,12 @@ Təşəkkür edirəm. 🙏`;
             setBroadcastFormOpen(false);
         }
 
-        function toggleBroadcastForm() {
+        function toggleBroadcastForm(force) {
+            if (typeof force === 'boolean') { setBroadcastFormOpen(force); return; }
             if (isBroadcastFormOpen) closeBroadcastForm();
             else openBroadcastForm();
         }
+        Object.assign(window, { openBroadcastForm, closeBroadcastForm, toggleBroadcastForm });
 
 
         function setBroadcastButtonLoading(isLoading) {
@@ -9155,6 +9186,8 @@ Təşəkkür edirəm. 🙏`;
                 setListingFormDisabled('admin-listing-form', false);
             }
         }
+
+        window.resetSeaBreezeForm = resetSeaBreezeForm;
 
         function editSeaBreezeItem(id) {
             const list = appData.listings;
