@@ -810,9 +810,14 @@
             if (title) title.textContent = activeConfig?.label || 'Dashboard';
             const date = document.getElementById('admin-current-date');
             if (date) {
-                const parts = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).formatToParts(new Date());
+                const now = new Date();
+                const azMonths = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+                const azWeekdays = ['bazar', 'bazar ertəsi', 'çərşənbə axşamı', 'çərşənbə', 'cümə axşamı', 'cümə', 'şənbə'];
+                const parts = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).formatToParts(now);
                 const value = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
-                date.textContent = `${value.day} ${value.month} ${value.year}, ${value.weekday}`;
+                const month = /^M\d{2}$/i.test(value.month || '') ? azMonths[now.getMonth()] : (value.month || azMonths[now.getMonth()]);
+                const weekday = /^W\d{2}$/i.test(value.weekday || '') ? azWeekdays[now.getDay()] : (value.weekday || azWeekdays[now.getDay()]);
+                date.textContent = `${value.day || now.getDate()} ${month} ${value.year || now.getFullYear()}, ${weekday}`;
             }
             const userCard = document.getElementById('admin-sidebar-user-card');
             if (userCard && activeUser) {
@@ -5090,7 +5095,10 @@
 
         function navigateToMyListings() {
             if (!activeUser) { setPendingAuthRoute('/profil/elanlarim'); switchTab('admin-login'); return; }
-            spaNavigate('/profil/elanlarim');
+            switchTab('my-listings', { skipPush: true });
+            if (window.location.pathname !== '/profil/elanlarim') history.pushState({ path: '/profil/elanlarim' }, '', '/profil/elanlarim');
+            updateSeo({ title: 'Mənim elanlarım', path: '/profil/elanlarim' });
+            setMobileBottomNavActive('profile');
         }
 
         function navigateToListingPreview(listingKey) {
@@ -5105,11 +5113,27 @@
 
         function navigateToProfileInfo() {
             if (!activeUser) { setPendingAuthRoute('/profil/melumatlar'); switchTab('admin-login'); return; }
-            spaNavigate('/profil/melumatlar');
+            switchTab('admin-dashboard', { skipPush: true });
+            switchAdminSubtab('user-profile', { skipPush: true });
+            if (window.location.pathname !== '/profil/melumatlar') history.pushState({ path: '/profil/melumatlar', adminSubtab: 'user-profile' }, '', '/profil/melumatlar');
+            updateSeo({ title: 'Profil', path: '/profil/melumatlar' });
+            setMobileBottomNavActive('profile');
         }
 
-        function renderUserCabinetHeader(activeSection = 'profile') {
-            return `<div class="user-cabinet-header"><div class="user-cabinet-nav"><button type="button" class="${activeSection === 'profile' ? 'is-active' : ''}" onclick="navigateToProfileInfo()">Profil</button><button type="button" class="${activeSection === 'listings' ? 'is-active' : ''}" onclick="navigateToMyListings()">Elanlarım</button></div><div class="user-cabinet-statuses"><span>Aktiv</span><span>Gözləyən</span><span>Arxiv</span><span>Rədd</span></div></div>`;
+        function userListingStatusCounts(listings = []) {
+            return listings.reduce((acc, item) => {
+                const status = normalizeListingStatus(item?.status);
+                if (status === 'approved') acc.approved += 1;
+                else if (status === 'pending') acc.pending += 1;
+                else if (status === 'archived') acc.archived += 1;
+                else if (status === 'rejected') acc.rejected += 1;
+                return acc;
+            }, { approved: 0, pending: 0, archived: 0, rejected: 0 });
+        }
+
+        function renderUserCabinetHeader(activeSection = 'profile', listings = []) {
+            const counts = userListingStatusCounts(listings);
+            return `<div class="user-cabinet-header"><div class="user-cabinet-nav"><button type="button" class="${activeSection === 'profile' ? 'is-active' : ''}" onclick="navigateToProfileInfo()">Profil</button><button type="button" class="${activeSection === 'listings' ? 'is-active' : ''}" onclick="navigateToMyListings()">Elanlarım</button></div><div class="user-cabinet-statuses"><span>Aktiv <b>${counts.approved}</b></span><span>Gözləyən <b>${counts.pending}</b></span><span>Arxiv <b>${counts.archived}</b></span><span>Rədd <b>${counts.rejected}</b></span></div></div>`;
         }
 
         function navigateToProfileSettings() {
@@ -5594,13 +5618,15 @@
                 const paged = filtered.slice((myListingsPage - 1) * MY_LISTINGS_PAGE_SIZE, myListingsPage * MY_LISTINGS_PAGE_SIZE);
                 const buttons=[['all','Hamısı'],['approved','Aktiv'],['pending','Gözləyən'],['archived','Arxiv'],['rejected','Rədd']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; myListingsPage=1; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
                 const pager = filtered.length > MY_LISTINGS_PAGE_SIZE ? `<div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-black text-slate-700"><span>${filtered.length} elan • Səhifə ${myListingsPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage <= 1 ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage - 1}; renderMyListingsPage()">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage >= totalPages ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage + 1}; renderMyListingsPage()">Növbəti</button></div></div>` : '';
-                root.innerHTML=`${renderUserCabinetHeader('listings')}<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="user-listing-card-grid">${paged.length?paged.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>${pager}`;
+                root.innerHTML=`${renderUserCabinetHeader('listings', rows)}<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="user-listing-card-grid">${paged.length?paged.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>${pager}`;
             } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Elanlar açılmadı: ${escapeHtml(error.message)}</div>`; }
         }
 
         function renderMyListingCard(p = {}) {
             const image = escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80');
-            return `<article class="user-listing-card rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition"><button type="button" onclick="openMyListingDetail('${p.id}')" class="block w-full text-left"><img src="${image}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></button><div class="px-4 pb-4 grid grid-cols-3 gap-2"><button type="button" onclick="openMyListingDetail('${p.id}')" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 text-xs font-black transition">👁 Elana bax</button><button type="button" onclick="editMyListing('${p.id}')" class="rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 text-xs font-black transition">✏️ Redaktə et</button><button type="button" onclick="deleteMyListing('${p.id}')" class="rounded-xl bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-black transition">🗑 Sil</button></div></article>`;
+            const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
+            const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
+            return `<article class="user-listing-card"><button type="button" onclick="openMyListingDetail('${p.id}')" class="user-listing-card__main"><span class="user-listing-card__media"><img src="${image}" alt=""><span class="user-listing-card__status ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></span><span class="user-listing-card__body"><strong class="user-listing-card__title">${escapeHtml(p.title||'Elan')}</strong><span class="user-listing-card__price">${formatPrice(p.price,p.currency)}</span><span class="user-listing-card__location"><i class="fa-solid fa-location-dot"></i>${escapeHtml(getListingLocationLabel(p))}</span><span class="user-listing-card__facts"><span><i class="fa-solid fa-door-open"></i>${p.rooms ?? '—'} otaq</span><span><i class="fa-solid fa-ruler-combined"></i>${areaLabel}</span><span><i class="fa-solid fa-building"></i>${escapeHtml(floorLabel)}</span></span><span class="user-listing-card__code">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</span></span></button><div class="user-listing-card__actions"><button type="button" onclick="openMyListingDetail('${p.id}')" class="listing-icon-action listing-icon-action--open" aria-label="Aç" title="Aç"><i class="fa-solid fa-arrow-up-right-from-square"></i></button><button type="button" onclick="deleteMyListing('${p.id}')" class="listing-icon-action listing-icon-action--delete" aria-label="Sil" title="Sil"><i class="fa-solid fa-trash-can"></i></button><button type="button" onclick="editMyListing('${p.id}')" class="listing-icon-action listing-icon-action--edit" aria-label="Düzəliş" title="Düzəliş"><i class="fa-solid fa-pen"></i></button></div></article>`;
         }
 
         function openMyListingDetail(id) {
@@ -8836,17 +8862,16 @@ Təşəkkür edirəm. 🙏`;
                 const areaLabel = Number(p.area) > 0 ? `${Number(p.area).toLocaleString('az-AZ')} m²` : '— m²';
                 const floorLabel = formatListingFloor(p.floorNumber ?? p.floor, p.floorCount).replace(/\s*\/\s*/g, '/');
                 const heroAction = isAdminRole(activeUser.role) ? (listingHeroItem
-                    ? `<button onclick="removeListingFromHero('${p.id}', false, this)" class="admin-listing-action admin-listing-action--hero"><i class="fa-solid fa-star"></i>Hero-dan çıxar</button>`
-                    : `<button onclick="addListingToHero('${p.id}', this)" class="admin-listing-action admin-listing-action--hero-add"><i class="fa-regular fa-star"></i>Hero əlavə et</button>`) : '';
+                    ? `<button onclick="removeListingFromHero('${p.id}', false, this)" class="admin-listing-action admin-listing-action--hero" aria-label="Hero-dan çıxar" title="Hero-dan çıxar"><i class="fa-solid fa-star"></i></button>`
+                    : `<button onclick="addListingToHero('${p.id}', this)" class="admin-listing-action admin-listing-action--hero-add" aria-label="Hero əlavə et" title="Hero əlavə et"><i class="fa-regular fa-star"></i></button>`) : '';
 
                 pContainer.innerHTML += `
                     <article class="admin-listing-management-card glass-card">
                         <div class="admin-listing-management-card__summary">
-                            ${adminListingImage}
+                            <div class="admin-listing-management-card__media">${adminListingImage}<span class="admin-listing-management-card__status ${badge}">${label}</span></div>
                             <div class="admin-listing-management-card__info">
                                 <div class="admin-listing-management-card__heading">
                                     <h3 class="admin-listing-management-card__title">${escapeHtml(adminListingTitle)}</h3>
-                                    <span class="admin-listing-management-card__status ${badge}">${label}</span>
                                 </div>
                                 <div class="admin-listing-management-card__location"><i class="fa-solid fa-location-dot"></i><span>${escapeHtml(regionLabel)} • ${escapeHtml(districtLabel)}</span></div>
                                 <div class="admin-listing-management-card__facts">
@@ -8864,19 +8889,19 @@ Təşəkkür edirəm. 🙏`;
                             </div>
                         </div>
                         <div class="admin-listing-management-card__actions">
+                            <button onclick="runInstantAdminAction(this, 'Açılır...', () => openAdminListingPublic('${p.id}'))" class="admin-listing-action admin-listing-action--open" aria-label="Aç" title="Aç"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+                            <button onclick="deleteSeaBreezeItem(${p.id}, this)" class="admin-listing-action admin-listing-action--delete" aria-label="Sil" title="Sil"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editSeaBreezeItem(${p.id}))" class="admin-listing-action admin-listing-action--edit" aria-label="Düzəliş" title="Düzəliş"><i class="fa-solid fa-pen"></i></button>
+                            ${isAdminRole(activeUser.role) && normalizedStatus !== 'rejected' ? `
+                                <button onclick="rejectListing(${p.id}, this)" class="admin-listing-action admin-listing-action--reject" aria-label="Rədd et" title="Rədd et"><i class="fa-solid fa-ban"></i></button>
+                            ` : ''}
                             ${isAdminRole(activeUser.role) && !isApproved ? `
-                                <button onclick="approveListing(${p.id}, this)" class="admin-listing-action admin-listing-action--approve"><i class="fa-solid fa-check"></i>Təsdiqlə</button>
+                                <button onclick="approveListing(${p.id}, this)" class="admin-listing-action admin-listing-action--approve" aria-label="Təsdiqlə" title="Təsdiqlə"><i class="fa-solid fa-check"></i></button>
                             ` : ''}
                             ${isAdminRole(activeUser.role) && isApproved ? `
-                                <button onclick="deactivateListing(${p.id}, this)" class="admin-listing-action admin-listing-action--deactivate"><i class="fa-solid fa-pause"></i>Deaktiv et</button>
-                            ` : ''}
-                            ${isAdminRole(activeUser.role) && normalizedStatus !== 'rejected' ? `
-                                <button onclick="rejectListing(${p.id}, this)" class="admin-listing-action admin-listing-action--reject"><i class="fa-solid fa-ban"></i>Rədd et</button>
+                                <button onclick="deactivateListing(${p.id}, this)" class="admin-listing-action admin-listing-action--deactivate" aria-label="Deaktiv et" title="Deaktiv et"><i class="fa-solid fa-pause"></i></button>
                             ` : ''}
                             ${heroAction}
-                            <button onclick="runInstantAdminAction(this, 'Açılır...', () => openAdminListingPublic('${p.id}'))" class="admin-listing-action admin-listing-action--open"><i class="fa-solid fa-arrow-up-right-from-square"></i>Aç</button>
-                            <button onclick="runInstantAdminAction(this, 'Yenilənir...', () => editSeaBreezeItem(${p.id}))" class="admin-listing-action admin-listing-action--edit"><i class="fa-solid fa-pen"></i>Düzəliş</button>
-                            <button onclick="deleteSeaBreezeItem(${p.id}, this)" class="admin-listing-action admin-listing-action--delete" aria-label="Elanı sil" title="Elanı sil"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </article>
                 `;
@@ -10916,8 +10941,7 @@ Təşəkkür edirəm. 🙏`;
                 return;
             }
             if (path === '/profil/elanlarim' || path === '/profile/elanlarim' || path === '/profile/listings' || path === '/menim-elanlarim') {
-                if (!openAuthenticatedRoute('admin-dashboard', path)) return;
-                switchAdminSubtab('seabreeze-manager', { skipPush: true });
+                if (!openAuthenticatedRoute('my-listings', path)) return;
                 updateSeo({ title: 'Mənim elanlarım', path });
                 return;
             }
