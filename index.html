@@ -22,8 +22,8 @@
     <script>
         (function () {
             const LOGOS = {
-                light: '/uploads/siteimage/logo/besthomedark.png?v=2',
-                dark: '/uploads/siteimage/logo/besthomelight.png?v=2',
+                light: '/uploads/siteimage/logo/besthomelight.png?v=2',
+                dark: '/uploads/siteimage/logo/besthomedark.png?v=2',
                 fallbacks: ['/public/favicon.png', '/favicon.png', '/bestlogo.PNG']
             };
             const THEME_KEY = 'siteTheme';
@@ -7602,23 +7602,25 @@
         html.is-admin-host:not(.admin-authenticated) { background:#080b1a; }
         html.is-admin-host:not(.admin-authenticated) body { background:radial-gradient(circle at 20% 15%, rgba(124,108,255,.32), transparent 30%), radial-gradient(circle at 82% 18%, rgba(79,156,255,.24), transparent 34%), linear-gradient(135deg,#090b1a 0%,#15193a 54%,#07111f 100%) !important; color:#fff; overflow-x:hidden; }
         html.is-admin-host:not(.admin-authenticated) main.flex-grow, html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout { background:transparent !important; min-height:100vh; }
-        html.is-admin-host:not(.admin-authenticated) #tab-admin-login { position:relative; isolation:isolate; min-height:100vh; width:100%; max-width:none !important; overflow:hidden; padding:clamp(1.25rem,4vw,3rem) 1rem !important; }
-        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before, html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { content:""; position:absolute; z-index:-1; width:360px; height:360px; border-radius:999px; filter:blur(34px); opacity:.42; pointer-events:none; }
-        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before { left:max(-120px,-8vw); top:10%; background:#7c6cff; }
-        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { right:max(-120px,-8vw); bottom:8%; background:#4f9cff; }
-        html.is-admin-host #tab-admin-login .admin-login-brand { margin-bottom:1.35rem; color:#fff; text-align:left; }
-        html.is-admin-host #tab-admin-login .admin-login-brand__mark { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.24); box-shadow:0 18px 42px rgba(0,0,0,.28); backdrop-filter:blur(16px); }
-        html.is-admin-host #tab-admin-login .admin-login-brand strong { color:#fff; font-size:1rem; }
-        html.is-admin-host #tab-admin-login .admin-login-brand small { color:rgba(226,232,240,.78); }
-        html.is-admin-host #tab-admin-login .glass-card { width:min(100%, 450px); border:1px solid rgba(255,255,255,.18) !important; background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.08)) !important; color:#fff !important; box-shadow:0 30px 90px rgba(0,0,0,.42) !important; backdrop-filter:blur(26px); }
-        html.is-admin-host #tab-admin-login h2 { color:#fff !important; }
-        html.is-admin-host #tab-admin-login input { height:48px; background:rgba(255,255,255,.12) !important; border:1px solid rgba(255,255,255,.16) !important; color:#fff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login { position:relative; isolation:isolate; min-height:100vh; min-height:100dvh; width:100%; max-width:none !important; overflow:hidden; padding:clamp(1.25rem,4vw,3rem) 1rem !important; background:radial-gradient(circle at 18% 16%, rgba(124,108,255,.42), transparent 28%), radial-gradient(circle at 80% 22%, rgba(79,156,255,.32), transparent 30%), linear-gradient(135deg,#070a18 0%,#171b43 52%,#071222 100%); }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before, html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { content:""; position:absolute; z-index:-1; width:clamp(260px,36vw,520px); height:clamp(260px,36vw,520px); border-radius:999px; filter:blur(38px); opacity:.48; pointer-events:none; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before { left:max(-140px,-8vw); top:7%; background:#7c6cff; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { right:max(-140px,-8vw); bottom:5%; background:#4f9cff; }
+        html.is-admin-host #tab-admin-login .admin-login-brand { margin-bottom:1.4rem; color:#fff; text-align:left; filter:drop-shadow(0 18px 32px rgba(0,0,0,.24)); }
+        html.is-admin-host #tab-admin-login .admin-login-brand__mark { width:58px; height:58px; border-radius:20px; background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.09)); border:1px solid rgba(255,255,255,.28); box-shadow:0 20px 46px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.22); backdrop-filter:blur(18px); }
+        html.is-admin-host #tab-admin-login .admin-login-brand strong { color:#fff; font-size:1.05rem; letter-spacing:.16em; }
+        html.is-admin-host #tab-admin-login .admin-login-brand small { color:rgba(226,232,240,.82); letter-spacing:.08em; }
+        html.is-admin-host #tab-admin-login .glass-card { width:min(100%, 462px); border:1px solid rgba(255,255,255,.20) !important; background:linear-gradient(145deg,rgba(255,255,255,.20),rgba(255,255,255,.08)) !important; color:#fff !important; box-shadow:0 34px 100px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.16) !important; backdrop-filter:blur(28px); }
+        html.is-admin-host #tab-admin-login h2 { color:#fff !important; font-size:1.75rem; letter-spacing:-.03em; }
+        html.is-admin-host #tab-admin-login .login-field { position:relative; }
+        html.is-admin-host #tab-admin-login .login-field i { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:rgba(226,232,240,.72); pointer-events:none; }
+        html.is-admin-host #tab-admin-login input { height:52px; background:rgba(255,255,255,.12) !important; border:1px solid rgba(255,255,255,.18) !important; color:#fff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.09); padding-left:46px !important; }
         html.is-admin-host #tab-admin-login input::placeholder { color:rgba(226,232,240,.72); }
-        html.is-admin-host #tab-admin-login input:focus { border-color:rgba(124,108,255,.72) !important; box-shadow:0 0 0 4px rgba(124,108,255,.18); }
-        html.is-admin-host #tab-admin-login .login-submit-btn { min-height:50px; border:0; background:linear-gradient(135deg,#7c6cff,#4f9cff) !important; box-shadow:0 18px 42px rgba(79,156,255,.25); display:flex; align-items:center; justify-content:center; gap:.55rem; }
+        html.is-admin-host #tab-admin-login input:focus { border-color:rgba(124,108,255,.78) !important; box-shadow:0 0 0 4px rgba(124,108,255,.20), inset 0 1px 0 rgba(255,255,255,.12); }
+        html.is-admin-host #tab-admin-login .login-submit-btn { min-height:52px; border:0; background:linear-gradient(135deg,#8b5cf6 0%,#5b7cfa 48%,#38bdf8 100%) !important; box-shadow:0 20px 46px rgba(79,156,255,.28), inset 0 1px 0 rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; gap:.55rem; letter-spacing:.01em; }
         html.is-admin-host #tab-admin-login .login-submit-btn:hover { filter:brightness(1.06); transform:translateY(-1px); }
         html.is-admin-host #tab-admin-login .google-signin-btn, html.is-admin-host #tab-admin-login .flex.justify-between.text-xs { display:none !important; }
-        html.is-admin-host .admin-shell-sidebar{height:100vh;max-height:100vh;overflow:hidden;min-width:286px;flex-shrink:0}.admin-sidebar-brand{flex:0 0 auto}.admin-subtabs{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}.admin-sidebar-user-card{flex:0 0 auto;min-width:0}.admin-sidebar-user-card>div{min-width:0;overflow:hidden}.admin-sidebar-user-card strong,.admin-sidebar-user-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        html.is-admin-host .admin-shell-sidebar{height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden;min-width:286px;flex-shrink:0;display:flex;flex-direction:column}.admin-sidebar-brand{flex:0 0 auto}.admin-subtabs{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 2px 24px 0}.admin-subtabs::-webkit-scrollbar{width:6px}.admin-subtabs::-webkit-scrollbar-track{background:transparent}.admin-subtabs::-webkit-scrollbar-thumb{background:rgba(124,108,255,.30);border-radius:999px}.admin-subtabs{scrollbar-width:thin;scrollbar-color:rgba(124,108,255,.45) transparent}.admin-sidebar-user-card{flex:0 0 auto;min-width:0}.admin-sidebar-user-card>div{min-width:0;overflow:hidden}.admin-sidebar-user-card strong,.admin-sidebar-user-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         html.is-admin-host .admin-dashboard-shell, html.is-admin-host .admin-shell-main, html.is-admin-host .admin-subtab-panel { overflow-x:hidden; }
 </style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
@@ -8059,8 +8061,8 @@
                 <div id="login-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs">E-poçt və ya şifrə yanlışdır!</div>
                 <div id="login-status" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
                 <form onsubmit="handleGeneralLogin(event)" class="space-y-4 text-left">
-                    <input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
+                    <label class="login-field block"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" id="login-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
+                    <label class="login-field block"><i class="fa-solid fa-lock" aria-hidden="true"></i><input type="password" id="login-pass" required placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
                     <button type="submit" id="login-submit-btn" class="login-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">📧 Email ilə daxil ol</button>
                 </form>
                 <button type="button" onclick="startGoogleLogin()" class="google-signin-btn" aria-label="Google ilə daxil ol">
