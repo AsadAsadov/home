@@ -726,8 +726,8 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                height: calc(70px + env(safe-area-inset-bottom));
-                padding: 7px max(8px, env(safe-area-inset-left)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-right));
+                height: calc(68px + env(safe-area-inset-bottom));
+                padding: 6px max(6px, env(safe-area-inset-left)) env(safe-area-inset-bottom) max(6px, env(safe-area-inset-right));
                 display: grid;
                 grid-template-columns: repeat(5, minmax(0, 1fr));
                 gap: 2px;
@@ -742,27 +742,44 @@
                 min-width: 0;
                 border: 0;
                 position: relative;
-                border-radius: 16px;
+                border-radius: 14px;
                 background: transparent;
                 color: #64748b;
-                font-size: 14px;
+                font-size: clamp(10px, 2.6vw, 12px);
                 font-weight: 900;
-                line-height: 1.05;
+                line-height: 1;
                 display: inline-flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
+                gap: 3px;
+                padding-inline: 1px;
+                text-align: center;
+                overflow: hidden;
                 transition: transform 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
             }
-            .mobile-bottom-nav__item span:first-child { font-size: 18px; line-height: 1; }
+            .mobile-bottom-nav__item .bottom-nav-icon,
+            .mobile-bottom-nav__item span:first-child,
+            .mobile-bottom-nav__item i { font-size: clamp(18px, 5vw, 22px); line-height: 1; flex: 0 0 auto; }
+            .mobile-bottom-nav__item .bottom-nav-label,
+            .mobile-bottom-nav__item span:last-child {
+                min-width: 0;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: clip;
+                font-size: clamp(10px, 2.6vw, 12px);
+                line-height: 1;
+            }
             .mobile-bottom-nav__item .header-badge-btn__slot { position: static; display: block; }
             .mobile-bottom-nav__item .mobile-notification-badge { top: 4px; right: 8px; }
             .mobile-bottom-nav__item.is-hidden { display: none; }
             @media (max-width: 374px) {
                 .mobile-bottom-nav { padding-inline: max(4px, env(safe-area-inset-left)); gap: 1px; }
-                .mobile-bottom-nav__item { border-radius: 13px; font-size: 14px; gap: 3px; }
-                .mobile-bottom-nav__item span:first-child { font-size: 17px; }
+                .mobile-bottom-nav__item { border-radius: 12px; font-size: 10px; gap: 2px; padding-inline: 0; }
+                .mobile-bottom-nav__item .bottom-nav-icon,
+                .mobile-bottom-nav__item span:first-child,
+                .mobile-bottom-nav__item i { font-size: 17px; }
                 .mobile-bottom-nav__item .mobile-notification-badge { right: 5px; }
             }
             .mobile-bottom-nav__item.is-active {
@@ -9697,11 +9714,11 @@ Title: CASPIAN DREAM LINER
         <button type="button" class="mobile-profile-sheet__item text-red-600" onclick="logoutAdmin(); closeMobileProfileMenu()">🚪 Çıxış</button>
     </div>
     <nav id="mobile-bottom-nav" class="mobile-bottom-nav" aria-label="Mobil alt naviqasiya">
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="seabreeze" onclick="closeMobileProfileMenu(); switchTab('seabreeze')"><span>🏠</span><span>Layihələr</span></button>
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="listings" onclick="closeMobileProfileMenu(); switchTab('listings')"><span>🔍</span><span>Elanlar</span></button>
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><i class="fa-solid fa-plus"></i><span>Elan əlavə et</span></button>
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="mortgage" onclick="closeMobileProfileMenu(); switchTab('mortgage')"><span>🏦</span><span>İpoteka</span></button>
-        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="profile" onclick="toggleMobileProfileMenu()"><span>👤</span><span>Profil</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="seabreeze" onclick="closeMobileProfileMenu(); switchTab('seabreeze')"><span class="bottom-nav-icon">🏠</span><span class="bottom-nav-label">Layihələr</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="listings" onclick="closeMobileProfileMenu(); switchTab('listings')"><span class="bottom-nav-icon">🔍</span><span class="bottom-nav-label">Elanlar</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="create-listing" onclick="closeMobileProfileMenu(); navigateToCreateListing()"><i class="fa-solid fa-plus bottom-nav-icon"></i><span class="bottom-nav-label">Elan əlavə et</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="mortgage" onclick="closeMobileProfileMenu(); switchTab('mortgage')"><span class="bottom-nav-icon">🏦</span><span class="bottom-nav-label">İpoteka</span></button>
+        <button type="button" class="mobile-bottom-nav__item" data-mobile-tab="profile" onclick="toggleMobileProfileMenu()"><span class="bottom-nav-icon">👤</span><span class="bottom-nav-label">Profil</span></button>
     </nav>
 
     <!-- INLINE STATE & DATA MOTOR -->
