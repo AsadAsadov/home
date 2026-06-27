@@ -21,8 +21,11 @@
 
     <script>
         (function () {
-            const LOGOS = { light: '', dark: '' };
-            const LOGO_FALLBACK_TEXT = 'BestHome.az';
+            const LOGOS = {
+                light: '/uploads/siteimage/logo/besthomedark.png?v=2',
+                dark: '/uploads/siteimage/logo/besthomelight.png?v=2',
+                fallbacks: ['/public/favicon.png', '/favicon.png', '/bestlogo.PNG']
+            };
             const THEME_KEY = 'siteTheme';
             const resolveTheme = (choice) => {
                 const preferred = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
@@ -32,17 +35,25 @@
             const currentPreference = () => {
                 try { return localStorage.getItem(THEME_KEY) || 'system'; } catch (_error) { return 'system'; }
             };
-            const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'] || '';
+            const logoFallbacks = () => LOGOS.fallbacks || ['/public/favicon.png', '/favicon.png'];
+            const logoSrc = (theme = resolveTheme(currentPreference())) => LOGOS[theme === 'dark' ? 'dark' : 'light'] || logoFallbacks()[0];
+            const logoCandidates = (theme = resolveTheme(currentPreference())) => [logoSrc(theme), ...logoFallbacks()].filter(Boolean);
             window.getCurrentThemeLogo = (theme = resolveTheme(currentPreference())) => logoSrc(theme);
+            window.BestHomeLogoFallback = (img) => {
+                if (!img) return;
+                const candidates = (img.dataset.logoCandidates || '').split('|').filter(Boolean);
+                const nextIndex = Number(img.dataset.logoFallbackIndex || 0) + 1;
+                if (nextIndex < candidates.length) {
+                    img.dataset.logoFallbackIndex = String(nextIndex);
+                    img.src = candidates[nextIndex];
+                }
+            };
             window.updateThemeLogos = (theme = resolveTheme(currentPreference())) => {
-                const src = window.getCurrentThemeLogo(theme);
+                const candidates = logoCandidates(theme);
                 document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                    if (src) { if (img.getAttribute('src') !== src) img.setAttribute('src', src); return; }
-                    const fallback = document.createElement('span');
-                    fallback.className = img.className || 'site-logo';
-                    fallback.textContent = LOGO_FALLBACK_TEXT;
-                    fallback.setAttribute('data-site-logo-text', '');
-                    img.replaceWith(fallback);
+                    img.dataset.logoCandidates = candidates.join('|');
+                    img.dataset.logoFallbackIndex = '0';
+                    if (img.getAttribute('src') !== candidates[0]) img.setAttribute('src', candidates[0]);
                 });
             };
             window.BestHomeLogo = {
@@ -51,9 +62,9 @@
                 src: logoSrc,
                 html({ className = 'site-logo', width = 180, height = 48, loading = 'lazy', fetchpriority = '', extra = '' } = {}) {
                     const priority = fetchpriority ? ` fetchpriority="${fetchpriority}"` : '';
-                    const src = logoSrc();
-                    if (!src) return `<span class="theme-logo-wrap"><span data-site-logo-text class="${className}" style="display:inline-flex;align-items:center;font-weight:900;letter-spacing:-.03em;color:inherit">${LOGO_FALLBACK_TEXT}</span></span>`;
-                    return `<span class="theme-logo-wrap"><img src="${src}" data-theme-logo data-site-logo alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${LOGO_FALLBACK_TEXT}',className:this.className}))"${extra ? ` ${extra}` : ''}></span>`;
+                    const candidates = logoCandidates();
+                    const src = candidates[0] || '/favicon.png';
+                    return `<span class="theme-logo-wrap"><img src="${src}" data-theme-logo data-site-logo data-logo-candidates="${candidates.join('|')}" data-logo-fallback-index="0" alt="BestHome.az" class="${className}" width="${width}" height="${height}" loading="${loading}"${priority} decoding="async" onerror="window.BestHomeLogoFallback&&window.BestHomeLogoFallback(this)"${extra ? ` ${extra}` : ''}></span>`;
                 },
                 update: window.updateThemeLogos
             };
@@ -7583,7 +7594,33 @@
         .admin-mobile-sidebar-backdrop{display:none}@media(max-width:1180px){html.is-admin-host .admin-dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.admin-dashboard-widgets{grid-template-columns:1fr 1fr}}@media(max-width:900px){html.is-admin-host .admin-menu-toggle{display:inline-flex}html.is-admin-host .admin-shell-sidebar{transform:translateX(-105%);transition:.22s}.admin-sidebar-open html.is-admin-host .admin-shell-sidebar,html.is-admin-host.admin-sidebar-open .admin-shell-sidebar{transform:translateX(0)}html.is-admin-host .admin-shell-main{margin-left:0;padding:18px 14px 40px}.admin-shell-topbar{margin:-18px -14px 18px;padding:14px}.admin-mobile-sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:70}.admin-sidebar-open .admin-mobile-sidebar-backdrop{display:block}html.is-admin-host .admin-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-dashboard-widgets{grid-template-columns:1fr}.admin-current-date{display:none}}@media(max-width:560px){html.is-admin-host .admin-dashboard-stats{grid-template-columns:1fr}.admin-topbar-actions{gap:.4rem}.admin-logout-btn span{display:none}}
 
 
-    </style>
+
+
+        /* Urgent admin UI fixes: premium login, stable/sidebar scrolling, image-only logos */
+        html, body { overflow-x:hidden; }
+        .theme-logo-wrap{display:inline-flex;align-items:center;justify-content:flex-start;line-height:0;max-width:100%;overflow:hidden}.site-logo{width:180px;height:48px;object-fit:contain;object-position:left center}.site-footer-logo{width:220px;height:48px;object-fit:contain;object-position:left center}.mobile-bottom-nav-logo{object-fit:contain}
+        html.is-admin-host:not(.admin-authenticated) { background:#080b1a; }
+        html.is-admin-host:not(.admin-authenticated) body { background:radial-gradient(circle at 20% 15%, rgba(124,108,255,.32), transparent 30%), radial-gradient(circle at 82% 18%, rgba(79,156,255,.24), transparent 34%), linear-gradient(135deg,#090b1a 0%,#15193a 54%,#07111f 100%) !important; color:#fff; overflow-x:hidden; }
+        html.is-admin-host:not(.admin-authenticated) main.flex-grow, html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout { background:transparent !important; min-height:100vh; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login { position:relative; isolation:isolate; min-height:100vh; width:100%; max-width:none !important; overflow:hidden; padding:clamp(1.25rem,4vw,3rem) 1rem !important; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before, html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { content:""; position:absolute; z-index:-1; width:360px; height:360px; border-radius:999px; filter:blur(34px); opacity:.42; pointer-events:none; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::before { left:max(-120px,-8vw); top:10%; background:#7c6cff; }
+        html.is-admin-host:not(.admin-authenticated) #tab-admin-login::after { right:max(-120px,-8vw); bottom:8%; background:#4f9cff; }
+        html.is-admin-host #tab-admin-login .admin-login-brand { margin-bottom:1.35rem; color:#fff; text-align:left; }
+        html.is-admin-host #tab-admin-login .admin-login-brand__mark { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.24); box-shadow:0 18px 42px rgba(0,0,0,.28); backdrop-filter:blur(16px); }
+        html.is-admin-host #tab-admin-login .admin-login-brand strong { color:#fff; font-size:1rem; }
+        html.is-admin-host #tab-admin-login .admin-login-brand small { color:rgba(226,232,240,.78); }
+        html.is-admin-host #tab-admin-login .glass-card { width:min(100%, 450px); border:1px solid rgba(255,255,255,.18) !important; background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.08)) !important; color:#fff !important; box-shadow:0 30px 90px rgba(0,0,0,.42) !important; backdrop-filter:blur(26px); }
+        html.is-admin-host #tab-admin-login h2 { color:#fff !important; }
+        html.is-admin-host #tab-admin-login input { height:48px; background:rgba(255,255,255,.12) !important; border:1px solid rgba(255,255,255,.16) !important; color:#fff !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+        html.is-admin-host #tab-admin-login input::placeholder { color:rgba(226,232,240,.72); }
+        html.is-admin-host #tab-admin-login input:focus { border-color:rgba(124,108,255,.72) !important; box-shadow:0 0 0 4px rgba(124,108,255,.18); }
+        html.is-admin-host #tab-admin-login .login-submit-btn { min-height:50px; border:0; background:linear-gradient(135deg,#7c6cff,#4f9cff) !important; box-shadow:0 18px 42px rgba(79,156,255,.25); display:flex; align-items:center; justify-content:center; gap:.55rem; }
+        html.is-admin-host #tab-admin-login .login-submit-btn:hover { filter:brightness(1.06); transform:translateY(-1px); }
+        html.is-admin-host #tab-admin-login .google-signin-btn, html.is-admin-host #tab-admin-login .flex.justify-between.text-xs { display:none !important; }
+        html.is-admin-host .admin-shell-sidebar{height:100vh;max-height:100vh;overflow:hidden;min-width:286px;flex-shrink:0}.admin-sidebar-brand{flex:0 0 auto}.admin-subtabs{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}.admin-sidebar-user-card{flex:0 0 auto;min-width:0}.admin-sidebar-user-card>div{min-width:0;overflow:hidden}.admin-sidebar-user-card strong,.admin-sidebar-user-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        html.is-admin-host .admin-dashboard-shell, html.is-admin-host .admin-shell-main, html.is-admin-host .admin-subtab-panel { overflow-x:hidden; }
+</style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">
     <link rel="stylesheet" href="/public/css/components/chat.css">
@@ -7891,7 +7928,7 @@
                                 <input type="email" id="app-email" required placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
                             </div>
                             <select id="app-vacancy" required class="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></select>
-                            
+
                             <div class="relative border-2 border-dashed border-white/10 p-4 text-center cursor-pointer rounded-2xl" id="cv-dropzone">
                                 <input type="file" id="app-cv" accept=".pdf,.doc,.docx" required onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-500 mb-1"></i>
@@ -8147,7 +8184,7 @@
                     </button>
                     <form id="admin-listing-form" onsubmit="handleSaveSeaBreezeItem(event)" class="admin-responsive-form space-y-3 hidden">
                         <input type="hidden" id="edit-sb-id" value="">
-                        
+
                         <div class="space-y-1">
                             <label class="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Başlıq *</label>
                             <input type="text" id="sb-title" required placeholder="Məs: 2 otaqlı dəniz mənzərəli apart" class="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white focus:outline-none focus:border-brand-500/60">
@@ -8886,7 +8923,7 @@ Title: CASPIAN DREAM LINER
                             <input type="file" id="g-img-files" accept="image/*" multiple onchange="convertMultipleImagesToBase64(this)" class="hidden">
                             <button type="button" onclick="document.getElementById('g-img-files').click()" class="bg-white/5 border border-white/10 text-xs text-white px-3 py-2 rounded-xl">Cihazdan Şəkillər Seç</button>
                             <span class="text-xs text-gray-400" id="g-images-count">0 şəkil seçildi</span>
-                            
+
                             <!-- Draggable & Deletable Images grid list -->
                             <div id="gallery-multi-preview" class="grid grid-cols-3 gap-2 pt-2"></div>
                         </div>

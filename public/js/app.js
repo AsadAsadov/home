@@ -981,16 +981,23 @@
             return resolvedTheme === 'dark' ? DARK_LOGO_SRC : LIGHT_LOGO_SRC;
         }
 
+        function getThemeLogoCandidates(theme) {
+            const fallbackPaths = window.BestHomeLogo?.paths?.fallbacks || ['/public/favicon.png', '/favicon.png', '/bestlogo.PNG'];
+            return [getCurrentThemeLogo(theme), ...fallbackPaths].filter(Boolean);
+        }
+
         function updateThemeLogos(theme) {
             if (typeof window.updateThemeLogos === 'function' && window.updateThemeLogos !== updateThemeLogos) {
                 window.updateThemeLogos(theme);
                 return;
             }
-            const logoSrc = getCurrentThemeLogo(theme);
+            const candidates = getThemeLogoCandidates(theme);
+            const logoSrc = candidates[0];
             document.querySelectorAll('img[data-theme-logo], img[data-site-logo], .header-logo-wrap img, .site-footer-logo, .mobile-bottom-nav-logo').forEach((img) => {
-                if (img && logoSrc && img.getAttribute('src') !== logoSrc) {
-                    img.setAttribute('src', logoSrc);
-                }
+                if (!img || !logoSrc) return;
+                img.dataset.logoCandidates = candidates.join('|');
+                img.dataset.logoFallbackIndex = '0';
+                if (img.getAttribute('src') !== logoSrc) img.setAttribute('src', logoSrc);
             });
         }
 
@@ -8454,12 +8461,27 @@ Təşəkkür edirəm. 🙏`;
         }
         window.adminQuickOpen = adminQuickOpen;
 
+        function getAdminPublicOrigin() {
+            const host = window.location.hostname.toLowerCase();
+            if (host === 'admin.besthome.az' || host.startsWith('admin.')) {
+                const isTestEnvironment = /(^|[.-])test[.-]/i.test(host) || /test/i.test(window.location.pathname) || /test/i.test(window.location.search);
+                return isTestEnvironment ? 'https://test.besthome.az' : 'https://besthome.az';
+            }
+            if (host === 'test.besthome.az') return 'https://test.besthome.az';
+            return window.location.origin || 'https://besthome.az';
+        }
+
         function openAdminListingPublic(id) {
-            const listing = appData.listings.find(item => String(item.id) === String(id));
-            const code = listing?.listingCode || id;
-            const url = `/listing/${encodeURIComponent(code)}`;
+            const listing = appData.listings.find(item => String(item.id) === String(id) || String(item.listingCode) === String(id));
+            const listingId = listing?.id || id;
+            if (typeof window.openListingModal === 'function') {
+                window.openListingModal(listingId);
+                return;
+            }
+            const routeCode = listing?.listingCode || listingId;
+            const url = `${getAdminPublicOrigin()}/listing/${encodeURIComponent(routeCode)}`;
             const opened = window.open(url, '_blank', 'noopener');
-            if (!opened) window.location.href = url;
+            if (!opened && !isAdminHost()) window.location.href = url;
         }
         window.openAdminListingPublic = openAdminListingPublic;
 
