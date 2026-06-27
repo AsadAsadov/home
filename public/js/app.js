@@ -748,8 +748,20 @@
             const adminHost = isAdminHost();
             document.documentElement.classList.toggle('is-admin-host', adminHost);
             document.body?.classList.toggle('is-admin-host', adminHost);
+            if (adminHost && !document.documentElement.classList.contains('admin-auth-resolved')) {
+                document.documentElement.classList.add('admin-auth-loading');
+                document.body?.classList.add('admin-auth-loading');
+            }
             syncAdminAuthShellClass();
             return adminHost;
+        }
+
+        function finishAdminAuthLoading() {
+            if (!isAdminHost()) return;
+            document.documentElement.classList.remove('admin-auth-loading');
+            document.documentElement.classList.add('admin-auth-resolved');
+            document.body?.classList.remove('admin-auth-loading');
+            document.body?.classList.add('admin-auth-resolved');
         }
 
         function syncAdminAuthShellClass() {
@@ -4931,44 +4943,48 @@
 
         // SESSION CONTROL
         async function initializeAuth() {
-            const token = getAuthToken();
-            const cachedUser = localStorage.getItem('besthome_user_data') || sessionStorage.getItem('besthome_user_data');
-            if (cachedUser) {
-                try {
-                    const user = JSON.parse(cachedUser);
-                    const role = normalizeAuthRole(user.role);
-                    activeUser = { role, name: user.fullname || user.name || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
+            try {
+                const token = getAuthToken();
+                const cachedUser = localStorage.getItem('besthome_user_data') || sessionStorage.getItem('besthome_user_data');
+                if (cachedUser) {
+                    try {
+                        const user = JSON.parse(cachedUser);
+                        const role = normalizeAuthRole(user.role);
+                        activeUser = { role, name: user.fullname || user.name || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || user.name || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '' };
+                        syncAdminAuthShellClass();
+                        updateHeaderUI();
+                    } catch (_error) {
+                        activeUser = null;
+                    }
+                }
+
+                if (!token) {
+                    activeUser = null;
                     syncAdminAuthShellClass();
                     updateHeaderUI();
-                } catch (_error) {
-                    activeUser = null;
+                    return;
                 }
-            }
 
-            if (!token) {
-                activeUser = null;
-                syncAdminAuthShellClass();
-                updateHeaderUI();
-                return;
-            }
-
-            try {
-                const result = await apiRequest('/api/auth/me', { authRedirect: false });
-                const user = result.user || result;
-                const role = normalizeAuthRole(user.role);
-                activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
-                syncAdminAuthShellClass();
-                setAuthSession(token, { ...user, role, fullname: activeUser.name });
-            } catch (error) {
-                if (error?.status === 401 || error?.status === 403) {
-                    clearAuthSession();
-                    activeUser = null;
+                try {
+                    const result = await apiRequest('/api/auth/me', { authRedirect: false });
+                    const user = result.user || result;
+                    const role = normalizeAuthRole(user.role);
+                    activeUser = { role, name: user.fullname || user.email || (role === 'admin' ? 'Admin' : 'İstifadəçi'), fullname: user.fullname || '', id: user.id, email: user.email, phone: user.phone || '', avatarUrl: user.avatarUrl || user.avatar_url || '', bio: user.bio || '', provider: user.provider || 'local', createdAt: user.createdAt || user.created_at, lastLogin: user.lastLogin || user.last_login };
                     syncAdminAuthShellClass();
-                } else {
-                    console.warn('Sessiya yoxlanışı müvəqqəti alınmadı:', error.message);
+                    setAuthSession(token, { ...user, role, fullname: activeUser.name });
+                } catch (error) {
+                    if (error?.status === 401 || error?.status === 403) {
+                        clearAuthSession();
+                        activeUser = null;
+                        syncAdminAuthShellClass();
+                    } else {
+                        console.warn('Sessiya yoxlanışı müvəqqəti alınmadı:', error.message);
+                    }
                 }
+                updateHeaderUI();
+            } finally {
+                finishAdminAuthLoading();
             }
-            updateHeaderUI();
         }
 
         function checkSession() {
