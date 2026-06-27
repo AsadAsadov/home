@@ -738,6 +738,12 @@
             return normalized === 'admin' || normalized === 'super_admin';
         }
 
+        function isAdminHost(hostname = window.location.hostname) {
+            const host = String(hostname || '').trim().toLowerCase();
+            return host === 'admin.besthome.az' || host.startsWith('admin.');
+        }
+        window.isAdminHost = isAdminHost;
+
         function normalizeAuthRole(role, fallback = 'user') {
             if (isAdminRole(role)) return 'admin';
             return String(role || '').trim().toLowerCase() === 'user' ? 'user' : fallback;
@@ -6826,7 +6832,9 @@ Təşəkkür edirəm. 🙏`;
                 setLoginButtonSuccess();
                 homepageHydration.admin = false;
                 const pendingRoute = consumePendingAuthRoute();
-                const targetPath = pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/profil');
+                const targetPath = isAdminHost()
+                    ? (isAdminRole(activeUser.role) ? (pendingRoute && pendingRoute.startsWith('/admin') ? pendingRoute : '/admin') : '/')
+                    : (pendingRoute || (isAdminRole(activeUser.role) ? '/admin' : '/profil'));
                 history.replaceState({ path: targetPath }, '', targetPath);
                 const routePromise = routeToCurrentPath();
                 scheduleIdleTask(() => hydrateFromDatabase().catch(error => console.warn('Login sonrası məlumat yüklənməsi tamamlanmadı:', error.message)), 250);
@@ -10606,6 +10614,23 @@ Təşəkkür edirəm. 🙏`;
         async function routeToCurrentPath({ replace = false } = {}) {
             cleanupTransientListingModals();
             let path = window.location.pathname;
+            if (isAdminHost() && !['/reset-password'].includes(path)) {
+                if (!activeUser || !isAdminRole(activeUser.role)) {
+                    if (getAuthToken() && activeUser && !isAdminRole(activeUser.role)) {
+                        showToast('Bu admin bölməsinə giriş icazəniz yoxdur.');
+                    }
+                    switchTab('admin-login', { skipPush: true });
+                    updateSeo({ title: 'Admin Giriş', description: DEFAULT_SEO_DESCRIPTION, path: `${path}${window.location.search}` });
+                    return;
+                }
+
+                const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
+                const subtab = ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path] || 'seabreeze-manager';
+                switchTab('admin-dashboard', { skipPush: true });
+                switchAdminSubtab(subtab, { skipPush: true });
+                updateSeo({ title: 'Admin Panel', path: `${path}${window.location.search}` });
+                return;
+            }
             if (ADMIN_ROUTE_SUBTABS[path]) {
                 const adminQueryTab = new URLSearchParams(window.location.search).get('tab');
                 routeToDashboardSubtab(ADMIN_QUERY_TAB_SUBTABS[adminQueryTab] || ADMIN_ROUTE_SUBTABS[path], `${path}${window.location.search}`);
@@ -10792,12 +10817,15 @@ Təşəkkür edirəm. 🙏`;
             applySiteTheme(preferredTheme());
             window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (preferredTheme() === 'system') applySiteTheme('system'); });
             const initialPath = window.location.pathname;
+            const adminHost = isAdminHost();
             updateMobileModalMetrics();
             renderProjectImageInputs(['']);
             bootstrapCachedData();
-            if (['/', '/projects', '/layiheler', ''].includes(initialPath)) {
+            if (!adminHost && ['/', '/projects', '/layiheler', ''].includes(initialPath)) {
                 switchTab('seabreeze', { skipPush: true });
                 setHomepageInitialLoading(true);
+            } else if (adminHost) {
+                switchTab('admin-login', { skipPush: true });
             }
             const authReady = initializeAuth();
             if (await verifyEmailFromUrl()) return;
@@ -10809,6 +10837,7 @@ Təşəkkür edirəm. 🙏`;
                 setTimeout(initAdminListingMap, 120);
                 return;
             }
+            if (adminHost) await authReady;
             await routeToCurrentPath();
             logHorizontalOverflow();
             hydrateFromDatabase().then(() => logHorizontalOverflow()).catch(error => console.warn('İlkin məlumat yüklənməsi tamamlanmadı:', error.message));
