@@ -368,8 +368,8 @@
             const stats = document.getElementById('listing-hero-stats');
             const panel = document.getElementById('listing-hero-panel');
             const btn = document.getElementById('listing-hero-button');
-            if (title) { title.textContent = ''; title.classList.add('hidden'); }
-            if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
+            if (title) { title.textContent = ''; title.classList.add('hidden'); title.setAttribute('hidden', ''); }
+            if (badge) { badge.textContent = ''; badge.classList.add('hidden'); badge.setAttribute('hidden', ''); }
             if (price) price.textContent = formatPrice(listing.price, listing.currency || 'AZN');
             if (stats) {
                 const factParts = [
@@ -398,7 +398,10 @@
                     panel.style.margin = '0 0 0 clamp(2.5rem, 6vw, 6rem)';
                 }
             }
-            if (btn) btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
+            if (btn) {
+                btn.textContent = 'Elana Bax →';
+                btn.onclick = (event) => { event.stopPropagation(); openListingModal(hero.listing_id); };
+            }
             const prev = document.getElementById('listing-hero-prev');
             const next = document.getElementById('listing-hero-next');
             [prev, next].forEach(button => button?.classList.toggle('hidden', slides.length <= 1));
