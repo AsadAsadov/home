@@ -230,27 +230,29 @@ html[data-theme="dark"] .desktop-ad-label {
 }
 
 /* Admin host logged-out login should own the full viewport, overriding shared auth sizing. */
-html.is-admin-host:not(.admin-authenticated),
 html.is-admin-host:not(.admin-authenticated) body,
 html.is-admin-host:not(.admin-authenticated) main,
-html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout,
 html.is-admin-host:not(.admin-authenticated) #tab-admin-login {
-    min-height: 100vh;
-    min-height: 100dvh;
-    width: 100%;
+    width: 100vw !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 html.is-admin-host:not(.admin-authenticated),
 html.is-admin-host:not(.admin-authenticated) body {
-    margin: 0;
     max-width: none !important;
-    overflow-x: hidden;
+    overflow-x: hidden !important;
     background: #050a19 !important;
 }
 
 html.is-admin-host:not(.admin-authenticated) main,
 html.is-admin-host:not(.admin-authenticated) main.flex-grow,
 html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout {
+    width: 100vw !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -258,15 +260,27 @@ html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout {
 }
 
 html.is-admin-host:not(.admin-authenticated) #tab-admin-login {
-    max-width: none !important;
-    margin: 0 !important;
-    padding: clamp(1.25rem, 4vw, 3rem) 1rem !important;
     display: flex !important;
-    align-items: center;
-    justify-content: center;
+    align-items: center !important;
+    justify-content: center !important;
     background:
-        linear-gradient(rgba(5, 10, 25, .62), rgba(5, 10, 25, .72)),
-        url('/uploads/loginpage.jpg') center/cover no-repeat !important;
+        linear-gradient(rgba(4, 8, 20, .55), rgba(4, 8, 20, .72)),
+        url('/uploads/loginpage.jpg') center center / cover no-repeat !important;
+}
+
+html.is-admin-host:not(.admin-authenticated) .admin-login-brand,
+html.is-admin-host:not(.admin-authenticated) #tab-register,
+html.is-admin-host:not(.admin-authenticated) #tab-forgot-password,
+html.is-admin-host:not(.admin-authenticated) #tab-reset-password,
+html.is-admin-host:not(.admin-authenticated) .google-signin-btn,
+html.is-admin-host:not(.admin-authenticated) #tab-admin-login .flex.justify-between.text-xs {
+    display: none !important;
+}
+
+html.is-admin-host:not(.admin-authenticated) #tab-admin-login .glass-card {
+    margin: 0 auto !important;
+    max-width: 420px !important;
+    width: min(420px, calc(100vw - 32px)) !important;
 }
 
 html.is-admin-host.admin-auth-loading #tab-admin-login,
@@ -317,4 +331,12 @@ html.is-admin-host.admin-authenticated #admin-subtabs-container {
 html.is-admin-host.admin-authenticated #admin-sidebar-user-card,
 html.is-admin-host.admin-authenticated .admin-sidebar-user {
     flex: 0 0 auto;
+}
+
+html.is-admin-host .admin-listing-management-card__thumb--placeholder {
+    display: grid !important;
+    place-items: center !important;
+    background: linear-gradient(135deg, rgba(148, 163, 184, .18), rgba(15, 23, 42, .34)) !important;
+    color: rgba(226, 232, 240, .72) !important;
+    font-size: 1.35rem !important;
 }
