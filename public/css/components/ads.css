@@ -228,3 +228,81 @@ html[data-theme="dark"] .desktop-ad-label {
         padding-right: .75rem;
     }
 }
+
+/* Admin host logged-out login should own the full viewport, overriding shared auth sizing. */
+html.is-admin-host:not(.admin-authenticated),
+html.is-admin-host:not(.admin-authenticated) body,
+html.is-admin-host:not(.admin-authenticated) main,
+html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout,
+html.is-admin-host:not(.admin-authenticated) #tab-admin-login {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+}
+
+html.is-admin-host:not(.admin-authenticated),
+html.is-admin-host:not(.admin-authenticated) body {
+    margin: 0;
+    max-width: none !important;
+    overflow-x: hidden;
+    background:
+        radial-gradient(circle at 20% 15%, rgba(124, 108, 255, .32), transparent 30%),
+        radial-gradient(circle at 82% 18%, rgba(79, 156, 255, .24), transparent 34%),
+        linear-gradient(135deg, #090b1a 0%, #15193a 54%, #07111f 100%) !important;
+}
+
+html.is-admin-host:not(.admin-authenticated) main,
+html.is-admin-host:not(.admin-authenticated) main.flex-grow,
+html.is-admin-host:not(.admin-authenticated) #desktop-ad-layout {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+html.is-admin-host:not(.admin-authenticated) #tab-admin-login {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: clamp(1.25rem, 4vw, 3rem) 1rem !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+}
+
+html.is-admin-host:not(.admin-authenticated) #tab-admin-login.hidden {
+    display: none !important;
+}
+
+/* The actual admin sidebar DOM is aside.admin-shell-sidebar > nav#admin-subtabs-container.admin-subtabs. */
+html.is-admin-host .admin-shell-sidebar {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+html.is-admin-host .admin-sidebar-brand {
+    flex: 0 0 auto;
+}
+
+html.is-admin-host #admin-subtabs-container,
+html.is-admin-host .admin-subtabs,
+html.is-admin-host .admin-sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding-bottom: 16px;
+}
+
+html.is-admin-host #admin-sidebar-user-card,
+html.is-admin-host .admin-sidebar-user {
+    flex: 0 0 auto;
+}
