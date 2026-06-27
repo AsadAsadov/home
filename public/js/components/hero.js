@@ -368,8 +368,8 @@
             const stats = document.getElementById('listing-hero-stats');
             const panel = document.getElementById('listing-hero-panel');
             const btn = document.getElementById('listing-hero-button');
-            if (title) title.textContent = String(hero.title || listing.title || 'Premium elan').replace(/\s+/g, ' ').trim();
-            if (badge) { badge.textContent = hero.badge_text || ''; badge.classList.toggle('hidden', !hero.badge_text); }
+            if (title) { title.textContent = ''; title.classList.add('hidden'); }
+            if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
             if (price) price.textContent = formatPrice(listing.price, listing.currency || 'AZN');
             if (stats) {
                 const factParts = [
@@ -377,11 +377,7 @@
                     listing.rooms ? `🛏 ${escapeHtml(listing.rooms)} otaq` : '',
                     listing.area ? `📐 ${escapeHtml(listing.area)} m²` : ''
                 ].filter(Boolean);
-                const viewsText = `👁 ${Number(listing.viewCount || 0).toLocaleString('az-AZ')} baxış`;
-                stats.innerHTML = [
-                    factParts.length ? `<span class="listing-hero-stats__facts">${factParts.join(' • ')}</span>` : '',
-                    `<span class="listing-hero-stats__views">${viewsText}</span>`
-                ].filter(Boolean).join('');
+                stats.innerHTML = factParts.length ? `<span class="listing-hero-stats__facts">${factParts.join(' • ')}</span>` : '';
             }
             applyHeroVisualStyles(slider, panel, title, null, btn, null, { ...hero, slide_type: 'custom', button_text: 'Elana Bax →' });
             if (panel) {
