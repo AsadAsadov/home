@@ -222,6 +222,18 @@ html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
     }
     #project-detail-modal-official #op-modal-scroll.project-modal-content { overflow-y: auto !important; }
     #project-detail-modal-official .project-modal-actions { padding: .85rem 1rem 0 !important; }
+    #project-detail-modal-official .op-modal-tabs {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding-inline: .15rem .85rem !important;
+        scroll-padding-inline: .15rem .85rem !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #project-detail-modal-official .op-modal-tab-pill { flex: 0 0 auto !important; }
+    html[data-theme="dark"] #project-detail-modal-official .project-modal-actions {
+        background: #090909 !important;
+        border-top-color: rgba(255, 255, 255, .10) !important;
+    }
 }
 
 /* Compact light premium footer refinements. */
