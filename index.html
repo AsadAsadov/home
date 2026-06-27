@@ -63,6 +63,10 @@
             document.documentElement.dataset.themePreference = initialPreference;
             document.documentElement.classList.toggle('dark', initialTheme === 'dark');
             document.documentElement.classList.toggle('light', initialTheme !== 'dark');
+            const host = window.location.hostname.toLowerCase();
+            if (host === 'admin.besthome.az' || host.startsWith('admin.')) {
+                document.documentElement.classList.add('is-admin-host');
+            }
         }());
     </script>
     <!-- Local compiled utility CSS (replaces Tailwind CDN in production) -->
@@ -7520,6 +7524,35 @@
         .listing-hero .listing-hero-premium-badge,
         .listing-hero .listing-hero-stats__views {
             display: none !important;
+        }
+
+        /* Admin subdomain Phase 1 visibility guard: keep only auth/admin flows visible. */
+        html.is-admin-host .site-header,
+        html.is-admin-host #mobileMenuBackdrop,
+        html.is-admin-host #mobileMenuPanel,
+        html.is-admin-host #site-music-controls,
+        html.is-admin-host #add-listing-fab,
+        html.is-admin-host #desktop-left-ads,
+        html.is-admin-host #desktop-right-ads,
+        html.is-admin-host .desktop-ad-rail,
+        html.is-admin-host footer,
+        html.is-admin-host #mobile-profile-backdrop,
+        html.is-admin-host #mobile-profile-sheet,
+        html.is-admin-host #mobile-bottom-nav {
+            display: none !important;
+        }
+        html.is-admin-host .tab-content:not(#tab-admin-login):not(#tab-admin-dashboard):not(#tab-register):not(#tab-forgot-password):not(#tab-reset-password) {
+            display: none !important;
+        }
+        html.is-admin-host body {
+            padding-bottom: 0 !important;
+        }
+        html.is-admin-host main.flex-grow {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
+        html.is-admin-host #desktop-ad-layout {
+            display: block !important;
         }
 
     </style>

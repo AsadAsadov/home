@@ -744,6 +744,13 @@
         }
         window.isAdminHost = isAdminHost;
 
+        function applyAdminHostClass() {
+            const adminHost = isAdminHost();
+            document.documentElement.classList.toggle('is-admin-host', adminHost);
+            document.body?.classList.toggle('is-admin-host', adminHost);
+            return adminHost;
+        }
+
         function normalizeAuthRole(role, fallback = 'user') {
             if (isAdminRole(role)) return 'admin';
             return String(role || '').trim().toLowerCase() === 'user' ? 'user' : fallback;
@@ -5573,7 +5580,7 @@ ${profileMenuItemsHtml()}
             clearAuthSession();
             activeUser = null;
             updateHeaderUI();
-            switchTab('seabreeze');
+            switchTab(isAdminHost() ? 'admin-login' : 'seabreeze', { skipPush: isAdminHost() });
         }
 
         // TABS SWITCHER
@@ -10817,7 +10824,7 @@ Təşəkkür edirəm. 🙏`;
             applySiteTheme(preferredTheme());
             window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (preferredTheme() === 'system') applySiteTheme('system'); });
             const initialPath = window.location.pathname;
-            const adminHost = isAdminHost();
+            const adminHost = applyAdminHostClass();
             updateMobileModalMetrics();
             renderProjectImageInputs(['']);
             bootstrapCachedData();
