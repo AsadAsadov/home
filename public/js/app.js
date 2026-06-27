@@ -768,6 +768,9 @@
             const isAuthedAdmin = isAdminHost() && activeUser && isAdminRole(activeUser.role);
             document.documentElement.classList.toggle('admin-authenticated', Boolean(isAuthedAdmin));
             document.body?.classList.toggle('admin-authenticated', Boolean(isAuthedAdmin));
+            const isUserCabinet = Boolean(activeUser && !isAdminRole(activeUser.role));
+            document.documentElement.classList.toggle('user-cabinet-mode', isUserCabinet);
+            document.body?.classList.toggle('user-cabinet-mode', isUserCabinet);
         }
 
         function normalizeAuthRole(role, fallback = 'user') {
@@ -806,7 +809,11 @@
             const title = document.getElementById('admin-topbar-title');
             if (title) title.textContent = activeConfig?.label || 'Dashboard';
             const date = document.getElementById('admin-current-date');
-            if (date) date.textContent = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).format(new Date());
+            if (date) {
+                const parts = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).formatToParts(new Date());
+                const value = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+                date.textContent = `${value.day} ${value.month} ${value.year}, ${value.weekday}`;
+            }
             const userCard = document.getElementById('admin-sidebar-user-card');
             if (userCard && activeUser) {
                 const fullname = activeUser.fullname || activeUser.name || activeUser.email || 'Admin';
@@ -822,6 +829,13 @@
             if (!container) return;
             syncAdminShellChrome(activeSubtab);
             const isAdmin = isAdminRole(activeUser?.role);
+            if (!isAdmin) {
+                container.innerHTML = `
+                    <button type="button" onclick="navigateToProfileInfo()" id="subtab-btn-user-profile" class="admin-subtab-button ${activeSubtab === 'user-profile' ? 'is-active' : ''}"><i class="fa-solid fa-user"></i><span>Profil</span></button>
+                    <button type="button" onclick="navigateToMyListings()" id="subtab-btn-user-listings" class="admin-subtab-button"><i class="fa-solid fa-list"></i><span>Elanlarım</span></button>
+                `;
+                return;
+            }
             container.innerHTML = DASHBOARD_SUBTAB_BUTTONS
                 .filter(item => isAdmin || !item.adminOnly)
                 .map(item => {
@@ -5061,6 +5075,8 @@
         let publicListingSubmitting = false;
         let publicListingImageFiles = [];
         let myListingsFilter = 'all';
+        let myListingsPage = 1;
+        const MY_LISTINGS_PAGE_SIZE = 9;
 
         function spaNavigate(path) {
             history.pushState({ path }, '', path);
@@ -5090,6 +5106,10 @@
         function navigateToProfileInfo() {
             if (!activeUser) { setPendingAuthRoute('/profil/melumatlar'); switchTab('admin-login'); return; }
             spaNavigate('/profil/melumatlar');
+        }
+
+        function renderUserCabinetHeader(activeSection = 'profile') {
+            return `<div class="user-cabinet-header"><div class="user-cabinet-nav"><button type="button" class="${activeSection === 'profile' ? 'is-active' : ''}" onclick="navigateToProfileInfo()">Profil</button><button type="button" class="${activeSection === 'listings' ? 'is-active' : ''}" onclick="navigateToMyListings()">Elanlarım</button></div><div class="user-cabinet-statuses"><span>Aktiv</span><span>Gözləyən</span><span>Arxiv</span><span>Rədd</span></div></div>`;
         }
 
         function navigateToProfileSettings() {
@@ -5561,6 +5581,7 @@
         }
 
         async function renderMyListingsPage() {
+            syncAdminAuthShellClass();
             const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
             updateSeo({ title:'Mənim elanlarım', path:'/menim-elanlarim' });
             root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Elanlar yüklənir...</div>';
@@ -5568,14 +5589,18 @@
                 const rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi);
                 cacheData('listings', [...rows, ...(appData.listings || []).filter(existing => !rows.some(row => String(row.id) === String(existing.id)))]);
                 const filtered = rows.filter(x=> myListingsFilter==='all' || normalizeListingStatus(x.status)===myListingsFilter);
-                const buttons=[['all','Hamısı'],['pending','Gözləyən'],['approved','Təsdiqlənən'],['rejected','İmtina edilən']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
-                root.innerHTML=`<div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4"><div><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><button onclick="navigateToCreateListing()" class="rounded-2xl bg-brand-600 text-white px-5 py-3 font-black">➕ Elan əlavə et</button></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">${filtered.length?filtered.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>`;
+                const totalPages = Math.max(1, Math.ceil(filtered.length / MY_LISTINGS_PAGE_SIZE));
+                myListingsPage = Math.min(Math.max(1, myListingsPage), totalPages);
+                const paged = filtered.slice((myListingsPage - 1) * MY_LISTINGS_PAGE_SIZE, myListingsPage * MY_LISTINGS_PAGE_SIZE);
+                const buttons=[['all','Hamısı'],['approved','Aktiv'],['pending','Gözləyən'],['archived','Arxiv'],['rejected','Rədd']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; myListingsPage=1; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
+                const pager = filtered.length > MY_LISTINGS_PAGE_SIZE ? `<div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-black text-slate-700"><span>${filtered.length} elan • Səhifə ${myListingsPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage <= 1 ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage - 1}; renderMyListingsPage()">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage >= totalPages ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage + 1}; renderMyListingsPage()">Növbəti</button></div></div>` : '';
+                root.innerHTML=`${renderUserCabinetHeader('listings')}<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="user-listing-card-grid">${paged.length?paged.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>${pager}`;
             } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Elanlar açılmadı: ${escapeHtml(error.message)}</div>`; }
         }
 
         function renderMyListingCard(p = {}) {
             const image = escapeHtml((p.images&&p.images[0])||p.img||'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80');
-            return `<article class="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition"><button type="button" onclick="openMyListingDetail('${p.id}')" class="block w-full text-left"><img src="${image}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></button><div class="px-4 pb-4 grid grid-cols-3 gap-2"><button type="button" onclick="openMyListingDetail('${p.id}')" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 text-xs font-black transition">👁 Elana bax</button><button type="button" onclick="editMyListing('${p.id}')" class="rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 text-xs font-black transition">✏️ Redaktə et</button><button type="button" onclick="deleteMyListing('${p.id}')" class="rounded-xl bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-black transition">🗑 Sil</button></div></article>`;
+            return `<article class="user-listing-card rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition"><button type="button" onclick="openMyListingDetail('${p.id}')" class="block w-full text-left"><img src="${image}" class="h-48 w-full object-cover" alt=""><div class="p-4 space-y-2"><div class="flex items-start justify-between gap-2"><h2 class="font-black text-slate-950">${escapeHtml(p.title||'Elan')}</h2><span class="text-[10px] font-black px-2 py-1 rounded-full ${listingStatusBadgeClass(p.status)}">${listingStatusLabel(p.status)}</span></div><p class="text-xs font-bold text-slate-500">${escapeHtml(getListingLocationLabel(p))}</p><p class="text-lg font-black text-brand-700">${formatPrice(p.price,p.currency)}</p><p class="text-xs text-slate-500">Kod: ${formatListingCode(p.listingCode)} • ${formatAzDate(p.createdAt)}</p></div></button><div class="px-4 pb-4 grid grid-cols-3 gap-2"><button type="button" onclick="openMyListingDetail('${p.id}')" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 text-xs font-black transition">👁 Elana bax</button><button type="button" onclick="editMyListing('${p.id}')" class="rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 text-xs font-black transition">✏️ Redaktə et</button><button type="button" onclick="deleteMyListing('${p.id}')" class="rounded-xl bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 text-xs font-black transition">🗑 Sil</button></div></article>`;
         }
 
         function openMyListingDetail(id) {
@@ -7068,9 +7093,9 @@ Təşəkkür edirəm. 🙏`;
             subtab = normalizeAdminSubtab(subtab);
             const isAdmin = isAdminRole(activeUser?.role);
             currentAdminSubtab = subtab || currentAdminSubtab;
-            const isRestrictedDashboardTab = ['projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-music', 'site-settings', 'seabreeze-hero', 'seabreeze-info-admin'].includes(subtab);
+            const isRestrictedDashboardTab = ['dashboard', 'seabreeze-manager', 'projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-music', 'site-settings', 'seabreeze-hero', 'seabreeze-info-admin'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
-                subtab = 'seabreeze-manager';
+                subtab = 'user-profile';
                 currentAdminSubtab = subtab;
             }
 
@@ -7123,7 +7148,12 @@ Təşəkkür edirəm. 🙏`;
                 void loadAdminAds({ force: true });
             }
             if (subtab === 'site-settings') { fillSiteSettingsForm(); }
-            if (subtab === 'user-profile') { fillProfileForm(); if (isAdmin) refreshAdminStats({ render: true }); }
+            if (subtab === 'user-profile') {
+                const cabinetHeader = document.getElementById('user-cabinet-profile-header');
+                if (cabinetHeader) cabinetHeader.innerHTML = isAdmin ? '' : renderUserCabinetHeader('profile');
+                fillProfileForm();
+                if (isAdmin) refreshAdminStats({ render: true });
+            }
             if (subtab === 'google-email') { loadGoogleEmailRecipientCount(); }
             if (subtab === 'hero-sections') {
                 loadAdminHeroSlides();
@@ -7144,6 +7174,9 @@ Təşəkkür edirəm. 🙏`;
             const toggle = document.getElementById('sb-form-toggle');
             const icon = document.getElementById('sb-form-toggle-icon');
             if (!form) return;
+            const isEditingListing = Boolean(document.getElementById('edit-sb-id')?.value);
+            document.documentElement.classList.toggle('admin-listing-form-is-editing', isOpen && isEditingListing);
+            document.body?.classList.toggle('admin-listing-form-is-editing', isOpen && isEditingListing);
             form.classList.toggle('hidden', !isOpen);
             toggle?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             icon?.classList.toggle('fa-chevron-down', !isOpen);
@@ -8579,8 +8612,7 @@ Təşəkkür edirəm. 🙏`;
             return `<div class="admin-dashboard-widgets">
                 <section class="admin-widget-card"><h3>Bugünkü icmal</h3>${overviewRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${dashboardNumber(value)}</strong></div>`).join('') || '<div class="admin-empty-state">Hazırda icmal məlumatı yoxdur.</div>'}</section>
                 <section class="admin-widget-card"><h3>Elan statusları</h3>${statusRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${dashboardNumber(value)}</strong></div>`).join('')}</section>
-                <section class="admin-widget-card admin-quick-links"><h3>Sürətli keçidlər</h3><button type="button" onclick="adminQuickOpen('seabreeze-manager', () => window.resetSeaBreezeForm?.())">Yeni elan əlavə et</button><button type="button" onclick="adminQuickOpen('projects-manager', () => window.resetOfficialProjectForm?.())">Layihə əlavə et</button><button type="button" onclick="adminQuickOpen('ads-manager', () => window.openAdForm?.())">Reklam əlavə et</button><button type="button" onclick="adminQuickOpen('broadcast-notifications', () => window.toggleBroadcastForm?.(true))">Bildiriş göndər</button></section>
-                <section class="admin-widget-card admin-recent-card"><h3>Son dəyişikliklər</h3><div class="admin-empty-state">Hələ son aktivlik yoxdur.</div></section>
+                <section class="admin-widget-card admin-quick-links"><h3>Sürətli keçidlər</h3><button type="button" onclick="adminQuickOpen('projects-manager', () => window.resetOfficialProjectForm?.())">Layihə əlavə et</button><button type="button" onclick="adminQuickOpen('ads-manager', () => window.openAdForm?.())">Reklam əlavə et</button><button type="button" onclick="adminQuickOpen('broadcast-notifications', () => window.toggleBroadcastForm?.(true))">Bildiriş göndər</button></section>
             </div>`;
         }
 
@@ -8621,7 +8653,7 @@ Təşəkkür edirəm. 🙏`;
                 { label: 'Reklam Baxışları', value: stats.totalViews, icon: 'fa-rectangle-ad' },
                 { label: 'Müraciətlər', value: stats.projectInquiriesTotal, icon: 'fa-inbox' }
             ];
-            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminDashboardWidgets(stats);
+            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + (currentAdminSubtab === 'dashboard' ? renderAdminDashboardWidgets(stats) : '');
         }
 
 
@@ -8751,7 +8783,7 @@ Təşəkkür edirəm. 🙏`;
             if (!isAdminRole(activeUser.role)) {
                 adminTags.forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.remove('hidden'));
-                switchAdminSubtab('seabreeze-manager');
+                if (currentAdminSubtab !== 'user-profile') switchAdminSubtab('user-profile');
             } else {
                 adminTags.forEach(el => el.classList.remove('hidden'));
                 document.querySelectorAll('.user-only-element').forEach(el => el.classList.add('hidden'));
@@ -8772,6 +8804,7 @@ Təşəkkür edirəm. 🙏`;
                 return true;
             });
             const pContainer = document.getElementById('admin-seabreeze-list');
+            pContainer.classList.add('admin-listing-card-grid');
             pContainer.innerHTML = '';
 
             const adminListingsBlocked = isAdminRole(activeUser.role) && dataLoadState.adminListings.error;
@@ -8823,6 +8856,7 @@ Təşəkkür edirəm. 🙏`;
                                 </div>
                                 <div class="admin-listing-management-card__footer-meta">
                                     <span class="admin-listing-management-card__code">${formatListingCode(p.listingCode)}</span>
+                                    <span>${escapeHtml(p.ownerName || p.authorName || p.userName || p.user?.fullname || p.user?.email || '')}</span>
                                     <strong class="admin-listing-management-card__price">${formatPrice(p.price, p.currency)}</strong>
                                     <span><i class="fa-regular fa-eye"></i>${p.viewCount || 0}</span>
                                     <span><i class="fa-regular fa-heart"></i>${p.favoritesCount || 0}</span>
@@ -9345,6 +9379,8 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function resetSeaBreezeForm() {
+            document.documentElement.classList.remove('admin-listing-form-is-editing');
+            document.body?.classList.remove('admin-listing-form-is-editing');
             document.getElementById('edit-sb-id').value = '';
             document.getElementById('sb-title').value = '';
             document.getElementById('sb-listing-type').value = 'Satis';
