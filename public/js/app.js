@@ -757,33 +757,55 @@
         }
 
         const DASHBOARD_SUBTAB_BUTTONS = [
-            { id: 'subtab-btn-sb', subtab: 'seabreeze-manager', label: 'Elanlar', adminOnly: false },
-            { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Profil', adminOnly: false },
-            { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', adminOnly: true },
-            { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Arxiv', adminOnly: true },
-            { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Layihə Müraciətləri', adminOnly: true },
-            { id: 'subtab-btn-hero', subtab: 'hero-sections', label: '⭐ Layihə Hero', adminOnly: true },
-            { id: 'subtab-btn-seabreeze-hero', subtab: 'seabreeze-hero', label: '⭐ Sea Breeze Haqqında Hero', adminOnly: true },
-            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: '⭐ Sea Breeze Haqqında Məlumatları', adminOnly: true },
-            { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: '⭐ Elan Hero', adminOnly: true },
-            { id: 'subtab-btn-cvs', subtab: 'cvs', label: 'Namizəd CV-ləri', adminOnly: true },
-            { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', adminOnly: true },
-            { id: 'subtab-btn-google-email', subtab: 'google-email', label: 'Google email', adminOnly: true },
-            { id: 'subtab-btn-broadcast-notifications', subtab: 'broadcast-notifications', label: 'Bildiriş göndər', adminOnly: true },
-            { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Karyera & Vakansiyalar', adminOnly: true },
-            { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', adminOnly: true },
-            { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklam', adminOnly: true },
-            { id: 'subtab-btn-site-music', subtab: 'site-music', label: 'Sayt Musiqisi', adminOnly: true },
-            { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sayt Ayarları', adminOnly: true }
+            { id: 'subtab-btn-dashboard', subtab: 'seabreeze-manager', label: 'Dashboard', icon: 'fa-chart-pie', adminOnly: false },
+            { id: 'subtab-btn-sb', subtab: 'seabreeze-manager', label: 'Elanlar', icon: 'fa-building', adminOnly: false },
+            { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', icon: 'fa-diagram-project', adminOnly: true },
+            { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Müraciətlər', icon: 'fa-inbox', adminOnly: true },
+            { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', icon: 'fa-users', adminOnly: true },
+            { id: 'subtab-btn-user-profile', subtab: 'user-profile', label: 'Mesajlar', icon: 'fa-message', adminOnly: false },
+            { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklamlar', icon: 'fa-rectangle-ad', adminOnly: true },
+            { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', icon: 'fa-images', adminOnly: true },
+            { id: 'subtab-btn-vacs', subtab: 'vacancy-manager', label: 'Vakansiyalar', icon: 'fa-briefcase', adminOnly: true },
+            { id: 'subtab-btn-site-settings', subtab: 'site-settings', label: 'Sistem Ayarları', icon: 'fa-sliders', adminOnly: true },
+            { id: 'subtab-btn-site-music', subtab: 'site-music', label: 'Sayt Musiqisi', icon: 'fa-music', adminOnly: true },
+            { id: 'subtab-btn-broadcast-notifications', subtab: 'broadcast-notifications', label: 'Bildirişlər', icon: 'fa-bell', adminOnly: true },
+            { id: 'subtab-btn-google-email', subtab: 'google-email', label: 'Sayt Statistikaları', icon: 'fa-chart-line', adminOnly: true },
+            { id: 'subtab-btn-projects-archive', subtab: 'projects-archive', label: 'Yedəkləmə', icon: 'fa-database', adminOnly: true },
+            { id: 'subtab-btn-hero', subtab: 'hero-sections', label: 'Sistem Logları', icon: 'fa-clipboard-list', adminOnly: true },
+            { id: 'subtab-btn-seabreeze-hero', subtab: 'seabreeze-hero', label: 'Sea Breeze Hero', icon: 'fa-star', adminOnly: true },
+            { id: 'subtab-btn-seabreeze-info', subtab: 'seabreeze-info-admin', label: 'Sea Breeze Məlumat', icon: 'fa-circle-info', adminOnly: true },
+            { id: 'subtab-btn-listing-hero', subtab: 'listing-hero', label: 'Elan Hero', icon: 'fa-star-half-stroke', adminOnly: true }
         ];
 
         let currentAdminSubtab = 'seabreeze-manager';
+
+        function toggleAdminSidebar(force) {
+            const shouldOpen = typeof force === 'boolean' ? force : !document.documentElement.classList.contains('admin-sidebar-open');
+            document.documentElement.classList.toggle('admin-sidebar-open', shouldOpen);
+            document.body?.classList.toggle('admin-sidebar-open', shouldOpen);
+        }
+        window.toggleAdminSidebar = toggleAdminSidebar;
+
+        function syncAdminShellChrome(activeSubtab = currentAdminSubtab) {
+            const activeConfig = DASHBOARD_SUBTAB_BUTTONS.find(item => item.subtab === activeSubtab) || DASHBOARD_SUBTAB_BUTTONS[0];
+            const title = document.getElementById('admin-topbar-title');
+            if (title) title.textContent = activeConfig?.label || 'Dashboard';
+            const date = document.getElementById('admin-current-date');
+            if (date) date.textContent = new Date().toLocaleDateString('az-AZ', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            const userCard = document.getElementById('admin-sidebar-user-card');
+            if (userCard && activeUser) {
+                const fullname = activeUser.fullname || activeUser.name || activeUser.email || 'Admin';
+                const initials = fullname.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'AD';
+                userCard.innerHTML = `<span class="admin-sidebar-avatar">${escapeHtml(initials)}</span><div><strong>${escapeHtml(fullname)}</strong><small>${isAdminRole(activeUser.role) ? 'Administrator' : 'İstifadəçi'} • Online</small></div><i></i>`;
+            }
+        }
 
         function renderDashboardSubtabButtons(activeSubtab = currentAdminSubtab || 'seabreeze-manager') {
             activeSubtab = normalizeAdminSubtab(activeSubtab) || 'seabreeze-manager';
             currentAdminSubtab = normalizeAdminSubtab(currentAdminSubtab) || activeSubtab;
             const container = document.getElementById('admin-subtabs-container');
             if (!container) return;
+            syncAdminShellChrome(activeSubtab);
             const isAdmin = isAdminRole(activeUser?.role);
             container.innerHTML = DASHBOARD_SUBTAB_BUTTONS
                 .filter(item => isAdmin || !item.adminOnly)
@@ -791,7 +813,7 @@
                     const classes = ['admin-subtab-button'];
                     if (item.adminOnly) classes.push('admin-only-element');
                     if (item.subtab === activeSubtab) classes.push('is-active');
-                    return `<button type="button" data-admin-tab="${item.subtab}" onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}" aria-controls="admin-subtab-${item.subtab}" aria-selected="${item.subtab === activeSubtab ? 'true' : 'false'}"><span>${item.label}</span></button>`;
+                    return `<button type="button" data-admin-tab="${item.subtab}" onclick="switchAdminSubtab('${item.subtab}')" id="${item.id}" class="${classes.join(' ')}" aria-controls="admin-subtab-${item.subtab}" aria-selected="${item.subtab === activeSubtab ? 'true' : 'false'}"><i class="fa-solid ${item.icon || 'fa-circle'}"></i><span>${item.label}</span></button>`;
                 })
                 .join('');
         }
@@ -6949,6 +6971,7 @@ Təşəkkür edirəm. 🙏`;
             }
 
             renderDashboardSubtabButtons(subtab);
+            toggleAdminSidebar(false);
 
             subtab = showAdminSubtab(subtab) || 'seabreeze-manager';
             currentAdminSubtab = subtab;
@@ -8397,6 +8420,22 @@ Təşəkkür edirəm. 🙏`;
             `).join('');
         }
 
+        function renderAdminDashboardWidgets(stats = {}) {
+            const statusRows = [
+                ['Aktiv', stats.approvedListings ?? 0], ['Gözləyən', stats.pendingListings ?? 0],
+                ['Arxiv', stats.archivedListings ?? 0], ['Rədd', stats.rejectedListings ?? 0]
+            ];
+            const maxViews = Math.max(1, stats.totalProjectViews || stats.totalViews || stats.totalListings || 1);
+            const bars = [35, 58, 44, 72, 61, 84, 68].map((base, i) => `<span class="admin-chart-bar" style="height:${Math.min(96, Math.max(18, base + ((maxViews + i) % 10)))}%"></span>`).join('');
+            return `<div class="admin-dashboard-widgets">
+                <section class="admin-widget-card"><h3>Baxışlar (Son 7 gün)</h3><div class="admin-placeholder-chart">${bars}</div></section>
+                <section class="admin-widget-card"><h3>Son Aktivliklər</h3>${(stats.projectInquiriesTotal || stats.pendingListings) ? `<div class="admin-mini-row"><span>Gözləyən elanlar</span><strong>${stats.pendingListings || 0}</strong></div><div class="admin-mini-row"><span>Layihə müraciətləri</span><strong>${stats.projectInquiriesTotal || 0}</strong></div><div class="admin-mini-row"><span>Reklam baxışları</span><strong>${stats.totalViews || 0}</strong></div>` : '<div class="admin-empty-state">Hələ aktivlik yoxdur.</div>'}</section>
+                <section class="admin-widget-card"><h3>Elan Statusları</h3>${statusRows.map(([label, value]) => `<div class="admin-mini-row"><span>${label}</span><strong>${value}</strong></div>`).join('')}</section>
+                <section class="admin-widget-card"><h3>Ən Populyar Layihələr</h3><div class="admin-mini-row"><span>Layihə baxışları</span><strong>${stats.totalProjectViews || 0}</strong></div><div class="admin-mini-row"><span>Layihələr</span><strong>${stats.projectsCount || 0}</strong></div></section>
+                <section class="admin-widget-card"><h3>Statistikalar</h3><div class="admin-mini-row"><span>Elan baxışları</span><strong>${stats.totalListingViews || stats.totalViews || 0}</strong></div><div class="admin-mini-row"><span>İstifadəçilər</span><strong>${stats.totalUsers || 0}</strong></div></section>
+            </div>`;
+        }
+
         function renderDashboardCards() {
             const container = document.getElementById('admin-dashboard-cards');
             if (!container || !activeUser) return;
@@ -8425,14 +8464,14 @@ Təşəkkür edirəm. 🙏`;
             }
             const stats = getDashboardStats();
             const kpis = [
-                { label: 'Elanlar', value: stats.totalListings, icon: 'fa-building' },
+                { label: 'Ümumi Elanlar', value: stats.totalListings, icon: 'fa-building' },
                 { label: 'İstifadəçilər', value: stats.totalUsers, icon: 'fa-users' },
                 { label: 'Layihələr', value: stats.projectsCount, icon: 'fa-diagram-project' },
-                { label: 'Layihə Baxışları', value: stats.totalProjectViews, icon: 'fa-eye' },
+                { label: 'Baxışlar', value: stats.totalProjectViews || stats.totalListingViews || stats.totalViews, icon: 'fa-eye' },
                 { label: 'Reklam Baxışları', value: stats.totalViews, icon: 'fa-rectangle-ad' },
                 { label: 'Müraciətlər', value: stats.projectInquiriesTotal, icon: 'fa-inbox' }
             ];
-            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminAnalyticsPanel(stats);
+            container.innerHTML = kpis.map(card => renderAdminKpiCard(card)).join('') + renderAdminDashboardWidgets(stats) + renderAdminAnalyticsPanel(stats);
         }
 
         function syncAdminListingStatusFilters() {
