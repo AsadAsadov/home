@@ -453,7 +453,7 @@
             document.getElementById('op-modal-title').textContent = localizedTitle;
             document.getElementById('op-modal-year').textContent = project.year || '';
             document.getElementById('op-modal-desc-text').textContent = localizedDesc;
-            document.getElementById('op-tab-btn-description')?.classList.toggle('hidden', !localizedDesc.trim());
+            document.getElementById('op-tab-btn-description')?.classList.remove('hidden');
             document.getElementById('op-modal-pdf-btn')?.classList.remove('hidden');
 
             const projects = getOfficialProjectNavigationProjects();
