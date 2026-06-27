@@ -7211,6 +7211,105 @@
             }
         }
 
+
+        /* Focused UI polish: compact project modal, contained footer, readable listing hero. */
+        @media (min-width: 769px) {
+            #project-detail-modal-official > .glass-card {
+                width: min(1040px, calc(100vw - 96px)) !important;
+                max-width: 1040px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                border-radius: 26px !important;
+            }
+            #project-detail-modal-official .op-modal-hero {
+                height: clamp(300px, 34vw, 380px) !important;
+            }
+            #project-detail-modal-official .op-modal-body {
+                padding: 1.45rem 1.65rem 1.65rem !important;
+            }
+        }
+        @media (min-width: 1180px) {
+            #project-detail-modal-official > .glass-card {
+                width: min(1080px, calc(100vw - 120px)) !important;
+                max-width: 1080px !important;
+            }
+        }
+        .footer-premium > .max-w-7xl {
+            width: min(100% - 32px, 1240px) !important;
+            max-width: 1240px !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        .footer-premium .grid {
+            max-width: 100%;
+        }
+        @media (min-width: 1024px) {
+            .footer-premium > .max-w-7xl {
+                width: min(100% - 64px, 1240px) !important;
+            }
+            .footer-premium .grid.grid-cols-1 {
+                gap: 2rem !important;
+            }
+        }
+        @media (max-width: 767px) {
+            .footer-premium > .max-w-7xl {
+                width: min(100% - 28px, 1240px) !important;
+            }
+        }
+        .listing-hero::after {
+            background: linear-gradient(90deg, rgba(0,0,0,.50) 0%, rgba(0,0,0,.32) 42%, rgba(0,0,0,.10) 100%) !important;
+        }
+        .listing-hero-panel {
+            width: min(52%, 660px) !important;
+            max-width: 660px !important;
+            margin-left: clamp(2rem, 5vw, 4.5rem) !important;
+            margin-bottom: clamp(2rem, 4vw, 3.5rem) !important;
+        }
+        .listing-hero-title {
+            max-width: 660px !important;
+            font-size: clamp(1.85rem, 2.65vw, 2.55rem) !important;
+            line-height: 1.12 !important;
+            letter-spacing: -0.025em !important;
+        }
+        .listing-hero-price {
+            font-size: clamp(1.35rem, 2vw, 1.85rem) !important;
+            line-height: 1.12 !important;
+        }
+        .listing-hero-stats {
+            gap: .55rem !important;
+        }
+        .listing-hero-stats span {
+            padding: .45rem .72rem !important;
+            background: rgba(15,23,42,.34) !important;
+            border-color: rgba(255,255,255,.22) !important;
+            font-size: 11px !important;
+            line-height: 1.25 !important;
+        }
+        .listing-hero-stats__views {
+            font-size: 10px !important;
+        }
+        @media (max-width: 768px) {
+            .listing-hero::after {
+                background: linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.36) 48%, rgba(0,0,0,.58) 100%) !important;
+            }
+            .listing-hero .listing-hero-panel {
+                left: 20px !important;
+                right: 20px !important;
+                bottom: 50px !important;
+                width: auto !important;
+                max-width: none !important;
+                margin: 0 !important;
+            }
+            .listing-hero .listing-hero-title {
+                font-size: clamp(21px, 5.8vw, 30px) !important;
+                line-height: 1.12 !important;
+            }
+            .listing-hero .listing-hero-stats span {
+                font-size: 10px !important;
+                padding: .36rem .56rem !important;
+            }
+        }
+
     </style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">
