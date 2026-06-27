@@ -813,11 +813,7 @@
                 const now = new Date();
                 const azMonths = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
                 const azWeekdays = ['bazar', 'bazar ertəsi', 'çərşənbə axşamı', 'çərşənbə', 'cümə axşamı', 'cümə', 'şənbə'];
-                const parts = new Intl.DateTimeFormat('az-AZ', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }).formatToParts(now);
-                const value = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
-                const month = /^M\d{2}$/i.test(value.month || '') ? azMonths[now.getMonth()] : (value.month || azMonths[now.getMonth()]);
-                const weekday = /^W\d{2}$/i.test(value.weekday || '') ? azWeekdays[now.getDay()] : (value.weekday || azWeekdays[now.getDay()]);
-                date.textContent = `${value.day || now.getDate()} ${month} ${value.year || now.getFullYear()}, ${weekday}`;
+                date.textContent = `${now.getDate()} ${azMonths[now.getMonth()]} ${now.getFullYear()}, ${azWeekdays[now.getDay()]}`;
             }
             const userCard = document.getElementById('admin-sidebar-user-card');
             if (userCard && activeUser) {
@@ -967,6 +963,7 @@
             stopAdminUsersAutoRefresh();
             clearAuthSession();
             activeUser = null;
+            resetMyListingsCache();
             syncAdminAuthShellClass();
             updateHeaderUI();
             switchTab('admin-login');
@@ -5081,7 +5078,16 @@
         let publicListingImageFiles = [];
         let myListingsFilter = 'all';
         let myListingsPage = 1;
+        let myListingsLoaded = false;
+        let myListingsRowsCache = [];
         const MY_LISTINGS_PAGE_SIZE = 9;
+
+        function resetMyListingsCache() {
+            myListingsLoaded = false;
+            myListingsRowsCache = [];
+            myListingsFilter = 'all';
+            myListingsPage = 1;
+        }
 
         function spaNavigate(path) {
             history.pushState({ path }, '', path);
@@ -5604,20 +5610,44 @@
             }
         }
 
-        async function renderMyListingsPage() {
+        function syncMyListingsUrl() {
+            if (!window.location.pathname.includes('/profil/elanlarim') && window.location.pathname !== '/menim-elanlarim') return;
+            const params = new URLSearchParams(window.location.search);
+            if (myListingsFilter === 'all') params.delete('status'); else params.set('status', myListingsFilter);
+            const query = params.toString();
+            history.replaceState({ path: `/profil/elanlarim${query ? `?${query}` : ''}` }, '', `/profil/elanlarim${query ? `?${query}` : ''}`);
+        }
+
+        function setMyListingsFilter(status = 'all') {
+            myListingsFilter = ['all', 'approved', 'pending', 'archived', 'rejected'].includes(status) ? status : 'all';
+            myListingsPage = 1;
+            syncMyListingsUrl();
+            renderMyListingsPage({ useCache: true });
+        }
+        window.setMyListingsFilter = setMyListingsFilter;
+
+        async function renderMyListingsPage(options = {}) {
             syncAdminAuthShellClass();
             const root=document.getElementById('my-listings-root'); if(!root) return; if(!activeUser){ switchTab('admin-login'); return; }
-            updateSeo({ title:'Mənim elanlarım', path:'/menim-elanlarim' });
-            root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Elanlar yüklənir...</div>';
+            updateSeo({ title:'Mənim elanlarım', path:'/profil/elanlarim' });
+            const requestedStatus = new URLSearchParams(window.location.search).get('status');
+            if (['all', 'approved', 'pending', 'archived', 'rejected'].includes(requestedStatus)) myListingsFilter = requestedStatus;
+            const shouldFetch = !myListingsLoaded && !options.useCache;
+            if (shouldFetch) root.innerHTML='<div class="public-form-card rounded-[2rem] p-6 text-center font-black text-slate-600">Elanlar yüklənir...</div>';
             try {
-                const rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi);
-                cacheData('listings', [...rows, ...(appData.listings || []).filter(existing => !rows.some(row => String(row.id) === String(existing.id)))]);
+                let rows = myListingsRowsCache;
+                if (shouldFetch) {
+                    rows=(await apiRequest('/api/listings/mine')).map(dbListingToUi);
+                    myListingsRowsCache = rows;
+                    myListingsLoaded = true;
+                    cacheData('listings', [...rows, ...(appData.listings || []).filter(existing => !rows.some(row => String(row.id) === String(existing.id)))]);
+                }
                 const filtered = rows.filter(x=> myListingsFilter==='all' || normalizeListingStatus(x.status)===myListingsFilter);
                 const totalPages = Math.max(1, Math.ceil(filtered.length / MY_LISTINGS_PAGE_SIZE));
                 myListingsPage = Math.min(Math.max(1, myListingsPage), totalPages);
                 const paged = filtered.slice((myListingsPage - 1) * MY_LISTINGS_PAGE_SIZE, myListingsPage * MY_LISTINGS_PAGE_SIZE);
-                const buttons=[['all','Hamısı'],['approved','Aktiv'],['pending','Gözləyən'],['archived','Arxiv'],['rejected','Rədd']].map(([v,l])=>`<button onclick="myListingsFilter='${v}'; myListingsPage=1; renderMyListingsPage()" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
-                const pager = filtered.length > MY_LISTINGS_PAGE_SIZE ? `<div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-black text-slate-700"><span>${filtered.length} elan • Səhifə ${myListingsPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage <= 1 ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage - 1}; renderMyListingsPage()">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage >= totalPages ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage + 1}; renderMyListingsPage()">Növbəti</button></div></div>` : '';
+                const buttons=[['all','Hamısı'],['approved','Aktiv'],['pending','Gözləyən'],['archived','Arxiv'],['rejected','Rədd']].map(([v,l])=>`<button onclick="setMyListingsFilter('${v}')" class="rounded-full px-4 py-2 text-xs font-black ${myListingsFilter===v?'bg-brand-600 text-white':'bg-white text-slate-700 border border-slate-200'}">${l}</button>`).join('');
+                const pager = filtered.length > MY_LISTINGS_PAGE_SIZE ? `<div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm font-black text-slate-700"><span>${filtered.length} elan • Səhifə ${myListingsPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage <= 1 ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage - 1}; renderMyListingsPage({ useCache: true })">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${myListingsPage >= totalPages ? 'disabled' : ''} onclick="myListingsPage=${myListingsPage + 1}; renderMyListingsPage({ useCache: true })">Növbəti</button></div></div>` : '';
                 root.innerHTML=`${renderUserCabinetHeader('listings', rows)}<div class="mb-6"><h1 class="text-3xl md:text-4xl font-black text-slate-950">📋 Mənim elanlarım</h1><p class="text-slate-600 font-semibold mt-1">Bütün elanlarınızı buradan idarə edin.</p></div><div class="mb-5 flex flex-wrap gap-2">${buttons}</div><div class="user-listing-card-grid">${paged.length?paged.map(p=>renderMyListingCard(p)).join(''):'<div class="col-span-full rounded-3xl bg-white border border-slate-200 p-12 text-center font-bold text-slate-500">Elan tapılmadı.</div>'}</div>${pager}`;
             } catch(error) { root.innerHTML=`<div class="rounded-3xl bg-red-50 border border-red-100 p-8 text-red-700 font-bold">Elanlar açılmadı: ${escapeHtml(error.message)}</div>`; }
         }
@@ -5645,8 +5675,9 @@
             if (!confirm('Elanı silmək istədiyinizə əminsiniz?')) return;
             try {
                 await apiRequest(`/api/listings/${id}`, { method: 'DELETE' });
+                myListingsRowsCache = myListingsRowsCache.filter(x => String(x.id) !== String(id));
                 cacheData('listings', appData.listings.filter(x => String(x.id) !== String(id)));
-                await renderMyListingsPage();
+                await renderMyListingsPage({ useCache: true });
             } catch (error) {
                 alert('Elan silinmədi: ' + error.message);
             }
@@ -8695,12 +8726,31 @@ Təşəkkür edirəm. 🙏`;
             }
             if (totalItems <= ADMIN_LISTINGS_PAGE_SIZE) { controls.innerHTML = ''; controls.classList.add('hidden'); return; }
             controls.classList.remove('hidden');
-            controls.innerHTML = `<span>${totalItems} elan • Səhifə ${adminListingPage}/${totalPages}</span><div class="flex gap-2"><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${adminListingPage <= 1 ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage - 1})">Əvvəlki</button><button type="button" class="rounded-xl border border-slate-200 px-4 py-2 disabled:opacity-40" ${adminListingPage >= totalPages ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage + 1})">Növbəti</button></div>`;
+            const pages = buildCompactPagination(adminListingPage, totalPages);
+            const pageButtons = pages.map(item => item === 'ellipsis'
+                ? '<span class="admin-pagination-ellipsis" aria-hidden="true">…</span>'
+                : `<button type="button" class="admin-pagination-page ${item === adminListingPage ? 'is-active' : ''}" ${item === adminListingPage ? 'aria-current="page"' : ''} onclick="setAdminListingPage(${item})">${item}</button>`
+            ).join('');
+            controls.innerHTML = `<span>${totalItems} elan</span><div class="admin-pagination-pages"><button type="button" class="admin-pagination-page admin-pagination-arrow" ${adminListingPage <= 1 ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage - 1})" aria-label="Əvvəlki səhifə"><i class="fa-solid fa-chevron-left"></i></button>${pageButtons}<button type="button" class="admin-pagination-page admin-pagination-arrow" ${adminListingPage >= totalPages ? 'disabled' : ''} onclick="setAdminListingPage(${adminListingPage + 1})" aria-label="Növbəti səhifə"><i class="fa-solid fa-chevron-right"></i></button></div>`;
+        }
+
+        function buildCompactPagination(current = 1, total = 1) {
+            if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+            if (current <= 4) return [1, 2, 3, 4, 5, 'ellipsis', total];
+            if (current >= total - 3) return [1, 'ellipsis', total - 4, total - 3, total - 2, total - 1, total];
+            return [1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', total];
+        }
+
+        function scrollAdminContentToTop() {
+            const target = document.querySelector('.admin-shell-main') || document.querySelector('.admin-shell-topbar') || document.getElementById('tab-admin-dashboard');
+            if (target) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function setAdminListingPage(page = 1) {
             adminListingPage = Math.max(1, Number(page) || 1);
             renderAdminDashboard();
+            requestAnimationFrame(scrollAdminContentToTop);
         }
         window.setAdminListingPage = setAdminListingPage;
 

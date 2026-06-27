@@ -7780,6 +7780,64 @@
         @media (min-width: 901px) and (max-width: 1180px) { html.is-admin-host .admin-dashboard-stats { grid-template-columns:repeat(3,minmax(0,1fr)) !important; } }
         @media (min-width: 360px) and (max-width: 900px) { html.is-admin-host .admin-dashboard-stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
 
+
+        /* Final polish: admin topbar, sidebar alignment, pagination and listing cards */
+        html.is-admin-host.admin-authenticated .admin-shell-sidebar,
+        html.is-admin-host .admin-shell-sidebar {
+          top: 0 !important;
+          bottom: auto !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          max-height: 100dvh !important;
+          padding: 14px 14px 16px !important;
+          gap: 12px !important;
+          border-radius: 0 !important;
+          background: rgba(255,255,255,.96) !important;
+          border-right: 1px solid rgba(226,232,240,.95) !important;
+          box-shadow: 12px 0 36px rgba(15,23,42,.08) !important;
+        }
+        html.is-admin-host.admin-authenticated #admin-subtabs-container.admin-subtabs,
+        html.is-admin-host #admin-subtabs-container.admin-subtabs {
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          padding-top: 0 !important;
+          padding-bottom: 34px !important;
+        }
+        html.is-admin-host .admin-shell-topbar {
+          position: sticky !important;
+          top: 12px !important;
+          z-index: 50 !important;
+          margin: 0 0 24px !important;
+          padding: 12px 14px 12px 18px !important;
+          border: 1px solid rgba(226,232,240,.92) !important;
+          border-radius: 24px !important;
+          background: rgba(255,255,255,.88) !important;
+          box-shadow: 0 16px 42px rgba(15,23,42,.08) !important;
+          backdrop-filter: blur(18px) !important;
+        }
+        html.is-admin-host .admin-topbar-actions { margin-left:auto; gap:10px !important; }
+        html.is-admin-host .admin-current-date { display:inline-flex; align-items:center; min-height:40px; border:1px solid #e2e8f0; border-radius:999px; background:#f8fafc; color:#334155; padding:0 14px; font-size:12px; font-weight:950; }
+        html.is-admin-host .admin-notification-btn,
+        html.is-admin-host .admin-logout-btn,
+        html.is-admin-host .admin-menu-toggle { height:40px !important; border-radius:14px !important; box-shadow:none !important; }
+        html.is-admin-host .admin-logout-btn { background:#0f172a !important; border-color:#0f172a !important; }
+        .admin-pagination-pages { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+        .admin-pagination-page { display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 12px; border:1px solid #e2e8f0; border-radius:12px; background:#fff; color:#475569; font-weight:950; transition:.16s ease; }
+        .admin-pagination-page:hover:not(:disabled) { border-color:#c7d2fe; color:#4f46e5; background:#eef2ff; }
+        .admin-pagination-page.is-active { border-color:#4f46e5; background:#4f46e5; color:#fff; box-shadow:0 10px 22px rgba(79,70,229,.22); }
+        .admin-pagination-page:disabled { opacity:.38; cursor:not-allowed; }
+        .admin-pagination-ellipsis { display:inline-flex; align-items:center; justify-content:center; min-width:28px; height:38px; color:#94a3b8; font-weight:950; }
+        .user-listing-card__media, .admin-listing-management-card__media { height:185px !important; }
+        .admin-listing-card-grid, .user-listing-card-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+        .user-listing-card__actions, .admin-listing-management-card__actions { align-items:center; gap:7px !important; }
+        .listing-icon-action--delete, .admin-listing-action--delete { order:2; }
+        .listing-icon-action--edit, .admin-listing-action--edit { order:3; }
+        .admin-listing-action--reject { order:4; }
+        @media (max-width:1180px) { .admin-listing-card-grid, .user-listing-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
+        @media (max-width:640px) { .admin-listing-card-grid, .user-listing-card-grid { grid-template-columns:1fr !important; } }
 </style>
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">
