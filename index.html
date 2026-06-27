@@ -554,15 +554,16 @@
             image-rendering: auto;
         }
         .footer-premium {
-            background: #ffffff !important;
+            background: linear-gradient(180deg, #eaf6ff 0%, #dff1ff 100%) !important;
+            color: #0f172a !important;
             opacity: 1 !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-            border-top: 1px solid rgba(127, 127, 255, .15) !important;
+            border-top: 1px solid rgba(14, 116, 144, .14) !important;
         }
         .footer-premium .theme-logo-wrap,
         .footer-premium .site-footer-logo-wrap {
-            background: #ffffff !important;
+            background: transparent !important;
             opacity: 1 !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
@@ -576,10 +577,11 @@
             box-shadow: 0 20px 40px rgba(127, 127, 255, .14);
         }
         .footer-quick-links {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: stretch;
-            gap: .25rem;
+            column-gap: .75rem;
+            row-gap: .2rem;
         }
         .footer-quick-link {
             display: flex;
@@ -587,7 +589,7 @@
             width: 100%;
             min-height: 2.25rem;
             padding: .35rem 0;
-            color: #4b5563;
+            color: #1e3a5f;
             font-size: .875rem;
             font-weight: 600;
             line-height: 1.35;
@@ -7323,8 +7325,8 @@
         }
         footer.footer-premium {
             margin-top: 1rem !important;
-            padding-top: 20px !important;
-            padding-bottom: 16px !important;
+            padding-top: 18px !important;
+            padding-bottom: 14px !important;
         }
         footer.footer-premium > .max-w-7xl {
             width: min(100% - 32px, 1180px) !important;
@@ -9216,13 +9218,13 @@ Title: CASPIAN DREAM LINER
                 <div>
                     <h3 class="text-gray-900 font-extrabold mb-4">Sürətli Keçidlər</h3>
                     <nav class="footer-quick-links" aria-label="Footer sürətli keçidlər">
-                        <button type="button" onclick="switchTab('seabreeze')" class="footer-quick-link">Sea Breeze Layihələri</button>
+                        <button type="button" onclick="switchTab('seabreeze')" class="footer-quick-link">Layihələr</button>
+                        <button type="button" onclick="switchTab('portfolio')" class="footer-quick-link">Qalereya</button>
                         <button type="button" onclick="navigateListingsType('satis')" class="footer-quick-link">Satış</button>
                         <button type="button" onclick="navigateListingsType('kiraye')" class="footer-quick-link">Kirayə</button>
-                        <button type="button" onclick="switchTab('portfolio')" class="footer-quick-link">Qalereya</button>
                         <button type="button" onclick="switchTab('career')" class="footer-quick-link">Vakansiya</button>
-                        <button type="button" onclick="switchTab('home')" class="footer-quick-link">Haqqımızda</button>
                         <button type="button" onclick="switchTab('mortgage')" class="footer-quick-link">İpoteka Kalkulyatoru</button>
+                        <button type="button" onclick="switchTab('home')" class="footer-quick-link">Haqqımızda</button>
                     </nav>
                 </div>
 
