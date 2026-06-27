@@ -215,44 +215,55 @@
     #project-detail-modal-official .project-modal-actions { padding: .85rem 1rem 0 !important; }
 }
 
-/* Compact dark premium footer refinements. */
+/* Compact light premium footer refinements. */
 footer.footer-premium {
     margin-top: 1rem !important;
-    padding-top: 22px !important;
-    padding-bottom: 16px !important;
-    background: radial-gradient(circle at 12% 0%, rgba(127,127,255,.22), transparent 34%), linear-gradient(135deg, #070912 0%, #0d1020 54%, #151936 100%) !important;
-    color: rgba(255,255,255,.78) !important;
+    padding-top: 18px !important;
+    padding-bottom: 14px !important;
+    background: linear-gradient(180deg, #eaf6ff 0%, #dff1ff 100%) !important;
+    color: #0f172a !important;
 }
 footer.footer-premium > .max-w-7xl { width: min(100% - 32px, 1180px) !important; padding-inline: 0 !important; }
 footer.footer-premium .grid { gap: .9rem !important; }
 footer.footer-premium .space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: .9rem !important; }
-footer.footer-premium h3 { color: #fff !important; margin-bottom: .55rem !important; font-size: .88rem !important; }
+footer.footer-premium h3 { color: #0f172a !important; margin-bottom: .55rem !important; font-size: .88rem !important; }
 footer.footer-premium p,
 footer.footer-premium a,
-footer.footer-premium .footer-quick-link { color: rgba(255,255,255,.7) !important; font-size: .8rem !important; line-height: 1.35 !important; }
+footer.footer-premium .footer-quick-link { color: #1e3a5f !important; font-size: .8rem !important; line-height: 1.35 !important; }
+
+footer.footer-premium .footer-quick-links {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: .75rem !important;
+    row-gap: .2rem !important;
+}
+footer.footer-premium .footer-quick-link:hover,
+footer.footer-premium .footer-quick-link:focus-visible { color: #075985 !important; }
+footer.footer-premium .grid.grid-cols-2 a:not(.footer-maker-badge) { color: #1f3b57 !important; }
+footer.footer-premium .grid.grid-cols-2 a:not(.footer-maker-badge):hover { color: #fff !important; }
 footer.footer-premium .site-footer-logo { max-width: 170px !important; height: auto !important; }
-footer.footer-premium .w-9.h-9 { width: 2rem !important; height: 2rem !important; background: rgba(127,127,255,.12) !important; color: #c7d2fe !important; }
-footer.footer-premium .footer-stat-card { padding: .65rem .75rem !important; border-radius: 16px !important; background: rgba(255,255,255,.07) !important; border-color: rgba(255,255,255,.1) !important; }
-footer.footer-premium .footer-stat-card strong { font-size: 1.25rem !important; line-height: 1 !important; color: #c7d2fe !important; }
-footer.footer-premium .footer-stat-card span { font-size: .72rem !important; color: rgba(255,255,255,.68) !important; }
-footer.footer-premium .h-px { background: rgba(255,255,255,.12) !important; }
+footer.footer-premium .w-9.h-9 { width: 2rem !important; height: 2rem !important; background: rgba(255,255,255,.68) !important; color: #155e75 !important; }
+footer.footer-premium .footer-stat-card { padding: .65rem .75rem !important; border-radius: 16px !important; background: rgba(255,255,255,.72) !important; border-color: rgba(14,116,144,.14) !important; }
+footer.footer-premium .footer-stat-card strong { font-size: 1.25rem !important; line-height: 1 !important; color: #155e75 !important; }
+footer.footer-premium .footer-stat-card span { font-size: .72rem !important; color: #334155 !important; }
+footer.footer-premium .h-px { background: rgba(14,116,144,.16) !important; }
 footer.footer-premium .footer-maker-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(127,127,255,.32);
-    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(14,116,144,.24);
+    background: rgba(255,255,255,.75);
     border-radius: 999px;
     padding: .55rem .85rem;
     font-weight: 900;
-    color: #e0e7ff !important;
+    color: #0f172a !important;
     transition: color 220ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 footer.footer-premium .footer-maker-badge:hover {
-    color: #fff !important;
-    border-color: rgba(127,127,255,.9);
-    background: rgba(127,127,255,.18);
-    box-shadow: 0 0 24px rgba(127,127,255,.28);
+    color: #075985 !important;
+    border-color: rgba(14,116,144,.55);
+    background: #ffffff;
+    box-shadow: 0 14px 28px rgba(14,116,144,.18);
     transform: translateY(-1px);
 }
 @media (max-width: 767px) {
