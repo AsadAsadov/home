@@ -1496,14 +1496,34 @@
 
         function normalizeListingImageRows(images) {
             if (Array.isArray(images)) return images;
+            if (images && typeof images === 'object') return [images];
             if (typeof images !== 'string') return [];
             const trimmed = images.trim();
             if (!trimmed) return [];
             try {
                 const parsed = JSON.parse(trimmed);
                 if (Array.isArray(parsed)) return parsed;
+                if (parsed && typeof parsed === 'object') return [parsed];
             } catch (_) {}
             return trimmed.split(/[\n,]+/).map(value => value.trim()).filter(Boolean);
+        }
+
+        function normalizeListingImageCandidate(value) {
+            if (!value) return '';
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (!trimmed) return '';
+                if (/^[\[{]/.test(trimmed)) {
+                    const rows = normalizeListingImageRows(trimmed);
+                    const first = rows.find(Boolean);
+                    if (first && first !== trimmed) return normalizeListingImageCandidate(first);
+                }
+                return trimmed;
+            }
+            if (typeof value === 'object') {
+                return normalizeListingImageCandidate(value.image || value.imageUrl || value.image_url || value.url || value.src || value.path);
+            }
+            return '';
         }
 
         function normalizeListingImageUrl(url) {
@@ -1517,11 +1537,9 @@
 
         function normalizeListingImages(l = {}) {
             const rows = normalizeListingImageRows(l.images);
-            const fromRows = rows.map(item => {
-                if (typeof item === 'string') return item;
-                return item?.imageUrl || item?.image_url || item?.url || item?.src || item?.path || item?.image || '';
-            }).filter(Boolean);
+            const fromRows = rows.map(normalizeListingImageCandidate).filter(Boolean);
             return [l.image, l.imageUrl, l.image_url, l.img, ...fromRows]
+                .map(normalizeListingImageCandidate)
                 .map(normalizeListingImageUrl)
                 .filter((x, idx, all) => x && all.indexOf(x) === idx);
         }
