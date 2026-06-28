@@ -705,6 +705,91 @@
             background: rgba(124, 108, 255, .10);
             color: #6d5dfc !important;
         }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register).public-auth-shell {
+            color: #FFFFFF;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout {
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(120, 120, 255, .10), rgba(255, 255, 255, .05));
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .36);
+            backdrop-filter: blur(26px);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::before {
+            background: rgba(124, 92, 255, .20);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::after {
+            background: rgba(120, 120, 255, .14);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro,
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro h2 {
+            color: #FFFFFF;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro p {
+            color: rgba(255, 255, 255, .82);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-kicker,
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-benefits span {
+            border-color: rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .08);
+            color: #FFFFFF;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .20);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-benefits i,
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field i {
+            color: #8b5cf6;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-card {
+            border: 1px solid rgba(255, 255, 255, .08) !important;
+            background: rgba(20, 22, 30, .92) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .45) !important;
+            backdrop-filter: blur(24px);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-brand,
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-heading h2 {
+            color: #FFFFFF !important;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-heading p {
+            color: rgba(255, 255, 255, .65);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input {
+            border-color: rgba(255, 255, 255, .10) !important;
+            background: rgba(255, 255, 255, .05) !important;
+            color: #FFFFFF !important;
+            box-shadow: none;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input::placeholder {
+            color: rgba(255, 255, 255, .45);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input:focus {
+            border-color: #7C5CFF !important;
+            background: rgba(255, 255, 255, .07) !important;
+            box-shadow: 0 0 0 4px rgba(124, 92, 255, .18);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-submit-btn {
+            box-shadow: 0 20px 46px rgba(109, 93, 252, .44), 0 0 28px rgba(124, 92, 255, .22);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-submit-btn:hover {
+            box-shadow: 0 24px 56px rgba(109, 93, 252, .52), 0 0 34px rgba(124, 92, 255, .28);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .google-signin-btn {
+            border-color: rgba(255, 255, 255, .08);
+            background: #20242F;
+            color: #FFFFFF;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .24);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .google-signin-btn:hover {
+            border-color: rgba(255, 255, 255, .08);
+            background: #2B3140;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, .30);
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-links {
+            color: rgba(255, 255, 255, .78) !important;
+        }
+        html[data-theme="dark"]:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-links button:hover {
+            background: rgba(139, 123, 255, .12);
+            color: #8B7BFF !important;
+        }
         @media (max-width: 900px) {
             html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout {
                 grid-template-columns: 1fr;
