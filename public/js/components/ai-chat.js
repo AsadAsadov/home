@@ -25,7 +25,7 @@
     list.scrollTop = list.scrollHeight;
   }
   function cardMeta(item, type) {
-    if (type === 'layihələr') return [item.shortDescription, item.deliveryStatus || item.deliveryYear, item.areaRange || item.area, item.location].filter(Boolean).join(' • ');
+    if (type === 'layihələr') return [item.shortDescription, item.deliveryStatus || item.deliveryYear, item.areaRange || item.area, item.floorCount ? `${item.floorCount} mərtəbə` : '', item.location].filter(Boolean).join(' • ');
     return [item.price, item.projectName, item.location, item.roomCount ? `${item.roomCount} otaq` : '', item.area ? `${item.area} m²` : ''].filter(Boolean).join(' • ');
   }
   async function fetchJson(url) {
@@ -49,7 +49,9 @@
     const byId = await fetchJson(`/api/listings/${encodeURIComponent(normalized)}`).catch(() => null);
     return byId?.id || null;
   }
+  function closePanelForModal() { document.getElementById('besthome-ai-chat')?.classList.remove('is-open'); }
   async function openCard(item, type) {
+    closePanelForModal();
     if (type === 'layihələr') {
       if (typeof window.openOfficialProjectModal === 'function') return window.openOfficialProjectModal(item.id, true);
       if (typeof window.openProjectModal === 'function') return window.openProjectModal(item.id);
