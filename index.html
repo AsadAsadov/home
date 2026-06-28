@@ -353,8 +353,8 @@
             position: fixed;
             left: 24px;
             right: auto;
-            bottom: 90px;
-            z-index: 10000;
+            bottom: 22px;
+            z-index: 9000;
             min-height: 44px;
             border-radius: 999px;
             padding: .45rem .55rem .45rem .7rem;
@@ -387,17 +387,17 @@
         }
         @media (min-width: 768px) {
             .site-music-controls {
-                left: 24px;
+                left: 22px;
                 right: auto;
-                bottom: 80px;
-                z-index: 10000;
+                bottom: 22px;
+                z-index: 9000;
             }
         }
         @media (min-width: 1024px) {
             .site-music-controls,
             .site-header-inner > .site-music-controls {
                 position: fixed;
-                inset: auto auto 80px 24px;
+                inset: auto auto 22px 22px;
                 width: auto;
                 max-width: min(360px, calc(100vw - 48px));
                 height: auto;
@@ -442,6 +442,8 @@
                 line-height: 1.1;
             }
             .site-header-inner > .site-music-controls .site-music-control-btn { width: 34px; height: 34px; }
+            body:has(#desktop-left-ads:not(:empty)) .site-music-controls,
+            body:has(.left-ad-rail:not(:empty)) .site-music-controls { display: none; }
         }
 
         .login-submit-btn,
@@ -7233,7 +7235,7 @@
         }
         html[data-theme="dark"] .mobile-bottom-nav__item.is-active *,
         html[data-theme="dark"] .mobile-bottom-nav__item[aria-current="page"] * { color: #fff !important; }
-        .site-music-controls { left: 24px; right: auto; z-index: 10000; }
+        .site-music-controls { left: 22px; right: auto; bottom: 22px; z-index: 9000; }
         @media (max-width: 767px) {
             .site-music-controls,
             #site-music-mobile-anchor .site-music-controls {
@@ -7242,7 +7244,7 @@
                 bottom: calc(90px + env(safe-area-inset-bottom)) !important;
                 right: auto !important;
                 top: auto !important;
-                z-index: 10000 !important;
+                z-index: 9000 !important;
                 transform-origin: left center;
             }
         }
