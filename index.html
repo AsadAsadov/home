@@ -362,7 +362,7 @@
             font-weight: 900;
             max-width: min(360px, calc(100vw - 32px));
         }
-        .site-music-controls.is-hidden { display: none; }
+        .site-music-controls.is-hidden { display: inline-flex; }
         .site-music-controls.is-playing { background: rgba(var(--primary-rgb), .95); color: #fff; }
         .site-music-controls.is-collapsed { width: 44px; height: 44px; min-height: 44px; padding: 0; gap: 0; transform: translateX(0); }
         .site-music-controls.is-collapsed .site-music-title,
@@ -443,7 +443,7 @@
             }
             .site-header-inner > .site-music-controls .site-music-control-btn { width: 34px; height: 34px; }
             body:has(#desktop-left-ads:not(:empty)) .site-music-controls,
-            body:has(.left-ad-rail:not(:empty)) .site-music-controls { display: none; }
+            body:has(.left-ad-rail:not(:empty)) .site-music-controls { left: 22px; bottom: 22px; }
         }
 
         .login-submit-btn,
