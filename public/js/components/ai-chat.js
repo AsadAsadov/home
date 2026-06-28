@@ -2,6 +2,7 @@
   const LS_VISITOR = 'besthome_ai_visitor_id';
   const LS_CONVERSATION = 'besthome_ai_conversation_id';
   const chips = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'];
+  const WHATSAPP_URL = 'https://wa.me/994703152222?text=' + encodeURIComponent('Salam, BestHome.az saytından yazıram. Əmlakla bağlı məlumat almaq istəyirəm.');
   const state = { open: false, busy: false };
   const visitorId = () => {
     let id = localStorage.getItem(LS_VISITOR);
@@ -23,17 +24,38 @@
     list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__bubble bh-ai-chat__bubble--${role}">${esc(text)}</div>`);
     list.scrollTop = list.scrollHeight;
   }
+  function cardMeta(item, type) {
+    if (type === 'layihələr') return [item.shortDescription, item.deliveryStatus || item.deliveryYear, item.areaRange || item.area, item.location].filter(Boolean).join(' • ');
+    return [item.price, item.projectName, item.location, item.roomCount ? `${item.roomCount} otaq` : '', item.area ? `${item.area} m²` : ''].filter(Boolean).join(' • ');
+  }
+  function openSpaFallback(url) {
+    if (!url) return;
+    window.history.pushState({}, '', url);
+    window.dispatchEvent(typeof PopStateEvent === 'function' ? new PopStateEvent('popstate') : new Event('popstate'));
+  }
+  function openCard(item, type) {
+    if (type === 'layihələr') {
+      if (typeof window.openOfficialProjectModal === 'function') return window.openOfficialProjectModal(item.id, true);
+      if (typeof window.openProjectModal === 'function') return window.openProjectModal(item.id);
+      return openSpaFallback(item.url);
+    }
+    if (typeof window.openListingModal === 'function') return window.openListingModal(item.id);
+    return openSpaFallback(item.url);
+  }
   function cards(items, type) {
     if (!items?.length) return;
     const list = document.querySelector('.bh-ai-chat__messages');
-    const html = items.slice(0, 3).map(item => `<article class="bh-ai-chat-card">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="">` : ''}<div><b>${esc(item.title)}</b><span>${esc(item.price || item.location || item.projectName || '')}</span><a href="${esc(item.url)}">Bax</a></div></article>`).join('');
+    const html = items.slice(0, 3).map(item => `<article class="bh-ai-chat-card" data-id="${esc(item.id)}" data-type="${esc(type)}">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="">` : ''}<div><b>${esc(item.title)}</b><span>${esc(cardMeta(item, type))}</span><button type="button" class="bh-ai-chat-card__open">Bax</button></div></article>`).join('');
     list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__cards" aria-label="Uyğun ${type}">${html}</div>`);
+    const inserted = list.lastElementChild;
+    inserted?.querySelectorAll('.bh-ai-chat-card__open').forEach((btn, index) => btn.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openCard(items[index], type); }));
     list.scrollTop = list.scrollHeight;
   }
   function typing(on) { document.querySelector('.bh-ai-chat__typing')?.classList.toggle('is-visible', Boolean(on)); }
   async function send(text) {
     const message = String(text || document.querySelector('.bh-ai-chat__input')?.value || '').trim();
     if (!message || state.busy) return;
+    if (/^whatsapp ilə əlaqə$/i.test(message)) { window.open(WHATSAPP_URL, '_blank', 'noopener'); return; }
     document.querySelector('.bh-ai-chat__input').value = '';
     addMessage('user', message);
     state.busy = true; typing(true);
