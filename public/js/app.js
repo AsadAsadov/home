@@ -1146,13 +1146,13 @@
 
         function syncSiteMusicPlacement() {
             const controls = document.getElementById('site-music-controls');
-            const mobileAnchor = document.getElementById('site-music-mobile-anchor');
-            const desktopAnchor = document.getElementById('site-music-desktop-anchor');
-            if (!controls || !mobileAnchor || !desktopAnchor) return;
-            const target = desktopAnchor.parentElement;
-            if (target && controls.parentElement !== target) {
-                target.insertBefore(controls, desktopAnchor.nextSibling);
-            }
+            if (!controls || !document.body) return;
+            if (controls.parentElement !== document.body) document.body.appendChild(controls);
+            controls.style.position = 'fixed';
+            controls.style.left = window.innerWidth < 768 ? '16px' : '22px';
+            controls.style.right = 'auto';
+            controls.style.top = 'auto';
+            controls.style.bottom = window.innerWidth < 768 ? 'calc(90px + env(safe-area-inset-bottom))' : '22px';
         }
 
         window.addEventListener('scroll', () => {
