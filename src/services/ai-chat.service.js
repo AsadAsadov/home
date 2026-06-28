@@ -9,6 +9,9 @@ const money = (value, currency = 'AZN') => (value == null ? '' : `${String(value
 const contains = value => ({ contains: value, mode: 'insensitive' });
 const CARD_REPLY = 'Sizə uyğun nəticələri aşağıda göstərdim.';
 const SEARCH_STOPWORDS = new Set(['kiraye', 'rent', 'icare', 'menzil', 'ev', 'elan', 'axtar', 'tap', 'haqqinda', 'melumat', 'layihe', 'layiheler', 'proyekt', 'satis', 'satiliq', 'daha', 'cox', 'çox', 'goster', 'göstər']);
+const DEFAULT_SUGGESTIONS = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Layihələr', 'WhatsApp ilə əlaqə'];
+const SALE_LISTING_TYPE_FILTER = [{ listingType: contains('Satış') }, { listingType: contains('Satis') }, { listingType: contains('sale') }];
+const RENT_LISTING_TYPE_FILTER = [{ listingType: contains('kirayə') }, { listingType: contains('kiraye') }, { listingType: contains('rent') }, { listingType: contains('icarə') }, { listingType: contains('icare') }];
 const MORE_RE = /daha\s*(cox|çox)|novbeti|növbəti|artiq|artıq/i;
 const PAGE_SIZE = 3;
 const MAX_RESULT_CACHE = 60;
@@ -16,10 +19,16 @@ const conversationResultState = new Map();
 
 function serializeMessage(row) { return { id: jsonId(row.id), conversationId: jsonId(row.conversationId), role: row.role, content: row.content, createdAt: row.createdAt }; }
 function serializeConversation(row) { const last = row.messages?.[0]; return { id: jsonId(row.id), visitorId: row.visitorId, userId: jsonId(row.userId), name: row.name, phone: row.phone, status: row.status, lastMessageAt: row.lastMessageAt || row.updatedAt || row.createdAt, lastMessage: last?.content || null, lead: row.lead || null }; }
-function listingCard(row) { return { id: jsonId(row.id), title: row.title, price: money(row.price, row.currency), projectName: row.projectName, district: row.district, settlement: row.settlement, location: [row.district, row.settlement].filter(Boolean).join(', '), roomCount: row.roomCount, area: row.area, imageUrl: row.imageUrl || row.images?.[0]?.imageUrl || '', url: `/elan/${row.id}` }; }
+function listingCard(row) { const id = jsonId(row.id); return { id, listingId: id, title: row.title, price: money(row.price, row.currency), projectName: row.projectName, district: row.district, settlement: row.settlement, location: [row.district, row.settlement].filter(Boolean).join(', '), roomCount: row.roomCount, area: row.area, imageUrl: row.imageUrl || row.images?.[0]?.imageUrl || '', url: `/elan/${id}` }; }
 
 function normalizeAz(value) { return String(value || '').toLowerCase().replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c'); }
 function normalizedWords(value) { return normalizeAz(value).replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean); }
+function normalizeListingType(value) {
+  const normalized = normalizeAz(String(value || '')).replace(/[^a-z0-9]+/g, ' ').trim();
+  if (/\b(satis|sale)\b/.test(normalized)) return 'sale';
+  if (/\b(kiraye|rent|icare)\b/.test(normalized)) return 'rent';
+  return '';
+}
 function normalizedCompact(value) { return normalizedWords(value).join(' '); }
 function projectAliases(project) {
   const aliases = Array.isArray(project.aliases) ? project.aliases : (project.aliases && typeof project.aliases === 'object' ? Object.values(project.aliases) : []);
@@ -55,8 +64,8 @@ function intentFor(message) {
 function listingWhereFor(message) {
   const intent = intentFor(message);
   const where = { status: 'approved' };
-  if (intent.sale && !intent.rent) where.OR = [{ listingType: contains('sale') }, { listingType: contains('satış') }, { listingType: contains('satis') }, { listingType: contains('sat') }];
-  if (intent.rent && !intent.sale) where.OR = [{ listingType: contains('rent') }, { listingType: contains('kirayə') }, { listingType: contains('kiraye') }, { listingType: contains('kiray') }, { listingType: contains('icarə') }, { listingType: contains('icare') }, { listingType: contains('icar') }];
+  if (intent.sale && !intent.rent) where.OR = SALE_LISTING_TYPE_FILTER;
+  if (intent.rent && !intent.sale) where.OR = RENT_LISTING_TYPE_FILTER;
   if (intent.room) where.roomCount = intent.room;
   return where;
 }
@@ -137,11 +146,14 @@ async function searchContext(query, conversationId, originalQuery = query) {
   const listingWhere = { ...baseListingWhere };
   if (shouldUseListingTerms) listingWhere.AND = [...(listingWhere.AND || []), { OR: listingOR }];
   const projectWhere = { isArchived: false, ...(projectOR.length && !/^layihələr$/i.test(cleanText(query)) ? { OR: projectOR } : {}) };
-  const [listingRows, projects, knowledge] = await Promise.all([
+  const [rawListingRows, projects, knowledge] = await Promise.all([
     intent.wantsListing ? prisma.listing.findMany({ where: listingWhere, include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } }, orderBy: [{ featured: 'desc' }, { approvedAt: 'desc' }], take: MAX_RESULT_CACHE }) : Promise.resolve([]),
     intent.wantsProject ? prisma.project.findMany({ where: projectWhere, orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }], take: MAX_RESULT_CACHE }) : Promise.resolve([]),
     prisma.chatKnowledge.findMany({ where: { isActive: true, ...(knowledgeOR.length ? { OR: knowledgeOR } : {}) }, orderBy: { updatedAt: 'desc' }, take: 5 }).catch(() => [])
   ]);
+  const listingRows = intent.sale && !intent.rent
+    ? rawListingRows.filter(row => normalizeListingType(row.listingType) === 'sale')
+    : (intent.rent && !intent.sale ? rawListingRows.filter(row => normalizeListingType(row.listingType) === 'rent') : rawListingRows);
   const rankedProjects = projects.map(project => ({ project, score: projectMatchScore(project, query) })).sort((a, b) => b.score - a.score);
   const matchedProjects = projectOR.length && rankedProjects.some(item => item.score >= 25) ? rankedProjects.filter(item => item.score >= 25).map(item => item.project) : projects;
   const state = { intent, knowledge, listings: listingRows, projects: matchedProjects, offsets: { listings: PAGE_SIZE, projects: PAGE_SIZE } };
@@ -177,7 +189,7 @@ async function sendMessage(input) {
   reply = stripMarkdown(reply);
   await saveMessage(conversation.id, 'assistant', reply);
   if (HANDOFF_RE.test(message)) await prisma.chatConversation.update({ where: { id: conversation.id }, data: { status: 'human_needed' } });
-  return { conversationId: jsonId(conversation.id), reply, suggestions: hasCards ? [] : (context.intent?.rent && context.intent?.wantsListing ? ['Satış elanlarına bax'] : ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə']), matchedListings: showListings ? context.listings.slice(0, PAGE_SIZE).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, PAGE_SIZE).map(projectCard) : [], hasMoreListings: Boolean(showListings && context.hasMoreListings), hasMoreProjects: Boolean(showProjects && context.hasMoreProjects) };
+  return { conversationId: jsonId(conversation.id), reply, suggestions: hasCards ? [] : (context.intent?.rent && context.intent?.wantsListing ? ['Satış elanlarına bax'] : DEFAULT_SUGGESTIONS), matchedListings: showListings ? context.listings.slice(0, PAGE_SIZE).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, PAGE_SIZE).map(projectCard) : [], hasMoreListings: Boolean(showListings && context.hasMoreListings), hasMoreProjects: Boolean(showProjects && context.hasMoreProjects) };
 }
 async function history(conversationId) { const messages = await prisma.chatMessage.findMany({ where: { conversationId: String(conversationId) }, orderBy: { createdAt: 'asc' }, take: 100 }); return { conversationId: String(conversationId), messages: messages.map(serializeMessage) }; }
 
@@ -215,4 +227,4 @@ async function adminList() {
 async function adminGet(id) { const row = await prisma.chatConversation.findUnique({ where: { id: String(id) }, include: { messages: { orderBy: { createdAt: 'asc' } }, lead: true } }); return row ? { ...serializeConversation(row), messages: row.messages.map(serializeMessage) } : null; }
 async function adminReply(id, message) { await saveMessage(id, 'admin', message); await prisma.chatConversation.update({ where: { id: String(id) }, data: { status: 'human_needed' } }); return adminGet(id); }
 async function adminStatus(id, status) { if (!['open', 'closed', 'human_needed'].includes(status)) { const error = new Error('Invalid status.'); error.status = 400; throw error; } return serializeConversation(await prisma.chatConversation.update({ where: { id: String(id) }, data: { status } })); }
-module.exports = { MAX_MESSAGE_LENGTH, startConversation, sendMessage, history, adminList, adminGet, adminReply, adminStatus };
+module.exports = { MAX_MESSAGE_LENGTH, normalizeListingType, startConversation, sendMessage, history, adminList, adminGet, adminReply, adminStatus };

@@ -1,7 +1,7 @@
 (function () {
   const LS_VISITOR = 'besthome_ai_visitor_id';
   const LS_CONVERSATION = 'besthome_ai_conversation_id';
-  const chips = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'];
+  const chips = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Layihələr', 'WhatsApp ilə əlaqə'];
   const WHATSAPP_URL = 'https://wa.me/994703152222?text=' + encodeURIComponent('Salam, BestHome.az saytından yazıram. Əmlakla bağlı məlumat almaq istəyirəm.');
   const state = { open: false, busy: false, cards: [], lastListMessage: '' };
   const visitorId = () => {
