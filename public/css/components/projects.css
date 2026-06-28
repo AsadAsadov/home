@@ -322,3 +322,76 @@ footer.footer-premium .footer-maker-badge:hover {
     footer.footer-premium { padding-bottom: calc(4.75rem + env(safe-area-inset-bottom)) !important; }
     footer.footer-premium > .max-w-7xl { width: min(100% - 28px, 1180px) !important; }
 }
+
+/* Regression guard: keep the public projects page grid independent from recent dark-mode/chat/map polish rules. */
+#sea-breeze-projects-list {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 1.5rem !important;
+    grid-auto-rows: 1fr;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+#sea-breeze-projects-list > .sea-breeze-project-card,
+#sea-breeze-projects-list > .glass-card {
+    display: flex !important;
+    min-width: 0;
+    height: 100%;
+    max-height: none !important;
+    overflow: hidden;
+}
+
+#sea-breeze-projects-list > .sea-breeze-project-card:nth-child(n),
+#sea-breeze-projects-list > .glass-card:nth-child(n) {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.most-viewed-projects-body:not(.is-collapsed) {
+    overflow: visible !important;
+}
+
+.most-viewed-projects-body:not(.is-collapsed) > #most-viewed-projects {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.most-viewed-projects-body:not(.is-collapsed) > #most-viewed-projects > * {
+    display: block;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="dark"] #sea-breeze-projects-list,
+html[data-theme="dark"] .most-viewed-projects-body:not(.is-collapsed) > #most-viewed-projects {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+
+@media (max-width: 1024px) {
+    #sea-breeze-projects-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .most-viewed-projects-body:not(.is-collapsed) > #most-viewed-projects {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    #sea-breeze-projects-list {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 1rem !important;
+    }
+
+    .most-viewed-projects-body:not(.is-collapsed) > #most-viewed-projects {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
