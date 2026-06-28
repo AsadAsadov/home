@@ -69,6 +69,14 @@
     const record = Number.isInteger(index) ? state.cards[index] : null;
     if (record) openCard(record.item, record.type);
   }
+  function suggestions(items) {
+    if (!Array.isArray(items) || !items.length) return;
+    const list = document.querySelector('.bh-ai-chat__messages');
+    const html = items.map(item => `<button type="button">${esc(item)}</button>`).join('');
+    list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__chips bh-ai-chat__chips--suggestions">${html}</div>`);
+    list.lastElementChild?.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => send(btn.textContent)));
+    list.scrollTop = list.scrollHeight;
+  }
   function cards(items, type, hasMore = false) {
     if (!items?.length) return;
     const list = document.querySelector('.bh-ai-chat__messages');
@@ -80,7 +88,7 @@
     list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__cards" aria-label="Uyğun ${type}">${html}${moreHtml}</div>`);
     const inserted = list.lastElementChild;
     inserted?.querySelectorAll('.bh-ai-chat-card__open').forEach((btn, index) => btn.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openCard(items[index], type); }));
-    inserted?.querySelector('.bh-ai-chat__more')?.addEventListener('click', () => send('Daha çox göstər', { silentUser: true, more: true }));
+    inserted?.querySelector('.bh-ai-chat__more')?.addEventListener('click', event => { event.currentTarget.remove(); send('Daha çox göstər', { silentUser: true, more: true }); });
     list.scrollTop = list.scrollHeight;
   }
   function typing(on) { document.querySelector('.bh-ai-chat__typing')?.classList.toggle('is-visible', Boolean(on)); }
@@ -90,15 +98,16 @@
     const message = options.more ? `Daha çox göstər ${state.lastListMessage}`.trim() : rawMessage;
     if (!message || state.busy) return;
     if (/^whatsapp ilə əlaqə$/i.test(message)) { window.open(WHATSAPP_URL, '_blank', 'noopener'); return; }
+    const outboundMessage = /^satış elanlarına bax$/i.test(message) ? 'Satış elanları' : message;
     document.querySelector('.bh-ai-chat__input').value = '';
     if (!options.silentUser) addMessage('user', rawMessage);
     state.busy = true; typing(true);
     try {
-      const data = await post('/api/ai-chat/message', { conversationId: conversationId() || undefined, visitorId: visitorId(), userId: userId() || undefined, message });
+      const data = await post('/api/ai-chat/message', { conversationId: conversationId() || undefined, visitorId: visitorId(), userId: userId() || undefined, message: outboundMessage });
       setConversationId(data.conversationId);
-      if (!options.more) state.lastListMessage = rawMessage;
+      if (!options.more) state.lastListMessage = outboundMessage;
       addMessage('assistant', data.reply || 'Bağışlayın, cavab hazırlaya bilmədim.');
-      cards(data.matchedListings, 'elanlar', data.hasMoreListings); cards(data.matchedProjects, 'layihələr', data.hasMoreProjects);
+      cards(data.matchedListings, 'elanlar', data.hasMoreListings); cards(data.matchedProjects, 'layihələr', data.hasMoreProjects); suggestions(data.suggestions);
     } catch (_error) { addMessage('assistant', 'Hazırda AI cavabı hazırlaya bilmirəm. İstəsəniz sizi əməkdaşımıza yönləndirə bilərəm.'); }
     finally { state.busy = false; typing(false); }
   }

@@ -11,6 +11,8 @@ const CARD_REPLY = 'Sizə uyğun nəticələri aşağıda göstərdim.';
 const SEARCH_STOPWORDS = new Set(['kiraye', 'rent', 'icare', 'menzil', 'ev', 'elan', 'axtar', 'tap', 'haqqinda', 'melumat', 'layihe', 'layiheler', 'proyekt', 'satis', 'satiliq', 'daha', 'cox', 'çox', 'goster', 'göstər']);
 const MORE_RE = /daha\s*(cox|çox)|novbeti|növbəti|artiq|artıq/i;
 const PAGE_SIZE = 3;
+const MAX_RESULT_CACHE = 60;
+const conversationResultState = new Map();
 
 function serializeMessage(row) { return { id: jsonId(row.id), conversationId: jsonId(row.conversationId), role: row.role, content: row.content, createdAt: row.createdAt }; }
 function serializeConversation(row) { const last = row.messages?.[0]; return { id: jsonId(row.id), visitorId: row.visitorId, userId: jsonId(row.userId), name: row.name, phone: row.phone, status: row.status, lastMessageAt: row.lastMessageAt || row.updatedAt || row.createdAt, lastMessage: last?.content || null, lead: row.lead || null }; }
@@ -42,7 +44,8 @@ function stripMarkdown(value) { return String(value || '').replace(/[*#_`>~]/g, 
 function intentFor(message) {
   const text = normalizeAz(message);
   const isWhatsApp = /\bwhatsapp\b|elaqe|zeng|operator|emekdas|menecer/.test(text);
-  const wantsProject = /layihe|proyekt|tikili|kompleks|haqqinda|melumat/.test(text) || (!/kiraye|rent|icare|satis|satiliq|otaq|menzil|ev|villa|elan/.test(text) && normalizedWords(message).length >= 2);
+  const hasListingIntent = /kiraye|rent|icare|satis|satiliq|otaq|menzil|ev|villa|elan/.test(text);
+  const wantsProject = /layihe|proyekt|tikili|kompleks|haqqinda|melumat/.test(text) || (!hasListingIntent && normalizedWords(message).filter(w => w.length > 2).length >= 1);
   const wantsListing = /elan|ev|menzil|villa|obyekt|ofis|otaq|satis|satiliq|kiraye|rent|icare|axtar|tap|seabreeze|sea breeze/.test(text);
   const sale = /satis|satiliq|almaq|alim/.test(text);
   const rent = /kiraye|rent|icare/.test(text);
@@ -52,8 +55,8 @@ function intentFor(message) {
 function listingWhereFor(message) {
   const intent = intentFor(message);
   const where = { status: 'approved' };
-  if (intent.sale && !intent.rent) where.OR = [{ listingType: contains('sale') }, { listingType: contains('sat') }];
-  if (intent.rent && !intent.sale) where.OR = [{ listingType: contains('rent') }, { listingType: contains('kiray') }, { listingType: contains('icar') }];
+  if (intent.sale && !intent.rent) where.OR = [{ listingType: contains('sale') }, { listingType: contains('satış') }, { listingType: contains('satis') }, { listingType: contains('sat') }];
+  if (intent.rent && !intent.sale) where.OR = [{ listingType: contains('rent') }, { listingType: contains('kirayə') }, { listingType: contains('kiraye') }, { listingType: contains('kiray') }, { listingType: contains('icarə') }, { listingType: contains('icare') }, { listingType: contains('icar') }];
   if (intent.room) where.roomCount = intent.room;
   return where;
 }
@@ -92,9 +95,39 @@ async function saveMessage(conversationId, role, content) {
 }
 async function startConversation(input) { const conversation = await ensureConversation(input || {}); const messages = await prisma.chatMessage.findMany({ where: { conversationId: conversation.id }, orderBy: { createdAt: 'asc' }, take: 50 }); return { conversationId: jsonId(conversation.id), messages: messages.map(serializeMessage) }; }
 
-async function searchContext(query, conversationId) {
+function cacheKeyFor(conversationId, message) {
+  return `${conversationId || 'anon'}:${normalizedCompact(message).slice(0, 140)}`;
+}
+function paginateCachedResult(conversationId, message) {
+  const key = cacheKeyFor(conversationId, message);
+  const cached = conversationResultState.get(key);
+  if (!cached) return null;
+  const listingStart = cached.offsets.listings;
+  const projectStart = cached.offsets.projects;
+  const listings = cached.listings.slice(listingStart, listingStart + PAGE_SIZE);
+  const projects = cached.projects.slice(projectStart, projectStart + PAGE_SIZE);
+  cached.offsets.listings = listingStart + listings.length;
+  cached.offsets.projects = projectStart + projects.length;
+  return {
+    listings,
+    projects,
+    knowledge: cached.knowledge,
+    intent: cached.intent,
+    wantsMore: true,
+    fromCache: true,
+    hasMoreListings: cached.offsets.listings < cached.listings.length,
+    hasMoreProjects: cached.offsets.projects < cached.projects.length,
+    totalListings: cached.listings.length,
+    totalProjects: cached.projects.length
+  };
+}
+async function searchContext(query, conversationId, originalQuery = query) {
   const intent = intentFor(query);
   const wantsMore = MORE_RE.test(normalizeAz(query));
+  if (wantsMore) {
+    const cached = paginateCachedResult(conversationId, originalQuery || query);
+    if (cached) return cached;
+  }
   const terms = normalizedWords(cleanText(query, 100)).filter(t => t.length > 2 && !SEARCH_STOPWORDS.has(t) && !/^\d+$/.test(t)).slice(0, 4);
   const listingOR = terms.flatMap(t => [{ title: contains(t) }, { projectName: contains(t) }, { district: contains(t) }, { settlement: contains(t) }, { neighborhood: contains(t) }, { streetAddress: contains(t) }, { listingType: contains(t) }, { propertyCategory: contains(t) }]);
   const projectOR = terms.flatMap(t => [{ title: contains(t) }, { description: contains(t) }, { zone: contains(t) }, { mapLocationLabel: contains(t) }]);
@@ -104,18 +137,17 @@ async function searchContext(query, conversationId) {
   const listingWhere = { ...baseListingWhere };
   if (shouldUseListingTerms) listingWhere.AND = [...(listingWhere.AND || []), { OR: listingOR }];
   const projectWhere = { isArchived: false, ...(projectOR.length && !/^layihələr$/i.test(cleanText(query)) ? { OR: projectOR } : {}) };
-  const offset = wantsMore ? PAGE_SIZE : 0;
   const [listingRows, projects, knowledge] = await Promise.all([
-    intent.wantsListing ? prisma.listing.findMany({ where: listingWhere, include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } }, orderBy: [{ featured: 'desc' }, { approvedAt: 'desc' }], skip: offset, take: PAGE_SIZE + 1 }) : Promise.resolve([]),
-    intent.wantsProject ? prisma.project.findMany({ where: projectWhere, orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }], take: projectOR.length ? 120 : PAGE_SIZE + 1 + offset }) : Promise.resolve([]),
+    intent.wantsListing ? prisma.listing.findMany({ where: listingWhere, include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } }, orderBy: [{ featured: 'desc' }, { approvedAt: 'desc' }], take: MAX_RESULT_CACHE }) : Promise.resolve([]),
+    intent.wantsProject ? prisma.project.findMany({ where: projectWhere, orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }], take: MAX_RESULT_CACHE }) : Promise.resolve([]),
     prisma.chatKnowledge.findMany({ where: { isActive: true, ...(knowledgeOR.length ? { OR: knowledgeOR } : {}) }, orderBy: { updatedAt: 'desc' }, take: 5 }).catch(() => [])
   ]);
   const rankedProjects = projects.map(project => ({ project, score: projectMatchScore(project, query) })).sort((a, b) => b.score - a.score);
-  const matchedProjects = rankedProjects.some(item => item.score >= 35) ? rankedProjects.filter(item => item.score >= 35).map(item => item.project) : projects;
-  const pagedProjects = matchedProjects.slice(offset, offset + PAGE_SIZE + 1);
-  const listings = listingRows.slice(0, PAGE_SIZE);
-  const projectsOut = pagedProjects.slice(0, PAGE_SIZE);
-  return { listings, projects: projectsOut, knowledge, intent, wantsMore, hasMoreListings: listingRows.length > PAGE_SIZE, hasMoreProjects: pagedProjects.length > PAGE_SIZE };
+  const matchedProjects = projectOR.length && rankedProjects.some(item => item.score >= 25) ? rankedProjects.filter(item => item.score >= 25).map(item => item.project) : projects;
+  const state = { intent, knowledge, listings: listingRows, projects: matchedProjects, offsets: { listings: PAGE_SIZE, projects: PAGE_SIZE } };
+  conversationResultState.set(cacheKeyFor(conversationId, query), state);
+  if (conversationResultState.size > 500) conversationResultState.delete(conversationResultState.keys().next().value);
+  return { listings: listingRows.slice(0, PAGE_SIZE), projects: matchedProjects.slice(0, PAGE_SIZE), knowledge, intent, wantsMore: false, hasMoreListings: listingRows.length > PAGE_SIZE, hasMoreProjects: matchedProjects.length > PAGE_SIZE, totalListings: listingRows.length, totalProjects: matchedProjects.length };
 }
 function buildContextText({ listings, projects, knowledge }) {
   return [
@@ -132,18 +164,20 @@ async function sendMessage(input) {
   const conversation = await ensureConversation(input || {});
   await saveMessage(conversation.id, 'user', message);
   const direct = directReply(message);
-  const context = direct ? { listings: [], projects: [], knowledge: [], intent: intentFor(message) } : await searchContext(message, conversation.id);
-  let reply = direct || await generateBestHomeReply({ message, contextText: buildContextText(context), hasRealEstateContext: Boolean(context.listings.length || context.projects.length || context.knowledge.length) });
+  const moreMatch = message.match(/^Daha çox göstər\s+(.+)$/i);
+  const searchMessage = moreMatch?.[1] || message;
+  const context = direct ? { listings: [], projects: [], knowledge: [], intent: intentFor(message) } : await searchContext(message, conversation.id, searchMessage);
+  let reply = direct || (context.fromCache ? CARD_REPLY : await generateBestHomeReply({ message: searchMessage, contextText: buildContextText(context), hasRealEstateContext: Boolean(context.listings.length || context.projects.length || context.knowledge.length) }));
   const showListings = context.intent?.wantsListing && !context.intent?.isWhatsApp;
   const showProjects = context.intent?.wantsProject && !context.intent?.isWhatsApp;
   const hasCards = (showListings && context.listings.length) || (showProjects && context.projects.length);
-  if (hasCards && showProjects && context.projects.length === 1 && !showListings) reply = projectDetailReply(context.projects[0]);
-  else if (hasCards) reply = CARD_REPLY;
-  else if (context.intent?.rent && context.intent?.wantsListing) reply = 'Hazırda bazada Sea Breeze üzrə kirayə mənzil tapmadım. İstəsəniz satış elanlarına baxa və ya əməkdaşla WhatsApp-da əlaqə saxlaya bilərsiniz.';
+  if (hasCards) reply = CARD_REPLY;
+  else if (context.intent?.rent && context.intent?.wantsListing) reply = 'Hazırda bazada kirayə elan tapmadım. İstəsəniz satış elanlarına baxa bilərsiniz.';
+  else if (!direct && (context.intent?.wantsListing || context.intent?.wantsProject)) reply = 'Bazada uyğun nəticə tapmadım. İstəsəniz kriteriyanı dəyişək və ya WhatsApp dəstəyə yönləndirək.';
   reply = stripMarkdown(reply);
   await saveMessage(conversation.id, 'assistant', reply);
   if (HANDOFF_RE.test(message)) await prisma.chatConversation.update({ where: { id: conversation.id }, data: { status: 'human_needed' } });
-  return { conversationId: jsonId(conversation.id), reply, suggestions: hasCards ? [] : ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'], matchedListings: showListings ? context.listings.slice(0, PAGE_SIZE).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, PAGE_SIZE).map(projectCard) : [], hasMoreListings: Boolean(showListings && context.hasMoreListings), hasMoreProjects: Boolean(showProjects && context.hasMoreProjects) };
+  return { conversationId: jsonId(conversation.id), reply, suggestions: hasCards ? [] : (context.intent?.rent && context.intent?.wantsListing ? ['Satış elanlarına bax'] : ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə']), matchedListings: showListings ? context.listings.slice(0, PAGE_SIZE).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, PAGE_SIZE).map(projectCard) : [], hasMoreListings: Boolean(showListings && context.hasMoreListings), hasMoreProjects: Boolean(showProjects && context.hasMoreProjects) };
 }
 async function history(conversationId) { const messages = await prisma.chatMessage.findMany({ where: { conversationId: String(conversationId) }, orderBy: { createdAt: 'asc' }, take: 100 }); return { conversationId: String(conversationId), messages: messages.map(serializeMessage) }; }
 
