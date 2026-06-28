@@ -8098,6 +8098,7 @@
     <link rel="stylesheet" href="/public/css/components/modals.css">
     <link rel="stylesheet" href="/public/css/components/listings.css">
     <link rel="stylesheet" href="/public/css/components/chat.css">
+    <link rel="stylesheet" href="/public/css/components/ai-chat.css">
     <link rel="stylesheet" href="/public/css/components/notifications.css">
     <link rel="stylesheet" href="/public/css/components/ads.css">
     <link rel="stylesheet" href="/public/css/components/projects.css">
@@ -8665,6 +8666,16 @@
                 <div id="admin-dashboard-cards" class="admin-dashboard-stats admin-only-element"></div>
 
             <!-- SUBTAB 1: SEA BREEZE LISTINGS MANAGER -->
+            <div id="admin-subtab-ai-chat" class="admin-subtab-panel hidden">
+                <div class="ai-admin-shell glass-card">
+                    <div class="ai-admin-title"><div><h3>AI Chat söhbətləri</h3><p>Ziyarətçi AI söhbətlərinə baxın, manual cavab yazın və statusu dəyişin.</p></div><button type="button" onclick="loadAdminAiChats()"><i class="fa-solid fa-rotate"></i> Yenilə</button></div>
+                    <div class="ai-admin-grid">
+                        <div id="admin-ai-chat-list" class="ai-admin-list"><div class="ai-admin-empty">AI söhbətlər yüklənməyib.</div></div>
+                        <div id="admin-ai-chat-view" class="ai-admin-view"><div class="ai-admin-empty">Söhbət seçin.</div></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="admin-subtab-seabreeze-manager" class="admin-subtab-panel grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div class="lg:col-span-5 glass-card p-6 rounded-2xl space-y-4">
                     <button id="sb-form-toggle" type="button" onclick="toggleSeaBreezeForm()" aria-expanded="false" aria-controls="admin-listing-form" class="w-full text-left text-lg font-bold text-white flex items-center justify-between gap-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-3 transition">
@@ -9989,6 +10000,7 @@ Title: CASPIAN DREAM LINER
     <script src="/js/components/gallery.js"></script>
     <script src="/js/admin/admin.js"></script>
     <script src="/js/components/chat.js"></script>
+    <script src="/js/components/ai-chat.js"></script>
     <script src="/js/components/hero.js"></script>
     <script src="/js/app.js"></script>
     <script src="/js/components/projects.js"></script>

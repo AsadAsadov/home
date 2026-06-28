@@ -398,6 +398,7 @@ app.use('/api/listings', require('./routes/listings'));
 app.use('/api/favorites', require('./routes/favorites'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/messages', require('./routes/messages'));
+app.use('/api', require('./routes/ai-chat.routes'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/vacancies', require('./routes/vacancies'));
 app.use('/api/gallery', require('./routes/gallery'));
