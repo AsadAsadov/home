@@ -4713,7 +4713,11 @@
             const hasProjectFallbackCoordinates = !hasListingCoordinates && hasProjectCoordinates(relatedProject);
             const hasCoordinates = hasListingCoordinates || hasProjectFallbackCoordinates;
             if (!mapEl) return;
+            const actionsEl = document.getElementById('p-modal-map-actions');
+            const openBtn = document.getElementById('p-modal-map-open-btn');
+            const routeBtn = document.getElementById('p-modal-map-route-btn');
             frameEl?.classList.toggle('hidden', !hasCoordinates);
+            actionsEl?.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
                 console.warn('[map] invalid coordinates, hiding map section');
                 if (detailListingMarker) {
@@ -4726,6 +4730,9 @@
             if (typeof L === 'undefined') { ensureLeafletLoaded().then(() => renderListingDetailMap(listing)).catch(error => { console.error(error); setMapLoading('p-modal-location-map-loading', false); frameEl?.classList.add('hidden'); }); return; }
             const point = hasListingCoordinates ? [lat, lng] : [Number(relatedProject.latitude), Number(relatedProject.longitude)];
             const zoom = hasListingCoordinates ? 15 : 16;
+            const mapQuery = `${point[0]},${point[1]}`;
+            if (openBtn) openBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+            if (routeBtn) routeBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`;
             setTimeout(() => {
                 if (!detailListingMap) {
                     detailListingMap = L.map(mapEl, { scrollWheelZoom: true }).setView(point, zoom);

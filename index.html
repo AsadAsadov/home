@@ -7889,10 +7889,26 @@
             display: none !important;
         }
 
+
+
+        /* Premium compact listing/project map actions. */
+        .listing-detail-map-actions { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; margin-top:.65rem; }
+        .listing-detail-map-action { display:inline-flex; align-items:center; justify-content:center; gap:.45rem; min-height:36px; padding:.55rem .85rem; border-radius:999px; border:1px solid rgba(15,23,42,.10); background:#fff; color:#334155; font-size:.78rem; font-weight:900; line-height:1; box-shadow:0 10px 24px rgba(15,23,42,.08); transition:transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease; }
+        .listing-detail-map-action:hover,.listing-detail-map-action:focus-visible { transform:translateY(-1px); border-color:rgba(37,99,235,.35); background:#eff6ff; color:#1d4ed8; }
+        .listing-detail-location-section .map-frame,.project-detail-section .map-frame { border-radius:1.35rem; border-color:rgba(15,23,42,.10); background:#f8fafc; box-shadow:0 18px 42px rgba(15,23,42,.10); }
+        .listing-detail-location-section .listing-location-map,.project-detail-section .listing-location-map { border-radius:inherit; }
+        @media (max-width: 640px) { .listing-detail-map-actions { gap:.45rem; } .listing-detail-map-action { flex:1 1 auto; min-height:34px; padding:.5rem .7rem; font-size:.74rem; } .listing-detail-location-section .map-expand-btn { top:.55rem; right:.55rem; padding:.42rem .62rem; font-size:.68rem; } }
+        html[data-theme="dark"] .listing-detail-location-section .map-frame, html[data-theme="dark"] .project-detail-section .map-frame { background:#0b0f16 !important; border-color:rgba(255,255,255,.14) !important; box-shadow:0 18px 42px rgba(0,0,0,.36) !important; }
+        html[data-theme="dark"] .listing-detail-map-action { background:#111827 !important; color:#f8fafc !important; border-color:rgba(255,255,255,.14) !important; box-shadow:0 10px 24px rgba(0,0,0,.28) !important; }
+        html[data-theme="dark"] .listing-detail-map-action:hover, html[data-theme="dark"] .listing-detail-map-action:focus-visible { background:rgba(37,99,235,.22) !important; color:#fff !important; border-color:rgba(147,197,253,.45) !important; }
+        html[data-theme="dark"] body, html[data-theme="dark"] #app, html[data-theme="dark"] .site-shell, html[data-theme="dark"] .main-container, html[data-theme="dark"] .content-wrapper { background:#050505 !important; }
+        @media (max-width:767px){ .site-music-controls,.site-music-controls.is-collapsed{width:38px!important;height:38px!important;min-height:38px!important;max-width:38px!important;padding:0!important;border-radius:999px!important;background:rgba(255,255,255,.95)!important;left:14px!important;bottom:calc(112px + env(safe-area-inset-bottom))!important;overflow:hidden;} .site-music-control-btn{width:38px!important;height:38px!important;background:transparent!important;} .site-music-control-btn:hover,.site-music-control-btn:focus,.site-music-control-btn:active{background:transparent!important;} html[data-theme="dark"] .site-music-controls{background:#111827!important;} }
+
         /* Admin subdomain Phase 1 visibility guard: keep only auth/admin flows visible. */
         html.is-admin-host .site-header,
         html.is-admin-host #mobileMenuBackdrop,
         html.is-admin-host #mobileMenuPanel,
+
         html.is-admin-host #site-music-controls,
         html.is-admin-host #add-listing-fab,
         html.is-admin-host #desktop-left-ads,
@@ -9752,6 +9768,10 @@ Title: CASPIAN DREAM LINER
                                 <button type="button" class="map-expand-btn" onclick="openFullscreenMap('detail')">⛶ Xəritəni böyüt</button>
                                 <div id="p-modal-location-map" class="listing-location-map"></div>
                             </div>
+                            <div id="p-modal-map-actions" class="listing-detail-map-actions hidden">
+                                <a id="p-modal-map-open-btn" href="#" target="_blank" rel="noopener" class="listing-detail-map-action"><i class="fa-solid fa-map-location-dot"></i><span>Xəritədə aç</span></a>
+                                <a id="p-modal-map-route-btn" href="#" target="_blank" rel="noopener" class="listing-detail-map-action"><i class="fa-solid fa-route"></i><span>Marşrut</span></a>
+                            </div>
                         </div>
 
                         <div class="space-y-2">
@@ -9862,7 +9882,10 @@ Title: CASPIAN DREAM LINER
                             <div id="op-modal-location-map" class="listing-location-map"></div>
                             <div id="op-modal-location-map-loading" class="map-loading-overlay">🗺️ Xəritə yüklənir…</div>
                         </div>
-                        <a id="op-modal-google-maps-btn" href="#" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 py-3 text-sm font-black text-white hover:bg-brand-700 transition">Google Maps-də aç</a>
+                        <div id="op-modal-map-actions" class="listing-detail-map-actions hidden">
+                            <a id="op-modal-google-maps-btn" href="#" target="_blank" rel="noopener" class="listing-detail-map-action"><i class="fa-solid fa-map-location-dot"></i><span>Xəritədə aç</span></a>
+                            <a id="op-modal-route-btn" href="#" target="_blank" rel="noopener" class="listing-detail-map-action"><i class="fa-solid fa-route"></i><span>Marşrut</span></a>
+                        </div>
                     </section>
                     <div id="op-tab-apartments" class="hidden project-detail-sections"></div>
                     <div id="op-tab-pricing" class="hidden project-detail-sections"></div>

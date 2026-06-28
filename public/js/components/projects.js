@@ -385,6 +385,8 @@
             const section = document.getElementById('op-modal-location-section');
             const mapEl = document.getElementById('op-modal-location-map');
             const googleBtn = document.getElementById('op-modal-google-maps-btn');
+            const routeBtn = document.getElementById('op-modal-route-btn');
+            const actionsEl = document.getElementById('op-modal-map-actions');
             const lat = Number(project.latitude);
             const lng = Number(project.longitude);
             const hasCoordinates = isValidCoordinate(project.latitude, project.longitude);
@@ -394,13 +396,16 @@
                 return;
             }
             section.classList.toggle('hidden', !hasCoordinates);
+            actionsEl?.classList.toggle('hidden', !hasCoordinates);
             if (!hasCoordinates) {
                 console.warn('[map] invalid coordinates, hiding map section');
                 destroyProjectDetailLocationMap({ hideSection: true });
                 return;
             }
             const point = [lat, lng];
-            if (googleBtn) googleBtn.href = `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
+            const mapQuery = `${lat},${lng}`;
+            if (googleBtn) googleBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+            if (routeBtn) routeBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`;
             if (typeof L === 'undefined') {
                 ensureLeafletLoaded().then(() => {
                     if (currentProjectModalTab === 'details' && activeOfficialProject && String(activeOfficialProject.id) === String(project.id)) renderProjectDetailLocationMap(project);
