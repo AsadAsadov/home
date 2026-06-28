@@ -798,6 +798,7 @@
             { id: 'subtab-btn-sb', subtab: 'seabreeze-manager', label: 'Elanlar', icon: 'fa-building', adminOnly: false },
             { id: 'subtab-btn-projects', subtab: 'projects-manager', label: 'Layihələr', icon: 'fa-diagram-project', adminOnly: true },
             { id: 'subtab-btn-project-inquiries', subtab: 'project-inquiries', label: 'Müraciətlər', icon: 'fa-inbox', adminOnly: true },
+            { id: 'subtab-btn-ai-chat', subtab: 'ai-chat', label: 'AI Chat', icon: 'fa-robot', adminOnly: true },
             { id: 'subtab-btn-agents', subtab: 'agents-manager', label: 'İstifadəçilər', icon: 'fa-users', adminOnly: true },
             { id: 'subtab-btn-ads', subtab: 'ads-manager', label: 'Reklamlar', icon: 'fa-rectangle-ad', adminOnly: true },
             { id: 'subtab-btn-gallery', subtab: 'gallery-manager', label: 'Media Qalereya', icon: 'fa-images', adminOnly: true },
@@ -7125,6 +7126,7 @@ Təşəkkür edirəm. 🙏`;
             'listing-hero': '/admin/listing-hero',
             'google-email': '/admin/google-email',
             'broadcast-notifications': '/admin/notifications/broadcast',
+            'ai-chat': '/admin/ai-chat',
             'user-profile': '/profil/melumatlar'
         };
 
@@ -7171,7 +7173,7 @@ Təşəkkür edirəm. 🙏`;
             subtab = normalizeAdminSubtab(subtab);
             const isAdmin = isAdminRole(activeUser?.role);
             currentAdminSubtab = subtab || currentAdminSubtab;
-            const isRestrictedDashboardTab = ['dashboard', 'seabreeze-manager', 'projects-manager', 'projects-archive', 'project-inquiries', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-music', 'site-settings', 'seabreeze-hero', 'seabreeze-info-admin'].includes(subtab);
+            const isRestrictedDashboardTab = ['dashboard', 'seabreeze-manager', 'projects-manager', 'projects-archive', 'project-inquiries', 'ai-chat', 'hero-sections', 'listing-hero', 'cvs', 'agents-manager', 'google-email', 'broadcast-notifications', 'vacancy-manager', 'gallery-manager', 'ads-manager', 'site-music', 'site-settings', 'seabreeze-hero', 'seabreeze-info-admin'].includes(subtab);
             if (activeUser && !isAdmin && isRestrictedDashboardTab) {
                 subtab = 'user-profile';
                 currentAdminSubtab = subtab;
@@ -7210,6 +7212,7 @@ Təşəkkür edirəm. 🙏`;
             }
             if (subtab === 'projects-archive') { loadArchivedProjects(); }
             if (subtab === 'project-inquiries') { loadProjectInquiries(); }
+            if (subtab === 'ai-chat') { loadAdminAiChats(); }
             if (subtab === 'seabreeze-manager') {
                 adminListingPage = 1;
                 toggleMetroFieldForCity();
@@ -8876,6 +8879,57 @@ Təşəkkür edirəm. 🙏`;
                 await refreshAdminStats({ render: true }).catch(() => {});
             } catch (_error) { alert('Müraciət silinmədi.'); }
         }
+
+
+        let adminAiChats = [];
+        let currentAdminAiChatId = null;
+        async function loadAdminAiChats() {
+            if (!isAdminRole(activeUser?.role) || !getAuthToken()) return [];
+            const panel = document.getElementById('admin-ai-chat-list');
+            if (panel) panel.innerHTML = '<div class="ai-admin-empty"><i class="fa-solid fa-spinner fa-spin"></i> AI söhbətlər yüklənir...</div>';
+            try {
+                adminAiChats = await apiRequest('/api/admin/ai-chats', { authRedirect: false });
+                renderAdminAiChats();
+            } catch (error) {
+                if (panel) panel.innerHTML = `<div class="ai-admin-empty text-red-400">${escapeHtml(error.message || 'AI söhbətlər yüklənmədi')}</div>`;
+            }
+            return adminAiChats;
+        }
+        function renderAdminAiChats() {
+            const list = document.getElementById('admin-ai-chat-list');
+            if (!list) return;
+            if (!adminAiChats.length) { list.innerHTML = '<div class="ai-admin-empty">Hələ AI söhbət yoxdur.</div>'; return; }
+            list.innerHTML = adminAiChats.map(row => `<button type="button" class="ai-admin-row ${row.id === currentAdminAiChatId ? 'is-active' : ''}" onclick="openAdminAiChat('${escapeHtml(row.id)}')"><b>${escapeHtml(row.name || row.phone || row.visitorId || 'Anonim ziyarətçi')}</b><span>${escapeHtml(row.lastMessage || 'Mesaj yoxdur')}</span><small>${escapeHtml(row.status || 'open')} • ${row.lastMessageAt ? new Date(row.lastMessageAt).toLocaleString('az-AZ') : ''}</small></button>`).join('');
+        }
+        async function openAdminAiChat(id) {
+            currentAdminAiChatId = id;
+            renderAdminAiChats();
+            const view = document.getElementById('admin-ai-chat-view');
+            if (view) view.innerHTML = '<div class="ai-admin-empty"><i class="fa-solid fa-spinner fa-spin"></i> Söhbət açılır...</div>';
+            const row = await apiRequest(`/api/admin/ai-chats/${encodeURIComponent(id)}`, { authRedirect: false });
+            if (!view) return;
+            view.innerHTML = `<div class="ai-admin-thread-head"><div><b>${escapeHtml(row.name || row.phone || row.visitorId || 'Anonim ziyarətçi')}</b><span>${escapeHtml(row.status || 'open')}</span></div><div><button onclick="setAdminAiChatStatus('open')">Open</button><button onclick="setAdminAiChatStatus('human_needed')">Human</button><button onclick="setAdminAiChatStatus('closed')">Closed</button></div></div><div class="ai-admin-messages">${(row.messages || []).map(msg => `<div class="ai-admin-msg ai-admin-msg--${escapeHtml(msg.role)}"><b>${escapeHtml(msg.role)}</b><p>${escapeHtml(msg.content)}</p></div>`).join('')}</div><form class="ai-admin-reply" onsubmit="sendAdminAiChatReply(event)"><input id="admin-ai-chat-reply-input" placeholder="Manual cavab yazın..." maxlength="1200"><button type="submit">Göndər</button></form>`;
+        }
+        async function sendAdminAiChatReply(event) {
+            event.preventDefault();
+            if (!currentAdminAiChatId) return;
+            const input = document.getElementById('admin-ai-chat-reply-input');
+            const message = input?.value.trim();
+            if (!message) return;
+            await apiRequest(`/api/admin/ai-chats/${encodeURIComponent(currentAdminAiChatId)}/reply`, { method: 'POST', body: JSON.stringify({ message }), authRedirect: false });
+            input.value = '';
+            await openAdminAiChat(currentAdminAiChatId);
+            await loadAdminAiChats();
+        }
+        async function setAdminAiChatStatus(status) {
+            if (!currentAdminAiChatId) return;
+            await apiRequest(`/api/admin/ai-chats/${encodeURIComponent(currentAdminAiChatId)}/status`, { method: 'PATCH', body: JSON.stringify({ status }), authRedirect: false });
+            await openAdminAiChat(currentAdminAiChatId);
+            await loadAdminAiChats();
+        }
+        window.openAdminAiChat = openAdminAiChat;
+        window.sendAdminAiChatReply = sendAdminAiChatReply;
+        window.setAdminAiChatStatus = setAdminAiChatStatus;
 
         function renderAdminDashboard() {
             syncAdminAuthShellClass();
