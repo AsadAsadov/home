@@ -3,7 +3,7 @@
   const LS_CONVERSATION = 'besthome_ai_conversation_id';
   const chips = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'];
   const WHATSAPP_URL = 'https://wa.me/994703152222?text=' + encodeURIComponent('Salam, BestHome.az saytından yazıram. Əmlakla bağlı məlumat almaq istəyirəm.');
-  const state = { open: false, busy: false, cards: [] };
+  const state = { open: false, busy: false, cards: [], lastListMessage: '' };
   const visitorId = () => {
     let id = localStorage.getItem(LS_VISITOR);
     if (!id) { id = `bhv_${Date.now()}_${Math.random().toString(16).slice(2)}`; localStorage.setItem(LS_VISITOR, id); }
@@ -49,7 +49,7 @@
     const byId = await fetchJson(`/api/listings/${encodeURIComponent(normalized)}`).catch(() => null);
     return byId?.id || null;
   }
-  function closePanelForModal() { document.getElementById('besthome-ai-chat')?.classList.remove('is-open'); }
+  function closePanelForModal() { document.getElementById('besthome-ai-chat')?.classList.remove('is-open'); document.body.classList.add('bh-ai-modal-opening'); setTimeout(() => document.body.classList.remove('bh-ai-modal-opening'), 800); }
   async function openCard(item, type) {
     closePanelForModal();
     if (type === 'layihələr') {
@@ -69,31 +69,36 @@
     const record = Number.isInteger(index) ? state.cards[index] : null;
     if (record) openCard(record.item, record.type);
   }
-  function cards(items, type) {
+  function cards(items, type, hasMore = false) {
     if (!items?.length) return;
     const list = document.querySelector('.bh-ai-chat__messages');
     const html = items.slice(0, 3).map(item => {
       const index = state.cards.push({ item, type }) - 1;
       return `<article class="bh-ai-chat-card" data-card-index="${index}" data-id="${esc(item.id)}" data-type="${esc(type)}">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="">` : ''}<div><b>${esc(item.title)}</b><span>${esc(cardMeta(item, type))}</span><button type="button" class="bh-ai-chat-card__open">Bax</button></div></article>`;
     }).join('');
-    list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__cards" aria-label="Uyğun ${type}">${html}</div>`);
+    const moreHtml = hasMore ? `<button type="button" class="bh-ai-chat__more" data-more-type="${esc(type)}">Daha çox göstər</button>` : '';
+    list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__cards" aria-label="Uyğun ${type}">${html}${moreHtml}</div>`);
     const inserted = list.lastElementChild;
     inserted?.querySelectorAll('.bh-ai-chat-card__open').forEach((btn, index) => btn.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openCard(items[index], type); }));
+    inserted?.querySelector('.bh-ai-chat__more')?.addEventListener('click', () => send('Daha çox göstər', { silentUser: true, more: true }));
     list.scrollTop = list.scrollHeight;
   }
   function typing(on) { document.querySelector('.bh-ai-chat__typing')?.classList.toggle('is-visible', Boolean(on)); }
-  async function send(text) {
-    const message = String(text || document.querySelector('.bh-ai-chat__input')?.value || '').trim();
+  async function send(text, options = {}) {
+    const inputValue = document.querySelector('.bh-ai-chat__input')?.value || '';
+    const rawMessage = String(text || inputValue).trim();
+    const message = options.more ? `Daha çox göstər ${state.lastListMessage}`.trim() : rawMessage;
     if (!message || state.busy) return;
     if (/^whatsapp ilə əlaqə$/i.test(message)) { window.open(WHATSAPP_URL, '_blank', 'noopener'); return; }
     document.querySelector('.bh-ai-chat__input').value = '';
-    addMessage('user', message);
+    if (!options.silentUser) addMessage('user', rawMessage);
     state.busy = true; typing(true);
     try {
       const data = await post('/api/ai-chat/message', { conversationId: conversationId() || undefined, visitorId: visitorId(), userId: userId() || undefined, message });
       setConversationId(data.conversationId);
+      if (!options.more) state.lastListMessage = rawMessage;
       addMessage('assistant', data.reply || 'Bağışlayın, cavab hazırlaya bilmədim.');
-      cards(data.matchedListings, 'elanlar'); cards(data.matchedProjects, 'layihələr');
+      cards(data.matchedListings, 'elanlar', data.hasMoreListings); cards(data.matchedProjects, 'layihələr', data.hasMoreProjects);
     } catch (_error) { addMessage('assistant', 'Hazırda AI cavabı hazırlaya bilmirəm. İstəsəniz sizi əməkdaşımıza yönləndirə bilərəm.'); }
     finally { state.busy = false; typing(false); }
   }

@@ -8,8 +8,9 @@ const jsonId = value => (value == null ? null : String(value));
 const money = (value, currency = 'AZN') => (value == null ? '' : `${String(value).replace(/\.00$/, '')} ${currency || 'AZN'}`);
 const contains = value => ({ contains: value, mode: 'insensitive' });
 const CARD_REPLY = 'Sizə uyğun nəticələri aşağıda göstərdim.';
-const SEARCH_STOPWORDS = new Set(['kiraye', 'rent', 'icare', 'menzil', 'ev', 'elan', 'axtar', 'tap', 'haqqinda', 'melumat', 'layihe', 'proyekt', 'satis', 'satiliq']);
+const SEARCH_STOPWORDS = new Set(['kiraye', 'rent', 'icare', 'menzil', 'ev', 'elan', 'axtar', 'tap', 'haqqinda', 'melumat', 'layihe', 'layiheler', 'proyekt', 'satis', 'satiliq', 'daha', 'cox', 'çox', 'goster', 'göstər']);
 const MORE_RE = /daha\s*(cox|çox)|novbeti|növbəti|artiq|artıq/i;
+const PAGE_SIZE = 3;
 
 function serializeMessage(row) { return { id: jsonId(row.id), conversationId: jsonId(row.conversationId), role: row.role, content: row.content, createdAt: row.createdAt }; }
 function serializeConversation(row) { const last = row.messages?.[0]; return { id: jsonId(row.id), visitorId: row.visitorId, userId: jsonId(row.userId), name: row.name, phone: row.phone, status: row.status, lastMessageAt: row.lastMessageAt || row.updatedAt || row.createdAt, lastMessage: last?.content || null, lead: row.lead || null }; }
@@ -62,6 +63,7 @@ function directReply(message) {
   if (name) return `Çox xoşdur, ${name} bəy. Sizə hansı əmlak üzrə kömək edim?`;
   if (/yas(in|ın)|nece(di|dir)|kims(en|iniz)|suni intellekt|melumatlari ne esasinda|n[eə] [eə]sasinda/.test(text)) return 'Mən süni intellekt köməkçisiyəm, yaşım yoxdur. Məlumatları BestHome.az saytındakı təsdiqlənmiş elanlar, layihələr və əlavə edilmiş məlumat bazası əsasında verirəm.';
   if (/^(salam|salamlar|hello|hi|sag ol|t[eə]s[eə]kk[uü]r)/.test(text)) return 'Salam! Sizə satış, kirayə və ya layihələr üzrə kömək edə bilərəm. Nə axtarırsınız?';
+  if (/tap\.az|bina\.az|lalafo|turbo\.az|facebook|instagram|google/.test(text)) return 'Mən əsasən BestHome.az-dakı elanlar və layihələr üzrə kömək edirəm. Bu mövzu haqqında ümumi məlumat verə bilərəm, amma BestHome məlumatları qədər dəqiq olmaya bilər. Siz müqayisə üçün soruşursunuz?';
   return null;
 }
 
@@ -102,14 +104,18 @@ async function searchContext(query, conversationId) {
   const listingWhere = { ...baseListingWhere };
   if (shouldUseListingTerms) listingWhere.AND = [...(listingWhere.AND || []), { OR: listingOR }];
   const projectWhere = { isArchived: false, ...(projectOR.length && !/^layihələr$/i.test(cleanText(query)) ? { OR: projectOR } : {}) };
-  const [listings, projects, knowledge] = await Promise.all([
-    intent.wantsListing ? prisma.listing.findMany({ where: listingWhere, include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } }, orderBy: [{ featured: 'desc' }, { approvedAt: 'desc' }], skip: wantsMore ? 3 : 0, take: 3 }) : Promise.resolve([]),
-    intent.wantsProject ? prisma.project.findMany({ where: projectWhere, orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }], take: 40 }) : Promise.resolve([]),
+  const offset = wantsMore ? PAGE_SIZE : 0;
+  const [listingRows, projects, knowledge] = await Promise.all([
+    intent.wantsListing ? prisma.listing.findMany({ where: listingWhere, include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } }, orderBy: [{ featured: 'desc' }, { approvedAt: 'desc' }], skip: offset, take: PAGE_SIZE + 1 }) : Promise.resolve([]),
+    intent.wantsProject ? prisma.project.findMany({ where: projectWhere, orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }], take: projectOR.length ? 120 : PAGE_SIZE + 1 + offset }) : Promise.resolve([]),
     prisma.chatKnowledge.findMany({ where: { isActive: true, ...(knowledgeOR.length ? { OR: knowledgeOR } : {}) }, orderBy: { updatedAt: 'desc' }, take: 5 }).catch(() => [])
   ]);
   const rankedProjects = projects.map(project => ({ project, score: projectMatchScore(project, query) })).sort((a, b) => b.score - a.score);
-  const projectsOut = rankedProjects.some(item => item.score >= 45) ? rankedProjects.filter(item => item.score >= 45).map(item => item.project).slice(wantsMore ? 3 : 0, wantsMore ? 6 : 3) : projects.slice(wantsMore ? 3 : 0, wantsMore ? 6 : 3);
-  return { listings, projects: projectsOut, knowledge, intent, wantsMore };
+  const matchedProjects = rankedProjects.some(item => item.score >= 35) ? rankedProjects.filter(item => item.score >= 35).map(item => item.project) : projects;
+  const pagedProjects = matchedProjects.slice(offset, offset + PAGE_SIZE + 1);
+  const listings = listingRows.slice(0, PAGE_SIZE);
+  const projectsOut = pagedProjects.slice(0, PAGE_SIZE);
+  return { listings, projects: projectsOut, knowledge, intent, wantsMore, hasMoreListings: listingRows.length > PAGE_SIZE, hasMoreProjects: pagedProjects.length > PAGE_SIZE };
 }
 function buildContextText({ listings, projects, knowledge }) {
   return [
@@ -133,14 +139,45 @@ async function sendMessage(input) {
   const hasCards = (showListings && context.listings.length) || (showProjects && context.projects.length);
   if (hasCards && showProjects && context.projects.length === 1 && !showListings) reply = projectDetailReply(context.projects[0]);
   else if (hasCards) reply = CARD_REPLY;
-  else if (context.intent?.rent && context.intent?.wantsListing) reply = 'Hazırda Sea Breeze üzrə kirayə mənzil tapmadım. Satış elanlarına baxmaq istəyirsiniz?';
+  else if (context.intent?.rent && context.intent?.wantsListing) reply = 'Hazırda bazada Sea Breeze üzrə kirayə mənzil tapmadım. İstəsəniz satış elanlarına baxa və ya əməkdaşla WhatsApp-da əlaqə saxlaya bilərsiniz.';
   reply = stripMarkdown(reply);
   await saveMessage(conversation.id, 'assistant', reply);
   if (HANDOFF_RE.test(message)) await prisma.chatConversation.update({ where: { id: conversation.id }, data: { status: 'human_needed' } });
-  return { conversationId: jsonId(conversation.id), reply, suggestions: ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'], matchedListings: showListings ? context.listings.slice(0, 3).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, 3).map(projectCard) : [] };
+  return { conversationId: jsonId(conversation.id), reply, suggestions: hasCards ? [] : ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Kirayə', 'Layihələr', 'WhatsApp ilə əlaqə'], matchedListings: showListings ? context.listings.slice(0, PAGE_SIZE).map(listingCard) : [], matchedProjects: showProjects ? context.projects.slice(0, PAGE_SIZE).map(projectCard) : [], hasMoreListings: Boolean(showListings && context.hasMoreListings), hasMoreProjects: Boolean(showProjects && context.hasMoreProjects) };
 }
 async function history(conversationId) { const messages = await prisma.chatMessage.findMany({ where: { conversationId: String(conversationId) }, orderBy: { createdAt: 'asc' }, take: 100 }); return { conversationId: String(conversationId), messages: messages.map(serializeMessage) }; }
-async function adminList() { const rows = await prisma.chatConversation.findMany({ include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 }, lead: true }, orderBy: { lastMessageAt: 'desc' }, take: 100 }); return rows.map(serializeConversation); }
+
+async function adminList() {
+  try {
+    const rows = await prisma.chatConversation.findMany({ include: { messages: { orderBy: { createdAt: 'desc' }, take: 1 }, lead: true }, orderBy: [{ lastMessageAt: 'desc' }, { updatedAt: 'desc' }], take: 100 });
+    return rows.map(serializeConversation);
+  } catch (error) {
+    console.warn('[ai-chat] Prisma admin conversation list failed, using schema-safe SQL fallback:', error.message);
+    const columns = await prisma.$queryRaw`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'chat_conversations'`;
+    const names = new Set(columns.map(col => col.column_name));
+    const visitorExpr = names.has('visitor_id') ? 'c.visitor_id' : 'NULL';
+    const userExpr = names.has('user_id') ? 'c.user_id::text' : 'NULL';
+    const nameExpr = names.has('name') ? 'c.name' : 'NULL';
+    const phoneExpr = names.has('phone') ? 'c.phone' : 'NULL';
+    const statusExpr = names.has('status') ? 'c.status' : `'open'`;
+    const createdExpr = names.has('created_at') ? 'c.created_at' : 'NOW()';
+    const updatedExpr = names.has('updated_at') ? 'c.updated_at' : createdExpr;
+    const lastExpr = ['last_message_at', 'updated_at', 'created_at'].filter(name => names.has(name)).map(name => `c.${name}`).join(', ') || 'NOW()';
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT c.id::text, ${visitorExpr} AS "visitorId", ${userExpr} AS "userId", ${nameExpr} AS "name", ${phoneExpr} AS "phone", ${statusExpr} AS "status",
+             COALESCE(${lastExpr}) AS "lastMessageAt", ${createdExpr} AS "createdAt", ${updatedExpr} AS "updatedAt",
+             m.content AS "lastMessage"
+      FROM chat_conversations c
+      LEFT JOIN LATERAL (
+        SELECT content FROM chat_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1
+      ) m ON true
+      ORDER BY COALESCE(${lastExpr}) DESC
+      LIMIT 100`);
+    return rows.map(row => ({ id: jsonId(row.id), visitorId: row.visitorId, userId: jsonId(row.userId), name: row.name, phone: row.phone, status: row.status, lastMessageAt: row.lastMessageAt || row.updatedAt || row.createdAt, lastMessage: row.lastMessage || null, lead: null }));
+  }
+}
 async function adminGet(id) { const row = await prisma.chatConversation.findUnique({ where: { id: String(id) }, include: { messages: { orderBy: { createdAt: 'asc' } }, lead: true } }); return row ? { ...serializeConversation(row), messages: row.messages.map(serializeMessage) } : null; }
 async function adminReply(id, message) { await saveMessage(id, 'admin', message); await prisma.chatConversation.update({ where: { id: String(id) }, data: { status: 'human_needed' } }); return adminGet(id); }
 async function adminStatus(id, status) { if (!['open', 'closed', 'human_needed'].includes(status)) { const error = new Error('Invalid status.'); error.status = 400; throw error; } return serializeConversation(await prisma.chatConversation.update({ where: { id: String(id) }, data: { status } })); }
