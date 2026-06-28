@@ -75,6 +75,8 @@
       return `<article class="bh-ai-chat-card" data-card-index="${index}" data-id="${esc(item.id)}" data-type="${esc(type)}">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="">` : ''}<div><b>${esc(item.title)}</b><span>${esc(cardMeta(item, type))}</span><button type="button" class="bh-ai-chat-card__open">Bax</button></div></article>`;
     }).join('');
     list.insertAdjacentHTML('beforeend', `<div class="bh-ai-chat__cards" aria-label="Uyğun ${type}">${html}</div>`);
+    const inserted = list.lastElementChild;
+    inserted?.querySelectorAll('.bh-ai-chat-card__open').forEach((btn, index) => btn.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); openCard(items[index], type); }));
     list.scrollTop = list.scrollHeight;
   }
   function typing(on) { document.querySelector('.bh-ai-chat__typing')?.classList.toggle('is-visible', Boolean(on)); }
