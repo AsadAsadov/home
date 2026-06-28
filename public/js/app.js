@@ -7002,7 +7002,7 @@ Təşəkkür edirəm. 🙏`;
         }
 
         function setRegisterButtonLoading(isLoading) {
-            setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', '📧 Qeydiyyat');
+            setSubmitButtonLoading('register-submit-btn', isLoading, 'Hesab yaradılır…', 'Qeydiyyatdan keç');
         }
 
         function setListingSaveButtonLoading(isLoading) {

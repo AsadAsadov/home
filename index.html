@@ -492,7 +492,7 @@
             height: 18px;
             flex: 0 0 auto;
         }
-        html:not(.is-admin-host) #tab-admin-login.public-auth-shell {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register).public-auth-shell {
             width: min(100%, 1040px) !important;
             max-width: 1040px !important;
             margin-left: auto !important;
@@ -500,7 +500,7 @@
             padding: clamp(1rem, 4vw, 3rem) 1rem !important;
             color: #111827;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-layout {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout {
             position: relative;
             isolation: isolate;
             display: grid;
@@ -519,34 +519,34 @@
             box-shadow: 0 30px 90px rgba(40, 42, 96, .16);
             backdrop-filter: blur(18px);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-layout::before,
-        html:not(.is-admin-host) #tab-admin-login .public-auth-layout::after {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::before,
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::after {
             content: "";
             position: absolute;
             z-index: -1;
             border-radius: 999px;
             filter: blur(10px);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-layout::before {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::before {
             width: 260px;
             height: 260px;
             right: 10%;
             top: -110px;
             background: rgba(124, 108, 255, .20);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-layout::after {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout::after {
             width: 220px;
             height: 220px;
             left: -70px;
             bottom: -80px;
             background: rgba(14, 165, 233, .16);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-intro {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro {
             color: #172033;
             text-align: left;
             max-width: 460px;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-kicker {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-kicker {
             display: inline-flex;
             align-items: center;
             gap: .5rem;
@@ -561,7 +561,7 @@
             letter-spacing: .12em;
             text-transform: uppercase;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-intro h2 {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro h2 {
             margin: 0;
             color: #0f172a;
             font-size: clamp(2rem, 4vw, 3.75rem);
@@ -569,18 +569,18 @@
             line-height: .98;
             letter-spacing: -.055em;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-intro p {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro p {
             margin-top: 1rem;
             color: #475569;
             font-size: 1rem;
             line-height: 1.75;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-benefits {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-benefits {
             display: grid;
             gap: .75rem;
             margin-top: 1.5rem;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-benefits span {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-benefits span {
             display: inline-flex;
             align-items: center;
             gap: .65rem;
@@ -593,10 +593,10 @@
             font-weight: 800;
             box-shadow: 0 14px 34px rgba(80, 80, 160, .08);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-benefits i {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-benefits i {
             color: #7c6cff;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-card {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-card {
             width: 100%;
             border: 1px solid rgba(255, 255, 255, .72) !important;
             border-radius: 2rem !important;
@@ -605,7 +605,7 @@
             box-shadow: 0 30px 80px rgba(41, 45, 120, .20), inset 0 1px 0 rgba(255, 255, 255, .9) !important;
             backdrop-filter: blur(24px);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-brand {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-brand {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -614,7 +614,7 @@
             font-size: 1.1rem;
             font-weight: 950;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-logo {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-logo {
             display: inline-grid;
             place-items: center;
             width: 42px;
@@ -624,20 +624,20 @@
             color: #fff;
             box-shadow: 0 14px 34px rgba(99, 102, 241, .28);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-heading h2 {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-heading h2 {
             color: #0f172a !important;
             letter-spacing: -.03em;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-heading p {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-heading p {
             margin-top: .35rem;
             color: #64748b;
             font-size: .9rem;
             font-weight: 600;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-field {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field {
             position: relative;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-field i {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field i {
             position: absolute;
             left: 18px;
             top: 50%;
@@ -646,7 +646,7 @@
             pointer-events: none;
             z-index: 1;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-field input {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input {
             height: 54px;
             padding-left: 48px !important;
             border: 1px solid rgba(124, 108, 255, .18) !important;
@@ -656,15 +656,15 @@
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, .92);
             transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-field input::placeholder {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input::placeholder {
             color: #94a3b8;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-field input:focus {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-field input:focus {
             border-color: rgba(124, 108, 255, .72) !important;
             background: #fff !important;
             box-shadow: 0 0 0 4px rgba(124, 108, 255, .14), 0 12px 30px rgba(124, 108, 255, .10);
         }
-        html:not(.is-admin-host) #tab-admin-login .login-submit-btn {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-submit-btn {
             min-height: 54px;
             border: 0;
             border-radius: 1rem !important;
@@ -672,12 +672,12 @@
             box-shadow: 0 18px 38px rgba(109, 93, 252, .32);
             font-weight: 900;
         }
-        html:not(.is-admin-host) #tab-admin-login .login-submit-btn:hover {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .login-submit-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 22px 48px rgba(109, 93, 252, .38);
             filter: brightness(1.04);
         }
-        html:not(.is-admin-host) #tab-admin-login .google-signin-btn {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .google-signin-btn {
             height: 52px;
             border-color: rgba(15, 23, 42, .12);
             border-radius: 1rem;
@@ -686,34 +686,34 @@
             font-weight: 800;
             box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
         }
-        html:not(.is-admin-host) #tab-admin-login .google-signin-btn:hover {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .google-signin-btn:hover {
             border-color: rgba(124, 108, 255, .34);
             box-shadow: 0 16px 34px rgba(15, 23, 42, .09);
             transform: translateY(-1px);
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-links {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-links {
             gap: .75rem;
             color: #64748b !important;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-links button {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-links button {
             padding: .55rem .75rem;
             border-radius: 999px;
             font-weight: 900;
             transition: color 180ms ease, background-color 180ms ease;
         }
-        html:not(.is-admin-host) #tab-admin-login .public-auth-links button:hover {
+        html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-links button:hover {
             background: rgba(124, 108, 255, .10);
             color: #6d5dfc !important;
         }
         @media (max-width: 900px) {
-            html:not(.is-admin-host) #tab-admin-login .public-auth-layout {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout {
                 grid-template-columns: 1fr;
                 min-height: auto;
             }
-            html:not(.is-admin-host) #tab-admin-login .public-auth-intro {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-intro {
                 display: none;
             }
-            html:not(.is-admin-host) #tab-admin-login .public-auth-card {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-card {
                 max-width: 440px;
                 margin: 0 auto;
             }
@@ -722,14 +722,14 @@
             .google-signin-btn {
                 height: 48px;
             }
-            html:not(.is-admin-host) #tab-admin-login.public-auth-shell {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register).public-auth-shell {
                 padding: .75rem !important;
             }
-            html:not(.is-admin-host) #tab-admin-login .public-auth-layout {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-layout {
                 padding: .75rem;
                 border-radius: 1.5rem;
             }
-            html:not(.is-admin-host) #tab-admin-login .public-auth-card {
+            html:not(.is-admin-host) :is(#tab-admin-login, #tab-register) .public-auth-card {
                 padding: 1.25rem !important;
                 border-radius: 1.5rem !important;
             }
@@ -8578,28 +8578,49 @@
             </div>
         </section>
 
-        <section id="tab-register" class="tab-content hidden max-w-md mx-auto py-12">
-            <div class="glass-card p-8 rounded-3xl space-y-6 text-center">
-                <h2 class="text-2xl font-bold text-white">İstifadəçi Qeydiyyatı</h2>
-                <div id="register-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs"></div>
-                <div id="register-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
-                <form onsubmit="handleUserRegister(event)" class="space-y-4 text-left">
-                    <input type="text" id="register-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="tel" id="register-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="email" id="register-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$" title="Email ünvanını düzgün daxil edin." placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none">
-                    <button type="submit" id="register-submit-btn" class="async-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl">📧 Qeydiyyat</button>
-                </form>
-                <button type="button" onclick="startGoogleLogin()" class="google-signin-btn" aria-label="Google ilə daxil ol">
-                    <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
-                        <path fill="#4285F4" d="M17.64 9.204c0-.638-.057-1.251-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.614z"/>
-                        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.182l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.583-5.036-3.71H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-                        <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-                        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-                    </svg>
-                    <span>Google ilə daxil ol</span>
-                </button>
-                <button onclick="switchTab('admin-login')" class="text-xs text-gray-400 hover:text-brand-500">Artıq hesabım var</button>
+        <section id="tab-register" class="tab-content hidden public-auth-shell max-w-md mx-auto py-12">
+            <div class="public-auth-layout">
+                <aside class="public-auth-intro" aria-label="BestHome hesab üstünlükləri">
+                    <span class="public-auth-kicker">BestHome.az</span>
+                    <h2>Əmlak hesabınızı<br>asanlıqla<br>yaradın</h2>
+                    <p>Qeydiyyatdan keçərək elanlarınızı idarə edin, seçilmiş elanları saxlayın və BestHome komandası ilə daha rahat əlaqə qurun.</p>
+                    <div class="public-auth-benefits">
+                        <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Təhlükəsiz giriş</span>
+                        <span><i class="fa-solid fa-house-chimney-window" aria-hidden="true"></i> Premium elan təcrübəsi</span>
+                        <span><i class="fa-solid fa-headset" aria-hidden="true"></i> Operativ dəstək</span>
+                    </div>
+                </aside>
+                <div class="glass-card public-auth-card p-8 rounded-3xl space-y-6 text-center">
+                    <div class="public-auth-brand" aria-label="BestHome">
+                        <span class="public-auth-logo"><i class="fa-solid fa-house-chimney" aria-hidden="true"></i></span>
+                        <span>BestHome</span>
+                    </div>
+                    <div class="public-auth-heading">
+                        <h2 class="text-2xl font-bold text-white">İstifadəçi Qeydiyyatı</h2>
+                        <p>Hesabınızı e-poçt və ya Google ilə yaradın.</p>
+                    </div>
+                    <div id="register-error" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-xs"></div>
+                    <div id="register-success" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3 rounded-xl text-xs"></div>
+                    <form onsubmit="handleUserRegister(event)" class="space-y-4 text-left">
+                        <label class="login-field block"><i class="fa-regular fa-user" aria-hidden="true"></i><input type="text" id="register-fullname" required placeholder="Ad Soyad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
+                        <label class="login-field block"><i class="fa-solid fa-phone" aria-hidden="true"></i><input type="tel" id="register-phone" placeholder="Telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
+                        <label class="login-field block"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input type="email" id="register-email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$" title="Email ünvanını düzgün daxil edin." placeholder="E-poçt" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
+                        <label class="login-field block"><i class="fa-solid fa-lock" aria-hidden="true"></i><input type="password" id="register-pass" required minlength="6" placeholder="Şifrə" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none"></label>
+                        <button type="submit" id="register-submit-btn" class="async-submit-btn login-submit-btn w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl"><span>Qeydiyyatdan keç</span></button>
+                    </form>
+                    <button type="button" onclick="startGoogleLogin()" class="google-signin-btn" aria-label="Google ilə daxil ol">
+                        <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+                            <path fill="#4285F4" d="M17.64 9.204c0-.638-.057-1.251-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.614z"/>
+                            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.182l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.583-5.036-3.71H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+                            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+                            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                        </svg>
+                        <span>Google ilə daxil ol</span>
+                    </button>
+                    <div class="public-auth-links flex justify-center text-xs text-gray-400">
+                        <button onclick="switchTab('admin-login')" class="hover:text-brand-500">Artıq hesabınız var? Daxil olun</button>
+                    </div>
+                </div>
             </div>
         </section>
 
