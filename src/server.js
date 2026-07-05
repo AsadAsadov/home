@@ -370,6 +370,7 @@ const cache30s = publicCache(30);
   '/api/site-music',
   '/api/hero-slides',
   '/api/seabreeze/hero-slides',
+  '/api/seabreeze/sections',
   '/api/seabreeze/gallery',
   '/api/site-ads',
   '/api/vacancies',

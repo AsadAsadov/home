@@ -29,14 +29,23 @@ function clearPublicCache(prefix) {
   }
 }
 
+function stripConditionalRequestHeaders(req) {
+  delete req.headers['if-none-match'];
+  delete req.headers['if-modified-since'];
+}
+
 function publicCache(ttlSeconds = DEFAULT_TTL_SECONDS) {
   const ttlMs = normalizeTtl(ttlSeconds) * 1000;
   return (req, res, next) => {
+    if (req.method === 'HEAD') return next();
     if (req.method !== 'GET' || hasAuth(req)) return next();
+
+    stripConditionalRequestHeaders(req);
 
     const key = getCacheKey(req);
     const cached = cache.get(key);
     if (cached && cached.expiresAt > now()) {
+      res.setHeader('X-Cache', 'HIT');
       res.setHeader('X-Public-Cache', 'HIT');
       res.setHeader('Cache-Control', `public, max-age=${Math.floor(ttlMs / 1000)}`);
       for (const [header, value] of Object.entries(cached.headers)) {
@@ -55,6 +64,7 @@ function publicCache(ttlSeconds = DEFAULT_TTL_SECONDS) {
           body,
           expiresAt: now() + ttlMs,
         });
+        res.setHeader('X-Cache', 'MISS');
         res.setHeader('X-Public-Cache', 'MISS');
         res.setHeader('Cache-Control', `public, max-age=${Math.floor(ttlMs / 1000)}`);
       }
