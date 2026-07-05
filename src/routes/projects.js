@@ -89,7 +89,7 @@ router.get('/', asyncHandler(async (req, res) => {
   if (yearClause) clauses.push(yearClause);
   const where = { AND: clauses };
   const [data, total] = await Promise.all([
-    prisma.project.findMany({ where, orderBy: projectOrderBy, ...(returnAll ? {} : { skip, take }) }),
+    prisma.project.findMany({ where, orderBy: projectOrderBy, ...(returnAll ? { take: 100 } : { skip, take }) }),
     prisma.project.count({ where }),
   ]);
   res.json({ data: orderedProjectRows(data), total, page: returnAll ? 1 : page, totalPages: returnAll ? 1 : Math.max(Math.ceil(total / limit), 1) });

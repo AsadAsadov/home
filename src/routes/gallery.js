@@ -173,7 +173,7 @@ function unsetOtherFeaturedVideos(tx, keepId = null) {
 
 router.get('/', asyncHandler(async (req, res) => {
   const page = positiveInt(req.query.page, 1, 1000000);
-  const limit = positiveInt(req.query.limit, 1000, 5000);
+  const limit = positiveInt(req.query.limit, 20, 100);
   const skip = (page - 1) * limit;
   const requestedMediaType = String(req.query.media_type ?? req.query.mediaType ?? req.query.type ?? '').toLowerCase();
   const filterMediaType = requestedMediaType === 'video'
