@@ -32,6 +32,7 @@ const { authenticate, authorize } = require('./middleware/auth');
 const { sendEmail, verifySmtpTransporter } = require('./utils/email');
 const { initRealtime } = require('./utils/realtime');
 const { startAutoApproveExpiredListingsJob } = require('./utils/autoApproveListings');
+const { publicCache, clearPublicCacheAfterMutation, slowRequestLogger } = require('./middleware/publicCache');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -359,6 +360,24 @@ app.get('/sitemap.xml', async (_req, res, next) => {
     next(error);
   }
 });
+
+
+app.use('/api', slowRequestLogger(1000));
+app.use(clearPublicCacheAfterMutation);
+const cache30s = publicCache(30);
+[
+  '/api/site-settings',
+  '/api/site-music',
+  '/api/hero-slides',
+  '/api/seabreeze/hero-slides',
+  '/api/seabreeze/gallery',
+  '/api/site-ads',
+  '/api/vacancies',
+  '/api/gallery',
+  '/api/listing-hero-items',
+  '/api/projects',
+  '/api/listings',
+].forEach((route) => app.use(route, cache30s));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'besthome-backend' }));
 app.get('/api/config/maps', (_req, res) => {
