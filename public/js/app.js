@@ -10523,6 +10523,40 @@ Təşəkkür edirəm. 🙏`;
             if (imageUrl) return `<img class="${cls}" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item?.title || 'Sea Breeze')}" loading="lazy">`;
             return options.placeholder ? `<div class="${escapeHtml(options.placeholderClass || 'sb-info-placeholder')}" aria-hidden="true"></div>` : '';
         };
+        const seaBreezeVideoPrefs = () => {
+            const volume = Math.min(1, Math.max(0, Number(localStorage.getItem('seabreeze_video_volume') || '0.8') || 0.8));
+            return { muted: localStorage.getItem('seabreeze_video_muted') !== 'false', volume };
+        };
+        const formatSeaBreezeVideoTime = (seconds = 0) => {
+            if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
+            const total = Math.floor(seconds);
+            const mins = Math.floor(total / 60);
+            const secs = String(total % 60).padStart(2, '0');
+            return `${mins}:${secs}`;
+        };
+        function sbVideoPlayer(item, i = 0) {
+            const imageUrl = item?.image_url || item?.imageUrl || '';
+            const videoUrl = item?.video_url || item?.videoUrl || '';
+            const title = item?.title || 'Sea Breeze video';
+            if (!videoUrl) return '';
+            return `<div class="sb-video-player" data-sb-video-player data-player-index="${i}">
+                <video class="sb-video-player__media" src="${escapeHtml(videoUrl)}" ${imageUrl ? `poster="${escapeHtml(imageUrl)}"` : ''} preload="metadata" playsinline muted></video>
+                <div class="sb-video-player__gradient" aria-hidden="true"></div>
+                <div class="sb-video-player__loading" aria-live="polite"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Video yüklənir...</span></div>
+                <div class="sb-video-player__error" role="alert"><i class="fa-solid fa-triangle-exclamation"></i><span>Video yüklənmədi. Zəhmət olmasa daha sonra yenidən yoxlayın.</span></div>
+                <button type="button" class="sb-video-player__sound-pill" data-sb-video-sound aria-label="Səsi aç">Səsi aç</button>
+                <button type="button" class="sb-video-player__center" data-sb-video-toggle aria-label="Play"><i class="fa-solid fa-play"></i></button>
+                <div class="sb-video-player__controls">
+                    <button type="button" data-sb-video-toggle aria-label="Play"><i class="fa-solid fa-play"></i></button>
+                    <div class="sb-video-player__timeline"><input data-sb-video-progress type="range" min="0" max="1000" value="0" step="1" aria-label="Video progress"></div>
+                    <span class="sb-video-player__time"><span data-sb-video-current>0:00</span> / <span data-sb-video-duration>0:00</span></span>
+                    <button type="button" data-sb-video-mute aria-label="Səsi aç"><i class="fa-solid fa-volume-xmark"></i></button>
+                    <input class="sb-video-player__volume" data-sb-video-volume type="range" min="0" max="1" value="0.8" step="0.01" aria-label="Səs səviyyəsi">
+                    <button type="button" data-sb-video-fullscreen aria-label="Tam ekran"><i class="fa-solid fa-expand"></i></button>
+                </div>
+                <span class="sr-only">${escapeHtml(title)}</span>
+            </div>`;
+        }
         const seaBreezeHeroDuration = (slide) => Math.min(30, Math.max(2, Number(slide?.durationSeconds ?? slide?.duration_seconds ?? 6) || 6)) * 1000;
         let seaBreezePublicHeroTimer = null;
         let seaBreezePublicHeroIndex = 0;
@@ -10667,11 +10701,65 @@ Təşəkkür edirəm. 🙏`;
             const factClass = `sb-fact-cards${facts.length > 6 ? ' is-compact' : ''}`;
             const mediaType = videoUrl ? 'video' : 'image';
             const mediaUrl = videoUrl || imageUrl;
-            const mediaHtml = media ? `<div class="sb-info-media" onclick="openSeaBreezeMediaModal('${escapeHtml(mediaUrl)}','${mediaType}','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')">${media}</div>` : '';
+            const mediaHtml = videoUrl ? `<div class="sb-info-media sb-info-media--video">${sbVideoPlayer(sec, i)}</div>` : (media ? `<div class="sb-info-media" onclick="openSeaBreezeMediaModal('${escapeHtml(mediaUrl)}','${mediaType}','${escapeHtml(sec.title || 'Sea Breeze Haqqında')}')">${media}</div>` : '');
             const bodyHtml = `${content ? renderSeaBreezeContent(content) : ''}${facts.length ? `<ul class="${factClass}">${facts.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}`;
             const toggleHtml = bodyHtml ? `<button type="button" class="sb-info-toggle" onclick="toggleSeaBreezeLongContent(this)" hidden>Daha çox göstər <i class="fa-solid fa-chevron-down"></i></button>` : '';
             const nextHtml = total > 1 ? `<div><button type="button" class="sb-next-section-btn" onclick="scrollToSeaBreezeSection(${Math.min(i + 1, total - 1)})">${i >= total - 1 ? 'İlk bölməyə qayıt' : 'Növbəti bölmə'} <i class="fa-solid fa-arrow-${i >= total - 1 ? 'up' : 'down'}"></i></button></div>` : '';
             return `<section id="sb-info-section-${i}" data-section-key="${escapeHtml(sectionKey)}" class="${classes.join(' ')}">${mediaHtml}<div class="sb-info-text"><small>${String(i+1).padStart(2,'0')}</small><h2>${escapeHtml(sec.title || 'Sea Breeze Haqqında')}</h2>${bodyHtml ? `<div class="sb-info-collapsible${isExpanded ? '' : ' is-collapsed'}">${bodyHtml}</div>` : ''}${toggleHtml}${nextHtml}</div></section>`;
+        }
+
+        function updateSeaBreezeVideoUi(player) {
+            const video = player.querySelector('video');
+            const playButtons = player.querySelectorAll('[data-sb-video-toggle]');
+            const muteButton = player.querySelector('[data-sb-video-mute]');
+            const soundPill = player.querySelector('[data-sb-video-sound]');
+            const progress = player.querySelector('[data-sb-video-progress]');
+            const volume = player.querySelector('[data-sb-video-volume]');
+            const current = player.querySelector('[data-sb-video-current]');
+            const duration = player.querySelector('[data-sb-video-duration]');
+            const isPaused = video.paused || video.ended;
+            player.classList.toggle('is-playing', !isPaused);
+            player.classList.toggle('is-muted', video.muted || video.volume === 0);
+            playButtons.forEach((button) => {
+                button.setAttribute('aria-label', isPaused ? 'Play' : 'Pause');
+                button.innerHTML = `<i class="fa-solid fa-${isPaused ? 'play' : 'pause'}"></i>`;
+            });
+            if (muteButton) {
+                const muted = video.muted || video.volume === 0;
+                muteButton.setAttribute('aria-label', muted ? 'Səsi aç' : 'Səsi bağla');
+                muteButton.innerHTML = `<i class="fa-solid fa-${muted ? 'volume-xmark' : 'volume-high'}"></i>`;
+            }
+            if (soundPill) soundPill.hidden = !(video.muted || video.volume === 0);
+            if (progress && !progress.matches(':active')) progress.value = video.duration ? Math.round((video.currentTime / video.duration) * 1000) : 0;
+            if (volume) volume.value = String(video.volume || 0);
+            if (current) current.textContent = formatSeaBreezeVideoTime(video.currentTime);
+            if (duration) duration.textContent = formatSeaBreezeVideoTime(video.duration);
+        }
+        function initSeaBreezeVideoPlayers(root = document) {
+            root.querySelectorAll('[data-sb-video-player]:not([data-sb-ready])').forEach((player) => {
+                const video = player.querySelector('video');
+                if (!video) return;
+                player.dataset.sbReady = '1';
+                const prefs = seaBreezeVideoPrefs();
+                video.volume = prefs.volume;
+                video.muted = true;
+                const savePrefs = () => { localStorage.setItem('seabreeze_video_muted', String(video.muted || video.volume === 0)); localStorage.setItem('seabreeze_video_volume', String(video.volume || 0)); };
+                const play = () => video.play?.().catch(() => updateSeaBreezeVideoUi(player));
+                const togglePlay = () => video.paused ? play() : video.pause();
+                const enableSound = () => { video.muted = false; if (video.volume === 0) video.volume = prefs.volume || 0.8; savePrefs(); play(); updateSeaBreezeVideoUi(player); };
+                player.querySelectorAll('[data-sb-video-toggle]').forEach(btn => btn.addEventListener('click', togglePlay));
+                player.querySelector('[data-sb-video-sound]')?.addEventListener('click', enableSound);
+                player.querySelector('[data-sb-video-mute]')?.addEventListener('click', () => { video.muted = !(video.muted || video.volume === 0); savePrefs(); if (!video.muted) play(); updateSeaBreezeVideoUi(player); });
+                player.querySelector('[data-sb-video-volume]')?.addEventListener('input', (event) => { video.volume = Number(event.target.value); video.muted = video.volume === 0; savePrefs(); updateSeaBreezeVideoUi(player); });
+                player.querySelector('[data-sb-video-progress]')?.addEventListener('input', (event) => { if (video.duration) video.currentTime = (Number(event.target.value) / 1000) * video.duration; updateSeaBreezeVideoUi(player); });
+                player.querySelector('[data-sb-video-fullscreen]')?.addEventListener('click', () => { (player.requestFullscreen || player.webkitRequestFullscreen)?.call(player); });
+                player.addEventListener('keydown', (event) => { if (event.key === ' ') { event.preventDefault(); togglePlay(); } if (event.key.toLowerCase() === 'm') { event.preventDefault(); video.muted = !video.muted; savePrefs(); updateSeaBreezeVideoUi(player); } });
+                player.tabIndex = 0;
+                ['loadedmetadata','timeupdate','play','pause','volumechange','ended','waiting','playing','canplay'].forEach(name => video.addEventListener(name, () => { player.classList.toggle('is-loading', name === 'waiting'); if (name === 'playing' || name === 'canplay') player.classList.remove('is-loading'); updateSeaBreezeVideoUi(player); }));
+                video.addEventListener('error', () => { player.classList.add('has-error'); updateSeaBreezeVideoUi(player); });
+                updateSeaBreezeVideoUi(player);
+                play();
+            });
         }
         function renderSeaBreezePublicSections(sectionsData = []) {
             const sectionsContainer = document.getElementById('seaBreezeSections');
@@ -10681,6 +10769,7 @@ Təşəkkür edirəm. 🙏`;
             const sectionRows = sections.filter(sec => String(sec.section_key || sec.sectionKey).toLowerCase() !== 'cta');
             const nav = sectionRows.length > 1 ? `<nav class="sb-section-nav" aria-label="Sea Breeze bölmələri">${sectionRows.map((_, i) => `<button type="button" onclick="scrollToSeaBreezeSection(${i})" aria-label="${i + 1}-ci bölmə">${i + 1}</button>`).join('')}</nav>` : '';
             sectionsContainer.innerHTML = `${nav}${sectionRows.map((sec,i)=>renderSeaBreezeInfoSection(sec, i, sectionRows.length)).join('')}${ctaSection ? `<section class="sb-final-cta"><h2>${escapeHtml(ctaSection.title || 'Sea Breeze-in bir hissəsinə çevrilin')}</h2><p>${escapeHtml(ctaSection.content || '')}</p><div><button onclick="switchTab('seabreeze')">Layihələrə bax</button><button onclick="switchTab('listings')">Elanlara bax</button></div></section>` : ''}`;
+            initSeaBreezeVideoPlayers(sectionsContainer);
             requestAnimationFrame(refreshSeaBreezeReadMoreControls);
         }
         function renderSeaBreezePublicGallery(galleryData = []) {
@@ -10816,7 +10905,7 @@ Təşəkkür edirəm. 🙏`;
         }
         function updateSeaBreezeMediaInputs(prefix) {
             const type = document.getElementById(`${prefix}-mediaType`)?.value || 'none';
-            const showImage = type === 'image' || type === 'image_video';
+            const showImage = type === 'image' || type === 'video' || type === 'image_video';
             const showVideo = type === 'video' || type === 'image_video';
             const imageField = document.getElementById(`${prefix}-image-field`);
             const videoField = document.getElementById(`${prefix}-video-field`);
