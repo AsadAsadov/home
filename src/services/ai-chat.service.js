@@ -10,6 +10,9 @@ const contains = value => ({ contains: value, mode: 'insensitive' });
 const CARD_REPLY = 'Sizə uyğun nəticələri aşağıda göstərdim.';
 const SEARCH_STOPWORDS = new Set(['kiraye', 'rent', 'icare', 'menzil', 'ev', 'elan', 'axtar', 'tap', 'haqqinda', 'melumat', 'layihe', 'layiheler', 'proyekt', 'satis', 'satiliq', 'daha', 'cox', 'çox', 'goster', 'göstər']);
 const DEFAULT_SUGGESTIONS = ['Sea Breeze-də 1 otaqlı', 'Satış elanları', 'Layihələr', 'WhatsApp ilə əlaqə'];
+const SHARED_PROJECT_ALIASES = {
+  'Sabah Tower': ['sabah', 'sabah tower', 'sabah tower haqqinda', 'sabah towerda', 'sabah tower layihesi']
+};
 const SALE_LISTING_TYPE_FILTER = [{ listingType: contains('Satış') }, { listingType: contains('Satis') }, { listingType: contains('sale') }];
 const RENT_LISTING_TYPE_FILTER = [{ listingType: contains('kirayə') }, { listingType: contains('kiraye') }, { listingType: contains('rent') }, { listingType: contains('icarə') }, { listingType: contains('icare') }];
 const MORE_RE = /daha\s*(cox|çox)|novbeti|növbəti|artiq|artıq/i;
@@ -30,6 +33,12 @@ function normalizeListingType(value) {
   return '';
 }
 function normalizedCompact(value) { return normalizedWords(value).join(' '); }
+function knownProjectTerms(message) {
+  const q = normalizedCompact(message);
+  return Object.entries(SHARED_PROJECT_ALIASES)
+    .filter(([title, aliases]) => [title, ...aliases].map(normalizedCompact).some(alias => alias && (q === alias || q.includes(alias) || alias.includes(q))))
+    .map(([title]) => title);
+}
 function projectAliases(project) {
   const aliases = Array.isArray(project.aliases) ? project.aliases : (project.aliases && typeof project.aliases === 'object' ? Object.values(project.aliases) : []);
   return [project.title, project.slug, project.zone, project.mapLocationLabel, ...aliases].filter(Boolean).map(normalizedCompact);
@@ -55,7 +64,8 @@ function intentFor(message) {
   const isWhatsApp = /\bwhatsapp\b|elaqe|zeng|operator|emekdas|menecer/.test(text);
   const hasListingIntent = /kiraye|rent|icare|satis|satiliq|otaq|menzil|ev|villa|elan/.test(text);
   const wantsProject = /layihe|proyekt|tikili|kompleks|haqqinda|melumat/.test(text) || (!hasListingIntent && normalizedWords(message).filter(w => w.length > 2).length >= 1);
-  const wantsListing = /elan|ev|menzil|villa|obyekt|ofis|otaq|satis|satiliq|kiraye|rent|icare|axtar|tap|seabreeze|sea breeze/.test(text);
+  const mentionsKnownProject = knownProjectTerms(message).length > 0;
+  const wantsListing = mentionsKnownProject || /elan|ev|menzil|villa|obyekt|ofis|otaq|satis|satiliq|kiraye|rent|icare|axtar|tap|seabreeze|sea breeze/.test(text);
   const sale = /satis|satiliq|almaq|alim/.test(text);
   const rent = /kiraye|rent|icare/.test(text);
   const room = text.match(/(\d+)\s*(?:otaq|otaqli|otaqliq)/)?.[1];
@@ -137,7 +147,9 @@ async function searchContext(query, conversationId, originalQuery = query) {
     const cached = paginateCachedResult(conversationId, originalQuery || query);
     if (cached) return cached;
   }
-  const terms = normalizedWords(cleanText(query, 100)).filter(t => t.length > 2 && !SEARCH_STOPWORDS.has(t) && !/^\d+$/.test(t)).slice(0, 4);
+  const canonicalProjects = knownProjectTerms(query);
+  const expandedQuery = [query, ...canonicalProjects].join(' ');
+  const terms = normalizedWords(cleanText(expandedQuery, 140)).filter(t => t.length > 2 && !SEARCH_STOPWORDS.has(t) && !/^\d+$/.test(t)).slice(0, 6);
   const listingOR = terms.flatMap(t => [{ title: contains(t) }, { projectName: contains(t) }, { district: contains(t) }, { settlement: contains(t) }, { neighborhood: contains(t) }, { streetAddress: contains(t) }, { listingType: contains(t) }, { propertyCategory: contains(t) }]);
   const projectOR = terms.flatMap(t => [{ title: contains(t) }, { description: contains(t) }, { zone: contains(t) }, { mapLocationLabel: contains(t) }]);
   const knowledgeOR = terms.flatMap(t => [{ title: contains(t) }, { content: contains(t) }, { type: contains(t) }]);
