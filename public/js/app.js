@@ -96,6 +96,7 @@
         const ABSHERON_DISTRICTS = ['Xırdalan', 'Masazır', 'Mehdiabad', 'Saray', 'Novxanı', 'Fatmayı', 'Görədil', 'Digah'];
         const SUMQAYIT_DISTRICTS = ['1-ci mikrorayon', '2-ci mikrorayon', '3-cü mikrorayon', '4-cü mikrorayon', '5-ci mikrorayon', 'Corat', 'Hacı Zeynalabdin'];
         const GENERAL_CITIES = ['Bakı', 'Abşeron', 'Sumqayıt'];
+        const REQUIRED_SEA_BREEZE_PROJECT_NAMES = ['Sabah Tower'];
         const BAKU_METRO_STATIONS = ['28 May', 'Nizami', 'Gənclik', 'Nərimanov', 'Nəsimi', 'Dərnəgül', 'Həzi Aslanov', 'Ulduz', 'Avtovağzal', 'Xocasən', 'Xətai', 'İnşaatçılar', 'Elmlər Akademiyası', 'Memar Əcəmi', 'Azadlıq Prospekti', 'Neftçilər', 'Qara Qarayev', 'Xalqlar Dostluğu', 'Əhmədli', 'Koroğlu', 'İçərişəhər', 'Sahil', 'Cəfər Cabbarlı', '20 Yanvar', '8 Noyabr', 'Bakmil', 'Memar Əcəmi-2'];
         const SETTLEMENT_OPTIONS = ['Bilgəh', 'Mərdəkan', 'Buzovna', 'Hövsan', 'Masazır', 'Mehdiabad', 'Novxanı', 'Ramana', 'Zabrat', 'Kürdəxanı', 'Türkan', 'Şüvəlan'];
         const AD_DEFAULT_DISPLAY_DURATION_SECONDS = 30;
@@ -143,6 +144,14 @@
             const seenIds = new Set();
             const seenNames = new Set();
             const names = [];
+            REQUIRED_SEA_BREEZE_PROJECT_NAMES.forEach(name => {
+                const title = projectTitleCase(name);
+                const nameKey = normalizeProjectOptionKey(title);
+                if (title && nameKey && !seenNames.has(nameKey)) {
+                    seenNames.add(nameKey);
+                    names.push(title);
+                }
+            });
             getSeaBreezeProjects().forEach(project => {
                 const rawTitle = project?.title || project?.name || project?.projectName || '';
                 const title = projectTitleCase(rawTitle);
@@ -3944,7 +3953,8 @@
             'The Grand': ['grand', 'the grand sea breeze'],
             'Park Residences': ['park residence', 'park residences'],
             'Gardens Residences': ['garden residence', 'gardens residences'],
-            'Malibu Residence': ['malibu', 'malibu residence']
+            'Malibu Residence': ['malibu', 'malibu residence'],
+            'Sabah Tower': ['sabah', 'sabah tower', 'sabah tower layihəsi', 'sabah tower-da', 'sabah towerda']
         };
 
         function projectAliases(project = {}) {
